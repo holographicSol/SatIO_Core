@@ -1,0 +1,348 @@
+SatIO
+
+Documentation.
+
+Tidy.
+
+MISRA all the things.
+
+Refine:
+	Accuracy.
+	Performance/Efficiency.
+
+Granular Enable/Disable.
+
+Power & Sleep.
+
+Hive Output:
+	Serial. done
+	RF. pending
+
+Matrix Output:
+	Output via Port controller 0 High/Low. done
+	Support Output via more than one port controller (requires output selection).
+	Output a Hive value over serial, with or instead of output via port controller (requires output selection). pending
+	Output a Hive value over RF, with or instead of output via port controller (requires output selection). pending
+	
+
+Built in ease of Editions & Porting:
+	Different architectures.
+	Headless.
+
+
+matrix -s 0 -f 0 -fx 10
+stat -e -t -v
+stat -d -t
+system -log -e
+system -log -d
+
+--------------------------------------------------------------------------------------------------
+
+[ MISRA Compliancy ]
+
+Swap out LVGL for LVGL Safe.
+
+Project Wide Passes (each pass can be re-passed until satisfied & repassed any other time):
+
+[ FULL MISRA PASS ]
+Make foo library in main MISRA compliant.
+Comment according these reasons and rules:
+(1) Concisely why something is MISRA compliant.
+(2) Concise code explanation.
+(3) Never refer to the original code, the comment must explain what exists, not what doesn't.
+The code should be exceptionally clear to read, as should the comments.
+
+[ RULE BY RULE MISSRA PASS ]
+Verify compliant for MISRA rule X.
+
+[ SIMPLIFY PASS ]
+Try to massively simplify foobar by reducing code size, reducing lines of code.
+
+[ OVERFLOW PASS ]
+Check for buffer overflows.
+
+[ UNIFORMITY PASS ]
+Ensure the code and comment style is consistant across all files.
+
+[ REDUCE MEMORY PASS ]
+Reduce memory consumed by X.
+
+[ MAKE ALL FLOATING POINT NUMBERS DOUBLE PASS? ]
+Optionally make all floating point numbers a double.
+
+[ TYPE COMPARISON PASS ]
+Ensure any types being compared to each other are of the same type.
+
+[ ALL RETURN PASS ]
+Make all functions return a value.
+
+[ HANDLE INVALID PASS ]
+Ensure all cases where a value is invalid, is confirmed to be invalid and handled,
+initially with a simple printf.
+
+[ GENERAL CODE INSIGHTS PASS ]
+Use printf to gather more insights while the system is running.
+
+[ MAGIC NUMBER PASS ]
+Seek and destroy any magic numbers, replacing them with variable names or defines.
+
+[ NON-BLOCKING PASS ]
+Ensure that foobar will not be blocking any other tasks during any time, especially during long operations.
+
+[ FIND UNECESSARY CALLS PASS ]
+Find repeated unnecessary calls in foobar, that may be heavily, even lightly impacting performance and efficiency.
+
+[ FIND EXPENSIVE PASS ]
+Ascertain what the most expensive function calls are in foobar, then find least expensive solutions to replace them.
+
+[ Remove All C Style Casts Pass ]
+Replace all C Style casts in foo library, with reinterpret_cast. So that casts are easier to find, audit and non-sensical casts
+can be more easily detected by the compiler, forcing us to fix any non-sensical casts.
+
+--------------------------------------------------------------------------------------------------
+
+[ Storage ]
+Re-create succeed/failed returns for read/write ops.
+
+
+[ Perf ]
+Ensure counters are accurate and that printed/displayed counters are aligned when totals ready.
+
+Task efficiency:
+	Currently: tasks repeatedly iterate, regardless of necessity (example a gyro might be 200Hz, gyro task simply runs every n milliseconds after n milliseconds of task execution time).
+	Proposed: tasks only iterate exactly when they should, the rest of the time they wait/suspend themselves (do the most efficient thing) until the next time they need to iterate.
+
+Re-structure timing.
+
+matrix -s 0 --flux 5
+
+powercfg --power-saving
+
+powercfg --power-balanced
+
+powercfg --ultimate-performance
+
+powercfg --setdelay --switch 2000
+
+powercfg --setdelay --switch 1
+
+powercfg --setdelay --admplex0 500
+powercfg --setdelay --admplex0 1000
+powercfg --setdelay --admplex1 1000
+
+powercfg --setdelay --admplex0 2000
+powercfg --setdelay --admplex1 1000
+
+powercfg --setdelay --admplex1 1000000
+powercfg --setdelay --admplex0 2500
+powercfg --setdelay --admplex0 50
+powercfg --setdelay --admplex0 5
+powercfg --setdelay --admplex0 4
+powercfg --setdelay --admplex0 3
+powercfg --setdelay --admplex0 2
+powercfg --setdelay --admplex0 1
+
+powercfg --setdelay --universe 1000
+
+powercfg --setdelay --gyro0 200 --switch 200
+
+powercfg --setdelay -gps 10
+
+Ensure each ff_freq counter steps only on validations.
+
+stat --sentence -e --gngga --gnrmc --gpatt
+stat --sentence -d --gngga --gnrmc --gpatt
+
+stat --sentence -e --gyro0
+stat --sentence -d --gyro0
+
+stat --sentence -e --admplex0
+stat --sentence -d --admplex0
+
+stat --sentence -e --venus
+stat --sentence -d --venus
+
+stat --sentence -e --matrix
+stat --sentence -d --matrix
+
+stat --sentence -e -A
+stat --sentence -d -A
+
+On avoiding interval flags:
+	Interval flags were used to output sentences on a task (fast without disturbing task of origin).
+	Interval flags removed, output sentences now on tasks (slows the task. example matrix Hz drops to half).
+	Consider automatically increasing task Hz for output enabled. And reducing task timing to micros.
+First lets introduce microsecond delays using xtasknotifywait.
+
+powercfg --autofreq -e
+powercfg --autofreq -d
+
+Utilize chips ADC pins for quicker in, on a task.
+
+Build portcontroller input back in (slower input).
+
+[ Sleep Modes ]
+[1] Utilize sleep modes: enter sleep modes automatically predicated upon task(s) Hz.
+[2] New matrix function: changes task(s) Hz (permanently/period of time).
+[3] Then: Device sleeps, wakes, runs routines, say [2] is true, increases Hz, then [1] keeps
+    device awake by default of [1] existing -> rinse repeats.
+
+
+[ Port Controllers ]
+Support multiple controllers, programmable addresses.
+
+[ Output ]
+Elemental calls. Re-institute functions for returning specific values over serial.
+
+[ Memory ]
+At this point, MAX_GLOBAL_ELEMENT_SIZE could be replaced with value specific sizes, defined in config.
+Granular value enable/disable with ifdef
+
+[ Time ]
+Measure in microseconds, the time between readGPS() and validateGPSData()
+Measure in microseconds, the time between validateGPSData() and syncTimeGPS()
+Measure in microseconds, the time between readGPS() done and applyPendingDateTime() done.
+
+Current average: between second flag is +-500 microseconds headless, +-1.4ms headed.
+Further tighten the timings.
+Clean timing work.
+Get battery for system RTC.
+Reduce cost of 2000Hz task (systemTiming):
+	Consider just using tv_now for internal timing, only setting system unixtime_uS every second.
+	Done.
+taskSystemTime now
+
+[ Freed IIC Bus From RTC ]
+General IIC I/O: Input port controller.
+		 Lower resource consuming display options.
+                 AI module(s).
+Note that with a cheap display / headless, the cost of SatIO is cut dramatically.
+
+
+Try to reduce code / strip things out.
+
+static inline void IRAM_ATTR selectADMultiplexerChannelFast(AnalogDigitalMultiplexer *mux_id, uint8_t channel) {
+  for (int i = 0; i < MAX_ANALOG_DIGITAL_MULTIPLEXER_CONTROL_PINS; i++) {
+    gpio_ll_set_level(&GPIO, mux_id->pins[i], AD_MUX_CHANNEL_TABLE[channel][i]);
+  }
+}
+
+stat -d --sentence --SatIO
+
+[ Admplex ]
+Add defines for channel r/w frequency in config.
+Use the values in the admplex tasks during channel iter.
+
+powercfg --setdelay --switch 1000
+powercfg --setdelay --admplex0 1000
+powercfg --setdelay --admplex0 500
+
+admplex0 -c 0 -e
+admplex0 -c 1 -e
+admplex0 -c 2 -e
+admplex0 -c 3 -e
+admplex0 -c 4 -e
+
+admplex0 -c 0 -d
+admplex0 -c 1 -d
+admplex0 -c 2 -d
+
+stat -v
+
+admplex0 -c 0 --freq 0         task hz
+admplex0 -c 0 --freq 1000000   1 hz
+admplex0 -c 0 --freq 500000    2 hz
+
+admplex0 -c 1 --freq 0         task hz
+admplex0 -c 1 --freq 1000000   1 hz
+admplex0 -c 1 --freq 500000    2 hz
+
+admplex0 -c 2 --freq 0         task hz
+admplex0 -c 2 --freq 1000000   1 hz
+admplex0 -c 2 --freq 500000    2 hz
+
+admplex0 -c 3 --freq 0         task hz
+admplex0 -c 3 --freq 1000000   1 hz
+admplex0 -c 3 --freq 500000    2 hz
+
+admplex0 -c 4 --freq 0         task hz
+admplex0 -c 4 --freq 1000000   1 hz
+admplex0 -c 4 --freq 500000    2 hz
+
+matrix -s 0 --opca 9
+matrix -s 0 --opca 10
+
+stat --sentence -e --gngga
+stat --sentence -d --gngga
+
+stat --sentence -e --pcinput
+stat --sentence -d --pcinput
+
+stat --sentence --pcinput -e
+stat --sentence --pcinput -d
+
+pci -c 0 -e
+
+pci --c 0 --freq 1000
+pci --pin 1 --freq 1000
+pci --pin 2 --freq 1000
+pci --pin 3 --freq 1000
+pci --pin 4 --freq 1000
+pci --pin 5 --freq 1000
+
+pci --all --freq 1000000
+admplex0 --all --freq 1000000
+
+powercfg --setdelay --admplex0 1000
+powercfg --setdelay --switch 1000
+
+powercfg --setdelay --pci 1000000
+powercfg --setdelay --pci 500000
+powercfg --setdelay --pci 250000
+powercfg --setdelay --pci 200000
+powercfg --setdelay --pci 100000
+powercfg --setdelay --pci 50000
+powercfg --setdelay --pci 25000
+powercfg --setdelay --pci 12500
+powercfg --setdelay --pci 10000
+powercfg --setdelay --pci 5000
+powercfg --setdelay --pci 2500
+powercfg --setdelay --pci 1200
+powercfg --setdelay --pci 1000
+
+powercfg --setdelay --pci 500
+
+powercfg --setdelay --pci 250
+
+powercfg --power-saving
+
+powercfg --power-balanced
+
+powercfg --ultimate-performance
+
+matrix -s 0 --flux 10
+
+[ Current ]
+MISRA, efficiency passes on LVGL related libs.
+Then back to multiplexers and task handling.
+
+For the plexer panel in lvgl:
+Each channel should have 2 rows. Containing name, data, hz total out of chan_freq_uS, set rate and enable/disable.
+So that each channel has all its data and switches all together. 
+
+add flux to lvgl (currently cmd only)
+add specify output port controller address to lvgl (currently cmd only)
+
+[ GPIO Expander ]
+(Closed loop = a real performance hit but safe) vs (check in period with per pin options for late check in. could cheat a closed loop performance hit but will have to be considered further)
+Per channel frequency config (esptimer compare to prev esptimer).
+Input mode topping out at: 4-5 channles 350Hz (sub 4 millisecond) with all other channels running at 1Hz.
+Input Mode: digits / chars 
+Output Mode: digits / chars 
+Next up output mode tweaks..
+
+Decide weather or not to allow specifying output controller address:
+	[ 1 ] Its a quick way to address N different controllers.
+	[ 2 ] Startup: The system currently calls clearGPIOPortController for 1 predefined controller address.
+	[ 3 ] Convenience aside of impromptu controller addressing, it is simpler and safer to only use predefined controllers, compiled for.
+Removed: Prefer to currently not to be tracking added/removed controllers.
