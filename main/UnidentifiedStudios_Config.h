@@ -29,6 +29,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
  * @warning Ensure only one SatIO_DISPLAY_OPTION is defined. 
  */
 // #define SatIO_DISPLAY_OPTION_HEADLESS
+#define SatIO_USE_DISPLAY
 
 /**
  * @brief SatIO_DISPLAY_OPTION_LVGL - LVGL display option.
@@ -81,24 +82,52 @@ extern bool ISR_Bool_MultiDisplayController_0;
 // #define SatIO_DEFAULT_POWER_CONFIG_ULTIMATE_PERFORMANCE
 // ----------------------------------------------------------------------------------------
 /**
- * @brief SatIO_CD74HC4067_OPTION_USE_1
+ * @brief SatIO_CD74HC4067_OPTION_USE_0
  * @def If defined then the system will be compiled to use CD74HC4067 1.
  * @warning If neither SatIO_CD74HC4067_OPTION is defined, the system will be built without a CD74HC4067.
  */
-#define SatIO_CD74HC4067_OPTION_USE_1
+#define SatIO_CD74HC4067_OPTION_USE_0
 
 /**
- * @brief SatIO_CD74HC4067_OPTION_USE_2
+ * @brief SatIO_CD74HC4067_OPTION_USE_1
  * @def If defined then the system will be compiled to use CD74HC4067 2.
  * @warning If neither SatIO_CD74HC4067_OPTION is defined, the system will be built without a CD74HC4067.
  */
-// #define SatIO_CD74HC4067_OPTION_USE_2
+// #define SatIO_CD74HC4067_OPTION_USE_1
 // ----------------------------------------------------------------------------------------
 /**
- * @brief SatIO_USE_GPIO_PORT_EXPANDER_1
- * @def If defined then the system will be compiled to use GPIO Port Expander 1.
+ * @brief SatIO_USE_GPIO_PORT_EXPANDER_N
+ * @def If defined then the system will be compiled to use GPIO Port Expander N.
  */
-#define SatIO_USE_GPIO_PORT_EXPANDER_1
+#define SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+// #define SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+#define SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_0
+// #define SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_1
+// ----------------------------------------------------------------------------------------
+/**
+ * @brief Device Task & Function Specifications.
+ *        The following options define what values and functionality the device will be built
+ *        with.
+ *        For example, the device could be built with everything disabled except GPS, Gyro,
+ *        Universe, track planets and starnav, with track planets (expensive) throttled to
+ *        something sensible like 1-2Hz and Star Navigation maxed out. Creating a responsive
+ *        star navigation system.
+ *        There will be special power options and defines for certain configurations.
+ *        SatIO is programmable and can be used as a module or standalone device, its core functionality
+ *        is modular too.
+ * @warning These options have not been thoroughly tested in different combinations of being
+ *          partially disabled. Until now, mostly everything has always been enabled. Testing pending.
+ */
+#define SatIO_USE_GPS_0
+#define SatIO_USE_GYRO_0
+#define SatIO_USE_UNIVERSE
+#define SatIO_USE_TRACK_PLANETS
+#define SatIO_USE_STARNAV
+#define SatIO_USE_STORAGE
+#define SatIO_USE_SWITCHES
+#define SatIO_USE_MATRIX
+#define SatIO_USE_MAPPING
+#define SatIO_USE_INS
 
 // ----------------------------------------------------------------------------------------
 
@@ -116,11 +145,11 @@ typedef struct PwrConfig {
 
     uint32_t TASK_MAX_FREQ_GPS;
 
-    #ifdef SatIO_CD74HC4067_OPTION_USE_1
+    #ifdef SatIO_CD74HC4067_OPTION_USE_0
     uint32_t TASK_MAX_FREQ_ADMPLEX0;
     #endif
 
-    #ifdef SatIO_CD74HC4067_OPTION_USE_2
+    #ifdef SatIO_CD74HC4067_OPTION_USE_1
     uint32_t TASK_MAX_FREQ_ADMPLEX1;
     #endif
 
@@ -151,11 +180,11 @@ typedef struct PwrConfig {
  */
 #define TASK_MAX_FREQ_LOW_GPS                         100000  // (10 Hz)
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_MAX_FREQ_LOW_ADMPLEX0                    100000  // (10 Hz)
 #endif
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_MAX_FREQ_LOW_ADMPLEX1                    100000  // (10 Hz)
 #endif
 
@@ -184,11 +213,11 @@ typedef struct PwrConfig {
  */
 #define TASK_MAX_FREQ_BALANCED_GPS                    100000  // (10 Hz)
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_MAX_FREQ_BALANCED_ADMPLEX0               5000    // (200 Hz)
 #endif
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_MAX_FREQ_BALANCED_ADMPLEX1               5000    // (200 Hz)
 #endif
 
@@ -217,11 +246,11 @@ typedef struct PwrConfig {
  */
 #define TASK_MAX_FREQ_HIGH_GPS                        100000  // (10 Hz)
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_MAX_FREQ_HIGH_ADMPLEX0                   2000    // (500 Hz)
 #endif
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_MAX_FREQ_HIGH_ADMPLEX1                   2000    // (500 Hz)
 #endif
 

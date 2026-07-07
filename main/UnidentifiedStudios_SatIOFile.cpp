@@ -1133,10 +1133,10 @@ bool saveSystemFile(const char *filepath) {
     // active preset's display name (see PwrConfig in UnidentifiedStudios_Config.h).
     WRITE_STR_TAG(SYSTEM_FILE_PWRCFG_NAME, pwrConfigCurrent.name);
     WRITE_UINT32_TAG(SYSTEM_FILE_PWRCFG_GPS, pwrConfigCurrent.TASK_MAX_FREQ_GPS);
-    #ifdef SatIO_CD74HC4067_OPTION_USE_1
+    #ifdef SatIO_CD74HC4067_OPTION_USE_0
     WRITE_UINT32_TAG(SYSTEM_FILE_PWRCFG_ADMPLEX0, pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX0);
     #endif
-    #ifdef SatIO_CD74HC4067_OPTION_USE_2
+    #ifdef SatIO_CD74HC4067_OPTION_USE_1
     WRITE_UINT32_TAG(SYSTEM_FILE_PWRCFG_ADMPLEX1, pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1);
     #endif
     WRITE_UINT32_TAG(SYSTEM_FILE_PWRCFG_GYRO, pwrConfigCurrent.TASK_MAX_FREQ_GYRO);
@@ -1275,10 +1275,10 @@ bool loadSystemFile(const char *filepath) {
 
         READ_STR_TAG(SYSTEM_FILE_PWRCFG_NAME, pwrConfigCurrent.name, sizeof(pwrConfigCurrent.name));
         READ_UINT32_TAG(SYSTEM_FILE_PWRCFG_GPS, pwrConfigCurrent.TASK_MAX_FREQ_GPS);
-        #ifdef SatIO_CD74HC4067_OPTION_USE_1
+        #ifdef SatIO_CD74HC4067_OPTION_USE_0
         READ_UINT32_TAG(SYSTEM_FILE_PWRCFG_ADMPLEX0, pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX0);
         #endif
-        #ifdef SatIO_CD74HC4067_OPTION_USE_2
+        #ifdef SatIO_CD74HC4067_OPTION_USE_1
         READ_UINT32_TAG(SYSTEM_FILE_PWRCFG_ADMPLEX1, pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1);
         #endif
         READ_UINT32_TAG(SYSTEM_FILE_PWRCFG_GYRO, pwrConfigCurrent.TASK_MAX_FREQ_GYRO);

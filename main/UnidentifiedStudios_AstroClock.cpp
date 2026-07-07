@@ -586,7 +586,7 @@ static void update_altitude_line(lv_obj_t * const altitude_line, const float alt
         lv_line_set_points(altitude_line, altitude_points, 2);
     }
     else {
-        printf("ERROR: Invalid args in update_altitude_line, called with args altitude_angle=%f  intersection=%f\n", altitude_angle, intersection);
+        // printf("ERROR: Invalid args in update_altitude_line, called with args altitude_angle=%f  intersection=%f\n", altitude_angle, intersection);
     }
 }
 

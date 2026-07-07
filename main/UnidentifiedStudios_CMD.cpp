@@ -4,7 +4,6 @@
     Intended to be MISRA Compliant (untested, unverified, in-progress).
 */
 
-
 #include "UnidentifiedStudios_CMD.h"
 #include <Arduino.h>
 
@@ -1398,11 +1397,11 @@ void CmdProcess(void) {
             // set max freq hz
             if (argparser_has_flag(&parser, "setdelay")) {
 
-              #ifdef SatIO_CD74HC4067_OPTION_USE_1
+              #ifdef SatIO_CD74HC4067_OPTION_USE_0
               if (argparser_has_flag(&parser, "admplex0"))
                 {setDelay(TaskADMplex0, argparser_get_uint32(&parser, "admplex0", pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX0), &pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX0);}
               #endif
-              #ifdef SatIO_CD74HC4067_OPTION_USE_2
+              #ifdef SatIO_CD74HC4067_OPTION_USE_1
               if (argparser_has_flag(&parser, "admplex1"))
                 {setDelay(TaskADMplex1, argparser_get_uint32(&parser, "admplex1", pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1), &pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1);}
               #endif
@@ -1453,7 +1452,9 @@ long i_output_config_matrix = 0;
 #define TXBUF_UNI      (serial0Data.BUFFER_TX_UNI)
 #define TXBUF_SWITCHES (serial0Data.BUFFER_TX_SWITCHES)
 #define TXBUF_PCI      (serial0Data.BUFFER_TX_PCI)
-#else
+#endif
+
+#ifdef SatIO_SERIAL_TX_OPTION_NEW_TASK
 /*
  * Under SatIO_SERIAL_TX_OPTION_NEW_TASK every outputSerialXxx() call is made
  * sequentially from the single SatIO-serial-tx task, so one shared buffer is
@@ -1621,9 +1622,9 @@ void outputSerialGPS(void) {
     if (systemData.output_gnrmc_enabled == true) {printf("%s\n", gnrmcData.outsentence);}
     if (systemData.output_gpatt_enabled == true) {printf("%s\n", gpattData.outsentence);}
   }
-// }
+}
 
-// void outputSerialSatIO(void) {
+void outputSerialSatIO(void) {
   if (systemData.output_SatIO_enabled == true) {
     char checksum[MAX_CHECKSUM_SIZE];
 
@@ -2030,7 +2031,7 @@ void outputStat(void) {
     //                                                                                             PRINT PER-CHANNEL MULTIPLEXER Hz
     // ----------------------------------------------------------------------------------------------------------------------------
     // if (systemData.output_stat_v==true) {
-        #ifdef SatIO_CD74HC4067_OPTION_USE_1
+        #ifdef SatIO_CD74HC4067_OPTION_USE_0
         printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
         printf("                      ");
         printSwitchIndexHeader(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
@@ -2039,7 +2040,7 @@ void outputStat(void) {
         for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_mplex0_chan[i].task_ffreq_t);}
         printf("\n");
         #endif
-        #ifdef SatIO_CD74HC4067_OPTION_USE_2
+        #ifdef SatIO_CD74HC4067_OPTION_USE_1
         printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
         printf("                      ");
         printSwitchIndexHeader(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);

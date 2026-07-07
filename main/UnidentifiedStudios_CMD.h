@@ -23,6 +23,7 @@ struct Serial0Struct {
   char BUFFER_RX[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
   char BUFFER_TX[MAX_GLOBAL_SERIAL_BUFFER_SIZE]; // serial buffer.
 };
+extern struct Serial0Struct serial0Data;
 #endif
 #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
 /*
@@ -42,8 +43,8 @@ struct Serial0Struct {
   char BUFFER_TX_SWITCHES[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
   char BUFFER_TX_PCI[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
 };
-#endif
 extern struct Serial0Struct serial0Data;
+#endif
 
 /**
  * Serial Output.

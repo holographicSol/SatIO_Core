@@ -62,9 +62,9 @@
 #include "esp_system.h"
 #include "driver/uart.h"
 #include "esp_rom_uart.h"
+#include "./REG.h"
 
 #include "./UnidentifiedStudios_Config.h"
-#include "./REG.h"
 #include "./UnidentifiedStudios_StrVal.h"
 #include "./UnidentifiedStudios_Meteors.h"
 #include "./UnidentifiedStudios_WTGPS300P.h"
@@ -313,7 +313,7 @@ extern "C" void app_main(void)
     /** ----------------------------------------------------------------------------
      * System Time
      */
-    ESP_LOGI(APP_MAIN_TAG, "Initializing system time");
+    printf("Initializing system time");
     SatIOData.systemTime.sync_immediately_flag=true;
     initSystemTime();
 
@@ -328,7 +328,7 @@ extern "C" void app_main(void)
      * (2) Brings up I2C bus and clears every output on the port
      *     controller attached to it.
      */
-    ESP_LOGI(APP_MAIN_TAG, "Initializing I2C bus 2");
+    printf("Initializing I2C bus 2");
     (void)iic_2.setPins(IIC_BUS2_SDA, IIC_BUS2_SCL);
     (void)iic_2.setBufferSize(MAX_IIC_BUFFER_SIZE);
     iic_2.setTimeOut(I2C_TIMEOUT_MS_BUS2);
@@ -343,7 +343,7 @@ extern "C" void app_main(void)
      *     Rule 17.7).
      * (2) Brings up I2C bus.
      */
-    ESP_LOGI(APP_MAIN_TAG, "Initializing I2C bus 0");
+    printf("Initializing I2C bus 0");
     (void)iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
     (void)iic_0.setBufferSize(MAX_IIC_BUFFER_SIZE);
     iic_0.setTimeOut(I2C_TIMEOUT_MS_BUS0);
@@ -359,7 +359,7 @@ extern "C" void app_main(void)
     clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_0);
     // clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_1);
 
-    ESP_LOGI(APP_MAIN_TAG, "Discovering GPIOPortExpander configuration");
+    printf("Discovering GPIOPortExpander configuration");
     // initGPIOPortExpanders(iic_2,
     //                       iic_0,
     //                       I2C_ADDR_OUTPUT_PORTCONTROLLER_0,
@@ -368,7 +368,7 @@ extern "C" void app_main(void)
     // TEMP DIAGNOSTIC: confirm how many pins a sweep of Input_0 actually
     // iterates (readGPIOPortExapander_All loops i < max_pins), to settle
     // whether observed sweep rates are physically plausible for the pin count.
-    ESP_LOGI(APP_MAIN_TAG, "GPIOPortExpander_ATMEGA2560_Input_0: max_pins=%d num_analog_pins=%d num_digital_pins=%d",
+    printf("GPIOPortExpander_ATMEGA2560_Input_0: max_pins=%d num_analog_pins=%d num_digital_pins=%d",
              GPIOPortExpander_ATMEGA2560_Input_0.max_pins,
              GPIOPortExpander_ATMEGA2560_Input_0.num_analog_pins,
              GPIOPortExpander_ATMEGA2560_Input_0.num_digital_pins);
@@ -385,7 +385,7 @@ extern "C" void app_main(void)
      *     unused because the GPS module is read-only from this system's
      *     perspective.
      */
-    ESP_LOGI(APP_MAIN_TAG, "Serial1 (GPS) starting");
+    printf("Serial1 (GPS) starting");
     const int8_t pin_not_used               = -1;
     const int8_t gps_uart_rxd_pin           = 34;
     const int8_t gps_uart_txd_pin           = pin_not_used;
@@ -400,8 +400,8 @@ extern "C" void app_main(void)
         // Block until the UART peripheral reports ready.
     }
     Serial1.flush();
-    ESP_LOGI(APP_MAIN_TAG, "Serial1 baud rate: %lu", (unsigned long)gps_uart_baud_rate);
-    ESP_LOGI(APP_MAIN_TAG, "Serial1 hardware remap: RX=%d TX=%d", gps_uart_rxd_pin, gps_uart_txd_pin);
+    printf("Serial1 baud rate: %lu", (unsigned long)gps_uart_baud_rate);
+    printf("Serial1 hardware remap: RX=%d TX=%d", gps_uart_rxd_pin, gps_uart_txd_pin);
 
     // Full ~0-3.3V input range; applies to every ADC channel.
     analogSetAttenuation(ADC_11db);
@@ -411,60 +411,72 @@ extern "C" void app_main(void)
     // ----------------------------------------------------------------------------
 
     // System Time
-    ESP_LOGI(APP_MAIN_TAG, "creating system time task");
+    printf("creating system time task");
     createTaskSystemTime();
-
+    
     // Storage
+    #ifdef SatIO_USE_STORAGE
     sdcardFlagData.load_system = true;
-    ESP_LOGI(APP_MAIN_TAG, "creating storage task");
+    printf("creating storage task");
     createTaskStorage(); // (target: 2Hz)
+    #endif
 
     // delay(5000);
 
+    #ifdef SatIO_USE_GPS_0
     // GPS
-    ESP_LOGI(APP_MAIN_TAG, "creating GPS task");
+    printf("creating GPS task");
     createTaskGPS(); // (target: 10Hz)
+    #endif
 
     // Gyro
+    #ifdef SatIO_USE_GYRO_0
     initWT901();
-    ESP_LOGI(APP_MAIN_TAG, "creating gyro task");
+    printf("creating gyro task");
     createTaskGyro(); // (target: 200Hz)
+    #endif
     
     // Admplex 0
-    #ifdef SatIO_CD74HC4067_OPTION_USE_1
+    #ifdef SatIO_CD74HC4067_OPTION_USE_0
     initADMultiplexer(ad_mux_0);
     setReadModeADMultiplexer(ad_mux_0);
     createTaskADMplex0(); // (target: x16 chan >= 250-350Hz, x4+ chan >= 1KHz)  Fast general input
     #endif
 
     // Admplex 1
-    #ifdef SatIO_CD74HC4067_OPTION_USE_2
+    #ifdef SatIO_CD74HC4067_OPTION_USE_1
     initADMultiplexer(ad_mux_1);
     setReadModeADMultiplexer(ad_mux_1);
     createTaskADMplex1(); // (target: x16 chan >= 250-350Hz, x4+ chan >= 1KHz)  Fast general input
     #endif
 
     // Auxiliary Input
-    ESP_LOGI(APP_MAIN_TAG, "creating auxiliary input task");
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+    printf("creating auxiliary input task");
     createTaskInputPortController(); // (target: ?) Large general input
+    #endif
 
     // Auxiliary Output
-    ESP_LOGI(APP_MAIN_TAG, "creating auxiliary output task");
+    #ifdef SatIO_USE_MATRIX
+    printf("creating auxiliary output task");
     createTaskSwitches(); // (target: max 1KHz) Fast general output
+    #endif
 
     // Universe
-    ESP_LOGI(APP_MAIN_TAG, "creating universe task");
+    #ifdef SatIO_USE_UNIVERSE
+    printf("creating universe task");
     myAstroBegin();
     createTaskUniverse(); // (target: +1Hz)
+    #endif
 
-    #ifdef SatIO_SERIAL_TX_OPTION_NEW_TASK
     // SatIO Serial Tx
-    ESP_LOGI(APP_MAIN_TAG, "creating SatIO serial tx task");
+    #ifdef SatIO_SERIAL_TX_OPTION_NEW_TASK
+    printf("creating SatIO serial tx task");
     createTaskSatIOSerialTx(); // (target: >= 200Hz)
     #endif
 
     // Attempt to approximately synchronize tasks
-    ESP_LOGI(APP_MAIN_TAG, "attempting to synchronize tasks");
+    printf("attempting to synchronize tasks");
     syncTasks();
 
     // ESP_LOGI(APP_MAIN_TAG, "waiting for tasks to settle");
@@ -472,8 +484,8 @@ extern "C" void app_main(void)
     // delay(task_settle_delay_ms);
 
     // Display
-    #ifdef SatIO_DISPLAY_OPTION_LVGL
-    ESP_LOGI(APP_MAIN_TAG, "starting SatIO UI");
+    #ifdef SatIO_USE_DISPLAY
+    printf("starting SatIO UI");
     flag_display_home_screen = true;
     createTaskDisplayUpdate();
     #endif

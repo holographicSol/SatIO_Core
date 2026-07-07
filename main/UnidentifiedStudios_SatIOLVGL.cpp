@@ -1525,7 +1525,27 @@ void sw_output_event_cb(lv_event_t * e)
         bool is_enabled = lv_obj_has_state(sw, LV_STATE_CHECKED);
 
         if (sw == serial_c.sw_output_all) {
-            setAllSentenceOutput(is_enabled);
+            systemData.output_SatIO_all = is_enabled;
+            systemData.output_SatIO_enabled=is_enabled;
+            systemData.output_gngga_enabled=is_enabled;
+            systemData.output_gnrmc_enabled=is_enabled;
+            systemData.output_gpatt_enabled=is_enabled;
+            systemData.output_matrix_enabled=is_enabled;
+            systemData.output_input_portcontroller=is_enabled;
+            systemData.output_admplex0_enabled=is_enabled;
+            systemData.output_admplex1_enabled=is_enabled;
+            systemData.output_gyro_0_enabled=is_enabled;
+            systemData.output_sun_enabled=is_enabled;
+            systemData.output_mercury_enabled=is_enabled;
+            systemData.output_venus_enabled=is_enabled;
+            systemData.output_earth_enabled=is_enabled;
+            systemData.output_luna_enabled=is_enabled;
+            systemData.output_mars_enabled=is_enabled;
+            systemData.output_jupiter_enabled=is_enabled;
+            systemData.output_saturn_enabled=is_enabled;
+            systemData.output_uranus_enabled=is_enabled;
+            systemData.output_neptune_enabled=is_enabled;
+            systemData.output_meteors_enabled=is_enabled;
             }
 
         else if (sw == serial_c.sw_output_SatIO) {
@@ -16645,7 +16665,7 @@ static void sync_switch_state(lv_obj_t *sw, bool enabled) {
 /** -------------------------------------------------------------------------------------
  * @brief Main function to update screen objects and load screens.
  */
-void update_display()
+void update_display_lvgl()
 {
 
     // ---------------------

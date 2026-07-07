@@ -1696,7 +1696,7 @@ extern bool flag_display_baseline_screen;
 /** -------------------------------------------------------------------------------------
  * @brief Main function to update screen objects and load screens.
  */
-void update_display();
+void update_display_lvgl();
 
 /** -------------------------------------------------------------------------------------
  * @brief Initialize LVGL for this device.

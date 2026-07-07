@@ -38,7 +38,9 @@
 #include "UnidentifiedStudios_SdCardHelper.h"
 #include "UnidentifiedStudios_TaskHandler.h"
 #include "UnidentifiedStudios_I2C.h"
+#ifdef SatIO_DISPLAY_OPTION_LVGL
 #include "UnidentifiedStudios_SatIOLVGL.h"
+#endif
 #include "UnidentifiedStudios_GPIOPortExpander.h"
 
 TaskHandle_t TaskGPS;
@@ -75,10 +77,10 @@ TaskHandle_t TaskInputPortController;
 #define TASK_GPS_CORE                       1
 #define TASK_GYRO_CORE                      1
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_ADMPLEX0_CORE                  1
 #endif
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_ADMPLEX1_CORE                  1
 #endif
 
@@ -118,10 +120,10 @@ TaskHandle_t TaskInputPortController;
 #define TASK_GPS_CORE                       0
 #define TASK_GYRO_CORE                      1
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_ADMPLEX0_CORE                  1
 #endif
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_ADMPLEX1_CORE                  1
 #endif
 
@@ -156,20 +158,45 @@ TaskHandle_t TaskInputPortController;
  * 
  */
 static void notifyAllTasks(void) {
-  if (TaskStorage != nullptr) { xTaskNotifyGive(TaskStorage); }
-  #ifdef SatIO_CD74HC4067_OPTION_USE_1
+
+  #ifdef SatIO_CD74HC4067_OPTION_USE_0
   if (TaskADMplex0 != nullptr) { xTaskNotifyGive(TaskADMplex0); }
   #endif
-  #ifdef SatIO_CD74HC4067_OPTION_USE_2
+
+  #ifdef SatIO_CD74HC4067_OPTION_USE_1
   if (TaskADMplex1 != nullptr) { xTaskNotifyGive(TaskADMplex1); }
   #endif
+
+  #ifdef SatIO_USE_GYRO_0
   if (TaskGyro != nullptr) { xTaskNotifyGive(TaskGyro); }
+  #endif
+
+  #ifdef SatIO_USE_GPS_0
   if (TaskGPS != nullptr) { xTaskNotifyGive(TaskGPS); }
+  #endif
+
+  #ifdef SatIO_USE_UNIVERSE
   if (TaskUniverse != nullptr) { xTaskNotifyGive(TaskUniverse); }
+  #endif
+  
+  #ifdef SatIO_USE_MATRIX
   if (TaskSwitches != nullptr) { xTaskNotifyGive(TaskSwitches); }
-  if (TaskSatIOSerialTx != nullptr) { xTaskNotifyGive(TaskSatIOSerialTx); }
-  if (TaskDisplayUpdate != nullptr) { xTaskNotifyGive(TaskDisplayUpdate); }
+  #endif
+
+  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
   if (TaskInputPortController != nullptr) { xTaskNotifyGive(TaskInputPortController); }
+  #endif
+
+  #ifdef SatIO_USE_STORAGE
+  if (TaskStorage != nullptr) { xTaskNotifyGive(TaskStorage); }
+  #endif
+
+  #ifdef SatIO_USE_DISPLAY
+  if (TaskDisplayUpdate != nullptr) { xTaskNotifyGive(TaskDisplayUpdate); }
+  #endif
+
+  if (TaskSatIOSerialTx != nullptr) { xTaskNotifyGive(TaskSatIOSerialTx); }
+  
 }
 
 void setTasksDelayLowPower() {
@@ -290,28 +317,60 @@ static void intervalBreach1Second(void) {
   // printf("system uS unixtime: %lld\n", SatIOData.systemTime.unixtime_uS);
 
   totalCounters(systemData.counters_st);
+
+  #ifdef SatIO_USE_GPS_0
   totalCounters(systemData.counters_gps);
+  #endif
+
+  #ifdef SatIO_USE_GYRO_0
   totalCounters(systemData.counters_gyr0);
+  #endif
+
+  #ifdef SatIO_USE_INS
   totalCounters(systemData.counters_ins);
-  #ifdef SatIO_CD74HC4067_OPTION_USE_1
+  #endif
+
+
+  #ifdef SatIO_CD74HC4067_OPTION_USE_0
   totalCounters(systemData.counters_mplex0);
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {totalCounters(systemData.counters_mplex0_chan[i_chan]);}
   #endif
-  #ifdef SatIO_CD74HC4067_OPTION_USE_2
+
+  #ifdef SatIO_CD74HC4067_OPTION_USE_1
   totalCounters(systemData.counters_mplex1);
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {totalCounters(systemData.counters_mplex1_chan[i_chan]);}
   #endif
+
+  #ifdef SatIO_USE_MATRIX
   totalCounters(systemData.counters_mtx);
+  #endif
+
+  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
   totalCounters(systemData.counters_pci);
   for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {totalCounters(systemData.counters_pci_chan[i_chan]);}
   totalCounters(systemData.counters_pco);
-  totalCounters(systemData.counters_uni);
-  totalCounters(systemData.counters_track_planets);
-  totalCounters(systemData.counters_dsp);
-  totalCounters(systemData.counters_stg);
-  totalCounters(systemData.counters_log);
-  totalCounters(systemData.counters_SatIO_serial_tx);
+  #endif
 
+  #ifdef SatIO_USE_UNIVERSE
+  totalCounters(systemData.counters_uni);
+  #endif
+
+  #ifdef SatIO_USE_TRACK_PLANETS
+  totalCounters(systemData.counters_track_planets);
+  #endif
+
+  #ifdef SatIO_USE_DISPLAY
+  totalCounters(systemData.counters_dsp);
+  #endif
+
+  #ifdef SatIO_USE_STORAGE
+  totalCounters(systemData.counters_stg);
+  #endif
+
+  totalCounters(systemData.counters_log);
+
+  totalCounters(systemData.counters_SatIO_serial_tx);
+  
   // uptime_seconds is int32_t, so the wrap check uses the signed 32-bit limit
   // matching its essential type (MISRA C 2012 Rule 10.4).
   systemData.uptime_seconds++;
@@ -319,6 +378,7 @@ static void intervalBreach1Second(void) {
     systemData.uptime_seconds = 0;
     printf("[reset uptime_seconds] %ld\n", systemData.uptime_seconds);
   }
+
   outputStat(); // uncomment for full stat
   // ESP_LOGI("GPIOPortExpander_ATMEGA2560_Input_0", "max_pins=%d num_analog_pins=%d num_digital_pins=%d",
   //         GPIOPortExpander_ATMEGA2560_Input_0.max_pins,
@@ -326,26 +386,55 @@ static void intervalBreach1Second(void) {
   //         GPIOPortExpander_ATMEGA2560_Input_0.num_digital_pins);
 
   clearCounters(systemData.counters_st);
+
+  #ifdef SatIO_USE_GPS_0
   clearCounters(systemData.counters_gps);
+  #endif
+
+  #ifdef SatIO_USE_GYRO_0
   clearCounters(systemData.counters_gyr0);
+  #endif
+
+  #ifdef SatIO_USE_INS
   clearCounters(systemData.counters_ins);
-  #ifdef SatIO_CD74HC4067_OPTION_USE_1
+  #endif
+
+  #ifdef SatIO_CD74HC4067_OPTION_USE_0
   clearCounters(systemData.counters_mplex0);
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {clearCounters(systemData.counters_mplex0_chan[i_chan]);}
   #endif
-  #ifdef SatIO_CD74HC4067_OPTION_USE_2
+  
+  #ifdef SatIO_CD74HC4067_OPTION_USE_1
   clearCounters(systemData.counters_mplex1);
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {clearCounters(systemData.counters_mplex1_chan[i_chan]);}
   #endif
+
+  #ifdef SatIO_USE_MATRIX
   clearCounters(systemData.counters_mtx);
+  #endif
+
+  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
   clearCounters(systemData.counters_pci);
   for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {clearCounters(systemData.counters_pci_chan[i_chan]);}
   clearCounters(systemData.counters_pco);
+  #endif
+
+  #ifdef SatIO_USE_UNIVERSE
   clearCounters(systemData.counters_uni);
+  #endif
+
   clearCounters(systemData.counters_track_planets);
+
+  #ifdef SatIO_USE_DISPLAY
   clearCounters(systemData.counters_dsp);
+  #endif
+
+  #ifdef SatIO_USE_STORAGE
   clearCounters(systemData.counters_stg);
+  #endif
+
   clearCounters(systemData.counters_log);
+
   clearCounters(systemData.counters_SatIO_serial_tx);
 
   // uncomment to set every second (ensure not called elsewhere)
@@ -410,20 +499,44 @@ static void taskFreqWaitTimerCallback(void *arg) {
  *  modify internal/external/peripheral clocks.
  *  sleep modes.
  */
+
+#ifdef SatIO_USE_GPS_0
 bool taskFrequencyGPS()         { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_GPS);         return true; }
+#endif
+
+#ifdef SatIO_USE_GYRO_0
 bool taskFrequencyGyro()        { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_GYRO);        return true; }
+#endif
+
+#ifdef SatIO_USE_SWITCHES
 bool taskFrequencySwitches()    { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_SWITCHES);    return true; }
+#endif
+
+#ifdef SatIO_USE_STORAGE
 bool taskFrequencyStorage()     { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_STORAGE);     return true; }
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#endif
+
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 bool taskFrequencyADMplex0()    { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX0);    return true; }
 #endif
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 bool taskFrequencyADMplex1()    { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1);    return true; }
 #endif
+
+#ifdef SatIO_USE_UNIVERSE
 bool taskFrequencyUniverse()    { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_UNIVERSE);    return true; }
+#endif
+
+#ifdef SatIO_USE_DISPLAY
 bool taskFrequencyDisplay()     { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_DISPLAY);     return true; }
+#endif
+
 bool taskFrequencySatIOSerialTx() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_SatIO_SERIAL_TX); return true; }
+
+#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
 bool taskFrequencyInputPortController() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT); return true; }
+#endif
 
 /** ----------------------------------------------------------------------------
  * System Time Task.
@@ -472,6 +585,7 @@ static void taskSystemTime(void *pvParameters) {
     // Task frequency counter
     // --------------------------------------------
     stepFCounter(systemData.counters_st, 1);
+    systemData.counters_st.flag_c = true;
     xSemaphoreGive(dataMutex);
   }
 }
@@ -486,13 +600,13 @@ void createTaskSystemTime() {
     TASK_SYSTEM_TIME_CORE);      /* Core where the task should run */
 }
 
+#ifdef SatIO_USE_GPS_0
 /** ----------------------------------------------------------------------------
  * GPS Task.
  *
  * @brief Reads and validates GPS sentences, commits the resulting position
  *        and timing data, and updates the inertial navigation system.
  */
-
 static void taskGPS(void *pvParameters) {
   (void)pvParameters; // FreeRTOS task signature requires the parameter; it is unused here (MISRA C 2012 Rule 2.7).
   esp_task_wdt_add(nullptr);
@@ -528,11 +642,11 @@ static void taskGPS(void *pvParameters) {
           // --------------------------------------------
           // Task frequency counter
           // --------------------------------------------
+          stepFFCounter(systemData.counters_gps, 1);
           systemData.counters_gps.flag_c = true;
           #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
           outputSerialGPS();
           #endif
-          stepFFCounter(systemData.counters_gps, 1);
           xSemaphoreGive(dataMutex);
         }
       }
@@ -555,7 +669,9 @@ void createTaskGPS() {
     &TaskGPS,            /* Task handle. */
     TASK_GPS_CORE);      /* Core where the task should run */
 }
+#endif
 
+#ifdef SatIO_USE_STORAGE
 /** ----------------------------------------------------------------------------
  * Storage Task.
  *
@@ -604,6 +720,7 @@ static void taskStorage(void *pvParameters) {
     // --------------------------------------------
     xSemaphoreTake(dataMutex, portMAX_DELAY);
     stepFCounter(systemData.counters_stg, 1);
+    systemData.counters_stg.flag_c = true;
     xSemaphoreGive(dataMutex);
     }
   }
@@ -618,7 +735,9 @@ void createTaskStorage() {
     &TaskStorage,            /* Task handle. */
     TASK_STORAGE_CORE);      /* Core where the task should run */
 }
+#endif
 
+#ifdef SatIO_USE_GYRO_0
 /** ----------------------------------------------------------------------------
  * Gyro Task.
  *
@@ -644,11 +763,11 @@ static void taskGyro(void *pvParameters) {
         // --------------------------------------------
         // Task frequency counter
         // --------------------------------------------
+        stepFFCounter(systemData.counters_gyr0, 1);
         systemData.counters_gyr0.flag_c = true;
         #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
         outputSerialGyro0();
         #endif
-        stepFFCounter(systemData.counters_gyr0, 1);
 
         // ----------------------------------------------
         // Estimate INS data. (Can be used without GPS).
@@ -663,6 +782,7 @@ static void taskGyro(void *pvParameters) {
         // Task frequency counter
         // --------------------------------------------
         stepFFCounter(systemData.counters_ins, 1);
+        systemData.counters_ins.flag_c = true;
 
         esp_task_wdt_reset();
         }
@@ -687,8 +807,9 @@ void createTaskGyro() {
     &TaskGyro,            /* Task handle. */
     TASK_GYRO_CORE);      /* Core where the task should run */
 }
+#endif
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_1
+#ifdef SatIO_CD74HC4067_OPTION_USE_0
 /** ----------------------------------------------------------------------------
  * Multiplexer Task (ADMplex0).
  *
@@ -743,7 +864,6 @@ static void taskADMplex0(void *pvParameters) {
       // Task frequency counter
       // --------------------------------------------
       xSemaphoreTake(dataMutex, portMAX_DELAY);
-      systemData.counters_mplex0.flag_c = true;
       // Per-channel Hz: task_freq_t is how often an enabled channel was checked
       // this second (its ceiling); task_ffreq_t is how often it was actually
       // read (its achieved Hz, gated by chan_freq_uS above).
@@ -753,10 +873,11 @@ static void taskADMplex0(void *pvParameters) {
           if (admplex0_chan_did_read[i_chan] == true) {stepFFCounter(systemData.counters_mplex0_chan[i_chan], 1);}
         }
       }
+      stepFFCounter(systemData.counters_mplex0, 1);
+      systemData.counters_mplex0.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
       outputSerialADMplex0();
       #endif
-      stepFFCounter(systemData.counters_mplex0, 1);
       xSemaphoreGive(dataMutex);
     }
 
@@ -780,7 +901,7 @@ void createTaskADMplex0() {
 }
 #endif
 
-#ifdef SatIO_CD74HC4067_OPTION_USE_2
+#ifdef SatIO_CD74HC4067_OPTION_USE_1
 /** ----------------------------------------------------------------------------
  * Multiplexer Task (ADMplex1).
  *
@@ -836,7 +957,6 @@ static void taskADMplex1(void *pvParameters) {
       // Task frequency counter
       // --------------------------------------------
       xSemaphoreTake(dataMutex, portMAX_DELAY);
-      systemData.counters_mplex1.flag_c = true;
       // Per-channel Hz: task_freq_t is how often an enabled channel was checked
       // this second (its ceiling); task_ffreq_t is how often it was actually
       // read (its achieved Hz, gated by chan_freq_uS above).
@@ -846,10 +966,11 @@ static void taskADMplex1(void *pvParameters) {
           if (admplex1_chan_did_read[i_chan] == true) {stepFFCounter(systemData.counters_mplex1_chan[i_chan], 1);}
         }
       }
+      stepFFCounter(systemData.counters_mplex1, 1);
+      systemData.counters_mplex1.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
       outputSerialADMplex1();
       #endif
-      stepFFCounter(systemData.counters_mplex1, 1);
       xSemaphoreGive(dataMutex);
     }
 
@@ -873,6 +994,7 @@ void createTaskADMplex1() {
 }
 #endif
 
+#ifdef SatIO_USE_MATRIX
 /** ----------------------------------------------------------------------------
  * Switch Task.
  *
@@ -895,6 +1017,8 @@ static void taskSwitches(void *pvParameters) {
     if (taskFrequencySwitches() == true) {
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       esp_task_wdt_reset();
+
+      #ifdef SatIO_USE_MATRIX
       // ------------------------------------------------
       // Calculate.
       // ------------------------------------------------
@@ -904,25 +1028,30 @@ static void taskSwitches(void *pvParameters) {
         // --------------------------------------------
         // Task frequency counter
         // --------------------------------------------
+        stepFFCounter(systemData.counters_mtx, 1);
         systemData.counters_mtx.flag_c = true;
+
         #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
         outputSerialMatrix();
         #endif
-        stepFFCounter(systemData.counters_mtx, 1);
-
+        
       }
       esp_task_wdt_reset();
+
       // ------------------------------------------------
       // Mapping.
       // ------------------------------------------------
       map_values();
       esp_task_wdt_reset();
+
       // ------------------------------------------------
-      // Output.
+      // Output Values.
       // ------------------------------------------------
       setOutputValues();
       esp_task_wdt_reset();
+      #endif
 
+      #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_0
       int32_t count_write = 0;
 
       // Clamp to MAX_MATRIX_SWITCHES
@@ -958,14 +1087,15 @@ static void taskSwitches(void *pvParameters) {
           count_write++;
         }
       }
-
       esp_task_wdt_reset();
-
+      #endif
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
       stepFFCounter(systemData.counters_pco, count_write);
+      systemData.counters_pco.flag_c = true;
       xSemaphoreGive(dataMutex);
+
     }
 
     // --------------------------------------------
@@ -986,7 +1116,9 @@ void createTaskSwitches() {
     &TaskSwitches,            /* Task handle. */
     TASK_SWITCHES_CORE);      /* Core where the task should run */
 }
+#endif
 
+#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
 /** ----------------------------------------------------------------------------
  * Input Controller Task.
  *
@@ -1037,12 +1169,9 @@ static void taskInputPortController(void *pvParameters) {
         }
       }
       esp_task_wdt_reset();
-
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
-      systemData.counters_pci.flag_c = true;
       // Per-pin Hz: task_freq_t is how often a pin was checked this second
       // (its ceiling); task_ffreq_t is how often it was actually read (its
       // achieved Hz, gated by chan_freq_uS above).
@@ -1052,10 +1181,12 @@ static void taskInputPortController(void *pvParameters) {
           if (pci_chan_did_read[i_chan] == true) {stepFFCounter(systemData.counters_pci_chan[i_chan], 1);}
         }
       }
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
+      stepFFCounter(systemData.counters_pci, 1);
+      systemData.counters_pci.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
       outputSerialPCInput();
       #endif
-      stepFFCounter(systemData.counters_pci, 1);
       xSemaphoreGive(dataMutex);
     }
 
@@ -1077,7 +1208,9 @@ void createTaskInputPortController() {
     &TaskInputPortController,            /* Task handle. */
     TASK_INPUT_PORT_CONTROLLER_CORE);      /* Core where the task should run */
 }
+#endif
 
+#ifdef SatIO_USE_UNIVERSE
 /** ----------------------------------------------------------------------------
  * Universe Task.
  *
@@ -1100,10 +1233,12 @@ static void taskUniverse(void *pvParameters) {
     if (taskFrequencyUniverse() == true) {
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       esp_task_wdt_reset();
-
+      
+      #ifdef SatIO_USE_TRACK_PLANETS
       // ------------------------------------------------
       // Set Sidereal Data for Planet/Object Tracking.
       // ------------------------------------------------
+      // TODO: throttle track plans seperately so that star nav can rip if required
       setSiderealData(
         SatIOData.system_degrees_latitude,
         SatIOData.system_degrees_longitude,
@@ -1117,30 +1252,34 @@ static void taskUniverse(void *pvParameters) {
         SatIOData.localTime.minute,
         SatIOData.localTime.second,
         SatIOData.system_altitude);
+      esp_task_wdt_reset();
 
       // ------------------------------------------------
       // Track Planets/Meteors
       // ------------------------------------------------
-      esp_task_wdt_reset();
       trackPlanets();
       esp_task_wdt_reset();
       setMeteorShowerWarning(SatIOData.localTime.month, SatIOData.localTime.mday);
       esp_task_wdt_reset();
-
+      
       // ------------------------------------------------
       // Set RA & Dec for system zenith. (add to matrix)
       // ------------------------------------------------
       siderealExtraData.local_zenith_ra_dec = myAstro.getRADecFromLSTLat(
         siderealExtraData.local_sidereal_time,
         SatIOData.system_degrees_latitude);
-      esp_task_wdt_reset();
+        esp_task_wdt_reset();
+      #endif
 
+      #ifdef SatIO_USE_GYRO_0
       // ------------------------------------------------
       // Set RA & Dec for system zenith +- Gyro. (add to matrix)
       // ------------------------------------------------
       siderealExtraData.gyro_0_ra_dec = gyroOffsetZenithRADec(gyroData.gyro_0_ang_z, gyroData.gyro_0_ang_y);
       esp_task_wdt_reset();
+      #endif
 
+      #ifdef SatIO_USE_STARNAV
       // ------------------------------------------------
       // StarNav Dynamic Test Zenith Every Interval
       // ------------------------------------------------
@@ -1153,19 +1292,19 @@ static void taskUniverse(void *pvParameters) {
         siderealExtraData.local_zenith_ra_dec.dec_s
       );
       esp_task_wdt_reset();
-      // printf("---------------------------------------------\n");
-      // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-      // printf("Table:         %s\n", siderealObjectData.object_table_name);
-      // printf("Number:        %d\n", siderealObjectData.object_number);
-      // printf("Name:          %s\n", siderealObjectData.object_name);
-      // printf("Type:          %s\n", siderealObjectData.object_type);
-      // printf("Constellation: %s\n", siderealObjectData.object_con);
-      // printf("Distance:      %f\n", siderealObjectData.object_dist);
-      // printf("Azimuth:       %f\n", siderealObjectData.object_az);
-      // printf("Altitude:      %f\n", siderealObjectData.object_alt);
-      // printf("Rise:          %f\n", siderealObjectData.object_r);
-      // printf("Set:           %f\n", siderealObjectData.object_s);
-      // printf("---------------------------------------------\n");
+      printf("---------------------------------------------\n");
+      printf("Table Index:   %d\n", siderealObjectData.object_table_i);
+      printf("Table:         %s\n", siderealObjectData.object_table_name);
+      printf("Number:        %d\n", siderealObjectData.object_number);
+      printf("Name:          %s\n", siderealObjectData.object_name);
+      printf("Type:          %s\n", siderealObjectData.object_type);
+      printf("Constellation: %s\n", siderealObjectData.object_con);
+      printf("Distance:      %f\n", siderealObjectData.object_dist);
+      printf("Azimuth:       %f\n", siderealObjectData.object_az);
+      printf("Altitude:      %f\n", siderealObjectData.object_alt);
+      printf("Rise:          %f\n", siderealObjectData.object_r);
+      printf("Set:           %f\n", siderealObjectData.object_s);
+      printf("---------------------------------------------\n");
 
       // ------------------------------------------------
       // StarNav Dynamic Test Zenith+-Gyro Offset
@@ -1179,28 +1318,29 @@ static void taskUniverse(void *pvParameters) {
         siderealExtraData.gyro_0_ra_dec.dec_s
       );
       esp_task_wdt_reset();
-      // printf("---------------------------------------------\n");
-      // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-      // printf("Table:         %s\n", siderealObjectData.object_table_name);
-      // printf("Number:        %d\n", siderealObjectData.object_number);
-      // printf("Name:          %s\n", siderealObjectData.object_name);
-      // printf("Type:          %s\n", siderealObjectData.object_type);
-      // printf("Constellation: %s\n", siderealObjectData.object_con);
-      // printf("Distance:      %f\n", siderealObjectData.object_dist);
-      // printf("Azimuth:       %f\n", siderealObjectData.object_az);
-      // printf("Altitude:      %f\n", siderealObjectData.object_alt);
-      // printf("Rise:          %f\n", siderealObjectData.object_r);
-      // printf("Set:           %f\n", siderealObjectData.object_s);
-      // printf("---------------------------------------------\n");
+      printf("---------------------------------------------\n");
+      printf("Table Index:   %d\n", siderealObjectData.object_table_i);
+      printf("Table:         %s\n", siderealObjectData.object_table_name);
+      printf("Number:        %d\n", siderealObjectData.object_number);
+      printf("Name:          %s\n", siderealObjectData.object_name);
+      printf("Type:          %s\n", siderealObjectData.object_type);
+      printf("Constellation: %s\n", siderealObjectData.object_con);
+      printf("Distance:      %f\n", siderealObjectData.object_dist);
+      printf("Azimuth:       %f\n", siderealObjectData.object_az);
+      printf("Altitude:      %f\n", siderealObjectData.object_alt);
+      printf("Rise:          %f\n", siderealObjectData.object_r);
+      printf("Set:           %f\n", siderealObjectData.object_s);
+      printf("---------------------------------------------\n");
+      #endif
 
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
+      stepFFCounter(systemData.counters_uni, 1);
       systemData.counters_uni.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
       outputSerialUniverse();
       #endif
-      stepFFCounter(systemData.counters_uni, 1);
 
       esp_task_wdt_reset();
       xSemaphoreGive(dataMutex);
@@ -1224,6 +1364,7 @@ void createTaskUniverse() {
     &TaskUniverse,            /* Task handle. */
     TASK_UNIVERSE_CORE);      /* Core where the task should run */
 }
+#endif
 
 #ifdef SatIO_SERIAL_TX_OPTION_NEW_TASK
 /** ----------------------------------------------------------------------------
@@ -1251,7 +1392,7 @@ static void taskSatIOSerialTx(void *pvParameters) {
       // Output.
       // --------------------------------------------
       outputSerialGPS();
-      // outputSerialSatIO();
+      outputSerialSatIO();
       outputSerialADMplex0();
       outputSerialADMplex1();
       outputSerialGyro0();
@@ -1287,7 +1428,7 @@ void createTaskSatIOSerialTx() {
 }
 #endif
 
-#ifdef SatIO_DISPLAY_OPTION_LVGL
+#ifdef SatIO_USE_DISPLAY
 /** ----------------------------------------------------------------------------
  * Display Update Task.
  *
@@ -1308,16 +1449,21 @@ static void taskDisplayUpdate(void *pvParameters) {
     if (taskFrequencyDisplay() == true) {
       locked = bsp_display_lock(portMAX_DELAY);
       if (locked) {
+
+        #ifdef SatIO_DISPLAY_OPTION_LVGL
         xSemaphoreTake(dataMutex, portMAX_DELAY);
-        update_display();
+        update_display_lvgl();
         xSemaphoreGive(dataMutex);
         bsp_display_unlock();
+        #endif
+        
       }
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       stepFFCounter(systemData.counters_dsp, 1);
+      systemData.counters_dsp.flag_c = true;
       xSemaphoreGive(dataMutex);
     }
 
