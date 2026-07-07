@@ -1292,19 +1292,19 @@ static void taskUniverse(void *pvParameters) {
         siderealExtraData.local_zenith_ra_dec.dec_s
       );
       esp_task_wdt_reset();
-      printf("---------------------------------------------\n");
-      printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-      printf("Table:         %s\n", siderealObjectData.object_table_name);
-      printf("Number:        %d\n", siderealObjectData.object_number);
-      printf("Name:          %s\n", siderealObjectData.object_name);
-      printf("Type:          %s\n", siderealObjectData.object_type);
-      printf("Constellation: %s\n", siderealObjectData.object_con);
-      printf("Distance:      %f\n", siderealObjectData.object_dist);
-      printf("Azimuth:       %f\n", siderealObjectData.object_az);
-      printf("Altitude:      %f\n", siderealObjectData.object_alt);
-      printf("Rise:          %f\n", siderealObjectData.object_r);
-      printf("Set:           %f\n", siderealObjectData.object_s);
-      printf("---------------------------------------------\n");
+      // printf("---------------------------------------------\n");
+      // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
+      // printf("Table:         %s\n", siderealObjectData.object_table_name);
+      // printf("Number:        %d\n", siderealObjectData.object_number);
+      // printf("Name:          %s\n", siderealObjectData.object_name);
+      // printf("Type:          %s\n", siderealObjectData.object_type);
+      // printf("Constellation: %s\n", siderealObjectData.object_con);
+      // printf("Distance:      %f\n", siderealObjectData.object_dist);
+      // printf("Azimuth:       %f\n", siderealObjectData.object_az);
+      // printf("Altitude:      %f\n", siderealObjectData.object_alt);
+      // printf("Rise:          %f\n", siderealObjectData.object_r);
+      // printf("Set:           %f\n", siderealObjectData.object_s);
+      // printf("---------------------------------------------\n");
 
       // ------------------------------------------------
       // StarNav Dynamic Test Zenith+-Gyro Offset
@@ -1318,19 +1318,19 @@ static void taskUniverse(void *pvParameters) {
         siderealExtraData.gyro_0_ra_dec.dec_s
       );
       esp_task_wdt_reset();
-      printf("---------------------------------------------\n");
-      printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-      printf("Table:         %s\n", siderealObjectData.object_table_name);
-      printf("Number:        %d\n", siderealObjectData.object_number);
-      printf("Name:          %s\n", siderealObjectData.object_name);
-      printf("Type:          %s\n", siderealObjectData.object_type);
-      printf("Constellation: %s\n", siderealObjectData.object_con);
-      printf("Distance:      %f\n", siderealObjectData.object_dist);
-      printf("Azimuth:       %f\n", siderealObjectData.object_az);
-      printf("Altitude:      %f\n", siderealObjectData.object_alt);
-      printf("Rise:          %f\n", siderealObjectData.object_r);
-      printf("Set:           %f\n", siderealObjectData.object_s);
-      printf("---------------------------------------------\n");
+      // printf("---------------------------------------------\n");
+      // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
+      // printf("Table:         %s\n", siderealObjectData.object_table_name);
+      // printf("Number:        %d\n", siderealObjectData.object_number);
+      // printf("Name:          %s\n", siderealObjectData.object_name);
+      // printf("Type:          %s\n", siderealObjectData.object_type);
+      // printf("Constellation: %s\n", siderealObjectData.object_con);
+      // printf("Distance:      %f\n", siderealObjectData.object_dist);
+      // printf("Azimuth:       %f\n", siderealObjectData.object_az);
+      // printf("Altitude:      %f\n", siderealObjectData.object_alt);
+      // printf("Rise:          %f\n", siderealObjectData.object_r);
+      // printf("Set:           %f\n", siderealObjectData.object_s);
+      // printf("---------------------------------------------\n");
       #endif
 
       // --------------------------------------------
