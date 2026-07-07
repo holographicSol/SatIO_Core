@@ -1292,26 +1292,26 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "set-coord") == true && argparser_has_flag(&parser, "lat") == true && argparser_has_flag(&parser, "lon") == true) {
             setCoordinatesDegrees(argparser_get_double(&parser, "lat", NAN), argparser_get_double(&parser, "lon", NAN));
           }
-          if (argparser_has_flag(&parser, "coord-value-mode-gps") == true) {SatIOData.location_value_mode=SatIO_MODE_GPS;}
-          if (argparser_has_flag(&parser, "coord-value-mode-user") == true) {SatIOData.location_value_mode=SatIO_MODE_USER;}
+          if (argparser_has_flag(&parser, "coord-value-mode-gps") == true) {SatIOData.location_value_mode=SATIO_MODE_GPS;}
+          if (argparser_has_flag(&parser, "coord-value-mode-user") == true) {SatIOData.location_value_mode=SATIO_MODE_USER;}
           // speed
           if (argparser_has_flag(&parser, "set-speed") == true) {
             setSpeed(argparser_get_double(&parser, "set-speed", NAN));
           }
-          if (argparser_has_flag(&parser, "speed-value-mode-gps") == true) {SatIOData.speed_value_mode=SatIO_MODE_GPS;}
-          if (argparser_has_flag(&parser, "speed-value-mode-user") == true) {SatIOData.speed_value_mode=SatIO_MODE_USER;}
+          if (argparser_has_flag(&parser, "speed-value-mode-gps") == true) {SatIOData.speed_value_mode=SATIO_MODE_GPS;}
+          if (argparser_has_flag(&parser, "speed-value-mode-user") == true) {SatIOData.speed_value_mode=SATIO_MODE_USER;}
           // altitude
           if (argparser_has_flag(&parser, "set-altitude") == true) {
             setAltitude(argparser_get_double(&parser, "set-altitude", NAN));
           }
-          if (argparser_has_flag(&parser, "altitude-value-mode-gps") == true) {SatIOData.altitude_value_mode=SatIO_MODE_GPS;}
-          if (argparser_has_flag(&parser, "altitude-value-mode-user") == true) {SatIOData.altitude_value_mode=SatIO_MODE_USER;}
+          if (argparser_has_flag(&parser, "altitude-value-mode-gps") == true) {SatIOData.altitude_value_mode=SATIO_MODE_GPS;}
+          if (argparser_has_flag(&parser, "altitude-value-mode-user") == true) {SatIOData.altitude_value_mode=SATIO_MODE_USER;}
           // ground heading
           if (argparser_has_flag(&parser, "set-ground-heading") == true) {
             setGroundHeading(argparser_get_double(&parser, "set-ground-heading", NAN));
           }
-          if (argparser_has_flag(&parser, "ground-heading-value-mode-gps") == true) {SatIOData.ground_heading_value_mode=SatIO_MODE_GPS;}
-          if (argparser_has_flag(&parser, "ground-heading-value-mode-user") == true) {SatIOData.ground_heading_value_mode=SatIO_MODE_USER;}
+          if (argparser_has_flag(&parser, "ground-heading-value-mode-gps") == true) {SatIOData.ground_heading_value_mode=SATIO_MODE_GPS;}
+          if (argparser_has_flag(&parser, "ground-heading-value-mode-user") == true) {SatIOData.ground_heading_value_mode=SATIO_MODE_USER;}
         }
         // gyro
         else if (strcmp(pos[0], "gyro")==0) {
@@ -1405,20 +1405,30 @@ void CmdProcess(void) {
               if (argparser_has_flag(&parser, "admplex1"))
                 {setDelay(TaskADMplex1, argparser_get_uint32(&parser, "admplex1", pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1), &pwrConfigCurrent.TASK_MAX_FREQ_ADMPLEX1);}
               #endif
+              #ifdef SatIO_USE_GYRO_0
               if (argparser_has_flag(&parser, "gyro0"))
                 {setDelay(TaskGyro, argparser_get_uint32(&parser, "gyro0", pwrConfigCurrent.TASK_MAX_FREQ_GYRO), &pwrConfigCurrent.TASK_MAX_FREQ_GYRO);}
+              #endif
 
+              #ifdef SatIO_USE_UNIVERSE
               if (argparser_has_flag(&parser, "universe"))
                 {setDelay(TaskUniverse, argparser_get_uint32(&parser, "universe", pwrConfigCurrent.TASK_MAX_FREQ_UNIVERSE), &pwrConfigCurrent.TASK_MAX_FREQ_UNIVERSE);}
+              #endif
 
+              #ifdef SatIO_USE_GPS_0
               if (argparser_has_flag(&parser, "gps"))
                 {setDelay(TaskGPS, argparser_get_uint32(&parser, "gps", pwrConfigCurrent.TASK_MAX_FREQ_GPS), &pwrConfigCurrent.TASK_MAX_FREQ_GPS);}
+              #endif
 
+              #ifdef SatIO_USE_SWITCHES
               if (argparser_has_flag(&parser, "switch"))
                 {setDelay(TaskSwitches, argparser_get_uint32(&parser, "switch", pwrConfigCurrent.TASK_MAX_FREQ_SWITCHES), &pwrConfigCurrent.TASK_MAX_FREQ_SWITCHES);}
+              #endif
 
+              #ifdef SatIO_USE_STORAGE
               if (argparser_has_flag(&parser, "storage"))
                 {setDelay(TaskStorage, argparser_get_uint32(&parser, "storage", pwrConfigCurrent.TASK_MAX_FREQ_STORAGE), &pwrConfigCurrent.TASK_MAX_FREQ_STORAGE);}
+              #endif
 
               if (argparser_has_flag(&parser, "pci"))
                 {setDelay(TaskInputPortController, argparser_get_uint32(&parser, "pci", pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT), &pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT);}
@@ -1592,7 +1602,7 @@ static const OuterPlanetSentenceSpec neptune_sentence_spec = {
 
 static void buildOuterPlanetSentence(const OuterPlanetSentenceSpec *spec)
 {
-    char checksum[MAX_CHECKSUM_SIZE];
+    char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
     memset(TXBUF_UNI, 0, sizeof(TXBUF_UNI));
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), spec->tag);
@@ -1626,7 +1636,7 @@ void outputSerialGPS(void) {
 
 void outputSerialSatIO(void) {
   if (systemData.output_SatIO_enabled == true) {
-    char checksum[MAX_CHECKSUM_SIZE];
+    char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
     memset(TXBUF_GPS, 0, sizeof(TXBUF_GPS));
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), "$SatIO,");
@@ -1677,7 +1687,7 @@ void outputSerialGyro0(void) {
   if (systemData.counters_gyr0.flag_c == true) {
     systemData.counters_gyr0.flag_c = false;
     if (systemData.output_gyro_0_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_GYRO0, 0, sizeof(TXBUF_GYRO0));
       serial0_buffer_append(TXBUF_GYRO0, sizeof(TXBUF_GYRO0), "$GYRO0,");
@@ -1706,11 +1716,11 @@ void outputSerialADMplex0(void) {
   if (systemData.counters_mplex0.flag_c == true) {
     systemData.counters_mplex0.flag_c = false;
     if (systemData.output_admplex0_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_ADMPLEX0, 0, sizeof(TXBUF_ADMPLEX0));
       serial0_buffer_append(TXBUF_ADMPLEX0, sizeof(TXBUF_ADMPLEX0), "$MPLEX0,");
-      for (int i = 0; i < MAX_AD_MUX_CHANNELS; i++) {
+      for (int i = 0; i < MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {
         serial0_buffer_append(TXBUF_ADMPLEX0, sizeof(TXBUF_ADMPLEX0), (String(ad_mux_0.data[i]) + ",").c_str());
       }
       serial0_buffer_strip_trailing_comma(TXBUF_ADMPLEX0);
@@ -1726,11 +1736,11 @@ void outputSerialADMplex1(void) {
   if (systemData.counters_mplex1.flag_c == true) {
     systemData.counters_mplex1.flag_c = false;
     if (systemData.output_admplex1_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_ADMPLEX1, 0, sizeof(TXBUF_ADMPLEX1));
       serial0_buffer_append(TXBUF_ADMPLEX1, sizeof(TXBUF_ADMPLEX1), "$MPLEX1,");
-      for (int i = 0; i < MAX_AD_MUX_CHANNELS; i++) {
+      for (int i = 0; i < MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {
         serial0_buffer_append(TXBUF_ADMPLEX1, sizeof(TXBUF_ADMPLEX1), (String(ad_mux_1.data[i]) + ",").c_str());
       }
       serial0_buffer_strip_trailing_comma(TXBUF_ADMPLEX1);
@@ -1746,7 +1756,7 @@ void outputSerialUniverse(void) {
   if (systemData.counters_uni.flag_c == true) {
     systemData.counters_uni.flag_c = false;
     if (systemData.output_sun_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_UNI, 0, sizeof(TXBUF_UNI));
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), "$SUN,");
@@ -1763,7 +1773,7 @@ void outputSerialUniverse(void) {
       printf("%s\n", TXBUF_UNI);
     }
     if (systemData.output_earth_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_UNI, 0, sizeof(TXBUF_UNI));
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), "$EARTH,");
@@ -1777,7 +1787,7 @@ void outputSerialUniverse(void) {
       printf("%s\n", TXBUF_UNI);
     }
     if (systemData.output_luna_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_UNI, 0, sizeof(TXBUF_UNI));
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), "$LUNA,");
@@ -1803,7 +1813,7 @@ void outputSerialUniverse(void) {
     if (systemData.output_uranus_enabled == true) {buildOuterPlanetSentence(&uranus_sentence_spec);}
     if (systemData.output_neptune_enabled == true) {buildOuterPlanetSentence(&neptune_sentence_spec);}
     if (systemData.output_meteors_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_UNI, 0, sizeof(TXBUF_UNI));
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), "$METEOR,");
@@ -1825,7 +1835,7 @@ void outputSerialMatrix(void) {
     systemData.counters_mtx.flag_c = false;
     if (systemData.output_config_matrix_enabled == true) {
       // for (int Mi=0; i_output_config_matrix < MAX_MATRIX_SWITCHES; Mi++) { // uncomment to dump all sentences at once
-        char checksum[MAX_CHECKSUM_SIZE];
+        char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
         memset(TXBUF_SWITCHES, 0, sizeof(TXBUF_SWITCHES));
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), "$XMATRIX,");
@@ -1870,7 +1880,7 @@ void outputSerialMatrix(void) {
     }
     if (systemData.output_config_mapping_enabled == true) {
       for (int Mi=0; Mi < MAX_MAP_SLOTS; Mi++) {
-        char checksum[MAX_CHECKSUM_SIZE];
+        char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
         memset(TXBUF_SWITCHES, 0, sizeof(TXBUF_SWITCHES));
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), "$XMAPP,");
@@ -1889,7 +1899,7 @@ void outputSerialMatrix(void) {
       }
     }
     if (systemData.output_matrix_enabled == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_SWITCHES, 0, sizeof(TXBUF_SWITCHES));
       serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), "$MATRIX,");
@@ -1913,7 +1923,7 @@ void outputSerialPCInput(void) {
   if (systemData.counters_pci.flag_c == true) {
     systemData.counters_pci.flag_c = false;
     if (systemData.output_input_portcontroller == true) {
-      char checksum[MAX_CHECKSUM_SIZE];
+      char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_PCI, 0, sizeof(TXBUF_PCI));
       serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), "$PCINPT,");

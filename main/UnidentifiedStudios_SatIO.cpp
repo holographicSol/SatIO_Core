@@ -16,6 +16,8 @@
 #include "UnidentifiedStudios_TaskHandler.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
 
+#define LAST_EPOCH                 1900
+
 // ------------------------------------------------------------------------------------
 // Global Time
 // ------------------------------------------------------------------------------------
@@ -89,28 +91,28 @@ struct SatIOStruct SatIOData = {
     .user_degrees_longitude=0.0,
     .system_degrees_latitude=0.0,
     .system_degrees_longitude=0.0,
-    .location_value_mode = SatIO_MODE_GPS,
+    .location_value_mode = SATIO_MODE_GPS,
     // ------------------------------------------------------------------------------------
     // ALTITUDE SETTINGS
     // ------------------------------------------------------------------------------------
     .altitude = 0.0,
     .user_altitude = 0.0,
     .system_altitude=0.0,
-    .altitude_value_mode = SatIO_MODE_GPS,
+    .altitude_value_mode = SATIO_MODE_GPS,
     // ------------------------------------------------------------------------------------
     // SPEED SETTINGS
     // ------------------------------------------------------------------------------------
     .speed = 0.0,
     .user_speed = 0.0,
     .system_speed = 0.0,
-    .speed_value_mode = SatIO_MODE_GPS,
+    .speed_value_mode = SATIO_MODE_GPS,
     // ------------------------------------------------------------------------------------
     // HEADING SETTINGS
     // ------------------------------------------------------------------------------------
     .ground_heading = 0.0,
     .user_ground_heading = 0.0,
     .system_ground_heading = 0.0,
-    .ground_heading_value_mode = SatIO_MODE_GPS,
+    .ground_heading_value_mode = SATIO_MODE_GPS,
     .ground_heading_name = {0},
     .course_heading = 0.0,
     // ------------------------------------------------------------------------------------
@@ -158,8 +160,8 @@ void setSatIOAltitude(void) {
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (SatIOData.altitude_value_mode==SatIO_MODE_GPS)  {SatIOData.system_altitude = SatIOData.altitude;}
-  else if (SatIOData.altitude_value_mode==SatIO_MODE_USER) {SatIOData.system_altitude = SatIOData.user_altitude;}
+  if      (SatIOData.altitude_value_mode==SATIO_MODE_GPS)  {SatIOData.system_altitude = SatIOData.altitude;}
+  else if (SatIOData.altitude_value_mode==SATIO_MODE_USER) {SatIOData.system_altitude = SatIOData.user_altitude;}
 }
 
 /**
@@ -172,8 +174,8 @@ void setSatIOSpeed(void) {
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (SatIOData.speed_value_mode==SatIO_MODE_GPS)  {SatIOData.system_speed = SatIOData.speed;}
-  else if (SatIOData.speed_value_mode==SatIO_MODE_USER) {SatIOData.system_speed = SatIOData.user_speed;}
+  if      (SatIOData.speed_value_mode==SATIO_MODE_GPS)  {SatIOData.system_speed = SatIOData.speed;}
+  else if (SatIOData.speed_value_mode==SATIO_MODE_USER) {SatIOData.system_speed = SatIOData.user_speed;}
 }
 
 /**
@@ -186,8 +188,8 @@ void setSatIOGroundHeading(void) {
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (SatIOData.ground_heading_value_mode==SatIO_MODE_GPS)  {SatIOData.system_ground_heading = SatIOData.ground_heading;}
-  else if (SatIOData.ground_heading_value_mode==SatIO_MODE_USER) {SatIOData.system_ground_heading = SatIOData.user_ground_heading;}
+  if      (SatIOData.ground_heading_value_mode==SATIO_MODE_GPS)  {SatIOData.system_ground_heading = SatIOData.ground_heading;}
+  else if (SatIOData.ground_heading_value_mode==SATIO_MODE_USER) {SatIOData.system_ground_heading = SatIOData.user_ground_heading;}
 }
 
 // ----------------------------------------------------------------------------------------
@@ -323,11 +325,11 @@ void setSatIOCoordinates(void) {
   // ----------------------------------------------------------------------------------------------------------------------------
   //                                                                                                     USER DEFINED COORDINATES
   // ----------------------------------------------------------------------------------------------------------------------------
-  if (SatIOData.location_value_mode==SatIO_MODE_GPS)  {
+  if (SatIOData.location_value_mode==SATIO_MODE_GPS)  {
     SatIOData.system_degrees_latitude = SatIOData.degrees_latitude;
     SatIOData.system_degrees_longitude = SatIOData.degrees_longitude;
   }
-  else if (SatIOData.location_value_mode==SatIO_MODE_USER) {
+  else if (SatIOData.location_value_mode==SATIO_MODE_USER) {
     SatIOData.system_degrees_latitude = SatIOData.user_degrees_latitude;
     SatIOData.system_degrees_longitude = SatIOData.user_degrees_longitude;
 

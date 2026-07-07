@@ -179,7 +179,7 @@ static void notifyAllTasks(void) {
   if (TaskUniverse != nullptr) { xTaskNotifyGive(TaskUniverse); }
   #endif
   
-  #ifdef SatIO_USE_MATRIX
+  #ifdef SatIO_USE_SWITCHES
   if (TaskSwitches != nullptr) { xTaskNotifyGive(TaskSwitches); }
   #endif
 
@@ -341,7 +341,7 @@ static void intervalBreach1Second(void) {
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {totalCounters(systemData.counters_mplex1_chan[i_chan]);}
   #endif
 
-  #ifdef SatIO_USE_MATRIX
+  #ifdef SatIO_USE_SWITCHES
   totalCounters(systemData.counters_mtx);
   #endif
 
@@ -355,9 +355,7 @@ static void intervalBreach1Second(void) {
   totalCounters(systemData.counters_uni);
   #endif
 
-  #ifdef SatIO_USE_TRACK_PLANETS
   totalCounters(systemData.counters_track_planets);
-  #endif
 
   #ifdef SatIO_USE_DISPLAY
   totalCounters(systemData.counters_dsp);
@@ -409,7 +407,7 @@ static void intervalBreach1Second(void) {
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {clearCounters(systemData.counters_mplex1_chan[i_chan]);}
   #endif
 
-  #ifdef SatIO_USE_MATRIX
+  #ifdef SatIO_USE_SWITCHES
   clearCounters(systemData.counters_mtx);
   #endif
 
@@ -1234,7 +1232,6 @@ static void taskUniverse(void *pvParameters) {
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       esp_task_wdt_reset();
       
-      #ifdef SatIO_USE_TRACK_PLANETS
       // ------------------------------------------------
       // Set Sidereal Data for Planet/Object Tracking.
       // ------------------------------------------------
@@ -1269,7 +1266,6 @@ static void taskUniverse(void *pvParameters) {
         siderealExtraData.local_sidereal_time,
         SatIOData.system_degrees_latitude);
         esp_task_wdt_reset();
-      #endif
 
       #ifdef SatIO_USE_GYRO_0
       // ------------------------------------------------
@@ -1279,7 +1275,6 @@ static void taskUniverse(void *pvParameters) {
       esp_task_wdt_reset();
       #endif
 
-      #ifdef SatIO_USE_STARNAV
       // ------------------------------------------------
       // StarNav Dynamic Test Zenith Every Interval
       // ------------------------------------------------
@@ -1331,7 +1326,6 @@ static void taskUniverse(void *pvParameters) {
       // printf("Rise:          %f\n", siderealObjectData.object_r);
       // printf("Set:           %f\n", siderealObjectData.object_s);
       // printf("---------------------------------------------\n");
-      #endif
 
       // --------------------------------------------
       // Task frequency counter

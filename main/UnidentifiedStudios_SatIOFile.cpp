@@ -462,7 +462,7 @@ void writeLog(void) {
     // Log Line: Analog/Digital
     // --------------------------------
     line="$MPLEX0,";
-    for (int i=0; i<MAX_AD_MUX_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
+    for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
     printLogLine(line.c_str());
     // --------------------------------
     // Log Line: Port Controller Input

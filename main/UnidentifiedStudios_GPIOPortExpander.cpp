@@ -70,7 +70,7 @@ GPIOPortExpander GPIOPortExpander_ATMEGA2560_Default = {
       57,58,59,60,61,62,63,64,65,66,67,68,69
     },
     (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){}, // switch_state
-    (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){}, // channels enabled/disabled
+    (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){true}, // channels enabled/disabled
     (uint64_t[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){1000000}, // chan_freq_uS - default 1Hz = delay 10^6 micros
     0             // query_cursor
 };
@@ -663,7 +663,7 @@ GPIOPortExpander GPIOPortExpander_ATMEGA2560_Input_0 = {
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 60-69
     },
     (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){}, // switch_state
-    (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){}, // channels enabled/disabled
+    (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){true}, // channels enabled/disabled
     (uint64_t[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){0}, // chan_freq_uS - default 1Hz = delay 10^6 micros
     0 // query_cursor
 };
@@ -706,7 +706,7 @@ GPIOPortExpander GPIOPortExpander_ATMEGA2560_Output_0 = {
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 60-69
     },
     (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){}, // switch_state
-    (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){}, // channels enabled/disabled
+    (bool[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){true}, // channels enabled/disabled
     (uint64_t[GPIOPE_MAX_ATMEGA2560_MAX_PINS]){0}, // chan_freq_uS - default 1Hz = delay 10^6 micros
     0 // query_cursor
 };

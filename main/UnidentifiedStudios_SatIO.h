@@ -18,6 +18,27 @@
 #include "UnidentifiedStudios_LMST.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
 
+// Constants: Time
+#define MAX_DAYS_OF_THE_WEEK       7
+#define MAX_MONTHS_OF_THE_YEAR     12
+
+// Constants: Speed
+#define METERS_TO_MILES_RATIO      0.000621371
+#define METERS_TO_KILOMETERS_RATIO 0.001
+#define METERS_TO_MPH_RATIO        2.23694
+#define METERS_TO_KPH_RATIO        3.6
+#define METERS_TO_KTS_RATIO        1.94384
+#define KNOTS_TO_METERS_PER_SECOND 0.514444
+#define KNOTS_TO_MPH               1.15078
+#define KNOTS_TO_KPH               1.852
+
+// Constants: Geo
+#define EARTH_MEAN_RADIUS          6371000.0 // Mean Earth radius (meters)
+
+// Modes
+#define SATIO_MODE_GPS  0
+#define SATIO_MODE_USER 1
+
 extern struct tm *timeinfo;
 extern struct timeval tv_now;
 extern bool sync_rtc_bool;

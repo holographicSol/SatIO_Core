@@ -33,6 +33,219 @@
 #include <stddef.h>
 #include "UnidentifiedStudios_Config.h"
 #include "UnidentifiedStudios_I2C.h"
+#include "UnidentifiedStudios_Mapping.h"
+
+// Scale Matrix Size
+#define MAX_MATRIX_SWITCHES SATIO_MAX_MATRIX_SWITCHES // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
+#define MAX_MATRIX_SWITCH_FUNCTIONS SATIO_MAX_MATRIX_SWITCH_FUNCTIONS // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
+// MAX_MATRIX_FUNCTION_NAMES is not scaled directly; it is the sentinel
+// enumerator at the end of the Index Matrix Functions enum below, so it
+// always equals however many function slots the current build compiled in.
+
+// Max Matrix Features
+#define MAX_MATRIX_OPERATORS 5
+#define MAX_MATRIX_OUTPUT_MODES 2
+#define MAX_MATRIX_OVERRIDE_TIME 1000000
+#define MAX_MATRIX_FUNCTION_XYZ_MODES 2
+#define MAX_MATRIX_FUNCTION_INVERTED_LOGIC_MODES 2
+
+// Index Matrix Features
+#define INDEX_MATRIX_FUNTION_X 0
+#define INDEX_MATRIX_FUNTION_Y 1
+#define INDEX_MATRIX_FUNTION_Z 2
+#define INDEX_MATRIX_SWITCH_OPERATOR_NONE 0
+#define INDEX_MATRIX_SWITCH_OPERATOR_EQUAL 1
+#define INDEX_MATRIX_SWITCH_OPERATOR_OVER 2
+#define INDEX_MATRIX_SWITCH_OPERATOR_UNDER 3
+#define INDEX_MATRIX_SWITCH_OPERATOR_RANGE 4
+#define INDEX_MATRIX_SWITCH_PWM_OFF 0
+#define INDEX_MATRIX_SWITCH_PWM_ON 1
+#define INDEX_MATRIX_FUNCTION_XYZ_MODE_USER 0
+#define INDEX_MATRIX_FUNCTION_XYZ_MODE_SYSTEM 1
+#define INDEX_MATRIX_OUTPUT_MODE_0 0
+#define INDEX_MATRIX_OUTPUT_MODE_1 1
+
+// Index Matrix Functions
+//
+// A single auto-numbered enum, rather than individual #define constants, so
+// that wrapping any group below in a build option #ifdef re-numbers every
+// following entry automatically. MAX_MATRIX_FUNCTION_NAMES (the trailing
+// sentinel) always equals the count of whichever entries actually compiled
+// in, so matrixData.matrix_function_names[] genuinely shrinks -- and every
+// switch-case keyed on one of these values must be wrapped in the same
+// #ifdef as its enumerator, or the case label won't exist when the option
+// is off (see UnidentifiedStudios_Matrix.cpp).
+//
+// Caution: matrix_function slots persisted (e.g. to SD card) store these
+// raw index values. A saved configuration is only valid for reload under a
+// build with the same set of enabled options -- toggling an option changes
+// the meaning of every index at or after it.
+enum : int32_t {
+  INDEX_MATRIX_SWITCH_FUNCTION_NONE = 0,
+  INDEX_MATRIX_SWITCH_FUNCTION_ON,
+  INDEX_MATRIX_SWITCH_FUNCTION_SWITCH_LINK,
+  INDEX_MATRIX_SWITCH_FUNCTION_TIME_HHMMSS,
+  INDEX_MATRIX_SWITCH_FUNCTION_WEEK_DAY,
+  INDEX_MATRIX_SWITCH_FUNCTION_MONTH_DAY,
+  INDEX_MATRIX_SWITCH_FUNCTION_MONTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_YEAR,
+
+  #ifdef SatIO_USE_GPS_0
+  INDEX_MATRIX_SWITCH_FUNCTION_SatIO_DEG_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_SatIO_DEG_LON,
+  #endif // SatIO_USE_GPS_0
+
+  #ifdef SatIO_USE_INS
+  INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_HEADING,
+  INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_ALT,
+  #endif // SatIO_USE_INS
+
+  #ifdef SatIO_USE_GPS_0
+  INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_STATUS,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_SAT_COUNT,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_PRESCION,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_GROUND_SPEED,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_HEADING,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_LINE,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_STATIC,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_RUN_STATE,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_INS,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_MILEAGE,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_GST,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_YAW,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_ROLL,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_PITCH,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_VALID_CS,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_VALID_CS,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_VALID_CS,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_BAD_CD,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_BAD_CD,
+  INDEX_MATRIX_SWITCH_FUNCTION_GPATT_BAD_CD,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_POS_STAT_A,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_POS_STAT_V,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_MODE_IND_A,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_MODE_IND_D,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_MODE_IND_E,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_MODE_IND_N,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_HEMI_NORTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_HEMI_SOUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_HEMI_EAST,
+  INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_HEMI_WEST,
+  #endif // SatIO_USE_GPS_0
+
+  #ifdef SatIO_USE_GYRO_0
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_G_FORCE_X,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_G_FORCE_Y,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_G_FORCE_Z,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_INCLINE_X,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_INCLINE_Y,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_INCLINE_Z,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_MAG_FIELD_X,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_MAG_FIELD_Y,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_MAG_FIELD_Z,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_VELOCITY_X,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_VELOCITY_Y,
+  INDEX_MATRIX_SWITCH_FUNCTION_G0_VELOCITY_Z,
+  #endif // SatIO_USE_GYRO_0
+
+  #ifdef SatIO_USE_UNIVERSE
+  INDEX_MATRIX_SWITCH_FUNCTION_METEOR,
+  // Sun
+  INDEX_MATRIX_SWITCH_FUNCTION_SUN_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_SUN_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_SUN_HELIO_ECL_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_SUN_HELIO_ECL_LON,
+  // Luna
+  INDEX_MATRIX_SWITCH_FUNCTION_LUNA_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_LUNA_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_LUNA_PHASE,
+  // Mercury
+  INDEX_MATRIX_SWITCH_FUNCTION_MERCURY_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_MERCURY_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_MERCURY_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_MERCURY_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_MERCURY_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_MERCURY_ECLIPTIC_LON,
+  // Venus
+  INDEX_MATRIX_SWITCH_FUNCTION_VENUS_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_VENUS_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_VENUS_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_VENUS_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_VENUS_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_VENUS_ECLIPTIC_LON,
+  // Earth
+  INDEX_MATRIX_SWITCH_FUNCTION_EARTH_ECLIPTIC_LON,
+  // Mars
+  INDEX_MATRIX_SWITCH_FUNCTION_MARS_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_MARS_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_MARS_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_MARS_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_MARS_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_MARS_ECLIPTIC_LON,
+  // Jupiter
+  INDEX_MATRIX_SWITCH_FUNCTION_JUPITER_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_JUPITER_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_JUPITER_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_JUPITER_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_JUPITER_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_JUPITER_ECLIPTIC_LON,
+  // Saturn
+  INDEX_MATRIX_SWITCH_FUNCTION_SATURN_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_SATURN_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_SATURN_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_SATURN_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_SATURN_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_SATURN_ECLIPTIC_LON,
+  // Uranus
+  INDEX_MATRIX_SWITCH_FUNCTION_URANUS_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_URANUS_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_URANUS_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_URANUS_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_URANUS_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_URANUS_ECLIPTIC_LON,
+  // Neptune
+  INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_AZIMUTH,
+  INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_ALTITUDE,
+  INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_H_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_H_ECLIPTIC_LON,
+  INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_ECLIPTIC_LAT,
+  INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_ECLIPTIC_LON,
+  #endif // SatIO_USE_UNIVERSE
+
+  INDEX_MATRIX_SWITCH_FUNCTION_AD_MULTIPLEXER_0,
+
+  #ifdef SatIO_USE_MAPPING
+  INDEX_MATRIX_SWITCH_FUNCTION_MAP_SLOT,
+  #endif // SatIO_USE_MAPPING
+
+  #ifdef SatIO_USE_STORAGE
+  INDEX_MATRIX_SWITCH_FUNCTION_SD_CARD_INSERTED,
+  INDEX_MATRIX_SWITCH_FUNCTION_SD_CARD_MOUNTED,
+  #endif // SatIO_USE_STORAGE
+
+  INDEX_MATRIX_SWITCH_FUNCTION_PORT_CON_0,
+  INDEX_MATRIX_SWITCH_FUNCTION_LMST_TIME,
+  INDEX_MATRIX_SWITCH_FUNCTION_LMST_DATE,
+
+  #ifdef SatIO_USE_UNIVERSE
+  INDEX_MATRIX_SWITCH_FUNCTION_LST,
+  INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_ZENITH_RA,
+  INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_ZENITH_DEC,
+  #endif // SatIO_USE_UNIVERSE
+
+  #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
+  INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_RA,
+  INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_DEC,
+  #endif // SatIO_USE_UNIVERSE && SatIO_USE_GYRO_0
+
+  // Sentinel: always equals the count of real entries above. Sizes
+  // matrixData.matrix_function_names[] and bounds every "is this index
+  // valid" check; never hardcode this elsewhere.
+  MAX_MATRIX_FUNCTION_NAMES
+};
 
 /**
  * @struct MatrixStruct
@@ -153,8 +366,9 @@ struct MatrixStruct {
   bool matrix_switch_inverted_logic[1][MAX_MATRIX_SWITCHES][MAX_MATRIX_SWITCH_FUNCTIONS];
 
   // Function name index per switch function slot (default off = 0). One of
-  // the INDEX_MATRIX_SWITCH_FUNCTION_* / INDEX_MATRIX_* constants in
-  // UnidentifiedStudios_Config.h; see matrix_function_names below for the full list.
+  // the INDEX_MATRIX_SWITCH_FUNCTION_* enumerators above; see
+  // matrix_function_names below for the full list. Which enumerators exist,
+  // and their numeric values, depend on which build options are compiled in.
   int32_t matrix_function[1][MAX_MATRIX_SWITCHES][MAX_MATRIX_SWITCH_FUNCTIONS];
 
   /**
@@ -203,128 +417,22 @@ struct MatrixStruct {
 
   /**
    * Matrix switch function names, indexed by the matrix_function values
-   * above.
+   * above (see the INDEX_MATRIX_SWITCH_FUNCTION_* enum earlier in this file
+   * for the authoritative, build-option-dependent index of each name).
    *
-    [0] NONE
-    [1] ON
-    [2] Switch Link
-    [3] Time HHMMSS
-    [4] Week Day
-    [5] Month Day
-    [6] Month
-    [7] Year
-    [8] SatIO Deg Lat
-    [9] SatIO Deg Lon
-    [10] SatIO INS Lat
-    [11] SatIO INS Lon
-    [12] SatIO INS Heading
-    [13] SatIO INS Alt
-    [14] GNGGA Status
-    [15] GNGGA Sat Count
-    [16] GNGGA Prescion
-    [17] GNGGA Altitude
-    [18] GNRMC Ground Speed
-    [19] GNRMC Heading
-    [20] GPATT Line
-    [21] GPATT Static
-    [22] GPATT Run State
-    [23] GPATT INS
-    [24] GPATT Mileage
-    [25] GPATT GST
-    [26] GPATT Yaw
-    [27] GPATT Roll
-    [28] GPATT Pitch
-    [29] GNGGA Valid CS
-    [30] GNRMC Valid CS
-    [31] GPATT Valid CS
-    [32] GNGGA Valid CD
-    [33] GNRMC Valid CD
-    [34] GPATT Valid CD
-    [35] GNRMC Pos Stat A
-    [36] GNRMC Pos Stat V
-    [37] GNRMC Mode Ind A
-    [38] GNRMC Mode Ind D
-    [39] GNRMC Mode Ind E
-    [40] GNRMC Mode Ind N
-    [41] GNRMC Hemi North
-    [42] GNRMC Hemi South
-    [43] GNRMC Hemi East
-    [44] GNRMC Hemi West
-    [45] G0 G-Force X
-    [46] G0 G-Force Y
-    [47] G0 G-Force Z
-    [48] G0 Incline X
-    [49] G0 Incline Y
-    [50] G0 Incline Z
-    [51] G0 Mag Field X
-    [52] G0 Mag Field Y
-    [53] G0 Mag Field Z
-    [54] G0 Velocity X
-    [55] G0 Velocity Y
-    [56] G0 Velocity Z
-    [57] Meteor
-    [58] Sun Azimuth
-    [59] Sun Altitude
-    [60] Sun Helio Ecl Lat
-    [61] Sun Helio Ecl Lon
-    [62] Luna Azimuth
-    [63] Luna Altitude
-    [64] Luna Phase
-    [65] Mercury Azimuth
-    [66] Mercury Altitude
-    [67] Mercury H.Ecliptic Lat
-    [68] Mercury H.Ecliptic Lon
-    [69] Mercury Ecliptic Lat
-    [70] Mercury Ecliptic Lon
-    [71] Venus Azimuth
-    [72] Venus Altitude
-    [73] Venus H.Ecliptic Lat
-    [74] Venus H.Ecliptic Lon
-    [75] Venus Ecliptic Lat
-    [76] Venus Ecliptic Lon
-    [77] Earth Ecliptic Lon
-    [78] Mars Azimuth
-    [79] Mars Altitude
-    [80] Mars H.Ecliptic Lat
-    [81] Mars H.Ecliptic Lon
-    [82] Mars Ecliptic Lat
-    [83] Mars Ecliptic Lon
-    [84] Jupiter Azimuth
-    [85] jupiter Altitude
-    [86] Jupiter H.Ecliptic Lat
-    [87] Jupiter H.Ecliptic Lon
-    [88] Jupiter Ecliptic Lat
-    [89] Jupiter Ecliptic Lon
-    [90] Saturn Azimuth
-    [91] Saturn Altitude
-    [92] Saturn H.Ecliptic Lat
-    [93] Saturn H.Ecliptic Lon
-    [94] Saturn Ecliptic Lat
-    [95] Saturn Ecliptic Lon
-    [96] Uranus Azimuth
-    [97] Uranus Altitude
-    [98] Uranus H.Ecliptic Lat
-    [99] Uranus H.Ecliptic Lon
-    [100] Uranus Ecliptic Lat
-    [101] Uranus Ecliptic Lon
-    [102] Neptune Azimuth
-    [103] Neptune Altitude
-    [104] Neptune H.Ecliptic Lat
-    [105] Neptune H.Ecliptic Lon
-    [106] Neptune Ecliptic Lat
-    [107] Neptune Ecliptic Lon
-    [108] AD Multiplexer 0
-    [109] Map Slot
-    [110] SD Card Inserted
-    [111] SD Card Mounted
-    [112] Port Con 0
-    [113] Local Mean Solar Time
-    [114] Local Mean Solar Date
-    [115] Local Sidereal Time
-    [116] Local Zenith RA
-    [117] Local Zenith Dec
-    [118] Gyro 0 RA
-    [119] Gyro 0 Dec
+   * With every build option enabled, the order is: NONE, ON, Switch Link,
+   * Time HHMMSS, Week Day, Month Day, Month, Year, SatIO Deg Lat/Lon,
+   * SatIO INS Lat/Lon/Heading/Alt, GNGGA/GNRMC/GPATT fields and validity
+   * flags, G0 (gyro) G-Force/Incline/Mag Field/Velocity X/Y/Z, then --
+   * only if SatIO_USE_UNIVERSE is defined -- Meteor and the Sun/Luna/
+   * Mercury/Venus/Earth/Mars/Jupiter/Saturn/Uranus/Neptune fields, then
+   * always AD Multiplexer 0, Map Slot, SD Card Inserted/Mounted, Port Con 0,
+   * Local Mean Solar Time/Date, then -- again only if SatIO_USE_UNIVERSE is
+   * defined -- Local Sidereal Time, Local Zenith RA/Dec, Gyro 0 RA/Dec.
+   *
+   * Disabling SatIO_USE_UNIVERSE removes both of those groups entirely (no
+   * placeholder slots), so every index from AD Multiplexer 0 onward shifts
+   * down to fill the gap.
    */
   char matrix_function_names[MAX_MATRIX_FUNCTION_NAMES][MAX_GLOBAL_ELEMENT_SIZE];
 };
@@ -353,7 +461,7 @@ bool matrixSwitch(void);
  * back into a double alongside the user-supplied values.
  *
  * @param index_matrix_value_comparitor One of the
- *        INDEX_MATRIX_SWITCH_FUNCTION_* constants (UnidentifiedStudios_Config.h) identifying
+ *        INDEX_MATRIX_SWITCH_FUNCTION_* enumerators (above) identifying
  *        which system value to render. Any value with no matching system
  *        value renders as "NAN".
  * @param out Caller-owned buffer that receives the rendered,

@@ -225,6 +225,26 @@ static void uart0_event_task(void *pvParameters) {
 }
 
 /** ----------------------------------------------------------------------------
+ * Matrix Function Index Table.
+ *
+ * @brief Prints every currently-compiled INDEX_MATRIX_SWITCH_FUNCTION_* entry
+ *        alongside its index and display name.
+ * @note The mapping shifts whenever a build option that gates a block of the
+ *       enum (UnidentifiedStudios_Matrix.h) is toggled, so this table is the
+ *       authoritative reference for the current build -- read it from the
+ *       boot log rather than assuming indices from a prior build still hold.
+ */
+static void printMatrixFunctionIndexTable(void) {
+    printf("---------------------------------------------\n");
+    printf("Matrix Function Index (%ld entries)\n", (long)MAX_MATRIX_FUNCTION_NAMES);
+    printf("---------------------------------------------\n");
+    for (int32_t i = 0; i < MAX_MATRIX_FUNCTION_NAMES; i++) {
+        printf("[%3ld] %s\n", (long)i, matrixData.matrix_function_names[i]);
+    }
+    printf("---------------------------------------------\n");
+}
+
+/** ----------------------------------------------------------------------------
  * Arduino Core Entry Point.
  *
  * External linkage is required because the Arduino-ESP32 core calls this
@@ -269,6 +289,8 @@ extern "C" void app_main(void)
     };
     ESP_ERROR_CHECK(esp_task_wdt_reconfigure(&wdt_config));
 
+    // delay(5000);
+
     /** ----------------------------------------------------------------------------
      * Initialize Mutexes
      */
@@ -311,13 +333,16 @@ extern "C" void app_main(void)
     ESP_LOGI(APP_MAIN_TAG, "UART0 ready - send data to GPIO1 (RX0)");
 
     /** ----------------------------------------------------------------------------
+     * Matrix Function Index Table
+     */
+    printMatrixFunctionIndexTable();
+
+    /** ----------------------------------------------------------------------------
      * System Time
      */
     printf("Initializing system time");
     SatIOData.systemTime.sync_immediately_flag=true;
     initSystemTime();
-
-    // delay(5000);
 
     /** ----------------------------------------------------------------------------
      * I2C Bus 2.
@@ -385,6 +410,7 @@ extern "C" void app_main(void)
      *     unused because the GPS module is read-only from this system's
      *     perspective.
      */
+    #ifdef SatIO_USE_GPS_0
     printf("Serial1 (GPS) starting");
     const int8_t pin_not_used               = -1;
     const int8_t gps_uart_rxd_pin           = 34;
@@ -402,6 +428,7 @@ extern "C" void app_main(void)
     Serial1.flush();
     printf("Serial1 baud rate: %lu", (unsigned long)gps_uart_baud_rate);
     printf("Serial1 hardware remap: RX=%d TX=%d", gps_uart_rxd_pin, gps_uart_txd_pin);
+    #endif
 
     // Full ~0-3.3V input range; applies to every ADC channel.
     analogSetAttenuation(ADC_11db);
@@ -457,7 +484,7 @@ extern "C" void app_main(void)
     #endif
 
     // Auxiliary Output
-    #ifdef SatIO_USE_MATRIX
+    #ifdef SatIO_USE_SWITCHES
     printf("creating auxiliary output task");
     createTaskSwitches(); // (target: max 1KHz) Fast general output
     #endif

@@ -1341,7 +1341,7 @@ void btn_location_mode_gps_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.location_value_mode = SatIO_MODE_GPS;
+        SatIOData.location_value_mode = SATIO_MODE_GPS;
     }
 }
 /** -------------------------------------------------------------------------------------
@@ -1354,7 +1354,7 @@ void btn_location_mode_user_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.location_value_mode = SatIO_MODE_USER;
+        SatIOData.location_value_mode = SATIO_MODE_USER;
     }
 }
 
@@ -1368,7 +1368,7 @@ void btn_altitude_mode_gps_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.altitude_value_mode = SatIO_MODE_GPS;
+        SatIOData.altitude_value_mode = SATIO_MODE_GPS;
     }
 }
 /** -------------------------------------------------------------------------------------
@@ -1381,7 +1381,7 @@ void btn_altitude_mode_user_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.altitude_value_mode = SatIO_MODE_USER;
+        SatIOData.altitude_value_mode = SATIO_MODE_USER;
     }
 }
 
@@ -1395,7 +1395,7 @@ void btn_speed_mode_gps_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.speed_value_mode = SatIO_MODE_GPS;
+        SatIOData.speed_value_mode = SATIO_MODE_GPS;
     }
 }
 /** -------------------------------------------------------------------------------------
@@ -1408,7 +1408,7 @@ void btn_speed_mode_user_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.speed_value_mode = SatIO_MODE_USER;
+        SatIOData.speed_value_mode = SATIO_MODE_USER;
     }
 }
 
@@ -1422,7 +1422,7 @@ void btn_ground_heading_mode_gps_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.ground_heading_value_mode = SatIO_MODE_GPS;
+        SatIOData.ground_heading_value_mode = SATIO_MODE_GPS;
     }
 }
 /** -------------------------------------------------------------------------------------
@@ -1435,7 +1435,7 @@ void btn_ground_heading_mode_user_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
 
     if(code == LV_EVENT_CLICKED) {
-        SatIOData.ground_heading_value_mode = SatIO_MODE_USER;
+        SatIOData.ground_heading_value_mode = SATIO_MODE_USER;
     }
 }
 
@@ -17233,7 +17233,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // Location Value Mode
                 // ────────────────────────────────────────────────
-                if (SatIOData.location_value_mode==SatIO_MODE_GPS) {
+                if (SatIOData.location_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_location_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17243,7 +17243,7 @@ void update_display_lvgl()
                     lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
                     lv_obj_set_style_text_color(SatIO_c.btn_location_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
-                else if (SatIOData.location_value_mode==SatIO_MODE_USER) {
+                else if (SatIOData.location_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_location_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17361,7 +17361,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // Altitude Value Mode
                 // ────────────────────────────────────────────────
-                if (SatIOData.altitude_value_mode==SatIO_MODE_GPS) {
+                if (SatIOData.altitude_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17371,7 +17371,7 @@ void update_display_lvgl()
                     lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
                     lv_obj_set_style_text_color(SatIO_c.btn_altitude_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
-                else if (SatIOData.altitude_value_mode==SatIO_MODE_USER) {
+                else if (SatIOData.altitude_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17400,7 +17400,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // Speed Value Mode
                 // ────────────────────────────────────────────────
-                if (SatIOData.speed_value_mode==SatIO_MODE_GPS) {
+                if (SatIOData.speed_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_speed_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17410,7 +17410,7 @@ void update_display_lvgl()
                     lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
                     lv_obj_set_style_text_color(SatIO_c.btn_speed_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
-                else if (SatIOData.speed_value_mode==SatIO_MODE_USER) {
+                else if (SatIOData.speed_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17444,7 +17444,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // Ground Heading Value Mode
                 // ────────────────────────────────────────────────
-                if (SatIOData.ground_heading_value_mode==SatIO_MODE_GPS) {
+                if (SatIOData.ground_heading_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
@@ -17454,7 +17454,7 @@ void update_display_lvgl()
                     lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
                     lv_obj_set_style_text_color(SatIO_c.btn_ground_heading_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
-                else if (SatIOData.ground_heading_value_mode==SatIO_MODE_USER) {
+                else if (SatIOData.ground_heading_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
                     lv_obj_set_style_outline_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);

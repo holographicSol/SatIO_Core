@@ -10,7 +10,12 @@
 #include <stdint.h>
 #include "UnidentifiedStudios_Config.h"
 
-#define MAX_GYRO_BAUDRATES 10  // Number of entries in gyro_0_c_uiBaud, including the unused index 0
+#define MAX_GYRO_BAUDRATES  10  // Number of entries in gyro_0_c_uiBaud, including the unused index 0
+#define GYRO_0_ACC_UPDATE   0x01
+#define GYRO_0_UPDATE		    0x02
+#define GYRO_0_ANGLE_UPDATE	0x04
+#define GYRO_0_MAG_UPDATE	  0x08
+#define GYRO_0_READ_UPDATE  0x80
 
 /**
  * @struct GyroData

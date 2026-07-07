@@ -105,132 +105,169 @@ struct MatrixStruct matrixData = {
   },
   .matrix_function_names =
   {
-    "NONE", //0
-    "ON", //1
+    "NONE", //0 (ALWAYS ZERO)
+    "ON", //1 (ALW)
     "Switch Link", //2
     "Time HHMMSS", //3
     "Week Day", //4
     "Month Day", //5
     "Month", //6
     "Year", //7
-    "SatIO Deg Lat", //8
-    "SatIO Deg Lon", //9
-    "SatIO INS Lat", //10
-    "SatIO INS Lon", //11
-    "SatIO INS Heading", //12
-    "SatIO INS Alt", //13
-    "GNGGA Status", //14
-    "GNGGA Sat Count", //15
-    "GNGGA Prescion", //16
-    "GNGGA Altitude", //17
-    "GNRMC Ground Speed", //18
-    "GNRMC Heading", //19
-    "GPATT Line", //20
-    "GPATT Static", //21
-    "GPATT Run State", //22
-    "GPATT INS", //23
-    "GPATT Mileage", //24
-    "GPATT GST", //25
-    "GPATT Yaw", //26
-    "GPATT Roll", //27
-    "GPATT Pitch", //28
-    "GNGGA Valid CS", //29
-    "GNRMC Valid CS", //30
-    "GPATT Valid CS", //31
-    "GNGGA Bad CD", //32
-    "GNRMC Bad CD", //33
-    "GPATT Bad CD", //34
-    "GNRMC Pos Stat A", //35
-    "GNRMC Pos Stat V", //36
-    "GNRMC Mode Ind A", //37
-    "GNRMC Mode Ind D", //38
-    "GNRMC Mode Ind E", //39
-    "GNRMC Mode Ind N", //40
-    "GNRMC Hemi North", //41
-    "GNRMC Hemi South", //42
-    "GNRMC Hemi East", //43
-    "GNRMC Hemi West", //44
-    "G0 G-Force X", //45
-    "G0 G-Force Y", //46
-    "G0 G-Force Z", //47
-    "G0 Incline X", //48
-    "G0 Incline Y", //49
-    "G0 Incline Z", //50
-    "G0 Mag Field X", //51
-    "G0 Mag Field Y", //52
-    "G0 Mag Field Z", //53
-    "G0 Velocity X", //54
-    "G0 Velocity Y", //55
-    "G0 Velocity Z", //56
-    "Meteor", //57
-    "Sun Azimuth", //58
-    "Sun Altitude", //59
-    "Sun Helio Ecl Lat", //60
-    "Sun Helio Ecl Lon", //61
-    "Luna Azimuth", //62
-    "Luna Altitude", //63
-    "Luna Phase", //64
-    "Mercury Azimuth", //65
-    "Mercury Altitude", //66
-    "Mercury H.Ecliptic Lat", //67
-    "Mercury H.Ecliptic Lon", //68
-    "Mercury Ecliptic Lat", //69
-    "Mercury Ecliptic Lon", //70
-    "Venus Azimuth", //71
-    "Venus Altitude", //72
-    "Venus H.Ecliptic Lat", //73
-    "Venus H.Ecliptic Lon", //74
-    "Venus Ecliptic Lat", //75
-    "Venus Ecliptic Lon", //76
-    "Earth Ecliptic Lon", //77
-    "Mars Azimuth", //78
-    "Mars Altitude", //79
-    "Mars H.Ecliptic Lat", //80
-    "Mars H.Ecliptic Lon", //81
-    "Mars Ecliptic Lat", //82
-    "Mars Ecliptic Lon", //83
-    "Jupiter Azimuth", //84
-    "jupiter Altitude", //85
-    "Jupiter H.Ecliptic Lat", //86
-    "Jupiter H.Ecliptic Lon", //87
-    "Jupiter Ecliptic Lat", //88
-    "Jupiter Ecliptic Lon", //89
-    "Saturn Azimuth", //90
-    "Saturn Altitude", //91
-    "Saturn H.Ecliptic Lat", //92
-    "Saturn H.Ecliptic Lon", //93
-    "Saturn Ecliptic Lat", //94
-    "Saturn Ecliptic Lon", //95
-    "Uranus Azimuth", //96
-    "Uranus Altitude", //97
-    "Uranus H.Ecliptic Lat", //98
-    "Uranus H.Ecliptic Lon", //99
-    "Uranus Ecliptic Lat", //100
-    "Uranus Ecliptic Lon", //101
-    "Neptune Azimuth", //102
-    "Neptune Altitude", //103
-    "Neptune H.Ecliptic Lat", //104
-    "Neptune H.Ecliptic Lon", //105
-    "Neptune Ecliptic Lat", //106
-    "Neptune Ecliptic Lon", //107
-    "AD Multiplexer 0", //108
-    "Map Slot", //109
-    "SD Card Inserted", //110
-    "SD Card Mounted", //111
-    "Port Con 0", //112
-    "Local Mean Solar Time", // 113
-    "Local Mean Solar Date", // 114
-    "Local Sidereal time", // 115
-    "Local Zenith RA", // 116
-    "Local Zenith Dec", // 117
-    "Gyro 0 RA", // 118
-    "Gyro 0 Dec", // 119
+
+    #ifdef SatIO_USE_GPS_0
+    "SatIO Deg Lat",
+    "SatIO Deg Lon",
+    #endif // SatIO_USE_GPS_0
+
+    #ifdef SatIO_USE_INS
+    "SatIO INS Lat",
+    "SatIO INS Lon",
+    "SatIO INS Heading",
+    "SatIO INS Alt",
+    #endif // SatIO_USE_INS
+
+    #ifdef SatIO_USE_GPS_0
+    "GNGGA Status",
+    "GNGGA Sat Count",
+    "GNGGA Prescion",
+    "GNGGA Altitude",
+    "GNRMC Ground Speed",
+    "GNRMC Heading",
+    "GPATT Line",
+    "GPATT Static",
+    "GPATT Run State",
+    "GPATT INS",
+    "GPATT Mileage",
+    "GPATT GST",
+    "GPATT Yaw",
+    "GPATT Roll",
+    "GPATT Pitch",
+    "GNGGA Valid CS",
+    "GNRMC Valid CS",
+    "GPATT Valid CS",
+    "GNGGA Bad CD",
+    "GNRMC Bad CD",
+    "GPATT Bad CD",
+    "GNRMC Pos Stat A",
+    "GNRMC Pos Stat V",
+    "GNRMC Mode Ind A",
+    "GNRMC Mode Ind D",
+    "GNRMC Mode Ind E",
+    "GNRMC Mode Ind N",
+    "GNRMC Hemi North",
+    "GNRMC Hemi South",
+    "GNRMC Hemi East",
+    "GNRMC Hemi West",
+    #endif // SatIO_USE_GPS_0
+
+    #ifdef SatIO_USE_GYRO_0
+    "G0 G-Force X",
+    "G0 G-Force Y",
+    "G0 G-Force Z",
+    "G0 Incline X",
+    "G0 Incline Y",
+    "G0 Incline Z",
+    "G0 Mag Field X",
+    "G0 Mag Field Y",
+    "G0 Mag Field Z",
+    "G0 Velocity X",
+    "G0 Velocity Y",
+    "G0 Velocity Z",
+    #endif // SatIO_USE_GYRO_0
+
+    #ifdef SatIO_USE_UNIVERSE
+    "Meteor",
+    "Sun Azimuth",
+    "Sun Altitude",
+    "Sun Helio Ecl Lat",
+    "Sun Helio Ecl Lon",
+    "Luna Azimuth",
+    "Luna Altitude",
+    "Luna Phase",
+    "Mercury Azimuth",
+    "Mercury Altitude",
+    "Mercury H.Ecliptic Lat",
+    "Mercury H.Ecliptic Lon",
+    "Mercury Ecliptic Lat",
+    "Mercury Ecliptic Lon",
+    "Venus Azimuth",
+    "Venus Altitude",
+    "Venus H.Ecliptic Lat",
+    "Venus H.Ecliptic Lon",
+    "Venus Ecliptic Lat",
+    "Venus Ecliptic Lon",
+    "Earth Ecliptic Lon",
+    "Mars Azimuth",
+    "Mars Altitude",
+    "Mars H.Ecliptic Lat",
+    "Mars H.Ecliptic Lon",
+    "Mars Ecliptic Lat",
+    "Mars Ecliptic Lon",
+    "Jupiter Azimuth",
+    "jupiter Altitude",
+    "Jupiter H.Ecliptic Lat",
+    "Jupiter H.Ecliptic Lon",
+    "Jupiter Ecliptic Lat",
+    "Jupiter Ecliptic Lon",
+    "Saturn Azimuth",
+    "Saturn Altitude",
+    "Saturn H.Ecliptic Lat",
+    "Saturn H.Ecliptic Lon",
+    "Saturn Ecliptic Lat",
+    "Saturn Ecliptic Lon",
+    "Uranus Azimuth",
+    "Uranus Altitude",
+    "Uranus H.Ecliptic Lat",
+    "Uranus H.Ecliptic Lon",
+    "Uranus Ecliptic Lat",
+    "Uranus Ecliptic Lon",
+    "Neptune Azimuth",
+    "Neptune Altitude",
+    "Neptune H.Ecliptic Lat",
+    "Neptune H.Ecliptic Lon",
+    "Neptune Ecliptic Lat",
+    "Neptune Ecliptic Lon",
+    #endif // SatIO_USE_UNIVERSE
+
+    "AD Multiplexer 0",
+
+    #ifdef SatIO_USE_MAPPING
+    "Map Slot",
+    #endif // SatIO_USE_MAPPING
+
+    #ifdef SatIO_USE_STORAGE
+    "SD Card Inserted",
+    "SD Card Mounted",
+    #endif // SatIO_USE_STORAGE
+
+    "Port Con 0",
+    "Local Mean Solar Time",
+    "Local Mean Solar Date",
+
+    #ifdef SatIO_USE_UNIVERSE
+    "Local Sidereal time",
+    "Local Zenith RA",
+    "Local Zenith Dec",
+    #endif // SatIO_USE_UNIVERSE
+
+    #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
+    "Gyro 0 RA",
+    "Gyro 0 Dec",
+    #endif // SatIO_USE_UNIVERSE && SatIO_USE_GYRO_0
   },
 };
 
 // ----------------------------------------------------------------------------------------
 //  MATRIX SWITCH FUNCTION PREDICATES
 // ----------------------------------------------------------------------------------------
+// Everything from here through get_matrix_function_comparitor() below exists
+// solely to evaluate matrix switch function logic (matrixSwitch()), which is
+// only ever invoked when both SatIO_USE_SWITCHES (the auxiliary output task)
+// and SatIO_USE_MATRIX (the switch-evaluation sub-feature) are compiled in
+// -- see taskSwitches() in UnidentifiedStudios_TaskHandler.cpp. Gating the
+// whole section keeps this dead weight (and its huge dispatch table) out of
+// a build that never calls it.
+#if defined(SatIO_USE_SWITCHES) && defined(SatIO_USE_MATRIX)
 // Each predicate below compares two or three values and is available in a
 // "true" and a "false" form. The "false" form is the logical negation of
 // the "true" form, used when a switch function's inverted-logic flag is
@@ -403,6 +440,7 @@ bool matrixSwitch(void) {
           handle_digit = true;
           break;
 
+        #ifdef SatIO_USE_GPS_0
         case INDEX_MATRIX_SWITCH_FUNCTION_SatIO_DEG_LAT:
           tmp_x = SatIOData.degrees_latitude;
           handle_digit = true;
@@ -412,7 +450,9 @@ bool matrixSwitch(void) {
           tmp_x = SatIOData.degrees_longitude;
           handle_digit = true;
           break;
+        #endif // SatIO_USE_GPS_0
 
+        #ifdef SatIO_USE_INS
         case INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_LAT:
           tmp_x = insData.ins_latitude;
           handle_digit = true;
@@ -432,7 +472,9 @@ bool matrixSwitch(void) {
           tmp_x = insData.ins_altitude;
           handle_digit = true;
           break;
+        #endif // SatIO_USE_INS
 
+        #ifdef SatIO_USE_GPS_0
         case INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_STATUS:
           tmp_x = (double)atoi(gnggaData.solution_status);
           handle_digit = true;
@@ -537,7 +579,9 @@ bool matrixSwitch(void) {
           tmp_x = (double)gpattData.total_bad_elements;
           handle_digit = true;
           break;
+        #endif // SatIO_USE_GPS_0
 
+        #ifdef SatIO_USE_GYRO_0
         case INDEX_MATRIX_SWITCH_FUNCTION_G0_G_FORCE_X:
           tmp_x = (double)gyroData.gyro_0_acc_x;
           handle_digit = true;
@@ -597,7 +641,9 @@ bool matrixSwitch(void) {
           tmp_x = (double)gyroData.gyro_0_gyr_z;
           handle_digit = true;
           break;
+        #endif // SatIO_USE_GYRO_0
 
+        #ifdef SatIO_USE_UNIVERSE
         case INDEX_MATRIX_SWITCH_FUNCTION_METEOR: {
           int32_t meteor_shower = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_X];
           int32_t meteor_result = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Y];
@@ -866,6 +912,7 @@ bool matrixSwitch(void) {
           tmp_x = siderealPlanetData.neptune_ecliptic_long;
           handle_digit = true;
           break;
+        #endif // SatIO_USE_UNIVERSE
 
         // Analog/Digital Multiplexer 0
         case INDEX_MATRIX_SWITCH_FUNCTION_AD_MULTIPLEXER_0: {
@@ -878,6 +925,7 @@ bool matrixSwitch(void) {
           break;
         }
 
+        #ifdef SatIO_USE_MAPPING
         case INDEX_MATRIX_SWITCH_FUNCTION_MAP_SLOT: {
           int32_t map_slot = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -887,11 +935,14 @@ bool matrixSwitch(void) {
           handle_digit = true;
           break;
         }
+        #endif // SatIO_USE_MAPPING
 
+        #ifdef SatIO_USE_STORAGE
         case INDEX_MATRIX_SWITCH_FUNCTION_SD_CARD_MOUNTED:
           tmp_x = (double)sdcardData.sdcard_mounted;
           handle_digit = true;
           break;
+        #endif // SatIO_USE_STORAGE
 
         case INDEX_MATRIX_SWITCH_FUNCTION_PORT_CON_0: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
@@ -903,43 +954,48 @@ bool matrixSwitch(void) {
           break;
         }
 
-        case INDEX_MATRIX_LMST_TIME:
+        case INDEX_MATRIX_SWITCH_FUNCTION_LMST_TIME:
           tmp_x = (double)atol(SatIOData.localMeanSolarTime.padded_time_HHMMSS);
           handle_digit = true;
           break;
 
-        case INDEX_MATRIX_LMST_DATE:
+        case INDEX_MATRIX_SWITCH_FUNCTION_LMST_DATE:
           tmp_x = (double)atol(SatIOData.localMeanSolarTime.padded_date_DDMMYYYY);
           handle_digit = true;
           break;
 
-        case INDEX_MATRIX_LST:
+        #ifdef SatIO_USE_UNIVERSE
+        case INDEX_MATRIX_SWITCH_FUNCTION_LST:
           tmp_x = siderealExtraData.local_sidereal_time;
           handle_digit = true;
           break;
 
-        case INDEX_MATRIX_LOCAL_ZENITH_RA:
+        case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_ZENITH_RA:
           tmp_x = (double)atol(siderealExtraData.local_zenith_ra_dec.padded_ra_str);
           handle_digit = true;
           break;
 
-        case INDEX_MATRIX_LOCAL_ZENITH_DEC:
+        case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_ZENITH_DEC:
           tmp_x = (double)atol(siderealExtraData.local_zenith_ra_dec.padded_dec_str);
           handle_digit = true;
           break;
+        #endif // SatIO_USE_UNIVERSE
 
-        case INDEX_MATRIX_GYRO_0_RA:
+        #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
+        case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_RA:
           tmp_x = (double)atol(siderealExtraData.gyro_0_ra_dec.padded_ra_str);
           handle_digit = true;
           break;
 
-        case INDEX_MATRIX_GYRO_0_DEC:
+        case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_DEC:
           tmp_x = (double)atol(siderealExtraData.gyro_0_ra_dec.padded_dec_str);
           handle_digit = true;
           break;
+        #endif // SatIO_USE_UNIVERSE && SatIO_USE_GYRO_0
 
         // Char-comparison cases: compare a fixed single-character constant
         // against the relevant field's current value.
+        #ifdef SatIO_USE_GPS_0
         case INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_POS_STAT_A:
           temp_string_x = "A";
           temp_string_y = gnrmcData.positioning_status;
@@ -999,6 +1055,7 @@ bool matrixSwitch(void) {
           temp_string_y = gnrmcData.longitude_hemisphere;
           handle_char = true;
           break;
+        #endif // SatIO_USE_GPS_0
 
         // Every other function name (including the currently-disabled
         // SD_CARD_INSERTED) leaves this slot's intention false.
@@ -1136,6 +1193,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
       snprintf(out, out_size, "%.10g", (double)SatIOData.localTime.year);
       break;
 
+    #ifdef SatIO_USE_GPS_0
     case INDEX_MATRIX_SWITCH_FUNCTION_SatIO_DEG_LAT:
       snprintf(out, out_size, "%.10g", SatIOData.degrees_latitude);
       break;
@@ -1143,7 +1201,9 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_SatIO_DEG_LON:
       snprintf(out, out_size, "%.10g", SatIOData.degrees_longitude);
       break;
+    #endif // SatIO_USE_GPS_0
 
+    #ifdef SatIO_USE_INS
     case INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_LAT:
       snprintf(out, out_size, "%.10g", insData.ins_latitude);
       break;
@@ -1159,7 +1219,9 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_SatIO_INS_ALT:
       snprintf(out, out_size, "%.10g", insData.ins_altitude);
       break;
+    #endif // SatIO_USE_INS
 
+    #ifdef SatIO_USE_GPS_0
     case INDEX_MATRIX_SWITCH_FUNCTION_GNGGA_STATUS:
       snprintf(out, out_size, "%s", gnggaData.solution_status);
       break;
@@ -1243,7 +1305,9 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPATT_BAD_CD:
       snprintf(out, out_size, "%.10g", (double)gpattData.total_bad_elements);
       break;
+    #endif // SatIO_USE_GPS_0
 
+    #ifdef SatIO_USE_GYRO_0
     case INDEX_MATRIX_SWITCH_FUNCTION_G0_G_FORCE_X:
       snprintf(out, out_size, "%.10g", (double)gyroData.gyro_0_acc_x);
       break;
@@ -1291,7 +1355,9 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_G0_VELOCITY_Z:
       snprintf(out, out_size, "%.10g", (double)gyroData.gyro_0_gyr_z);
       break;
+    #endif // SatIO_USE_GYRO_0
 
+    #ifdef SatIO_USE_UNIVERSE
     case INDEX_MATRIX_SWITCH_FUNCTION_METEOR: {
       int32_t meteor_shower = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_X];
       int32_t meteor_result = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Y];
@@ -1512,6 +1578,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_NEPTUNE_ECLIPTIC_LON:
       snprintf(out, out_size, "%.10g", siderealPlanetData.neptune_ecliptic_long);
       break;
+    #endif // SatIO_USE_UNIVERSE
 
     case INDEX_MATRIX_SWITCH_FUNCTION_AD_MULTIPLEXER_0: {
       int32_t mux_channel = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
@@ -1523,6 +1590,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
       break;
     }
 
+    #ifdef SatIO_USE_MAPPING
     case INDEX_MATRIX_SWITCH_FUNCTION_MAP_SLOT: {
       int32_t map_slot = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double map_value = 0.0;
@@ -1532,7 +1600,9 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
       snprintf(out, out_size, "%.10g", map_value);
       break;
     }
+    #endif // SatIO_USE_MAPPING
 
+    #ifdef SatIO_USE_STORAGE
     // SD_CARD_INSERTED has no corresponding system value; it renders empty.
     case INDEX_MATRIX_SWITCH_FUNCTION_SD_CARD_INSERTED:
       snprintf(out, out_size, "%s", "");
@@ -1541,6 +1611,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_SD_CARD_MOUNTED:
       snprintf(out, out_size, "%.10g", (double)sdcardData.sdcard_mounted);
       break;
+    #endif // SatIO_USE_STORAGE
 
     case INDEX_MATRIX_SWITCH_FUNCTION_PORT_CON_0: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
@@ -1553,6 +1624,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
 
     // Char-comparison cases: render the fixed constant compared against.
+    #ifdef SatIO_USE_GPS_0
     case INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_POS_STAT_A:
       snprintf(out, out_size, "%s", "A");
       break;
@@ -1592,6 +1664,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GNRMC_HEMI_WEST:
       snprintf(out, out_size, "%s", "W");
       break;
+    #endif // SatIO_USE_GPS_0
 
     // Every function name with no corresponding system value renders "NAN",
     // which strtod() parses back as not-a-number.
@@ -1600,6 +1673,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
       break;
   }
 }
+#endif // SatIO_USE_SWITCHES && SatIO_USE_MATRIX
 
 // ----------------------------------------------------------------------------------------
 //  MATRIX BOOKKEEPING
@@ -1670,6 +1744,9 @@ void set_all_matrix_default(void) {
   Serial.println("[set_all_matrix_default] done.");
 }
 
+// Only called from taskSwitches() (UnidentifiedStudios_TaskHandler.cpp),
+// which is itself only compiled under SatIO_USE_SWITCHES.
+#ifdef SatIO_USE_SWITCHES
 void setOutputValues(void) {
   for (int32_t Mi=0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
 
@@ -1677,10 +1754,10 @@ void setOutputValues(void) {
 
     if (matrixData.matrix_function[0][Mi][0] == INDEX_MATRIX_SWITCH_FUNCTION_NONE) {
       oval = 0;
-    } else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_MOD_0) {
+    } else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_0) {
       // Matrix logic (digital): output value is the switch's intention.
       oval = matrixData.switch_intention[0][Mi];
-    } else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_MOD_1) {
+    } else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_1) {
       // Mapped value: output value is the mapped value at this switch's
       // configured map slot.
       oval = mappingData.mapped_value[0][matrixData.index_mapped_value[0][Mi]];
@@ -1703,3 +1780,4 @@ void setOutputValues(void) {
     }
   }
 }
+#endif // SatIO_USE_SWITCHES

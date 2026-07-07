@@ -19,6 +19,10 @@
 #include "UnidentifiedStudios_StrVal.h"   // For string validation functions
 #include "UnidentifiedStudios_Config.h"
 
+#define MAX_GNGGA_ELEMENTS 16
+#define MAX_GNRMC_ELEMENTS 14
+#define MAX_GPATT_ELEMENTS 41
+
 /**
  * @struct Serial1DataStruct
  * Working state for reading raw lines from Serial1. Only readGPS() persists

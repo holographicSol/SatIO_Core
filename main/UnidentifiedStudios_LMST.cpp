@@ -14,6 +14,8 @@
 #include <time.h>
 #include "UnidentifiedStudios_LMST.h"
 
+#define LAST_EPOCH                 1900
+
 /* Rule 8.7: internal linkage; named astronomical/calendar constants used only
    within this file, in place of magic numbers in the formulae below. */
 static const double EARTH_AXIAL_TILT_DEG         = 23.45; /* Solar declination amplitude. */

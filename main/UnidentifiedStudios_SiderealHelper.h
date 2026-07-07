@@ -10,6 +10,14 @@
 #include "SiderealPlanets.h"
 #include "UnidentifiedStudios_Config.h"
 
+#define INDEX_SIDEREAL_STAR_TABLE          0          
+#define INDEX_SIDEREAL_NGC_TABLE           1 // New General Catalogue
+#define INDEX_SIDEREAL_IC_TABLE            2 // The Index Catalogue of Nebulae and Clusters of Stars (IC)
+#define INDEX_SIDEREAL_MESSIER_TABLE       3 
+#define INDEX_SIDEREAL_CALDWELL_TABLE      4 
+#define INDEX_SIDEREAL_HERSHEL400_TABLE    5 
+#define INDEX_SIDEREAL_OTHER_OBJECTS_TABLE 6 
+
 // External instance of SiderealPlanets
 extern SiderealPlanets myAstro;
 

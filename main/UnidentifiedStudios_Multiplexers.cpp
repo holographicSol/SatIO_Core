@@ -20,7 +20,7 @@ AnalogDigitalMultiplexer ad_mux_0 = {
            PIN_ANALOG_DIGITAL_MULTIPLEXER_0_S3,
            PIN_ANALOG_DIGITAL_MULTIPLEXER_0_SIG},
   .data = {},
-  .enabled = {false},
+  .enabled = {true},
   .chan_freq_uS = {1000000} // default 1Hz = delay 10^6 micros
 };
 
@@ -31,7 +31,7 @@ AnalogDigitalMultiplexer ad_mux_1 = {
            PIN_ANALOG_DIGITAL_MULTIPLEXER_1_S3,
            PIN_ANALOG_DIGITAL_MULTIPLEXER_1_SIG},
   .data = {},
-  .enabled = {false},
+  .enabled = {true},
   .chan_freq_uS = {1000000} // default 1Hz = delay 10^6 micros
 };
 
