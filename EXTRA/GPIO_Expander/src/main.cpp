@@ -1,0 +1,70 @@
+/*
+Written by Benjamin Jack Cullen.
+
+GPIO Port Expander - IIC I/O device.
+
+  - Sends pin reads to master.
+
+  - Sets pins from master.
+
+  - PWM.
+
+  For perfomance reasons it is recommnended for single use as either input
+  or output device but can be used as both.
+*/
+
+#include <Arduino.h>
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <Wire.h>
+#include "./i2c_helper.h"
+#include "./gpio_port_expander.h"
+
+// ------------------------------------------------------------------------------------------------------------------
+//                                                                                                              SETUP
+// ------------------------------------------------------------------------------------------------------------------
+
+void setup() {
+  // ------------------------------------------------------------
+  // ADC prescaler
+  // ------------------------------------------------------------
+  // Arduino core default is /128 (125kHz ADC clock, ~104us/conversion) -
+  // the datasheet's recommended range for full 10-bit accuracy. /16
+  // (1MHz ADC clock) cuts that to ~13us/conversion at the cost of some
+  // resolution/noise margin - validate readings against known references
+  // if analog precision matters for this build.
+  ADCSRA = (ADCSRA & ~0x07) | 0x04; // ADPS2:0 = 100 -> /16
+  // ------------------------------------------------------------
+  // Serial
+  // ------------------------------------------------------------
+  Serial.setTimeout(50); // ensure this is set before begin()
+  Serial.begin(115200);  while(!Serial);
+
+  // ------------------------------------------------------------
+  // I2C
+  // ------------------------------------------------------------
+  GPIOPortExpander_ATMEGA2560_Default.wire->begin(GPIOPortExpander_ATMEGA2560_Default.address);
+  Serial.println("[IIC] Starting IIC as slave address: " + String(GPIOPortExpander_ATMEGA2560_Default.address));
+  // ------------------------------------------------------------
+  // Function to run when data requested from master
+  // ------------------------------------------------------------
+  GPIOPortExpander_ATMEGA2560_Default.wire->onRequest(requestEventBus0Bin);
+  // ------------------------------------------------------------
+  // Function to run when data received from master
+  // ------------------------------------------------------------
+  GPIOPortExpander_ATMEGA2560_Default.wire->onReceive(receiveEventBus0Bin);
+
+  Serial.println("[READY] Runnung.");
+}
+
+// ------------------------------------------------------------------------------------------------------------------
+//                                                                                                          MAIN LOOP
+// ------------------------------------------------------------------------------------------------------------------
+
+void loop() {
+  #ifdef GPIOPE_WRITE_MODE
+  modulator(&GPIOPortExpander_ATMEGA2560_Default); // for output: uncomment if required
+  #endif
+}
