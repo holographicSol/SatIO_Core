@@ -1,0 +1,4 @@
+# Relax compiler: do not treat warnings as errors
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-error)
+endif()
