@@ -1,6 +1,6 @@
 # SatIO
 
-![plot](./SDCARD/UnidentifiedStudios.png)
+![plot](../SDCARD/UnidentifiedStudios.png)
 
 *Written by Benjamin Jack Cullen — project may be renamed to SatIO.*
 
