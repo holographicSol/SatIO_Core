@@ -2109,6 +2109,8 @@ typedef enum {
     SYSTEM_FILE_PWRCFG_STORAGE,
     SYSTEM_FILE_PWRCFG_DISPLAY,
     SYSTEM_FILE_PWRCFG_SatIO_SERIAL_TX,
+
+    SYSTEM_FILE_TAG_COUNT, // sentinel: always the number of tags above, must stay last.
 } system_tag_t;
 
 /* Rule 7.4: a string literal's type is "array of const char", so the
@@ -2165,30 +2167,30 @@ static const char * getSystemTag(int t) {
         case SYSTEM_FILE_SatIO_SPEED_VALUE_MODE:         return "SatIO_SPEED_VALUE_MODE";
         case SYSTEM_FILE_SatIO_GROUND_HEADING_VALUE_MODE:return "SatIO_GROUND_HEADING_VALUE_MODE";
 
-        case SYSTEM_FILE_ADMPLEX0_CH_ENABLED:            return "ADMPLEX0_CH_ENABLED";
-        case SYSTEM_FILE_ADMPLEX1_CH_ENABLED:            return "ADMPLEX1_CH_ENABLED";
-        case SYSTEM_FILE_ADMPLEX0_CH_FREQ:               return "ADMPLEX0_CH_FREQ";
-        case SYSTEM_FILE_ADMPLEX1_CH_FREQ:               return "ADMPLEX1_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_0_CH_ENABLED:               return "GPIOE_0_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_0_CH_FREQ:                  return "GPIOE_0_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_1_CH_ENABLED:               return "GPIOE_1_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_1_CH_FREQ:                  return "GPIOE_1_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_2_CH_ENABLED:               return "GPIOE_2_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_2_CH_FREQ:                  return "GPIOE_2_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_3_CH_ENABLED:               return "GPIOE_3_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_3_CH_FREQ:                  return "GPIOE_3_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_4_CH_ENABLED:               return "GPIOE_4_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_4_CH_FREQ:                  return "GPIOE_4_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_5_CH_ENABLED:               return "GPIOE_5_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_5_CH_FREQ:                  return "GPIOE_5_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_6_CH_ENABLED:               return "GPIOE_6_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_6_CH_FREQ:                  return "GPIOE_6_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_7_CH_ENABLED:               return "GPIOE_7_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_7_CH_FREQ:                  return "GPIOE_7_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_8_CH_ENABLED:               return "GPIOE_8_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_8_CH_FREQ:                  return "GPIOE_8_CH_FREQ";
-        case SYSTEM_FILE_GPIOE_9_CH_ENABLED:               return "GPIOE_9_CH_ENABLED";
-        case SYSTEM_FILE_GPIOE_9_CH_FREQ:                  return "GPIOE_9_CH_FREQ";
+        case SYSTEM_FILE_ADMPLEX0_CH_ENABLED:               return "ADMPLEX0_CH_ENABLED";
+        case SYSTEM_FILE_ADMPLEX1_CH_ENABLED:               return "ADMPLEX1_CH_ENABLED";
+        case SYSTEM_FILE_ADMPLEX0_CH_FREQ:                  return "ADMPLEX0_CH_FREQ";
+        case SYSTEM_FILE_ADMPLEX1_CH_FREQ:                  return "ADMPLEX1_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_0_CH_ENABLED:                return "GPIOE_0_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_0_CH_FREQ:                   return "GPIOE_0_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_1_CH_ENABLED:                return "GPIOE_1_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_1_CH_FREQ:                   return "GPIOE_1_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_2_CH_ENABLED:                return "GPIOE_2_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_2_CH_FREQ:                   return "GPIOE_2_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_3_CH_ENABLED:                return "GPIOE_3_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_3_CH_FREQ:                   return "GPIOE_3_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_4_CH_ENABLED:                return "GPIOE_4_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_4_CH_FREQ:                   return "GPIOE_4_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_5_CH_ENABLED:                return "GPIOE_5_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_5_CH_FREQ:                   return "GPIOE_5_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_6_CH_ENABLED:                return "GPIOE_6_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_6_CH_FREQ:                   return "GPIOE_6_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_7_CH_ENABLED:                return "GPIOE_7_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_7_CH_FREQ:                   return "GPIOE_7_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_8_CH_ENABLED:                return "GPIOE_8_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_8_CH_FREQ:                   return "GPIOE_8_CH_FREQ";
+        case SYSTEM_FILE_GPIOE_9_CH_ENABLED:                return "GPIOE_9_CH_ENABLED";
+        case SYSTEM_FILE_GPIOE_9_CH_FREQ:                   return "GPIOE_9_CH_FREQ";
         case SYSTEM_FILE_GPIOE_10_CH_ENABLED:               return "GPIOE_10_CH_ENABLED";
         case SYSTEM_FILE_GPIOE_10_CH_FREQ:                  return "GPIOE_10_CH_FREQ";
         case SYSTEM_FILE_GPIOE_11_CH_ENABLED:               return "GPIOE_11_CH_ENABLED";
@@ -2433,7 +2435,7 @@ static const char * getSystemTag(int t) {
         case SYSTEM_FILE_PWRCFG_GYRO:                    return "PWRCFG_GYRO";
         case SYSTEM_FILE_PWRCFG_UNIVERSE:                return "PWRCFG_UNIVERSE";
         case SYSTEM_FILE_PWRCFG_SWITCHES:                return "PWRCFG_SWITCHES";
-        case SYSTEM_FILE_PWRCFG_GPIOE_INPUT:    return "PWRCFG_GPIOE_INPUT";
+        case SYSTEM_FILE_PWRCFG_GPIOE_INPUT:             return "PWRCFG_GPIOE_INPUT";
         case SYSTEM_FILE_PWRCFG_STORAGE:                 return "PWRCFG_STORAGE";
         case SYSTEM_FILE_PWRCFG_DISPLAY:                 return "PWRCFG_DISPLAY";
         case SYSTEM_FILE_PWRCFG_SatIO_SERIAL_TX:         return "PWRCFG_SatIO_SERIAL_TX";
@@ -4122,7 +4124,7 @@ bool loadSystemFile(const char *filepath) {
         if (token == NULL) continue;
 
         int tag_index = -1;
-        for (int i = 0; i < MAX_SYSTEM_TAGS; i++) {if (strcmp(getSystemTag(i), token) == 0) {tag_index = i; break;}}
+        for (int i = 0; i < (int)SYSTEM_FILE_TAG_COUNT; i++) {if (strcmp(getSystemTag(i), token) == 0) {tag_index = i; break;}}
 
         if (tag_index == -1) {printf("Unrecognized tag: %s\n", token); continue;}
 

@@ -1,32 +1,7 @@
 /**
  * GPIO Port Expander - Written by benjamin Jack Cullen.
- *
- * Intention [1] is to stay as MCU-agnostic as practical. Genericity here is a
- * design-time property, not a runtime one: the GPIOPortExpander type is flexible
- * enough to describe any MCU's pin layout, but every actual instance is still a
- * static, compile-time definition — one requirement doesn't cost the other.
- * 
- * Intention [2] is to have portable instances that can be easily imported/exported
- * between master and slave gpio_port_expander libs, which a GPIOPortExpander instance
- * also reasonably fascilitates.
- * 
- * Intention [3]. Create as many new GPIOPortExpander instances as required, from any
- * pre-defined default GPIOPortExpander instances.
- * 
- * Intention [4]. Run on both master, & slave(s).
- * 
- * Intention [5]. Command symmetry between master & slave(s).
- *
- * For example, GPIOPortExpander as a type is dynamic (general-purpose), while any
- * given GPIOPortExpander instance is static.
- * 
- * Specification flexibility, while remaining static, and with as many instances of a default
- * instance as a project might require.
- *
- * (1) Ensure gpio_portcontroller exists on both master and slave.
- * (2) On the slave, create a new GPIOPortExpander instance, configured for the slave or use the default.
- * (3) Copy the custom/default GPIOPortExpander instance to the masters gpio_portcontroller lib.
  */
+
 #ifndef __GPIOPE__
 #define __GPIOPE__
 
@@ -35,20 +10,15 @@
 #include "UnidentifiedStudios_Config.h"
 #include "UnidentifiedStudios_I2C.h"
 
-/**
- * @brief Global max pin defines - Adding more increases ease of compatibility,
- *        while otherwise, ideally all data goes in GPIOPortExpander instances.
- * @note Prefer this to be removed at some point, but the setup currently relies on it.
- *       GPIOPE_MAX_SLAVE_PINS / GPIOPE_MAX_ATMEGA2560_MAX_PINS now live in
- *       UnidentifiedStudios_Config.h alongside every other build-time size limit.
- */
+#define GPIOPE_MAX_SLAVE_PINS  70
+#define GPIOPE_MAX_SIZE        100
 
 /**
- * @brief GPIOPortExpander - A dynamic type for defining an MCU's specifications.
+ * @brief GPIOPortExpander.
  */
 typedef struct GPIOPortExpander {
     char name[56];
-    TwoWire *wire;
+    TwoWire &wire;
     IICLink i2cLink;
     int8_t address;
     int8_t current_pin;
@@ -57,23 +27,23 @@ typedef struct GPIOPortExpander {
     int8_t max_pins;
     int8_t num_analog_pins;
     int8_t num_digital_pins;
-    int8_t *analog_pins;
-    int8_t *digital_pins;
-    unsigned long (*modulation_time)[3];
     int32_t max_input_values;  // does not have to equal max pins
     int32_t max_output_values; // does not have to equal max pins
-    int32_t *input_value;  // does not have to equal max pins
-    int32_t *output_value; // does not have to equal max pins
-    int16_t *port_map;      // logical index -> physical pin, -1 = unmapped
-    bool *switch_state;     // per-pin modulation on/off tracking
-    bool *enabled;          // channels enabled/disabled
-    uint64_t *chan_freq_uS; // per-pin minimum microseconds between accepted
-                            // reads (see setGPIOPortExpanderChannelFreq());
-                            // 0 = no floor, i.e. accept every read
     int8_t query_cursor;    // cursor for CMD_GET_EXPANDER_PIN_LIST streaming,
                             // kept separate from current_pin so a discovery
                             // query never interferes with the normal
                             // pin-value-read protocol (CMD_RESET_CURRENT_PIN)
+    int8_t analog_pins[GPIOPE_MAX_SIZE];
+    int8_t digital_pins[GPIOPE_MAX_SIZE];
+    unsigned long modulation_time[GPIOPE_MAX_SIZE][3];
+    int32_t input_value[GPIOPE_MAX_SIZE];  // does not have to equal max pins
+    int32_t output_value[GPIOPE_MAX_SIZE]; // does not have to equal max pins
+    int16_t port_map[GPIOPE_MAX_SIZE];      // logical index -> physical pin, -1 = unmapped
+    bool switch_state[GPIOPE_MAX_SIZE];     // per-pin modulation on/off tracking
+    bool enabled[GPIOPE_MAX_SIZE];          // channels enabled/disabled
+    uint64_t chan_freq_uS[GPIOPE_MAX_SIZE]; // per-pin minimum microseconds between accepted
+                            // reads (see setGPIOPortExpanderChannelFreq());
+                            // 0 = no floor, i.e. accept every read
 } GPIOPortExpander;
 
 // ------------------------------------------------------------
@@ -126,7 +96,7 @@ typedef struct GPIOPortExpander {
 // ------------------------------------------------------------
 // BUILD OPTIONS: DEFAULT GLOBAL INSTANCES
 // ------------------------------------------------------------
-extern GPIOPortExpander GPIOPortExpander_ATMEGA2560_Default;
+// extern GPIOPortExpander GPIOPortExpander_Default;
 // ------------------------------------------------------------
 // BUILD OPTIONS: DEFAULT SLAVE INSTANCE
 // ------------------------------------------------------------
@@ -961,6 +931,20 @@ const int8_t *modulatedPinIndices(int8_t *out_count);
  * @return false if pin is out of range or the I2C request failed
  */
 bool readGPIOPortExapander_Pin(GPIOPortExpander gpio_expander, uint8_t pin);
+
+/**
+ * Queries a slave for its expander-info header (pin_min, pin_max, max_pins,
+ * num_analog_pins, num_digital_pins) followed by its full pin list, and
+ * fills in the corresponding fields on gpio_expander. Master-side only.
+ *
+ * GPIOPE_DEFINE_INPUT(N)/GPIOPE_DEFINE_OUTPUT(N) leave these fields zeroed
+ * since only the slave itself knows its real pin layout - call this once per
+ * enabled GPIOPE_INPUT_N/OUTPUT_N instance (e.g. from setup()) before relying
+ * on them.
+ * @param gpio_expander Specify GPIOPortExpander instance
+ * @return false if either I2C request failed
+ */
+bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
 
  /**
  * Sends clear command to controller module.

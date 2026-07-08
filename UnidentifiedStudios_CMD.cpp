@@ -3594,16 +3594,16 @@ void outputStat(void) {
     //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
     /*
-     * GPIOPE_MAX_ATMEGA2560_MAX_PINS (70) is wider than one
+     * GPIOPE_MAX_SIZE (70) is wider than one
      * line, so this pages the same way the matrix switch dump below does.
      */
     {
         int gpioe_full_page_start = 0;
         int gpioe_full_page_end = 0;
-        for (int page_start = 0; page_start < GPIOPE_MAX_ATMEGA2560_MAX_PINS; page_start += STAT_SWITCHES_PER_PAGE) {
+        for (int page_start = 0; page_start < GPIOPE_MAX_SIZE; page_start += STAT_SWITCHES_PER_PAGE) {
             int page_end = page_start + STAT_SWITCHES_PER_PAGE;
             if (page_start==0) {gpioe_full_page_start=page_start; gpioe_full_page_end=page_end;} // use page zero width as longest expected width
-            if (page_end > GPIOPE_MAX_ATMEGA2560_MAX_PINS) {page_end = GPIOPE_MAX_ATMEGA2560_MAX_PINS;}
+            if (page_end > GPIOPE_MAX_SIZE) {page_end = GPIOPE_MAX_SIZE;}
             printStatSeparator(gpioe_full_page_start, gpioe_full_page_end);
             printf("                      ");
             printSwitchIndexHeader(page_start, page_end);

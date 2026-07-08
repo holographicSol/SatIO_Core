@@ -351,8 +351,6 @@ extern bool ISR_Bool_MultiDisplayController_0;
  * @note Moved here from UnidentifiedStudios_GPIOPortExpander.h so pin-count config lives
  *       alongside every other build-time size limit.
  */
-#define GPIOPE_MAX_SLAVE_PINS          70
-#define GPIOPE_MAX_ATMEGA2560_MAX_PINS 70
 
 // ----------------------------------------------------------------------------------------
 /**
@@ -647,8 +645,6 @@ extern bool ISR_Bool_MultiDisplayController_0;
 #define SatIO_USE_STORAGE
 #define SatIO_USE_UNIVERSE
 #define SatIO_CD74HC4067_OPTION_USE_0
-#define SatIO_USE_GPIOPE_INPUT_11
-#define SatIO_USE_GPIOPE_OUTPUT_9
 
 
 // ----------------------------------------------------------------------------------------

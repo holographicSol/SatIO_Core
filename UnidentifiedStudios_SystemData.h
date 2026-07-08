@@ -134,7 +134,7 @@ struct systemStruct {
   // pin's achieved accepted-read rate, gated by its own chan_freq_uS (see
   // setGPIOPortExpanderChannelFreq()); task_freq_t is how often the pin was
   // checked (bounded by TASK_MAX_FREQ_GPIOE_INPUT).
-  SystemConuters counters_gpioe_chan[GPIOPE_MAX_ATMEGA2560_MAX_PINS];
+  SystemConuters counters_gpioe_chan[GPIOPE_MAX_SIZE];
   SystemConuters counters_uni;
   SystemConuters counters_mtx;
   SystemConuters counters_pco;

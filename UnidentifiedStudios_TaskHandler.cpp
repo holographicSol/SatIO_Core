@@ -99,7 +99,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_UNIVERSE_STACK_SIZE            20480
 #define TASK_STORAGE_STACK_SIZE             6144
 #define TASK_SatIO_SERIAL_TX_STACK_SIZE     4096
-#define TASK_GPIOPE_INPUT_STACK_SIZE 5096
+#define TASK_GPIOPE_INPUT_STACK_SIZE 10240
 #endif
 
 #ifdef SatIO_DISPLAY_OPTION_LVGL
@@ -144,7 +144,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_STORAGE_STACK_SIZE             6144
 #define TASK_DISPLAY_STACK_SIZE             32768
 #define TASK_SatIO_SERIAL_TX_STACK_SIZE     4096
-#define TASK_GPIOPE_INPUT_STACK_SIZE        5096
+#define TASK_GPIOPE_INPUT_STACK_SIZE        10240
 #endif
 
 
@@ -347,7 +347,7 @@ static void intervalBreach1Second(void) {
 
   #ifdef SatIO_USE_GPIOPE_INPUT
   totalCounters(systemData.counters_gpiope0);
-  for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {totalCounters(systemData.counters_gpioe_chan[i_chan]);}
+  for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {totalCounters(systemData.counters_gpioe_chan[i_chan]);}
   totalCounters(systemData.counters_pco);
   #endif
 
@@ -413,7 +413,7 @@ static void intervalBreach1Second(void) {
 
   #ifdef SatIO_USE_GPIOPE_INPUT
   clearCounters(systemData.counters_gpiope0);
-  for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {clearCounters(systemData.counters_gpioe_chan[i_chan]);}
+  for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {clearCounters(systemData.counters_gpioe_chan[i_chan]);}
   clearCounters(systemData.counters_pco);
   #endif
 
@@ -1052,6 +1052,9 @@ static void taskSwitches(void *pvParameters) {
       int32_t count_write = 0;
       #ifdef SatIO_USE_GPIOPE_OUTPUT
 
+      // test re-query (almost ready to utilize i2c max gpiope's)
+      // queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+
       // Clamp to MAX_MATRIX_SWITCHES
       for (int32_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
 
@@ -1080,7 +1083,7 @@ static void taskSwitches(void *pvParameters) {
           write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, off_time);
           write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, on_time);
           // Write to slave.
-          writeI2CToSlaveBin(*GPIOPE_OUTPUT_9.wire, GPIOPE_OUTPUT_9.i2cLink, address, GPIOPE_OUTPUT_9.i2cLink.current_bytes, 0, GPIOPE_OUTPUT_9.name);
+          writeI2CToSlaveBin(GPIOPE_OUTPUT_9.wire, GPIOPE_OUTPUT_9.i2cLink, address, GPIOPE_OUTPUT_9.i2cLink.current_bytes, 0, GPIOPE_OUTPUT_9.name);
 
           count_write++;
         }
@@ -1146,15 +1149,16 @@ static void taskInputPortController(void *pvParameters) {
       // TASK_MAX_FREQ_GPIOE_INPUT. Mirrors taskADMplex0()/
       // taskADMplex1()'s per-channel throttle.
 
-      // todo: replace pin_max with max_input_values
+      // test re-query (almost ready to utilize i2c max gpiope's)
+      // queryGPIOPortExpanderInfo(GPIOPE_INPUT_11, I2C_ADDR_INPUT_GPIOE_11);
 
-      static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {0};
+      static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_SIZE] = {0};
       // Snapshot once per pass so the counter loop below can't disagree with the
       // read loop about which pins were enabled this cycle (a concurrent
       // CLI/LVGL disable between the two loops would otherwise drop a pin's
       // count for a cycle it was actually read in).
-      bool gpioe_chan_was_enabled[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
-      bool gpioe_chan_did_read[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
+      bool gpioe_chan_was_enabled[GPIOPE_MAX_SIZE] = {false};
+      bool gpioe_chan_did_read[GPIOPE_MAX_SIZE] = {false};
       uint8_t gpioe_max_pins = (uint8_t)GPIOPE_INPUT_11.max_pins;
       for (uint8_t i_chan = 0; i_chan < gpioe_max_pins; i_chan++) {
         if (GPIOPE_INPUT_11.enabled[i_chan] == true) {
