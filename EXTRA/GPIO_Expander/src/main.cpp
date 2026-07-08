@@ -45,16 +45,16 @@ void setup() {
   // ------------------------------------------------------------
   // I2C
   // ------------------------------------------------------------
-  GPIOPortExpander_ATMEGA2560_Default.wire->begin(GPIOPortExpander_ATMEGA2560_Default.address);
-  Serial.println("[IIC] Starting IIC as slave address: " + String(GPIOPortExpander_ATMEGA2560_Default.address));
+  GPIOPortExpander_SLAVE.wire.begin(GPIOPortExpander_SLAVE.address);
+  Serial.println("[IIC] Starting IIC as slave address: " + String(GPIOPortExpander_SLAVE.address));
   // ------------------------------------------------------------
   // Function to run when data requested from master
   // ------------------------------------------------------------
-  GPIOPortExpander_ATMEGA2560_Default.wire->onRequest(requestEventBus0Bin);
+  GPIOPortExpander_SLAVE.wire.onRequest(requestEventBus0Bin);
   // ------------------------------------------------------------
   // Function to run when data received from master
   // ------------------------------------------------------------
-  GPIOPortExpander_ATMEGA2560_Default.wire->onReceive(receiveEventBus0Bin);
+  GPIOPortExpander_SLAVE.wire.onReceive(receiveEventBus0Bin);
 
   Serial.println("[READY] Runnung.");
 }
@@ -65,6 +65,6 @@ void setup() {
 
 void loop() {
   #ifdef GPIOPE_WRITE_MODE
-  modulator(&GPIOPortExpander_ATMEGA2560_Default); // for output: uncomment if required
+  modulator(&GPIOPortExpander_SLAVE); // for output: uncomment if required
   #endif
 }
