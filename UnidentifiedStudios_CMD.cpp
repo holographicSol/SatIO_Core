@@ -1357,28 +1357,30 @@ void CmdProcess(void) {
           }
         }
         // pci (input port controller)
+        #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
         else if (strcmp(pos[0], "pci")==0) {
           // pci --all --freq X : set every pin's freq in one call
           // pci --all --enable/--disable : set every pin's enabled state in one call
           if (argparser_has_flag(&parser, "all") == true) {
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              for (uint8_t p=0; p<(uint8_t)GPIOPortExpander_ATMEGA2560_Input_0.max_pins; p++) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_0, p, enable);}
+              for (uint8_t p=0; p<(uint8_t)GPIOPortExpander_ATMEGA2560_Input_11.max_pins; p++) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_11, p, enable);}
             }
             if (argparser_has_flag(&parser, "freq") == true) {
               uint64_t pci_freq_all = argparser_get_uint64(&parser, "freq", 0);
-              for (uint8_t p=0; p<(uint8_t)GPIOPortExpander_ATMEGA2560_Input_0.max_pins; p++) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_0, p, pci_freq_all);}
+              for (uint8_t p=0; p<(uint8_t)GPIOPortExpander_ATMEGA2560_Input_11.max_pins; p++) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_11, p, pci_freq_all);}
             }
           }
           else if (argparser_has_flag(&parser, "c") == true) {
             uint8_t pci_c = argparser_get_uint8(&parser, "c", 0);
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_0, pci_c, enable);
+              setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_11, pci_c, enable);
             }
-            if (argparser_has_flag(&parser, "freq") == true) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_0, pci_c, argparser_get_uint64(&parser, "freq", 0));}
+            if (argparser_has_flag(&parser, "freq") == true) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_11, pci_c, argparser_get_uint64(&parser, "freq", 0));}
           }
         }
+        #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
 
         // else if (strcmp(pos[0], "sdcard")==0) {
         //   if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
@@ -1420,7 +1422,7 @@ void CmdProcess(void) {
                 {setDelay(TaskGPS, argparser_get_uint32(&parser, "gps", pwrConfigCurrent.TASK_MAX_FREQ_GPS), &pwrConfigCurrent.TASK_MAX_FREQ_GPS);}
               #endif
 
-              #ifdef SatIO_USE_SWITCHES
+              #ifdef SatIO_USE_MATRIX
               if (argparser_has_flag(&parser, "switch"))
                 {setDelay(TaskSwitches, argparser_get_uint32(&parser, "switch", pwrConfigCurrent.TASK_MAX_FREQ_SWITCHES), &pwrConfigCurrent.TASK_MAX_FREQ_SWITCHES);}
               #endif
@@ -1926,10 +1928,12 @@ void outputSerialPCInput(void) {
       char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
       memset(TXBUF_PCI, 0, sizeof(TXBUF_PCI));
-      serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), "$PCINPT,");
+      serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), "$PCINPT11,");
       // append matrix switch state data
+      #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
       for (int i=0; i < 70; i++)
-        {serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), String(String(GPIOPortExpander_ATMEGA2560_Input_0.input_value[i])+",").c_str());}
+        {serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), String(String(GPIOPortExpander_ATMEGA2560_Input_11.input_value[i])+",").c_str());}
+      #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
       serial0_buffer_strip_trailing_comma(TXBUF_PCI);
       createChecksumSerial0(TXBUF_PCI, checksum, sizeof(checksum));
       serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), "*");

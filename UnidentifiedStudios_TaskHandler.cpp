@@ -179,11 +179,11 @@ static void notifyAllTasks(void) {
   if (TaskUniverse != nullptr) { xTaskNotifyGive(TaskUniverse); }
   #endif
   
-  #ifdef SatIO_USE_SWITCHES
+  #ifdef SatIO_USE_MATRIX
   if (TaskSwitches != nullptr) { xTaskNotifyGive(TaskSwitches); }
   #endif
 
-  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
   if (TaskInputPortController != nullptr) { xTaskNotifyGive(TaskInputPortController); }
   #endif
 
@@ -341,11 +341,11 @@ static void intervalBreach1Second(void) {
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {totalCounters(systemData.counters_mplex1_chan[i_chan]);}
   #endif
 
-  #ifdef SatIO_USE_SWITCHES
+  #ifdef SatIO_USE_MATRIX
   totalCounters(systemData.counters_mtx);
   #endif
 
-  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
   totalCounters(systemData.counters_pci);
   for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {totalCounters(systemData.counters_pci_chan[i_chan]);}
   totalCounters(systemData.counters_pco);
@@ -407,11 +407,11 @@ static void intervalBreach1Second(void) {
   for (int i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {clearCounters(systemData.counters_mplex1_chan[i_chan]);}
   #endif
 
-  #ifdef SatIO_USE_SWITCHES
+  #ifdef SatIO_USE_MATRIX
   clearCounters(systemData.counters_mtx);
   #endif
 
-  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
   clearCounters(systemData.counters_pci);
   for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {clearCounters(systemData.counters_pci_chan[i_chan]);}
   clearCounters(systemData.counters_pco);
@@ -506,7 +506,7 @@ bool taskFrequencyGPS()         { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_
 bool taskFrequencyGyro()        { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_GYRO);        return true; }
 #endif
 
-#ifdef SatIO_USE_SWITCHES
+#ifdef SatIO_USE_MATRIX
 bool taskFrequencySwitches()    { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_SWITCHES);    return true; }
 #endif
 
@@ -532,7 +532,7 @@ bool taskFrequencyDisplay()     { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_
 
 bool taskFrequencySatIOSerialTx() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_SatIO_SERIAL_TX); return true; }
 
-#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
 bool taskFrequencyInputPortController() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT); return true; }
 #endif
 
@@ -1049,8 +1049,8 @@ static void taskSwitches(void *pvParameters) {
       esp_task_wdt_reset();
       #endif
 
-      #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_0
       int32_t count_write = 0;
+      #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT
 
       // Clamp to MAX_MATRIX_SWITCHES
       for (int32_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
@@ -1061,7 +1061,7 @@ static void taskSwitches(void *pvParameters) {
           // Clear the flag now that the value has been sent.
           matrixData.matrix_switch_write_required[0][Mi] = false;
           
-          clearI2CLinkOutputPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink);
+          clearI2CLinkOutputPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink);
 
           // Select value to send as either the computer-assisted output value
           // or the override value.
@@ -1073,14 +1073,14 @@ static void taskSwitches(void *pvParameters) {
           uint32_t on_time = matrixData.output_pwm[0][Mi][INDEX_MATRIX_SWITCH_PWM_ON];
 
           // Build binary packet with human readable helper functions.
-          write_uint8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink.OUTPUT_PACKET, 0, GPIO_PE_CMD_WRITE_PIN_PWM);
-          write_uint8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink.OUTPUT_PACKET, 1, (uint8_t)Mi);
-          write_int8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink.OUTPUT_PACKET, 2, (int8_t)matrixData.matrix_port_map[0][Mi]);
-          write_int32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink.OUTPUT_PACKET, 3, value_to_send);
-          write_uint32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink.OUTPUT_PACKET, 7, off_time);
-          write_uint32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_0.i2cLink.OUTPUT_PACKET, 11, on_time);
+          write_uint8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 0, GPIO_PE_CMD_WRITE_PIN_PWM);
+          write_uint8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 1, (uint8_t)Mi);
+          write_int8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 2, (int8_t)matrixData.matrix_port_map[0][Mi]);
+          write_int32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 3, value_to_send);
+          write_uint32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 7, off_time);
+          write_uint32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 11, on_time);
           // Write to slave.
-          writeI2CToSlaveBin(*GPIOPortExpander_ATMEGA2560_Output_0.wire, GPIOPortExpander_ATMEGA2560_Output_0.i2cLink, address, 15, 0, GPIOPortExpander_ATMEGA2560_Output_0.name);
+          writeI2CToSlaveBin(*GPIOPortExpander_ATMEGA2560_Output_9.wire, GPIOPortExpander_ATMEGA2560_Output_9.i2cLink, address, 15, 0, GPIOPortExpander_ATMEGA2560_Output_9.name);
 
           count_write++;
         }
@@ -1116,9 +1116,9 @@ void createTaskSwitches() {
 }
 #endif
 
-#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
 /** ----------------------------------------------------------------------------
- * Input Controller Task.
+ * Input Controller Task. Intended to be used for 0-N input GPIO Port Expanders
  *
  * @brief Performs various operations including:
  *        Reads and stores values from input port controller.
@@ -1152,12 +1152,12 @@ static void taskInputPortController(void *pvParameters) {
       // count for a cycle it was actually read in).
       bool pci_chan_was_enabled[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
       bool pci_chan_did_read[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
-      uint8_t pci_max_pins = (uint8_t)GPIOPortExpander_ATMEGA2560_Input_0.max_pins;
+      uint8_t pci_max_pins = (uint8_t)GPIOPortExpander_ATMEGA2560_Input_11.max_pins;
       for (uint8_t i_chan = 0; i_chan < pci_max_pins; i_chan++) {
-        if (GPIOPortExpander_ATMEGA2560_Input_0.enabled[i_chan] == true) {
+        if (GPIOPortExpander_ATMEGA2560_Input_11.enabled[i_chan] == true) {
           pci_chan_was_enabled[i_chan] = true;
-          if ((esp_timer_get_time() - pci_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPortExpander_ATMEGA2560_Input_0.chan_freq_uS[i_chan]) {
-            if (readGPIOPortExapander_Pin(GPIOPortExpander_ATMEGA2560_Input_0, i_chan)) {
+          if ((esp_timer_get_time() - pci_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPortExpander_ATMEGA2560_Input_11.chan_freq_uS[i_chan]) {
+            if (readGPIOPortExapander_Pin(GPIOPortExpander_ATMEGA2560_Input_11, i_chan)) {
               pci_chan_last_read_uS[i_chan] = esp_timer_get_time();
               pci_chan_did_read[i_chan] = true;
             } else {

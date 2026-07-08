@@ -464,12 +464,905 @@ void writeLog(void) {
     line="$MPLEX0,";
     for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {line=line+String(ad_mux_0.data[i])+",";}
     printLogLine(line.c_str());
+
     // --------------------------------
     // Log Line: Port Controller Input
     // --------------------------------
-    line="$PCINPT,";
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+    line="$PCINPT0,";
     for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_0.input_value[i])+",";}
     printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+    line="$PCINPT1,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_1.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_2
+    line="$PCINPT2,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_2.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_2
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_3
+    line="$PCINPT3,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_3.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_3
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_4
+    line="$PCINPT4,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_4.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_4
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_5
+    line="$PCINPT5,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_5.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_5
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_6
+    line="$PCINPT6,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_6.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_6
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_7
+    line="$PCINPT7,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_7.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_7
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_8
+    line="$PCINPT8,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_8.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_8
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_9
+    line="$PCINPT9,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_9.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_9
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_10
+    line="$PCINPT10,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_10.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_10
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+    line="$PCINPT11,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_11.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_12
+    line="$PCINPT12,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_12.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_12
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_13
+    line="$PCINPT13,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_13.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_13
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_14
+    line="$PCINPT14,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_14.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_14
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_15
+    line="$PCINPT15,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_15.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_15
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_16
+    line="$PCINPT16,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_16.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_16
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_17
+    line="$PCINPT17,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_17.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_17
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_18
+    line="$PCINPT18,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_18.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_18
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_19
+    line="$PCINPT19,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_19.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_19
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_20
+    line="$PCINPT20,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_20.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_20
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_21
+    line="$PCINPT21,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_21.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_21
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_22
+    line="$PCINPT22,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_22.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_22
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_23
+    line="$PCINPT23,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_23.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_23
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_24
+    line="$PCINPT24,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_24.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_24
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_25
+    line="$PCINPT25,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_25.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_25
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_26
+    line="$PCINPT26,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_26.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_26
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_27
+    line="$PCINPT27,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_27.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_27
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_28
+    line="$PCINPT28,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_28.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_28
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_29
+    line="$PCINPT29,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_29.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_29
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_30
+    line="$PCINPT30,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_30.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_30
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_31
+    line="$PCINPT31,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_31.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_31
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_32
+    line="$PCINPT32,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_32.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_32
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_33
+    line="$PCINPT33,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_33.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_33
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_34
+    line="$PCINPT34,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_34.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_34
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_35
+    line="$PCINPT35,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_35.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_35
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_36
+    line="$PCINPT36,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_36.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_36
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_37
+    line="$PCINPT37,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_37.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_37
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_38
+    line="$PCINPT38,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_38.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_38
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_39
+    line="$PCINPT39,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_39.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_39
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_40
+    line="$PCINPT40,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_40.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_40
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_41
+    line="$PCINPT41,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_41.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_41
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_42
+    line="$PCINPT42,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_42.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_42
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_43
+    line="$PCINPT43,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_43.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_43
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_44
+    line="$PCINPT44,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_44.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_44
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_45
+    line="$PCINPT45,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_45.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_45
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_46
+    line="$PCINPT46,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_46.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_46
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_47
+    line="$PCINPT47,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_47.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_47
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_48
+    line="$PCINPT48,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_48.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_48
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_49
+    line="$PCINPT49,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_49.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_49
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_50
+    line="$PCINPT50,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_50.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_50
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_51
+    line="$PCINPT51,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_51.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_51
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_52
+    line="$PCINPT52,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_52.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_52
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_53
+    line="$PCINPT53,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_53.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_53
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_54
+    line="$PCINPT54,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_54.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_54
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_55
+    line="$PCINPT55,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_55.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_55
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_56
+    line="$PCINPT56,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_56.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_56
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_57
+    line="$PCINPT57,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_57.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_57
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_58
+    line="$PCINPT58,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_58.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_58
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_59
+    line="$PCINPT59,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_59.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_59
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_60
+    line="$PCINPT60,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_60.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_60
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_61
+    line="$PCINPT61,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_61.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_61
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_62
+    line="$PCINPT62,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_62.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_62
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_63
+    line="$PCINPT63,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_63.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_63
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_64
+    line="$PCINPT64,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_64.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_64
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_65
+    line="$PCINPT65,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_65.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_65
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_66
+    line="$PCINPT66,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_66.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_66
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_67
+    line="$PCINPT67,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_67.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_67
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_68
+    line="$PCINPT68,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_68.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_68
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_69
+    line="$PCINPT69,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_69.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_69
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_70
+    line="$PCINPT70,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_70.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_70
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_71
+    line="$PCINPT71,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_71.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_71
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_72
+    line="$PCINPT72,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_72.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_72
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_73
+    line="$PCINPT73,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_73.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_73
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_74
+    line="$PCINPT74,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_74.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_74
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_75
+    line="$PCINPT75,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_75.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_75
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_76
+    line="$PCINPT76,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_76.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_76
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_77
+    line="$PCINPT77,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_77.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_77
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_78
+    line="$PCINPT78,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_78.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_78
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_79
+    line="$PCINPT79,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_79.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_79
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_80
+    line="$PCINPT80,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_80.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_80
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_81
+    line="$PCINPT81,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_81.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_81
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_82
+    line="$PCINPT82,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_82.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_82
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_83
+    line="$PCINPT83,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_83.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_83
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_84
+    line="$PCINPT84,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_84.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_84
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_85
+    line="$PCINPT85,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_85.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_85
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_86
+    line="$PCINPT86,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_86.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_86
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_87
+    line="$PCINPT87,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_87.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_87
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_88
+    line="$PCINPT88,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_88.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_88
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_89
+    line="$PCINPT89,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_89.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_89
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_90
+    line="$PCINPT90,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_90.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_90
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_91
+    line="$PCINPT91,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_91.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_91
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_92
+    line="$PCINPT92,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_92.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_92
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_93
+    line="$PCINPT93,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_93.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_93
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_94
+    line="$PCINPT94,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_94.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_94
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_95
+    line="$PCINPT95,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_95.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_95
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_96
+    line="$PCINPT96,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_96.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_96
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_97
+    line="$PCINPT97,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_97.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_97
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_98
+    line="$PCINPT98,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_98.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_98
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_99
+    line="$PCINPT99,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_99.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_99
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_100
+    line="$PCINPT100,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_100.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_100
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_101
+    line="$PCINPT101,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_101.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_101
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_102
+    line="$PCINPT102,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_102.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_102
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_103
+    line="$PCINPT103,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_103.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_103
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_104
+    line="$PCINPT104,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_104.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_104
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_105
+    line="$PCINPT105,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_105.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_105
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_106
+    line="$PCINPT106,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_106.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_106
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_107
+    line="$PCINPT107,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_107.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_107
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_108
+    line="$PCINPT108,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_108.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_108
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_109
+    line="$PCINPT109,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_109.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_109
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_110
+    line="$PCINPT110,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_110.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_110
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_111
+    line="$PCINPT111,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_111.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_111
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_112
+    line="$PCINPT112,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_112.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_112
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_113
+    line="$PCINPT113,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_113.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_113
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_114
+    line="$PCINPT114,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_114.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_114
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_115
+    line="$PCINPT115,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_115.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_115
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_116
+    line="$PCINPT116,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_116.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_116
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_117
+    line="$PCINPT117,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_117.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_117
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_118
+    line="$PCINPT118,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_118.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_118
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_119
+    line="$PCINPT119,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_119.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_119
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_120
+    line="$PCINPT120,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_120.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_120
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_121
+    line="$PCINPT121,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_121.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_121
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_122
+    line="$PCINPT122,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_122.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_122
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_123
+    line="$PCINPT123,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_123.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_123
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_124
+    line="$PCINPT124,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_124.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_124
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_125
+    line="$PCINPT125,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_125.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_125
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_126
+    line="$PCINPT126,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_126.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_126
+
+
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_127
+    line="$PCINPT127,";
+    for (int i=0; i<MAX_MATRIX_SWITCHES; i++) {line=line+String(GPIOPortExpander_ATMEGA2560_Input_127.input_value[i])+",";}
+    printLogLine(line.c_str());
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_127
+
     // --------------------------------
     // Log Line: Gyro0
     // --------------------------------
@@ -940,8 +1833,262 @@ typedef enum {
     SYSTEM_FILE_ADMPLEX1_CH_ENABLED,
     SYSTEM_FILE_ADMPLEX0_CH_FREQ,
     SYSTEM_FILE_ADMPLEX1_CH_FREQ,
-    SYSTEM_FILE_PCI_CH_ENABLED,
-    SYSTEM_FILE_PCI_CH_FREQ,
+    SYSTEM_FILE_PCI_0_CH_ENABLED,
+    SYSTEM_FILE_PCI_0_CH_FREQ,
+    SYSTEM_FILE_PCI_1_CH_ENABLED,
+    SYSTEM_FILE_PCI_1_CH_FREQ,
+    SYSTEM_FILE_PCI_2_CH_ENABLED,
+    SYSTEM_FILE_PCI_2_CH_FREQ,
+    SYSTEM_FILE_PCI_3_CH_ENABLED,
+    SYSTEM_FILE_PCI_3_CH_FREQ,
+    SYSTEM_FILE_PCI_4_CH_ENABLED,
+    SYSTEM_FILE_PCI_4_CH_FREQ,
+    SYSTEM_FILE_PCI_5_CH_ENABLED,
+    SYSTEM_FILE_PCI_5_CH_FREQ,
+    SYSTEM_FILE_PCI_6_CH_ENABLED,
+    SYSTEM_FILE_PCI_6_CH_FREQ,
+    SYSTEM_FILE_PCI_7_CH_ENABLED,
+    SYSTEM_FILE_PCI_7_CH_FREQ,
+    SYSTEM_FILE_PCI_8_CH_ENABLED,
+    SYSTEM_FILE_PCI_8_CH_FREQ,
+    SYSTEM_FILE_PCI_9_CH_ENABLED,
+    SYSTEM_FILE_PCI_9_CH_FREQ,
+    SYSTEM_FILE_PCI_10_CH_ENABLED,
+    SYSTEM_FILE_PCI_10_CH_FREQ,
+    SYSTEM_FILE_PCI_11_CH_ENABLED,
+    SYSTEM_FILE_PCI_11_CH_FREQ,
+    SYSTEM_FILE_PCI_12_CH_ENABLED,
+    SYSTEM_FILE_PCI_12_CH_FREQ,
+    SYSTEM_FILE_PCI_13_CH_ENABLED,
+    SYSTEM_FILE_PCI_13_CH_FREQ,
+    SYSTEM_FILE_PCI_14_CH_ENABLED,
+    SYSTEM_FILE_PCI_14_CH_FREQ,
+    SYSTEM_FILE_PCI_15_CH_ENABLED,
+    SYSTEM_FILE_PCI_15_CH_FREQ,
+    SYSTEM_FILE_PCI_16_CH_ENABLED,
+    SYSTEM_FILE_PCI_16_CH_FREQ,
+    SYSTEM_FILE_PCI_17_CH_ENABLED,
+    SYSTEM_FILE_PCI_17_CH_FREQ,
+    SYSTEM_FILE_PCI_18_CH_ENABLED,
+    SYSTEM_FILE_PCI_18_CH_FREQ,
+    SYSTEM_FILE_PCI_19_CH_ENABLED,
+    SYSTEM_FILE_PCI_19_CH_FREQ,
+    SYSTEM_FILE_PCI_20_CH_ENABLED,
+    SYSTEM_FILE_PCI_20_CH_FREQ,
+    SYSTEM_FILE_PCI_21_CH_ENABLED,
+    SYSTEM_FILE_PCI_21_CH_FREQ,
+    SYSTEM_FILE_PCI_22_CH_ENABLED,
+    SYSTEM_FILE_PCI_22_CH_FREQ,
+    SYSTEM_FILE_PCI_23_CH_ENABLED,
+    SYSTEM_FILE_PCI_23_CH_FREQ,
+    SYSTEM_FILE_PCI_24_CH_ENABLED,
+    SYSTEM_FILE_PCI_24_CH_FREQ,
+    SYSTEM_FILE_PCI_25_CH_ENABLED,
+    SYSTEM_FILE_PCI_25_CH_FREQ,
+    SYSTEM_FILE_PCI_26_CH_ENABLED,
+    SYSTEM_FILE_PCI_26_CH_FREQ,
+    SYSTEM_FILE_PCI_27_CH_ENABLED,
+    SYSTEM_FILE_PCI_27_CH_FREQ,
+    SYSTEM_FILE_PCI_28_CH_ENABLED,
+    SYSTEM_FILE_PCI_28_CH_FREQ,
+    SYSTEM_FILE_PCI_29_CH_ENABLED,
+    SYSTEM_FILE_PCI_29_CH_FREQ,
+    SYSTEM_FILE_PCI_30_CH_ENABLED,
+    SYSTEM_FILE_PCI_30_CH_FREQ,
+    SYSTEM_FILE_PCI_31_CH_ENABLED,
+    SYSTEM_FILE_PCI_31_CH_FREQ,
+    SYSTEM_FILE_PCI_32_CH_ENABLED,
+    SYSTEM_FILE_PCI_32_CH_FREQ,
+    SYSTEM_FILE_PCI_33_CH_ENABLED,
+    SYSTEM_FILE_PCI_33_CH_FREQ,
+    SYSTEM_FILE_PCI_34_CH_ENABLED,
+    SYSTEM_FILE_PCI_34_CH_FREQ,
+    SYSTEM_FILE_PCI_35_CH_ENABLED,
+    SYSTEM_FILE_PCI_35_CH_FREQ,
+    SYSTEM_FILE_PCI_36_CH_ENABLED,
+    SYSTEM_FILE_PCI_36_CH_FREQ,
+    SYSTEM_FILE_PCI_37_CH_ENABLED,
+    SYSTEM_FILE_PCI_37_CH_FREQ,
+    SYSTEM_FILE_PCI_38_CH_ENABLED,
+    SYSTEM_FILE_PCI_38_CH_FREQ,
+    SYSTEM_FILE_PCI_39_CH_ENABLED,
+    SYSTEM_FILE_PCI_39_CH_FREQ,
+    SYSTEM_FILE_PCI_40_CH_ENABLED,
+    SYSTEM_FILE_PCI_40_CH_FREQ,
+    SYSTEM_FILE_PCI_41_CH_ENABLED,
+    SYSTEM_FILE_PCI_41_CH_FREQ,
+    SYSTEM_FILE_PCI_42_CH_ENABLED,
+    SYSTEM_FILE_PCI_42_CH_FREQ,
+    SYSTEM_FILE_PCI_43_CH_ENABLED,
+    SYSTEM_FILE_PCI_43_CH_FREQ,
+    SYSTEM_FILE_PCI_44_CH_ENABLED,
+    SYSTEM_FILE_PCI_44_CH_FREQ,
+    SYSTEM_FILE_PCI_45_CH_ENABLED,
+    SYSTEM_FILE_PCI_45_CH_FREQ,
+    SYSTEM_FILE_PCI_46_CH_ENABLED,
+    SYSTEM_FILE_PCI_46_CH_FREQ,
+    SYSTEM_FILE_PCI_47_CH_ENABLED,
+    SYSTEM_FILE_PCI_47_CH_FREQ,
+    SYSTEM_FILE_PCI_48_CH_ENABLED,
+    SYSTEM_FILE_PCI_48_CH_FREQ,
+    SYSTEM_FILE_PCI_49_CH_ENABLED,
+    SYSTEM_FILE_PCI_49_CH_FREQ,
+    SYSTEM_FILE_PCI_50_CH_ENABLED,
+    SYSTEM_FILE_PCI_50_CH_FREQ,
+    SYSTEM_FILE_PCI_51_CH_ENABLED,
+    SYSTEM_FILE_PCI_51_CH_FREQ,
+    SYSTEM_FILE_PCI_52_CH_ENABLED,
+    SYSTEM_FILE_PCI_52_CH_FREQ,
+    SYSTEM_FILE_PCI_53_CH_ENABLED,
+    SYSTEM_FILE_PCI_53_CH_FREQ,
+    SYSTEM_FILE_PCI_54_CH_ENABLED,
+    SYSTEM_FILE_PCI_54_CH_FREQ,
+    SYSTEM_FILE_PCI_55_CH_ENABLED,
+    SYSTEM_FILE_PCI_55_CH_FREQ,
+    SYSTEM_FILE_PCI_56_CH_ENABLED,
+    SYSTEM_FILE_PCI_56_CH_FREQ,
+    SYSTEM_FILE_PCI_57_CH_ENABLED,
+    SYSTEM_FILE_PCI_57_CH_FREQ,
+    SYSTEM_FILE_PCI_58_CH_ENABLED,
+    SYSTEM_FILE_PCI_58_CH_FREQ,
+    SYSTEM_FILE_PCI_59_CH_ENABLED,
+    SYSTEM_FILE_PCI_59_CH_FREQ,
+    SYSTEM_FILE_PCI_60_CH_ENABLED,
+    SYSTEM_FILE_PCI_60_CH_FREQ,
+    SYSTEM_FILE_PCI_61_CH_ENABLED,
+    SYSTEM_FILE_PCI_61_CH_FREQ,
+    SYSTEM_FILE_PCI_62_CH_ENABLED,
+    SYSTEM_FILE_PCI_62_CH_FREQ,
+    SYSTEM_FILE_PCI_63_CH_ENABLED,
+    SYSTEM_FILE_PCI_63_CH_FREQ,
+    SYSTEM_FILE_PCI_64_CH_ENABLED,
+    SYSTEM_FILE_PCI_64_CH_FREQ,
+    SYSTEM_FILE_PCI_65_CH_ENABLED,
+    SYSTEM_FILE_PCI_65_CH_FREQ,
+    SYSTEM_FILE_PCI_66_CH_ENABLED,
+    SYSTEM_FILE_PCI_66_CH_FREQ,
+    SYSTEM_FILE_PCI_67_CH_ENABLED,
+    SYSTEM_FILE_PCI_67_CH_FREQ,
+    SYSTEM_FILE_PCI_68_CH_ENABLED,
+    SYSTEM_FILE_PCI_68_CH_FREQ,
+    SYSTEM_FILE_PCI_69_CH_ENABLED,
+    SYSTEM_FILE_PCI_69_CH_FREQ,
+    SYSTEM_FILE_PCI_70_CH_ENABLED,
+    SYSTEM_FILE_PCI_70_CH_FREQ,
+    SYSTEM_FILE_PCI_71_CH_ENABLED,
+    SYSTEM_FILE_PCI_71_CH_FREQ,
+    SYSTEM_FILE_PCI_72_CH_ENABLED,
+    SYSTEM_FILE_PCI_72_CH_FREQ,
+    SYSTEM_FILE_PCI_73_CH_ENABLED,
+    SYSTEM_FILE_PCI_73_CH_FREQ,
+    SYSTEM_FILE_PCI_74_CH_ENABLED,
+    SYSTEM_FILE_PCI_74_CH_FREQ,
+    SYSTEM_FILE_PCI_75_CH_ENABLED,
+    SYSTEM_FILE_PCI_75_CH_FREQ,
+    SYSTEM_FILE_PCI_76_CH_ENABLED,
+    SYSTEM_FILE_PCI_76_CH_FREQ,
+    SYSTEM_FILE_PCI_77_CH_ENABLED,
+    SYSTEM_FILE_PCI_77_CH_FREQ,
+    SYSTEM_FILE_PCI_78_CH_ENABLED,
+    SYSTEM_FILE_PCI_78_CH_FREQ,
+    SYSTEM_FILE_PCI_79_CH_ENABLED,
+    SYSTEM_FILE_PCI_79_CH_FREQ,
+    SYSTEM_FILE_PCI_80_CH_ENABLED,
+    SYSTEM_FILE_PCI_80_CH_FREQ,
+    SYSTEM_FILE_PCI_81_CH_ENABLED,
+    SYSTEM_FILE_PCI_81_CH_FREQ,
+    SYSTEM_FILE_PCI_82_CH_ENABLED,
+    SYSTEM_FILE_PCI_82_CH_FREQ,
+    SYSTEM_FILE_PCI_83_CH_ENABLED,
+    SYSTEM_FILE_PCI_83_CH_FREQ,
+    SYSTEM_FILE_PCI_84_CH_ENABLED,
+    SYSTEM_FILE_PCI_84_CH_FREQ,
+    SYSTEM_FILE_PCI_85_CH_ENABLED,
+    SYSTEM_FILE_PCI_85_CH_FREQ,
+    SYSTEM_FILE_PCI_86_CH_ENABLED,
+    SYSTEM_FILE_PCI_86_CH_FREQ,
+    SYSTEM_FILE_PCI_87_CH_ENABLED,
+    SYSTEM_FILE_PCI_87_CH_FREQ,
+    SYSTEM_FILE_PCI_88_CH_ENABLED,
+    SYSTEM_FILE_PCI_88_CH_FREQ,
+    SYSTEM_FILE_PCI_89_CH_ENABLED,
+    SYSTEM_FILE_PCI_89_CH_FREQ,
+    SYSTEM_FILE_PCI_90_CH_ENABLED,
+    SYSTEM_FILE_PCI_90_CH_FREQ,
+    SYSTEM_FILE_PCI_91_CH_ENABLED,
+    SYSTEM_FILE_PCI_91_CH_FREQ,
+    SYSTEM_FILE_PCI_92_CH_ENABLED,
+    SYSTEM_FILE_PCI_92_CH_FREQ,
+    SYSTEM_FILE_PCI_93_CH_ENABLED,
+    SYSTEM_FILE_PCI_93_CH_FREQ,
+    SYSTEM_FILE_PCI_94_CH_ENABLED,
+    SYSTEM_FILE_PCI_94_CH_FREQ,
+    SYSTEM_FILE_PCI_95_CH_ENABLED,
+    SYSTEM_FILE_PCI_95_CH_FREQ,
+    SYSTEM_FILE_PCI_96_CH_ENABLED,
+    SYSTEM_FILE_PCI_96_CH_FREQ,
+    SYSTEM_FILE_PCI_97_CH_ENABLED,
+    SYSTEM_FILE_PCI_97_CH_FREQ,
+    SYSTEM_FILE_PCI_98_CH_ENABLED,
+    SYSTEM_FILE_PCI_98_CH_FREQ,
+    SYSTEM_FILE_PCI_99_CH_ENABLED,
+    SYSTEM_FILE_PCI_99_CH_FREQ,
+    SYSTEM_FILE_PCI_100_CH_ENABLED,
+    SYSTEM_FILE_PCI_100_CH_FREQ,
+    SYSTEM_FILE_PCI_101_CH_ENABLED,
+    SYSTEM_FILE_PCI_101_CH_FREQ,
+    SYSTEM_FILE_PCI_102_CH_ENABLED,
+    SYSTEM_FILE_PCI_102_CH_FREQ,
+    SYSTEM_FILE_PCI_103_CH_ENABLED,
+    SYSTEM_FILE_PCI_103_CH_FREQ,
+    SYSTEM_FILE_PCI_104_CH_ENABLED,
+    SYSTEM_FILE_PCI_104_CH_FREQ,
+    SYSTEM_FILE_PCI_105_CH_ENABLED,
+    SYSTEM_FILE_PCI_105_CH_FREQ,
+    SYSTEM_FILE_PCI_106_CH_ENABLED,
+    SYSTEM_FILE_PCI_106_CH_FREQ,
+    SYSTEM_FILE_PCI_107_CH_ENABLED,
+    SYSTEM_FILE_PCI_107_CH_FREQ,
+    SYSTEM_FILE_PCI_108_CH_ENABLED,
+    SYSTEM_FILE_PCI_108_CH_FREQ,
+    SYSTEM_FILE_PCI_109_CH_ENABLED,
+    SYSTEM_FILE_PCI_109_CH_FREQ,
+    SYSTEM_FILE_PCI_110_CH_ENABLED,
+    SYSTEM_FILE_PCI_110_CH_FREQ,
+    SYSTEM_FILE_PCI_111_CH_ENABLED,
+    SYSTEM_FILE_PCI_111_CH_FREQ,
+    SYSTEM_FILE_PCI_112_CH_ENABLED,
+    SYSTEM_FILE_PCI_112_CH_FREQ,
+    SYSTEM_FILE_PCI_113_CH_ENABLED,
+    SYSTEM_FILE_PCI_113_CH_FREQ,
+    SYSTEM_FILE_PCI_114_CH_ENABLED,
+    SYSTEM_FILE_PCI_114_CH_FREQ,
+    SYSTEM_FILE_PCI_115_CH_ENABLED,
+    SYSTEM_FILE_PCI_115_CH_FREQ,
+    SYSTEM_FILE_PCI_116_CH_ENABLED,
+    SYSTEM_FILE_PCI_116_CH_FREQ,
+    SYSTEM_FILE_PCI_117_CH_ENABLED,
+    SYSTEM_FILE_PCI_117_CH_FREQ,
+    SYSTEM_FILE_PCI_118_CH_ENABLED,
+    SYSTEM_FILE_PCI_118_CH_FREQ,
+    SYSTEM_FILE_PCI_119_CH_ENABLED,
+    SYSTEM_FILE_PCI_119_CH_FREQ,
+    SYSTEM_FILE_PCI_120_CH_ENABLED,
+    SYSTEM_FILE_PCI_120_CH_FREQ,
+    SYSTEM_FILE_PCI_121_CH_ENABLED,
+    SYSTEM_FILE_PCI_121_CH_FREQ,
+    SYSTEM_FILE_PCI_122_CH_ENABLED,
+    SYSTEM_FILE_PCI_122_CH_FREQ,
+    SYSTEM_FILE_PCI_123_CH_ENABLED,
+    SYSTEM_FILE_PCI_123_CH_FREQ,
+    SYSTEM_FILE_PCI_124_CH_ENABLED,
+    SYSTEM_FILE_PCI_124_CH_FREQ,
+    SYSTEM_FILE_PCI_125_CH_ENABLED,
+    SYSTEM_FILE_PCI_125_CH_FREQ,
+    SYSTEM_FILE_PCI_126_CH_ENABLED,
+    SYSTEM_FILE_PCI_126_CH_FREQ,
+    SYSTEM_FILE_PCI_127_CH_ENABLED,
+    SYSTEM_FILE_PCI_127_CH_FREQ,
 
     SYSTEM_FILE_PWRCFG_NAME,
     SYSTEM_FILE_PWRCFG_GPS,
@@ -1014,8 +2161,262 @@ static const char * getSystemTag(int t) {
         case SYSTEM_FILE_ADMPLEX1_CH_ENABLED:            return "ADMPLEX1_CH_ENABLED";
         case SYSTEM_FILE_ADMPLEX0_CH_FREQ:               return "ADMPLEX0_CH_FREQ";
         case SYSTEM_FILE_ADMPLEX1_CH_FREQ:               return "ADMPLEX1_CH_FREQ";
-        case SYSTEM_FILE_PCI_CH_ENABLED:                 return "PCI_CH_ENABLED";
-        case SYSTEM_FILE_PCI_CH_FREQ:                    return "PCI_CH_FREQ";
+        case SYSTEM_FILE_PCI_0_CH_ENABLED:               return "PCI_0_CH_ENABLED";
+        case SYSTEM_FILE_PCI_0_CH_FREQ:                  return "PCI_0_CH_FREQ";
+        case SYSTEM_FILE_PCI_1_CH_ENABLED:               return "PCI_1_CH_ENABLED";
+        case SYSTEM_FILE_PCI_1_CH_FREQ:                  return "PCI_1_CH_FREQ";
+        case SYSTEM_FILE_PCI_2_CH_ENABLED:               return "PCI_2_CH_ENABLED";
+        case SYSTEM_FILE_PCI_2_CH_FREQ:                  return "PCI_2_CH_FREQ";
+        case SYSTEM_FILE_PCI_3_CH_ENABLED:               return "PCI_3_CH_ENABLED";
+        case SYSTEM_FILE_PCI_3_CH_FREQ:                  return "PCI_3_CH_FREQ";
+        case SYSTEM_FILE_PCI_4_CH_ENABLED:               return "PCI_4_CH_ENABLED";
+        case SYSTEM_FILE_PCI_4_CH_FREQ:                  return "PCI_4_CH_FREQ";
+        case SYSTEM_FILE_PCI_5_CH_ENABLED:               return "PCI_5_CH_ENABLED";
+        case SYSTEM_FILE_PCI_5_CH_FREQ:                  return "PCI_5_CH_FREQ";
+        case SYSTEM_FILE_PCI_6_CH_ENABLED:               return "PCI_6_CH_ENABLED";
+        case SYSTEM_FILE_PCI_6_CH_FREQ:                  return "PCI_6_CH_FREQ";
+        case SYSTEM_FILE_PCI_7_CH_ENABLED:               return "PCI_7_CH_ENABLED";
+        case SYSTEM_FILE_PCI_7_CH_FREQ:                  return "PCI_7_CH_FREQ";
+        case SYSTEM_FILE_PCI_8_CH_ENABLED:               return "PCI_8_CH_ENABLED";
+        case SYSTEM_FILE_PCI_8_CH_FREQ:                  return "PCI_8_CH_FREQ";
+        case SYSTEM_FILE_PCI_9_CH_ENABLED:               return "PCI_9_CH_ENABLED";
+        case SYSTEM_FILE_PCI_9_CH_FREQ:                  return "PCI_9_CH_FREQ";
+        case SYSTEM_FILE_PCI_10_CH_ENABLED:               return "PCI_10_CH_ENABLED";
+        case SYSTEM_FILE_PCI_10_CH_FREQ:                  return "PCI_10_CH_FREQ";
+        case SYSTEM_FILE_PCI_11_CH_ENABLED:               return "PCI_11_CH_ENABLED";
+        case SYSTEM_FILE_PCI_11_CH_FREQ:                  return "PCI_11_CH_FREQ";
+        case SYSTEM_FILE_PCI_12_CH_ENABLED:               return "PCI_12_CH_ENABLED";
+        case SYSTEM_FILE_PCI_12_CH_FREQ:                  return "PCI_12_CH_FREQ";
+        case SYSTEM_FILE_PCI_13_CH_ENABLED:               return "PCI_13_CH_ENABLED";
+        case SYSTEM_FILE_PCI_13_CH_FREQ:                  return "PCI_13_CH_FREQ";
+        case SYSTEM_FILE_PCI_14_CH_ENABLED:               return "PCI_14_CH_ENABLED";
+        case SYSTEM_FILE_PCI_14_CH_FREQ:                  return "PCI_14_CH_FREQ";
+        case SYSTEM_FILE_PCI_15_CH_ENABLED:               return "PCI_15_CH_ENABLED";
+        case SYSTEM_FILE_PCI_15_CH_FREQ:                  return "PCI_15_CH_FREQ";
+        case SYSTEM_FILE_PCI_16_CH_ENABLED:               return "PCI_16_CH_ENABLED";
+        case SYSTEM_FILE_PCI_16_CH_FREQ:                  return "PCI_16_CH_FREQ";
+        case SYSTEM_FILE_PCI_17_CH_ENABLED:               return "PCI_17_CH_ENABLED";
+        case SYSTEM_FILE_PCI_17_CH_FREQ:                  return "PCI_17_CH_FREQ";
+        case SYSTEM_FILE_PCI_18_CH_ENABLED:               return "PCI_18_CH_ENABLED";
+        case SYSTEM_FILE_PCI_18_CH_FREQ:                  return "PCI_18_CH_FREQ";
+        case SYSTEM_FILE_PCI_19_CH_ENABLED:               return "PCI_19_CH_ENABLED";
+        case SYSTEM_FILE_PCI_19_CH_FREQ:                  return "PCI_19_CH_FREQ";
+        case SYSTEM_FILE_PCI_20_CH_ENABLED:               return "PCI_20_CH_ENABLED";
+        case SYSTEM_FILE_PCI_20_CH_FREQ:                  return "PCI_20_CH_FREQ";
+        case SYSTEM_FILE_PCI_21_CH_ENABLED:               return "PCI_21_CH_ENABLED";
+        case SYSTEM_FILE_PCI_21_CH_FREQ:                  return "PCI_21_CH_FREQ";
+        case SYSTEM_FILE_PCI_22_CH_ENABLED:               return "PCI_22_CH_ENABLED";
+        case SYSTEM_FILE_PCI_22_CH_FREQ:                  return "PCI_22_CH_FREQ";
+        case SYSTEM_FILE_PCI_23_CH_ENABLED:               return "PCI_23_CH_ENABLED";
+        case SYSTEM_FILE_PCI_23_CH_FREQ:                  return "PCI_23_CH_FREQ";
+        case SYSTEM_FILE_PCI_24_CH_ENABLED:               return "PCI_24_CH_ENABLED";
+        case SYSTEM_FILE_PCI_24_CH_FREQ:                  return "PCI_24_CH_FREQ";
+        case SYSTEM_FILE_PCI_25_CH_ENABLED:               return "PCI_25_CH_ENABLED";
+        case SYSTEM_FILE_PCI_25_CH_FREQ:                  return "PCI_25_CH_FREQ";
+        case SYSTEM_FILE_PCI_26_CH_ENABLED:               return "PCI_26_CH_ENABLED";
+        case SYSTEM_FILE_PCI_26_CH_FREQ:                  return "PCI_26_CH_FREQ";
+        case SYSTEM_FILE_PCI_27_CH_ENABLED:               return "PCI_27_CH_ENABLED";
+        case SYSTEM_FILE_PCI_27_CH_FREQ:                  return "PCI_27_CH_FREQ";
+        case SYSTEM_FILE_PCI_28_CH_ENABLED:               return "PCI_28_CH_ENABLED";
+        case SYSTEM_FILE_PCI_28_CH_FREQ:                  return "PCI_28_CH_FREQ";
+        case SYSTEM_FILE_PCI_29_CH_ENABLED:               return "PCI_29_CH_ENABLED";
+        case SYSTEM_FILE_PCI_29_CH_FREQ:                  return "PCI_29_CH_FREQ";
+        case SYSTEM_FILE_PCI_30_CH_ENABLED:               return "PCI_30_CH_ENABLED";
+        case SYSTEM_FILE_PCI_30_CH_FREQ:                  return "PCI_30_CH_FREQ";
+        case SYSTEM_FILE_PCI_31_CH_ENABLED:               return "PCI_31_CH_ENABLED";
+        case SYSTEM_FILE_PCI_31_CH_FREQ:                  return "PCI_31_CH_FREQ";
+        case SYSTEM_FILE_PCI_32_CH_ENABLED:               return "PCI_32_CH_ENABLED";
+        case SYSTEM_FILE_PCI_32_CH_FREQ:                  return "PCI_32_CH_FREQ";
+        case SYSTEM_FILE_PCI_33_CH_ENABLED:               return "PCI_33_CH_ENABLED";
+        case SYSTEM_FILE_PCI_33_CH_FREQ:                  return "PCI_33_CH_FREQ";
+        case SYSTEM_FILE_PCI_34_CH_ENABLED:               return "PCI_34_CH_ENABLED";
+        case SYSTEM_FILE_PCI_34_CH_FREQ:                  return "PCI_34_CH_FREQ";
+        case SYSTEM_FILE_PCI_35_CH_ENABLED:               return "PCI_35_CH_ENABLED";
+        case SYSTEM_FILE_PCI_35_CH_FREQ:                  return "PCI_35_CH_FREQ";
+        case SYSTEM_FILE_PCI_36_CH_ENABLED:               return "PCI_36_CH_ENABLED";
+        case SYSTEM_FILE_PCI_36_CH_FREQ:                  return "PCI_36_CH_FREQ";
+        case SYSTEM_FILE_PCI_37_CH_ENABLED:               return "PCI_37_CH_ENABLED";
+        case SYSTEM_FILE_PCI_37_CH_FREQ:                  return "PCI_37_CH_FREQ";
+        case SYSTEM_FILE_PCI_38_CH_ENABLED:               return "PCI_38_CH_ENABLED";
+        case SYSTEM_FILE_PCI_38_CH_FREQ:                  return "PCI_38_CH_FREQ";
+        case SYSTEM_FILE_PCI_39_CH_ENABLED:               return "PCI_39_CH_ENABLED";
+        case SYSTEM_FILE_PCI_39_CH_FREQ:                  return "PCI_39_CH_FREQ";
+        case SYSTEM_FILE_PCI_40_CH_ENABLED:               return "PCI_40_CH_ENABLED";
+        case SYSTEM_FILE_PCI_40_CH_FREQ:                  return "PCI_40_CH_FREQ";
+        case SYSTEM_FILE_PCI_41_CH_ENABLED:               return "PCI_41_CH_ENABLED";
+        case SYSTEM_FILE_PCI_41_CH_FREQ:                  return "PCI_41_CH_FREQ";
+        case SYSTEM_FILE_PCI_42_CH_ENABLED:               return "PCI_42_CH_ENABLED";
+        case SYSTEM_FILE_PCI_42_CH_FREQ:                  return "PCI_42_CH_FREQ";
+        case SYSTEM_FILE_PCI_43_CH_ENABLED:               return "PCI_43_CH_ENABLED";
+        case SYSTEM_FILE_PCI_43_CH_FREQ:                  return "PCI_43_CH_FREQ";
+        case SYSTEM_FILE_PCI_44_CH_ENABLED:               return "PCI_44_CH_ENABLED";
+        case SYSTEM_FILE_PCI_44_CH_FREQ:                  return "PCI_44_CH_FREQ";
+        case SYSTEM_FILE_PCI_45_CH_ENABLED:               return "PCI_45_CH_ENABLED";
+        case SYSTEM_FILE_PCI_45_CH_FREQ:                  return "PCI_45_CH_FREQ";
+        case SYSTEM_FILE_PCI_46_CH_ENABLED:               return "PCI_46_CH_ENABLED";
+        case SYSTEM_FILE_PCI_46_CH_FREQ:                  return "PCI_46_CH_FREQ";
+        case SYSTEM_FILE_PCI_47_CH_ENABLED:               return "PCI_47_CH_ENABLED";
+        case SYSTEM_FILE_PCI_47_CH_FREQ:                  return "PCI_47_CH_FREQ";
+        case SYSTEM_FILE_PCI_48_CH_ENABLED:               return "PCI_48_CH_ENABLED";
+        case SYSTEM_FILE_PCI_48_CH_FREQ:                  return "PCI_48_CH_FREQ";
+        case SYSTEM_FILE_PCI_49_CH_ENABLED:               return "PCI_49_CH_ENABLED";
+        case SYSTEM_FILE_PCI_49_CH_FREQ:                  return "PCI_49_CH_FREQ";
+        case SYSTEM_FILE_PCI_50_CH_ENABLED:               return "PCI_50_CH_ENABLED";
+        case SYSTEM_FILE_PCI_50_CH_FREQ:                  return "PCI_50_CH_FREQ";
+        case SYSTEM_FILE_PCI_51_CH_ENABLED:               return "PCI_51_CH_ENABLED";
+        case SYSTEM_FILE_PCI_51_CH_FREQ:                  return "PCI_51_CH_FREQ";
+        case SYSTEM_FILE_PCI_52_CH_ENABLED:               return "PCI_52_CH_ENABLED";
+        case SYSTEM_FILE_PCI_52_CH_FREQ:                  return "PCI_52_CH_FREQ";
+        case SYSTEM_FILE_PCI_53_CH_ENABLED:               return "PCI_53_CH_ENABLED";
+        case SYSTEM_FILE_PCI_53_CH_FREQ:                  return "PCI_53_CH_FREQ";
+        case SYSTEM_FILE_PCI_54_CH_ENABLED:               return "PCI_54_CH_ENABLED";
+        case SYSTEM_FILE_PCI_54_CH_FREQ:                  return "PCI_54_CH_FREQ";
+        case SYSTEM_FILE_PCI_55_CH_ENABLED:               return "PCI_55_CH_ENABLED";
+        case SYSTEM_FILE_PCI_55_CH_FREQ:                  return "PCI_55_CH_FREQ";
+        case SYSTEM_FILE_PCI_56_CH_ENABLED:               return "PCI_56_CH_ENABLED";
+        case SYSTEM_FILE_PCI_56_CH_FREQ:                  return "PCI_56_CH_FREQ";
+        case SYSTEM_FILE_PCI_57_CH_ENABLED:               return "PCI_57_CH_ENABLED";
+        case SYSTEM_FILE_PCI_57_CH_FREQ:                  return "PCI_57_CH_FREQ";
+        case SYSTEM_FILE_PCI_58_CH_ENABLED:               return "PCI_58_CH_ENABLED";
+        case SYSTEM_FILE_PCI_58_CH_FREQ:                  return "PCI_58_CH_FREQ";
+        case SYSTEM_FILE_PCI_59_CH_ENABLED:               return "PCI_59_CH_ENABLED";
+        case SYSTEM_FILE_PCI_59_CH_FREQ:                  return "PCI_59_CH_FREQ";
+        case SYSTEM_FILE_PCI_60_CH_ENABLED:               return "PCI_60_CH_ENABLED";
+        case SYSTEM_FILE_PCI_60_CH_FREQ:                  return "PCI_60_CH_FREQ";
+        case SYSTEM_FILE_PCI_61_CH_ENABLED:               return "PCI_61_CH_ENABLED";
+        case SYSTEM_FILE_PCI_61_CH_FREQ:                  return "PCI_61_CH_FREQ";
+        case SYSTEM_FILE_PCI_62_CH_ENABLED:               return "PCI_62_CH_ENABLED";
+        case SYSTEM_FILE_PCI_62_CH_FREQ:                  return "PCI_62_CH_FREQ";
+        case SYSTEM_FILE_PCI_63_CH_ENABLED:               return "PCI_63_CH_ENABLED";
+        case SYSTEM_FILE_PCI_63_CH_FREQ:                  return "PCI_63_CH_FREQ";
+        case SYSTEM_FILE_PCI_64_CH_ENABLED:               return "PCI_64_CH_ENABLED";
+        case SYSTEM_FILE_PCI_64_CH_FREQ:                  return "PCI_64_CH_FREQ";
+        case SYSTEM_FILE_PCI_65_CH_ENABLED:               return "PCI_65_CH_ENABLED";
+        case SYSTEM_FILE_PCI_65_CH_FREQ:                  return "PCI_65_CH_FREQ";
+        case SYSTEM_FILE_PCI_66_CH_ENABLED:               return "PCI_66_CH_ENABLED";
+        case SYSTEM_FILE_PCI_66_CH_FREQ:                  return "PCI_66_CH_FREQ";
+        case SYSTEM_FILE_PCI_67_CH_ENABLED:               return "PCI_67_CH_ENABLED";
+        case SYSTEM_FILE_PCI_67_CH_FREQ:                  return "PCI_67_CH_FREQ";
+        case SYSTEM_FILE_PCI_68_CH_ENABLED:               return "PCI_68_CH_ENABLED";
+        case SYSTEM_FILE_PCI_68_CH_FREQ:                  return "PCI_68_CH_FREQ";
+        case SYSTEM_FILE_PCI_69_CH_ENABLED:               return "PCI_69_CH_ENABLED";
+        case SYSTEM_FILE_PCI_69_CH_FREQ:                  return "PCI_69_CH_FREQ";
+        case SYSTEM_FILE_PCI_70_CH_ENABLED:               return "PCI_70_CH_ENABLED";
+        case SYSTEM_FILE_PCI_70_CH_FREQ:                  return "PCI_70_CH_FREQ";
+        case SYSTEM_FILE_PCI_71_CH_ENABLED:               return "PCI_71_CH_ENABLED";
+        case SYSTEM_FILE_PCI_71_CH_FREQ:                  return "PCI_71_CH_FREQ";
+        case SYSTEM_FILE_PCI_72_CH_ENABLED:               return "PCI_72_CH_ENABLED";
+        case SYSTEM_FILE_PCI_72_CH_FREQ:                  return "PCI_72_CH_FREQ";
+        case SYSTEM_FILE_PCI_73_CH_ENABLED:               return "PCI_73_CH_ENABLED";
+        case SYSTEM_FILE_PCI_73_CH_FREQ:                  return "PCI_73_CH_FREQ";
+        case SYSTEM_FILE_PCI_74_CH_ENABLED:               return "PCI_74_CH_ENABLED";
+        case SYSTEM_FILE_PCI_74_CH_FREQ:                  return "PCI_74_CH_FREQ";
+        case SYSTEM_FILE_PCI_75_CH_ENABLED:               return "PCI_75_CH_ENABLED";
+        case SYSTEM_FILE_PCI_75_CH_FREQ:                  return "PCI_75_CH_FREQ";
+        case SYSTEM_FILE_PCI_76_CH_ENABLED:               return "PCI_76_CH_ENABLED";
+        case SYSTEM_FILE_PCI_76_CH_FREQ:                  return "PCI_76_CH_FREQ";
+        case SYSTEM_FILE_PCI_77_CH_ENABLED:               return "PCI_77_CH_ENABLED";
+        case SYSTEM_FILE_PCI_77_CH_FREQ:                  return "PCI_77_CH_FREQ";
+        case SYSTEM_FILE_PCI_78_CH_ENABLED:               return "PCI_78_CH_ENABLED";
+        case SYSTEM_FILE_PCI_78_CH_FREQ:                  return "PCI_78_CH_FREQ";
+        case SYSTEM_FILE_PCI_79_CH_ENABLED:               return "PCI_79_CH_ENABLED";
+        case SYSTEM_FILE_PCI_79_CH_FREQ:                  return "PCI_79_CH_FREQ";
+        case SYSTEM_FILE_PCI_80_CH_ENABLED:               return "PCI_80_CH_ENABLED";
+        case SYSTEM_FILE_PCI_80_CH_FREQ:                  return "PCI_80_CH_FREQ";
+        case SYSTEM_FILE_PCI_81_CH_ENABLED:               return "PCI_81_CH_ENABLED";
+        case SYSTEM_FILE_PCI_81_CH_FREQ:                  return "PCI_81_CH_FREQ";
+        case SYSTEM_FILE_PCI_82_CH_ENABLED:               return "PCI_82_CH_ENABLED";
+        case SYSTEM_FILE_PCI_82_CH_FREQ:                  return "PCI_82_CH_FREQ";
+        case SYSTEM_FILE_PCI_83_CH_ENABLED:               return "PCI_83_CH_ENABLED";
+        case SYSTEM_FILE_PCI_83_CH_FREQ:                  return "PCI_83_CH_FREQ";
+        case SYSTEM_FILE_PCI_84_CH_ENABLED:               return "PCI_84_CH_ENABLED";
+        case SYSTEM_FILE_PCI_84_CH_FREQ:                  return "PCI_84_CH_FREQ";
+        case SYSTEM_FILE_PCI_85_CH_ENABLED:               return "PCI_85_CH_ENABLED";
+        case SYSTEM_FILE_PCI_85_CH_FREQ:                  return "PCI_85_CH_FREQ";
+        case SYSTEM_FILE_PCI_86_CH_ENABLED:               return "PCI_86_CH_ENABLED";
+        case SYSTEM_FILE_PCI_86_CH_FREQ:                  return "PCI_86_CH_FREQ";
+        case SYSTEM_FILE_PCI_87_CH_ENABLED:               return "PCI_87_CH_ENABLED";
+        case SYSTEM_FILE_PCI_87_CH_FREQ:                  return "PCI_87_CH_FREQ";
+        case SYSTEM_FILE_PCI_88_CH_ENABLED:               return "PCI_88_CH_ENABLED";
+        case SYSTEM_FILE_PCI_88_CH_FREQ:                  return "PCI_88_CH_FREQ";
+        case SYSTEM_FILE_PCI_89_CH_ENABLED:               return "PCI_89_CH_ENABLED";
+        case SYSTEM_FILE_PCI_89_CH_FREQ:                  return "PCI_89_CH_FREQ";
+        case SYSTEM_FILE_PCI_90_CH_ENABLED:               return "PCI_90_CH_ENABLED";
+        case SYSTEM_FILE_PCI_90_CH_FREQ:                  return "PCI_90_CH_FREQ";
+        case SYSTEM_FILE_PCI_91_CH_ENABLED:               return "PCI_91_CH_ENABLED";
+        case SYSTEM_FILE_PCI_91_CH_FREQ:                  return "PCI_91_CH_FREQ";
+        case SYSTEM_FILE_PCI_92_CH_ENABLED:               return "PCI_92_CH_ENABLED";
+        case SYSTEM_FILE_PCI_92_CH_FREQ:                  return "PCI_92_CH_FREQ";
+        case SYSTEM_FILE_PCI_93_CH_ENABLED:               return "PCI_93_CH_ENABLED";
+        case SYSTEM_FILE_PCI_93_CH_FREQ:                  return "PCI_93_CH_FREQ";
+        case SYSTEM_FILE_PCI_94_CH_ENABLED:               return "PCI_94_CH_ENABLED";
+        case SYSTEM_FILE_PCI_94_CH_FREQ:                  return "PCI_94_CH_FREQ";
+        case SYSTEM_FILE_PCI_95_CH_ENABLED:               return "PCI_95_CH_ENABLED";
+        case SYSTEM_FILE_PCI_95_CH_FREQ:                  return "PCI_95_CH_FREQ";
+        case SYSTEM_FILE_PCI_96_CH_ENABLED:               return "PCI_96_CH_ENABLED";
+        case SYSTEM_FILE_PCI_96_CH_FREQ:                  return "PCI_96_CH_FREQ";
+        case SYSTEM_FILE_PCI_97_CH_ENABLED:               return "PCI_97_CH_ENABLED";
+        case SYSTEM_FILE_PCI_97_CH_FREQ:                  return "PCI_97_CH_FREQ";
+        case SYSTEM_FILE_PCI_98_CH_ENABLED:               return "PCI_98_CH_ENABLED";
+        case SYSTEM_FILE_PCI_98_CH_FREQ:                  return "PCI_98_CH_FREQ";
+        case SYSTEM_FILE_PCI_99_CH_ENABLED:               return "PCI_99_CH_ENABLED";
+        case SYSTEM_FILE_PCI_99_CH_FREQ:                  return "PCI_99_CH_FREQ";
+        case SYSTEM_FILE_PCI_100_CH_ENABLED:               return "PCI_100_CH_ENABLED";
+        case SYSTEM_FILE_PCI_100_CH_FREQ:                  return "PCI_100_CH_FREQ";
+        case SYSTEM_FILE_PCI_101_CH_ENABLED:               return "PCI_101_CH_ENABLED";
+        case SYSTEM_FILE_PCI_101_CH_FREQ:                  return "PCI_101_CH_FREQ";
+        case SYSTEM_FILE_PCI_102_CH_ENABLED:               return "PCI_102_CH_ENABLED";
+        case SYSTEM_FILE_PCI_102_CH_FREQ:                  return "PCI_102_CH_FREQ";
+        case SYSTEM_FILE_PCI_103_CH_ENABLED:               return "PCI_103_CH_ENABLED";
+        case SYSTEM_FILE_PCI_103_CH_FREQ:                  return "PCI_103_CH_FREQ";
+        case SYSTEM_FILE_PCI_104_CH_ENABLED:               return "PCI_104_CH_ENABLED";
+        case SYSTEM_FILE_PCI_104_CH_FREQ:                  return "PCI_104_CH_FREQ";
+        case SYSTEM_FILE_PCI_105_CH_ENABLED:               return "PCI_105_CH_ENABLED";
+        case SYSTEM_FILE_PCI_105_CH_FREQ:                  return "PCI_105_CH_FREQ";
+        case SYSTEM_FILE_PCI_106_CH_ENABLED:               return "PCI_106_CH_ENABLED";
+        case SYSTEM_FILE_PCI_106_CH_FREQ:                  return "PCI_106_CH_FREQ";
+        case SYSTEM_FILE_PCI_107_CH_ENABLED:               return "PCI_107_CH_ENABLED";
+        case SYSTEM_FILE_PCI_107_CH_FREQ:                  return "PCI_107_CH_FREQ";
+        case SYSTEM_FILE_PCI_108_CH_ENABLED:               return "PCI_108_CH_ENABLED";
+        case SYSTEM_FILE_PCI_108_CH_FREQ:                  return "PCI_108_CH_FREQ";
+        case SYSTEM_FILE_PCI_109_CH_ENABLED:               return "PCI_109_CH_ENABLED";
+        case SYSTEM_FILE_PCI_109_CH_FREQ:                  return "PCI_109_CH_FREQ";
+        case SYSTEM_FILE_PCI_110_CH_ENABLED:               return "PCI_110_CH_ENABLED";
+        case SYSTEM_FILE_PCI_110_CH_FREQ:                  return "PCI_110_CH_FREQ";
+        case SYSTEM_FILE_PCI_111_CH_ENABLED:               return "PCI_111_CH_ENABLED";
+        case SYSTEM_FILE_PCI_111_CH_FREQ:                  return "PCI_111_CH_FREQ";
+        case SYSTEM_FILE_PCI_112_CH_ENABLED:               return "PCI_112_CH_ENABLED";
+        case SYSTEM_FILE_PCI_112_CH_FREQ:                  return "PCI_112_CH_FREQ";
+        case SYSTEM_FILE_PCI_113_CH_ENABLED:               return "PCI_113_CH_ENABLED";
+        case SYSTEM_FILE_PCI_113_CH_FREQ:                  return "PCI_113_CH_FREQ";
+        case SYSTEM_FILE_PCI_114_CH_ENABLED:               return "PCI_114_CH_ENABLED";
+        case SYSTEM_FILE_PCI_114_CH_FREQ:                  return "PCI_114_CH_FREQ";
+        case SYSTEM_FILE_PCI_115_CH_ENABLED:               return "PCI_115_CH_ENABLED";
+        case SYSTEM_FILE_PCI_115_CH_FREQ:                  return "PCI_115_CH_FREQ";
+        case SYSTEM_FILE_PCI_116_CH_ENABLED:               return "PCI_116_CH_ENABLED";
+        case SYSTEM_FILE_PCI_116_CH_FREQ:                  return "PCI_116_CH_FREQ";
+        case SYSTEM_FILE_PCI_117_CH_ENABLED:               return "PCI_117_CH_ENABLED";
+        case SYSTEM_FILE_PCI_117_CH_FREQ:                  return "PCI_117_CH_FREQ";
+        case SYSTEM_FILE_PCI_118_CH_ENABLED:               return "PCI_118_CH_ENABLED";
+        case SYSTEM_FILE_PCI_118_CH_FREQ:                  return "PCI_118_CH_FREQ";
+        case SYSTEM_FILE_PCI_119_CH_ENABLED:               return "PCI_119_CH_ENABLED";
+        case SYSTEM_FILE_PCI_119_CH_FREQ:                  return "PCI_119_CH_FREQ";
+        case SYSTEM_FILE_PCI_120_CH_ENABLED:               return "PCI_120_CH_ENABLED";
+        case SYSTEM_FILE_PCI_120_CH_FREQ:                  return "PCI_120_CH_FREQ";
+        case SYSTEM_FILE_PCI_121_CH_ENABLED:               return "PCI_121_CH_ENABLED";
+        case SYSTEM_FILE_PCI_121_CH_FREQ:                  return "PCI_121_CH_FREQ";
+        case SYSTEM_FILE_PCI_122_CH_ENABLED:               return "PCI_122_CH_ENABLED";
+        case SYSTEM_FILE_PCI_122_CH_FREQ:                  return "PCI_122_CH_FREQ";
+        case SYSTEM_FILE_PCI_123_CH_ENABLED:               return "PCI_123_CH_ENABLED";
+        case SYSTEM_FILE_PCI_123_CH_FREQ:                  return "PCI_123_CH_FREQ";
+        case SYSTEM_FILE_PCI_124_CH_ENABLED:               return "PCI_124_CH_ENABLED";
+        case SYSTEM_FILE_PCI_124_CH_FREQ:                  return "PCI_124_CH_FREQ";
+        case SYSTEM_FILE_PCI_125_CH_ENABLED:               return "PCI_125_CH_ENABLED";
+        case SYSTEM_FILE_PCI_125_CH_FREQ:                  return "PCI_125_CH_FREQ";
+        case SYSTEM_FILE_PCI_126_CH_ENABLED:               return "PCI_126_CH_ENABLED";
+        case SYSTEM_FILE_PCI_126_CH_FREQ:                  return "PCI_126_CH_FREQ";
+        case SYSTEM_FILE_PCI_127_CH_ENABLED:               return "PCI_127_CH_ENABLED";
+        case SYSTEM_FILE_PCI_127_CH_FREQ:                  return "PCI_127_CH_FREQ";
 
         case SYSTEM_FILE_PWRCFG_NAME:                    return "PWRCFG_NAME";
         case SYSTEM_FILE_PWRCFG_GPS:                     return "PWRCFG_GPS";
@@ -1119,15 +2520,1542 @@ bool saveSystemFile(const char *filepath) {
         printLine(f, lineBuf);
     }
 
-    // PCI_CH_ENABLED / PCI_CH_FREQ
+    // PCI_0: PCI_0_CH_ENABLED / PCI_0_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
     for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_0.max_pins; i_ch++) {
-        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_0.enabled[i_ch]);
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_0_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_0.enabled[i_ch]);
         printLine(f, lineBuf);
     }
     for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_0.max_pins; i_ch++) {
-        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_0.chan_freq_uS[i_ch]);
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_0_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_0.chan_freq_uS[i_ch]);
         printLine(f, lineBuf);
     }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+
+    // PCI_1: PCI_1_CH_ENABLED / PCI_1_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_1.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_1_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_1.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_1.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_1_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_1.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+
+    // PCI_2: PCI_2_CH_ENABLED / PCI_2_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_2
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_2.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_2_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_2.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_2.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_2_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_2.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_2
+
+    // PCI_3: PCI_3_CH_ENABLED / PCI_3_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_3
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_3.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_3_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_3.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_3.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_3_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_3.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_3
+
+    // PCI_4: PCI_4_CH_ENABLED / PCI_4_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_4
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_4.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_4_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_4.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_4.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_4_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_4.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_4
+
+    // PCI_5: PCI_5_CH_ENABLED / PCI_5_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_5
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_5.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_5_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_5.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_5.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_5_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_5.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_5
+
+    // PCI_6: PCI_6_CH_ENABLED / PCI_6_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_6
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_6.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_6_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_6.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_6.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_6_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_6.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_6
+
+    // PCI_7: PCI_7_CH_ENABLED / PCI_7_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_7
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_7.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_7_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_7.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_7.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_7_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_7.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_7
+
+    // PCI_8: PCI_8_CH_ENABLED / PCI_8_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_8
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_8.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_8_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_8.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_8.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_8_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_8.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_8
+
+    // PCI_9: PCI_9_CH_ENABLED / PCI_9_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_9
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_9.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_9_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_9.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_9.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_9_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_9.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_9
+
+    // PCI_10: PCI_10_CH_ENABLED / PCI_10_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_10
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_10.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_10_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_10.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_10.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_10_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_10.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_10
+
+    // PCI_11: PCI_11_CH_ENABLED / PCI_11_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_11.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_11_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_11.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_11.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_11_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_11.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+
+    // PCI_12: PCI_12_CH_ENABLED / PCI_12_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_12
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_12.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_12_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_12.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_12.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_12_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_12.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_12
+
+    // PCI_13: PCI_13_CH_ENABLED / PCI_13_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_13
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_13.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_13_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_13.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_13.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_13_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_13.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_13
+
+    // PCI_14: PCI_14_CH_ENABLED / PCI_14_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_14
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_14.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_14_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_14.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_14.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_14_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_14.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_14
+
+    // PCI_15: PCI_15_CH_ENABLED / PCI_15_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_15
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_15.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_15_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_15.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_15.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_15_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_15.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_15
+
+    // PCI_16: PCI_16_CH_ENABLED / PCI_16_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_16
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_16.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_16_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_16.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_16.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_16_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_16.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_16
+
+    // PCI_17: PCI_17_CH_ENABLED / PCI_17_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_17
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_17.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_17_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_17.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_17.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_17_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_17.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_17
+
+    // PCI_18: PCI_18_CH_ENABLED / PCI_18_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_18
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_18.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_18_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_18.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_18.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_18_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_18.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_18
+
+    // PCI_19: PCI_19_CH_ENABLED / PCI_19_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_19
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_19.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_19_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_19.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_19.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_19_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_19.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_19
+
+    // PCI_20: PCI_20_CH_ENABLED / PCI_20_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_20
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_20.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_20_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_20.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_20.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_20_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_20.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_20
+
+    // PCI_21: PCI_21_CH_ENABLED / PCI_21_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_21
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_21.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_21_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_21.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_21.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_21_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_21.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_21
+
+    // PCI_22: PCI_22_CH_ENABLED / PCI_22_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_22
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_22.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_22_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_22.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_22.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_22_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_22.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_22
+
+    // PCI_23: PCI_23_CH_ENABLED / PCI_23_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_23
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_23.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_23_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_23.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_23.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_23_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_23.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_23
+
+    // PCI_24: PCI_24_CH_ENABLED / PCI_24_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_24
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_24.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_24_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_24.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_24.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_24_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_24.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_24
+
+    // PCI_25: PCI_25_CH_ENABLED / PCI_25_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_25
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_25.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_25_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_25.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_25.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_25_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_25.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_25
+
+    // PCI_26: PCI_26_CH_ENABLED / PCI_26_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_26
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_26.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_26_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_26.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_26.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_26_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_26.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_26
+
+    // PCI_27: PCI_27_CH_ENABLED / PCI_27_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_27
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_27.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_27_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_27.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_27.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_27_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_27.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_27
+
+    // PCI_28: PCI_28_CH_ENABLED / PCI_28_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_28
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_28.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_28_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_28.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_28.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_28_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_28.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_28
+
+    // PCI_29: PCI_29_CH_ENABLED / PCI_29_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_29
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_29.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_29_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_29.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_29.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_29_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_29.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_29
+
+    // PCI_30: PCI_30_CH_ENABLED / PCI_30_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_30
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_30.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_30_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_30.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_30.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_30_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_30.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_30
+
+    // PCI_31: PCI_31_CH_ENABLED / PCI_31_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_31
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_31.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_31_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_31.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_31.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_31_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_31.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_31
+
+    // PCI_32: PCI_32_CH_ENABLED / PCI_32_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_32
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_32.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_32_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_32.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_32.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_32_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_32.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_32
+
+    // PCI_33: PCI_33_CH_ENABLED / PCI_33_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_33
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_33.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_33_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_33.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_33.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_33_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_33.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_33
+
+    // PCI_34: PCI_34_CH_ENABLED / PCI_34_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_34
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_34.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_34_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_34.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_34.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_34_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_34.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_34
+
+    // PCI_35: PCI_35_CH_ENABLED / PCI_35_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_35
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_35.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_35_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_35.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_35.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_35_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_35.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_35
+
+    // PCI_36: PCI_36_CH_ENABLED / PCI_36_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_36
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_36.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_36_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_36.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_36.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_36_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_36.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_36
+
+    // PCI_37: PCI_37_CH_ENABLED / PCI_37_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_37
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_37.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_37_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_37.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_37.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_37_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_37.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_37
+
+    // PCI_38: PCI_38_CH_ENABLED / PCI_38_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_38
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_38.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_38_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_38.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_38.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_38_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_38.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_38
+
+    // PCI_39: PCI_39_CH_ENABLED / PCI_39_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_39
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_39.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_39_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_39.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_39.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_39_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_39.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_39
+
+    // PCI_40: PCI_40_CH_ENABLED / PCI_40_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_40
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_40.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_40_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_40.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_40.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_40_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_40.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_40
+
+    // PCI_41: PCI_41_CH_ENABLED / PCI_41_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_41
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_41.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_41_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_41.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_41.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_41_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_41.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_41
+
+    // PCI_42: PCI_42_CH_ENABLED / PCI_42_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_42
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_42.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_42_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_42.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_42.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_42_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_42.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_42
+
+    // PCI_43: PCI_43_CH_ENABLED / PCI_43_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_43
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_43.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_43_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_43.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_43.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_43_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_43.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_43
+
+    // PCI_44: PCI_44_CH_ENABLED / PCI_44_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_44
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_44.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_44_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_44.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_44.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_44_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_44.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_44
+
+    // PCI_45: PCI_45_CH_ENABLED / PCI_45_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_45
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_45.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_45_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_45.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_45.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_45_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_45.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_45
+
+    // PCI_46: PCI_46_CH_ENABLED / PCI_46_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_46
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_46.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_46_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_46.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_46.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_46_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_46.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_46
+
+    // PCI_47: PCI_47_CH_ENABLED / PCI_47_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_47
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_47.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_47_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_47.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_47.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_47_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_47.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_47
+
+    // PCI_48: PCI_48_CH_ENABLED / PCI_48_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_48
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_48.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_48_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_48.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_48.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_48_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_48.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_48
+
+    // PCI_49: PCI_49_CH_ENABLED / PCI_49_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_49
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_49.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_49_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_49.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_49.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_49_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_49.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_49
+
+    // PCI_50: PCI_50_CH_ENABLED / PCI_50_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_50
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_50.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_50_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_50.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_50.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_50_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_50.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_50
+
+    // PCI_51: PCI_51_CH_ENABLED / PCI_51_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_51
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_51.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_51_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_51.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_51.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_51_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_51.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_51
+
+    // PCI_52: PCI_52_CH_ENABLED / PCI_52_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_52
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_52.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_52_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_52.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_52.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_52_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_52.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_52
+
+    // PCI_53: PCI_53_CH_ENABLED / PCI_53_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_53
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_53.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_53_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_53.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_53.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_53_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_53.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_53
+
+    // PCI_54: PCI_54_CH_ENABLED / PCI_54_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_54
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_54.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_54_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_54.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_54.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_54_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_54.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_54
+
+    // PCI_55: PCI_55_CH_ENABLED / PCI_55_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_55
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_55.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_55_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_55.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_55.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_55_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_55.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_55
+
+    // PCI_56: PCI_56_CH_ENABLED / PCI_56_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_56
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_56.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_56_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_56.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_56.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_56_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_56.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_56
+
+    // PCI_57: PCI_57_CH_ENABLED / PCI_57_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_57
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_57.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_57_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_57.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_57.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_57_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_57.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_57
+
+    // PCI_58: PCI_58_CH_ENABLED / PCI_58_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_58
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_58.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_58_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_58.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_58.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_58_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_58.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_58
+
+    // PCI_59: PCI_59_CH_ENABLED / PCI_59_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_59
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_59.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_59_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_59.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_59.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_59_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_59.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_59
+
+    // PCI_60: PCI_60_CH_ENABLED / PCI_60_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_60
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_60.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_60_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_60.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_60.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_60_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_60.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_60
+
+    // PCI_61: PCI_61_CH_ENABLED / PCI_61_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_61
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_61.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_61_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_61.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_61.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_61_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_61.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_61
+
+    // PCI_62: PCI_62_CH_ENABLED / PCI_62_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_62
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_62.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_62_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_62.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_62.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_62_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_62.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_62
+
+    // PCI_63: PCI_63_CH_ENABLED / PCI_63_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_63
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_63.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_63_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_63.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_63.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_63_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_63.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_63
+
+    // PCI_64: PCI_64_CH_ENABLED / PCI_64_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_64
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_64.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_64_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_64.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_64.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_64_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_64.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_64
+
+    // PCI_65: PCI_65_CH_ENABLED / PCI_65_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_65
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_65.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_65_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_65.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_65.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_65_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_65.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_65
+
+    // PCI_66: PCI_66_CH_ENABLED / PCI_66_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_66
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_66.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_66_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_66.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_66.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_66_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_66.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_66
+
+    // PCI_67: PCI_67_CH_ENABLED / PCI_67_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_67
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_67.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_67_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_67.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_67.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_67_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_67.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_67
+
+    // PCI_68: PCI_68_CH_ENABLED / PCI_68_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_68
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_68.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_68_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_68.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_68.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_68_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_68.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_68
+
+    // PCI_69: PCI_69_CH_ENABLED / PCI_69_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_69
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_69.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_69_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_69.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_69.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_69_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_69.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_69
+
+    // PCI_70: PCI_70_CH_ENABLED / PCI_70_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_70
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_70.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_70_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_70.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_70.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_70_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_70.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_70
+
+    // PCI_71: PCI_71_CH_ENABLED / PCI_71_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_71
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_71.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_71_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_71.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_71.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_71_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_71.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_71
+
+    // PCI_72: PCI_72_CH_ENABLED / PCI_72_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_72
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_72.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_72_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_72.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_72.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_72_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_72.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_72
+
+    // PCI_73: PCI_73_CH_ENABLED / PCI_73_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_73
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_73.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_73_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_73.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_73.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_73_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_73.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_73
+
+    // PCI_74: PCI_74_CH_ENABLED / PCI_74_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_74
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_74.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_74_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_74.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_74.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_74_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_74.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_74
+
+    // PCI_75: PCI_75_CH_ENABLED / PCI_75_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_75
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_75.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_75_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_75.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_75.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_75_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_75.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_75
+
+    // PCI_76: PCI_76_CH_ENABLED / PCI_76_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_76
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_76.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_76_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_76.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_76.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_76_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_76.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_76
+
+    // PCI_77: PCI_77_CH_ENABLED / PCI_77_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_77
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_77.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_77_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_77.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_77.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_77_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_77.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_77
+
+    // PCI_78: PCI_78_CH_ENABLED / PCI_78_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_78
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_78.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_78_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_78.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_78.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_78_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_78.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_78
+
+    // PCI_79: PCI_79_CH_ENABLED / PCI_79_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_79
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_79.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_79_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_79.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_79.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_79_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_79.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_79
+
+    // PCI_80: PCI_80_CH_ENABLED / PCI_80_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_80
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_80.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_80_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_80.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_80.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_80_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_80.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_80
+
+    // PCI_81: PCI_81_CH_ENABLED / PCI_81_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_81
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_81.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_81_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_81.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_81.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_81_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_81.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_81
+
+    // PCI_82: PCI_82_CH_ENABLED / PCI_82_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_82
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_82.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_82_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_82.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_82.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_82_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_82.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_82
+
+    // PCI_83: PCI_83_CH_ENABLED / PCI_83_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_83
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_83.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_83_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_83.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_83.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_83_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_83.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_83
+
+    // PCI_84: PCI_84_CH_ENABLED / PCI_84_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_84
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_84.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_84_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_84.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_84.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_84_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_84.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_84
+
+    // PCI_85: PCI_85_CH_ENABLED / PCI_85_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_85
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_85.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_85_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_85.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_85.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_85_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_85.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_85
+
+    // PCI_86: PCI_86_CH_ENABLED / PCI_86_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_86
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_86.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_86_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_86.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_86.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_86_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_86.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_86
+
+    // PCI_87: PCI_87_CH_ENABLED / PCI_87_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_87
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_87.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_87_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_87.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_87.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_87_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_87.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_87
+
+    // PCI_88: PCI_88_CH_ENABLED / PCI_88_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_88
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_88.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_88_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_88.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_88.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_88_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_88.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_88
+
+    // PCI_89: PCI_89_CH_ENABLED / PCI_89_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_89
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_89.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_89_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_89.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_89.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_89_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_89.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_89
+
+    // PCI_90: PCI_90_CH_ENABLED / PCI_90_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_90
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_90.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_90_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_90.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_90.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_90_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_90.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_90
+
+    // PCI_91: PCI_91_CH_ENABLED / PCI_91_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_91
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_91.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_91_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_91.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_91.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_91_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_91.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_91
+
+    // PCI_92: PCI_92_CH_ENABLED / PCI_92_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_92
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_92.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_92_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_92.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_92.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_92_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_92.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_92
+
+    // PCI_93: PCI_93_CH_ENABLED / PCI_93_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_93
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_93.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_93_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_93.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_93.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_93_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_93.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_93
+
+    // PCI_94: PCI_94_CH_ENABLED / PCI_94_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_94
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_94.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_94_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_94.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_94.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_94_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_94.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_94
+
+    // PCI_95: PCI_95_CH_ENABLED / PCI_95_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_95
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_95.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_95_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_95.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_95.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_95_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_95.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_95
+
+    // PCI_96: PCI_96_CH_ENABLED / PCI_96_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_96
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_96.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_96_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_96.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_96.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_96_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_96.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_96
+
+    // PCI_97: PCI_97_CH_ENABLED / PCI_97_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_97
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_97.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_97_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_97.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_97.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_97_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_97.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_97
+
+    // PCI_98: PCI_98_CH_ENABLED / PCI_98_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_98
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_98.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_98_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_98.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_98.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_98_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_98.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_98
+
+    // PCI_99: PCI_99_CH_ENABLED / PCI_99_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_99
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_99.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_99_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_99.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_99.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_99_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_99.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_99
+
+    // PCI_100: PCI_100_CH_ENABLED / PCI_100_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_100
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_100.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_100_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_100.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_100.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_100_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_100.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_100
+
+    // PCI_101: PCI_101_CH_ENABLED / PCI_101_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_101
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_101.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_101_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_101.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_101.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_101_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_101.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_101
+
+    // PCI_102: PCI_102_CH_ENABLED / PCI_102_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_102
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_102.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_102_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_102.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_102.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_102_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_102.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_102
+
+    // PCI_103: PCI_103_CH_ENABLED / PCI_103_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_103
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_103.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_103_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_103.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_103.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_103_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_103.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_103
+
+    // PCI_104: PCI_104_CH_ENABLED / PCI_104_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_104
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_104.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_104_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_104.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_104.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_104_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_104.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_104
+
+    // PCI_105: PCI_105_CH_ENABLED / PCI_105_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_105
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_105.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_105_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_105.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_105.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_105_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_105.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_105
+
+    // PCI_106: PCI_106_CH_ENABLED / PCI_106_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_106
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_106.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_106_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_106.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_106.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_106_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_106.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_106
+
+    // PCI_107: PCI_107_CH_ENABLED / PCI_107_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_107
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_107.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_107_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_107.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_107.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_107_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_107.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_107
+
+    // PCI_108: PCI_108_CH_ENABLED / PCI_108_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_108
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_108.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_108_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_108.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_108.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_108_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_108.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_108
+
+    // PCI_109: PCI_109_CH_ENABLED / PCI_109_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_109
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_109.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_109_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_109.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_109.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_109_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_109.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_109
+
+    // PCI_110: PCI_110_CH_ENABLED / PCI_110_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_110
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_110.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_110_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_110.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_110.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_110_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_110.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_110
+
+    // PCI_111: PCI_111_CH_ENABLED / PCI_111_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_111
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_111.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_111_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_111.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_111.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_111_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_111.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_111
+
+    // PCI_112: PCI_112_CH_ENABLED / PCI_112_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_112
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_112.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_112_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_112.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_112.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_112_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_112.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_112
+
+    // PCI_113: PCI_113_CH_ENABLED / PCI_113_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_113
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_113.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_113_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_113.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_113.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_113_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_113.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_113
+
+    // PCI_114: PCI_114_CH_ENABLED / PCI_114_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_114
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_114.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_114_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_114.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_114.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_114_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_114.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_114
+
+    // PCI_115: PCI_115_CH_ENABLED / PCI_115_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_115
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_115.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_115_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_115.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_115.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_115_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_115.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_115
+
+    // PCI_116: PCI_116_CH_ENABLED / PCI_116_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_116
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_116.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_116_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_116.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_116.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_116_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_116.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_116
+
+    // PCI_117: PCI_117_CH_ENABLED / PCI_117_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_117
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_117.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_117_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_117.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_117.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_117_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_117.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_117
+
+    // PCI_118: PCI_118_CH_ENABLED / PCI_118_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_118
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_118.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_118_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_118.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_118.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_118_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_118.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_118
+
+    // PCI_119: PCI_119_CH_ENABLED / PCI_119_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_119
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_119.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_119_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_119.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_119.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_119_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_119.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_119
+
+    // PCI_120: PCI_120_CH_ENABLED / PCI_120_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_120
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_120.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_120_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_120.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_120.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_120_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_120.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_120
+
+    // PCI_121: PCI_121_CH_ENABLED / PCI_121_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_121
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_121.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_121_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_121.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_121.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_121_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_121.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_121
+
+    // PCI_122: PCI_122_CH_ENABLED / PCI_122_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_122
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_122.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_122_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_122.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_122.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_122_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_122.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_122
+
+    // PCI_123: PCI_123_CH_ENABLED / PCI_123_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_123
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_123.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_123_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_123.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_123.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_123_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_123.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_123
+
+    // PCI_124: PCI_124_CH_ENABLED / PCI_124_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_124
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_124.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_124_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_124.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_124.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_124_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_124.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_124
+
+    // PCI_125: PCI_125_CH_ENABLED / PCI_125_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_125
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_125.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_125_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_125.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_125.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_125_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_125.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_125
+
+    // PCI_126: PCI_126_CH_ENABLED / PCI_126_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_126
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_126.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_126_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_126.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_126.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_126_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_126.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_126
+
+    // PCI_127: PCI_127_CH_ENABLED / PCI_127_CH_FREQ
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_127
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_127.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_PCI_127_CH_ENABLED), i_ch, (int)GPIOPortExpander_ATMEGA2560_Input_127.enabled[i_ch]);
+        printLine(f, lineBuf);
+    }
+    for (int i_ch=0; i_ch<(int)GPIOPortExpander_ATMEGA2560_Input_127.max_pins; i_ch++) {
+        snprintf(lineBuf, 256, "%s,%d,%llu", getSystemTag(SYSTEM_FILE_PCI_127_CH_FREQ), i_ch, (unsigned long long)GPIOPortExpander_ATMEGA2560_Input_127.chan_freq_uS[i_ch]);
+        printLine(f, lineBuf);
+    }
+    #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_127
+
 
     // Power config: task max-frequency values (uS) currently in effect, plus the
     // active preset's display name (see PwrConfig in UnidentifiedStudios_Config.h).
@@ -1210,19 +4138,2054 @@ bool loadSystemFile(const char *filepath) {
             continue;
         }
 
-        // PCI_CH_ENABLED and PCI_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
-        if (tag_index == SYSTEM_FILE_PCI_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_CH_FREQ) {
+        // PCI_0: PCI_0_CH_ENABLED and PCI_0_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_0_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_0_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
                 if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_0.max_pins) {
-                    if (tag_index == SYSTEM_FILE_PCI_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_0, (uint8_t)ch, atoi(val2) != 0);}
-                    else if (tag_index == SYSTEM_FILE_PCI_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_0, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    if (tag_index == SYSTEM_FILE_PCI_0_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_0, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_0_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_0, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
                 }
             }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
             continue;
         }
+
+        // PCI_1: PCI_1_CH_ENABLED and PCI_1_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_1_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_1_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_1.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_1_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_1, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_1_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_1, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_1
+            continue;
+        }
+
+        // PCI_2: PCI_2_CH_ENABLED and PCI_2_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_2_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_2_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_2
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_2.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_2_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_2, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_2_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_2, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_2
+            continue;
+        }
+
+        // PCI_3: PCI_3_CH_ENABLED and PCI_3_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_3_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_3_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_3
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_3.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_3_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_3, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_3_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_3, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_3
+            continue;
+        }
+
+        // PCI_4: PCI_4_CH_ENABLED and PCI_4_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_4_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_4_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_4
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_4.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_4_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_4, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_4_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_4, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_4
+            continue;
+        }
+
+        // PCI_5: PCI_5_CH_ENABLED and PCI_5_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_5_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_5_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_5
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_5.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_5_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_5, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_5_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_5, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_5
+            continue;
+        }
+
+        // PCI_6: PCI_6_CH_ENABLED and PCI_6_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_6_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_6_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_6
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_6.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_6_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_6, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_6_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_6, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_6
+            continue;
+        }
+
+        // PCI_7: PCI_7_CH_ENABLED and PCI_7_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_7_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_7_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_7
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_7.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_7_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_7, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_7_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_7, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_7
+            continue;
+        }
+
+        // PCI_8: PCI_8_CH_ENABLED and PCI_8_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_8_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_8_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_8
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_8.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_8_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_8, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_8_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_8, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_8
+            continue;
+        }
+
+        // PCI_9: PCI_9_CH_ENABLED and PCI_9_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_9_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_9_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_9
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_9.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_9_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_9, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_9_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_9, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_9
+            continue;
+        }
+
+        // PCI_10: PCI_10_CH_ENABLED and PCI_10_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_10_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_10_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_10
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_10.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_10_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_10, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_10_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_10, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_10
+            continue;
+        }
+
+        // PCI_11: PCI_11_CH_ENABLED and PCI_11_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_11_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_11_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_11.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_11_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_11, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_11_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_11, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+            continue;
+        }
+
+        // PCI_12: PCI_12_CH_ENABLED and PCI_12_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_12_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_12_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_12
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_12.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_12_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_12, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_12_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_12, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_12
+            continue;
+        }
+
+        // PCI_13: PCI_13_CH_ENABLED and PCI_13_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_13_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_13_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_13
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_13.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_13_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_13, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_13_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_13, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_13
+            continue;
+        }
+
+        // PCI_14: PCI_14_CH_ENABLED and PCI_14_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_14_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_14_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_14
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_14.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_14_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_14, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_14_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_14, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_14
+            continue;
+        }
+
+        // PCI_15: PCI_15_CH_ENABLED and PCI_15_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_15_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_15_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_15
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_15.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_15_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_15, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_15_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_15, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_15
+            continue;
+        }
+
+        // PCI_16: PCI_16_CH_ENABLED and PCI_16_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_16_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_16_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_16
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_16.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_16_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_16, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_16_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_16, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_16
+            continue;
+        }
+
+        // PCI_17: PCI_17_CH_ENABLED and PCI_17_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_17_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_17_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_17
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_17.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_17_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_17, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_17_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_17, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_17
+            continue;
+        }
+
+        // PCI_18: PCI_18_CH_ENABLED and PCI_18_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_18_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_18_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_18
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_18.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_18_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_18, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_18_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_18, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_18
+            continue;
+        }
+
+        // PCI_19: PCI_19_CH_ENABLED and PCI_19_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_19_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_19_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_19
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_19.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_19_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_19, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_19_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_19, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_19
+            continue;
+        }
+
+        // PCI_20: PCI_20_CH_ENABLED and PCI_20_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_20_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_20_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_20
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_20.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_20_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_20, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_20_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_20, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_20
+            continue;
+        }
+
+        // PCI_21: PCI_21_CH_ENABLED and PCI_21_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_21_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_21_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_21
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_21.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_21_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_21, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_21_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_21, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_21
+            continue;
+        }
+
+        // PCI_22: PCI_22_CH_ENABLED and PCI_22_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_22_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_22_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_22
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_22.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_22_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_22, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_22_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_22, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_22
+            continue;
+        }
+
+        // PCI_23: PCI_23_CH_ENABLED and PCI_23_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_23_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_23_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_23
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_23.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_23_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_23, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_23_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_23, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_23
+            continue;
+        }
+
+        // PCI_24: PCI_24_CH_ENABLED and PCI_24_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_24_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_24_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_24
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_24.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_24_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_24, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_24_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_24, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_24
+            continue;
+        }
+
+        // PCI_25: PCI_25_CH_ENABLED and PCI_25_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_25_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_25_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_25
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_25.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_25_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_25, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_25_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_25, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_25
+            continue;
+        }
+
+        // PCI_26: PCI_26_CH_ENABLED and PCI_26_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_26_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_26_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_26
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_26.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_26_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_26, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_26_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_26, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_26
+            continue;
+        }
+
+        // PCI_27: PCI_27_CH_ENABLED and PCI_27_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_27_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_27_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_27
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_27.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_27_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_27, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_27_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_27, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_27
+            continue;
+        }
+
+        // PCI_28: PCI_28_CH_ENABLED and PCI_28_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_28_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_28_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_28
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_28.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_28_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_28, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_28_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_28, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_28
+            continue;
+        }
+
+        // PCI_29: PCI_29_CH_ENABLED and PCI_29_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_29_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_29_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_29
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_29.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_29_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_29, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_29_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_29, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_29
+            continue;
+        }
+
+        // PCI_30: PCI_30_CH_ENABLED and PCI_30_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_30_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_30_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_30
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_30.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_30_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_30, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_30_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_30, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_30
+            continue;
+        }
+
+        // PCI_31: PCI_31_CH_ENABLED and PCI_31_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_31_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_31_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_31
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_31.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_31_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_31, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_31_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_31, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_31
+            continue;
+        }
+
+        // PCI_32: PCI_32_CH_ENABLED and PCI_32_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_32_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_32_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_32
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_32.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_32_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_32, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_32_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_32, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_32
+            continue;
+        }
+
+        // PCI_33: PCI_33_CH_ENABLED and PCI_33_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_33_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_33_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_33
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_33.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_33_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_33, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_33_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_33, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_33
+            continue;
+        }
+
+        // PCI_34: PCI_34_CH_ENABLED and PCI_34_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_34_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_34_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_34
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_34.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_34_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_34, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_34_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_34, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_34
+            continue;
+        }
+
+        // PCI_35: PCI_35_CH_ENABLED and PCI_35_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_35_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_35_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_35
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_35.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_35_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_35, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_35_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_35, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_35
+            continue;
+        }
+
+        // PCI_36: PCI_36_CH_ENABLED and PCI_36_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_36_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_36_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_36
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_36.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_36_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_36, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_36_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_36, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_36
+            continue;
+        }
+
+        // PCI_37: PCI_37_CH_ENABLED and PCI_37_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_37_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_37_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_37
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_37.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_37_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_37, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_37_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_37, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_37
+            continue;
+        }
+
+        // PCI_38: PCI_38_CH_ENABLED and PCI_38_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_38_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_38_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_38
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_38.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_38_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_38, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_38_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_38, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_38
+            continue;
+        }
+
+        // PCI_39: PCI_39_CH_ENABLED and PCI_39_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_39_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_39_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_39
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_39.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_39_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_39, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_39_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_39, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_39
+            continue;
+        }
+
+        // PCI_40: PCI_40_CH_ENABLED and PCI_40_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_40_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_40_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_40
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_40.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_40_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_40, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_40_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_40, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_40
+            continue;
+        }
+
+        // PCI_41: PCI_41_CH_ENABLED and PCI_41_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_41_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_41_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_41
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_41.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_41_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_41, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_41_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_41, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_41
+            continue;
+        }
+
+        // PCI_42: PCI_42_CH_ENABLED and PCI_42_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_42_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_42_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_42
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_42.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_42_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_42, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_42_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_42, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_42
+            continue;
+        }
+
+        // PCI_43: PCI_43_CH_ENABLED and PCI_43_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_43_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_43_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_43
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_43.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_43_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_43, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_43_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_43, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_43
+            continue;
+        }
+
+        // PCI_44: PCI_44_CH_ENABLED and PCI_44_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_44_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_44_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_44
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_44.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_44_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_44, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_44_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_44, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_44
+            continue;
+        }
+
+        // PCI_45: PCI_45_CH_ENABLED and PCI_45_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_45_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_45_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_45
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_45.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_45_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_45, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_45_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_45, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_45
+            continue;
+        }
+
+        // PCI_46: PCI_46_CH_ENABLED and PCI_46_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_46_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_46_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_46
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_46.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_46_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_46, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_46_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_46, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_46
+            continue;
+        }
+
+        // PCI_47: PCI_47_CH_ENABLED and PCI_47_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_47_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_47_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_47
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_47.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_47_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_47, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_47_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_47, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_47
+            continue;
+        }
+
+        // PCI_48: PCI_48_CH_ENABLED and PCI_48_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_48_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_48_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_48
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_48.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_48_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_48, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_48_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_48, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_48
+            continue;
+        }
+
+        // PCI_49: PCI_49_CH_ENABLED and PCI_49_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_49_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_49_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_49
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_49.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_49_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_49, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_49_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_49, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_49
+            continue;
+        }
+
+        // PCI_50: PCI_50_CH_ENABLED and PCI_50_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_50_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_50_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_50
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_50.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_50_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_50, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_50_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_50, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_50
+            continue;
+        }
+
+        // PCI_51: PCI_51_CH_ENABLED and PCI_51_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_51_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_51_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_51
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_51.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_51_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_51, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_51_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_51, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_51
+            continue;
+        }
+
+        // PCI_52: PCI_52_CH_ENABLED and PCI_52_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_52_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_52_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_52
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_52.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_52_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_52, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_52_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_52, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_52
+            continue;
+        }
+
+        // PCI_53: PCI_53_CH_ENABLED and PCI_53_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_53_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_53_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_53
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_53.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_53_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_53, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_53_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_53, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_53
+            continue;
+        }
+
+        // PCI_54: PCI_54_CH_ENABLED and PCI_54_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_54_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_54_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_54
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_54.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_54_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_54, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_54_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_54, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_54
+            continue;
+        }
+
+        // PCI_55: PCI_55_CH_ENABLED and PCI_55_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_55_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_55_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_55
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_55.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_55_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_55, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_55_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_55, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_55
+            continue;
+        }
+
+        // PCI_56: PCI_56_CH_ENABLED and PCI_56_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_56_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_56_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_56
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_56.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_56_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_56, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_56_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_56, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_56
+            continue;
+        }
+
+        // PCI_57: PCI_57_CH_ENABLED and PCI_57_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_57_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_57_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_57
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_57.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_57_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_57, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_57_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_57, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_57
+            continue;
+        }
+
+        // PCI_58: PCI_58_CH_ENABLED and PCI_58_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_58_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_58_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_58
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_58.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_58_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_58, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_58_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_58, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_58
+            continue;
+        }
+
+        // PCI_59: PCI_59_CH_ENABLED and PCI_59_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_59_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_59_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_59
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_59.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_59_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_59, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_59_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_59, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_59
+            continue;
+        }
+
+        // PCI_60: PCI_60_CH_ENABLED and PCI_60_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_60_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_60_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_60
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_60.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_60_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_60, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_60_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_60, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_60
+            continue;
+        }
+
+        // PCI_61: PCI_61_CH_ENABLED and PCI_61_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_61_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_61_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_61
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_61.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_61_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_61, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_61_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_61, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_61
+            continue;
+        }
+
+        // PCI_62: PCI_62_CH_ENABLED and PCI_62_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_62_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_62_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_62
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_62.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_62_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_62, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_62_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_62, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_62
+            continue;
+        }
+
+        // PCI_63: PCI_63_CH_ENABLED and PCI_63_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_63_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_63_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_63
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_63.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_63_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_63, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_63_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_63, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_63
+            continue;
+        }
+
+        // PCI_64: PCI_64_CH_ENABLED and PCI_64_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_64_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_64_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_64
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_64.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_64_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_64, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_64_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_64, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_64
+            continue;
+        }
+
+        // PCI_65: PCI_65_CH_ENABLED and PCI_65_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_65_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_65_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_65
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_65.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_65_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_65, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_65_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_65, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_65
+            continue;
+        }
+
+        // PCI_66: PCI_66_CH_ENABLED and PCI_66_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_66_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_66_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_66
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_66.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_66_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_66, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_66_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_66, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_66
+            continue;
+        }
+
+        // PCI_67: PCI_67_CH_ENABLED and PCI_67_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_67_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_67_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_67
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_67.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_67_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_67, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_67_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_67, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_67
+            continue;
+        }
+
+        // PCI_68: PCI_68_CH_ENABLED and PCI_68_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_68_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_68_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_68
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_68.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_68_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_68, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_68_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_68, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_68
+            continue;
+        }
+
+        // PCI_69: PCI_69_CH_ENABLED and PCI_69_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_69_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_69_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_69
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_69.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_69_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_69, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_69_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_69, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_69
+            continue;
+        }
+
+        // PCI_70: PCI_70_CH_ENABLED and PCI_70_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_70_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_70_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_70
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_70.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_70_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_70, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_70_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_70, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_70
+            continue;
+        }
+
+        // PCI_71: PCI_71_CH_ENABLED and PCI_71_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_71_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_71_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_71
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_71.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_71_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_71, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_71_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_71, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_71
+            continue;
+        }
+
+        // PCI_72: PCI_72_CH_ENABLED and PCI_72_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_72_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_72_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_72
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_72.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_72_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_72, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_72_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_72, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_72
+            continue;
+        }
+
+        // PCI_73: PCI_73_CH_ENABLED and PCI_73_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_73_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_73_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_73
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_73.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_73_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_73, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_73_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_73, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_73
+            continue;
+        }
+
+        // PCI_74: PCI_74_CH_ENABLED and PCI_74_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_74_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_74_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_74
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_74.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_74_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_74, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_74_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_74, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_74
+            continue;
+        }
+
+        // PCI_75: PCI_75_CH_ENABLED and PCI_75_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_75_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_75_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_75
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_75.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_75_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_75, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_75_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_75, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_75
+            continue;
+        }
+
+        // PCI_76: PCI_76_CH_ENABLED and PCI_76_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_76_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_76_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_76
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_76.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_76_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_76, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_76_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_76, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_76
+            continue;
+        }
+
+        // PCI_77: PCI_77_CH_ENABLED and PCI_77_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_77_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_77_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_77
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_77.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_77_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_77, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_77_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_77, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_77
+            continue;
+        }
+
+        // PCI_78: PCI_78_CH_ENABLED and PCI_78_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_78_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_78_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_78
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_78.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_78_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_78, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_78_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_78, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_78
+            continue;
+        }
+
+        // PCI_79: PCI_79_CH_ENABLED and PCI_79_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_79_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_79_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_79
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_79.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_79_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_79, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_79_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_79, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_79
+            continue;
+        }
+
+        // PCI_80: PCI_80_CH_ENABLED and PCI_80_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_80_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_80_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_80
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_80.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_80_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_80, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_80_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_80, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_80
+            continue;
+        }
+
+        // PCI_81: PCI_81_CH_ENABLED and PCI_81_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_81_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_81_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_81
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_81.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_81_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_81, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_81_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_81, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_81
+            continue;
+        }
+
+        // PCI_82: PCI_82_CH_ENABLED and PCI_82_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_82_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_82_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_82
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_82.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_82_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_82, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_82_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_82, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_82
+            continue;
+        }
+
+        // PCI_83: PCI_83_CH_ENABLED and PCI_83_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_83_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_83_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_83
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_83.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_83_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_83, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_83_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_83, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_83
+            continue;
+        }
+
+        // PCI_84: PCI_84_CH_ENABLED and PCI_84_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_84_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_84_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_84
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_84.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_84_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_84, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_84_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_84, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_84
+            continue;
+        }
+
+        // PCI_85: PCI_85_CH_ENABLED and PCI_85_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_85_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_85_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_85
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_85.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_85_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_85, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_85_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_85, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_85
+            continue;
+        }
+
+        // PCI_86: PCI_86_CH_ENABLED and PCI_86_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_86_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_86_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_86
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_86.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_86_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_86, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_86_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_86, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_86
+            continue;
+        }
+
+        // PCI_87: PCI_87_CH_ENABLED and PCI_87_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_87_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_87_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_87
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_87.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_87_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_87, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_87_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_87, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_87
+            continue;
+        }
+
+        // PCI_88: PCI_88_CH_ENABLED and PCI_88_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_88_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_88_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_88
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_88.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_88_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_88, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_88_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_88, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_88
+            continue;
+        }
+
+        // PCI_89: PCI_89_CH_ENABLED and PCI_89_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_89_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_89_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_89
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_89.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_89_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_89, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_89_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_89, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_89
+            continue;
+        }
+
+        // PCI_90: PCI_90_CH_ENABLED and PCI_90_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_90_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_90_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_90
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_90.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_90_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_90, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_90_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_90, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_90
+            continue;
+        }
+
+        // PCI_91: PCI_91_CH_ENABLED and PCI_91_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_91_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_91_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_91
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_91.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_91_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_91, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_91_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_91, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_91
+            continue;
+        }
+
+        // PCI_92: PCI_92_CH_ENABLED and PCI_92_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_92_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_92_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_92
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_92.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_92_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_92, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_92_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_92, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_92
+            continue;
+        }
+
+        // PCI_93: PCI_93_CH_ENABLED and PCI_93_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_93_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_93_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_93
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_93.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_93_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_93, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_93_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_93, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_93
+            continue;
+        }
+
+        // PCI_94: PCI_94_CH_ENABLED and PCI_94_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_94_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_94_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_94
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_94.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_94_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_94, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_94_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_94, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_94
+            continue;
+        }
+
+        // PCI_95: PCI_95_CH_ENABLED and PCI_95_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_95_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_95_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_95
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_95.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_95_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_95, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_95_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_95, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_95
+            continue;
+        }
+
+        // PCI_96: PCI_96_CH_ENABLED and PCI_96_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_96_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_96_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_96
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_96.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_96_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_96, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_96_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_96, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_96
+            continue;
+        }
+
+        // PCI_97: PCI_97_CH_ENABLED and PCI_97_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_97_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_97_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_97
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_97.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_97_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_97, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_97_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_97, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_97
+            continue;
+        }
+
+        // PCI_98: PCI_98_CH_ENABLED and PCI_98_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_98_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_98_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_98
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_98.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_98_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_98, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_98_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_98, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_98
+            continue;
+        }
+
+        // PCI_99: PCI_99_CH_ENABLED and PCI_99_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_99_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_99_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_99
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_99.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_99_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_99, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_99_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_99, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_99
+            continue;
+        }
+
+        // PCI_100: PCI_100_CH_ENABLED and PCI_100_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_100_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_100_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_100
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_100.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_100_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_100, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_100_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_100, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_100
+            continue;
+        }
+
+        // PCI_101: PCI_101_CH_ENABLED and PCI_101_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_101_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_101_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_101
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_101.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_101_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_101, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_101_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_101, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_101
+            continue;
+        }
+
+        // PCI_102: PCI_102_CH_ENABLED and PCI_102_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_102_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_102_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_102
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_102.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_102_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_102, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_102_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_102, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_102
+            continue;
+        }
+
+        // PCI_103: PCI_103_CH_ENABLED and PCI_103_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_103_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_103_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_103
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_103.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_103_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_103, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_103_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_103, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_103
+            continue;
+        }
+
+        // PCI_104: PCI_104_CH_ENABLED and PCI_104_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_104_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_104_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_104
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_104.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_104_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_104, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_104_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_104, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_104
+            continue;
+        }
+
+        // PCI_105: PCI_105_CH_ENABLED and PCI_105_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_105_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_105_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_105
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_105.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_105_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_105, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_105_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_105, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_105
+            continue;
+        }
+
+        // PCI_106: PCI_106_CH_ENABLED and PCI_106_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_106_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_106_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_106
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_106.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_106_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_106, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_106_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_106, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_106
+            continue;
+        }
+
+        // PCI_107: PCI_107_CH_ENABLED and PCI_107_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_107_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_107_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_107
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_107.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_107_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_107, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_107_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_107, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_107
+            continue;
+        }
+
+        // PCI_108: PCI_108_CH_ENABLED and PCI_108_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_108_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_108_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_108
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_108.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_108_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_108, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_108_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_108, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_108
+            continue;
+        }
+
+        // PCI_109: PCI_109_CH_ENABLED and PCI_109_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_109_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_109_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_109
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_109.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_109_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_109, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_109_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_109, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_109
+            continue;
+        }
+
+        // PCI_110: PCI_110_CH_ENABLED and PCI_110_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_110_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_110_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_110
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_110.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_110_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_110, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_110_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_110, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_110
+            continue;
+        }
+
+        // PCI_111: PCI_111_CH_ENABLED and PCI_111_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_111_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_111_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_111
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_111.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_111_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_111, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_111_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_111, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_111
+            continue;
+        }
+
+        // PCI_112: PCI_112_CH_ENABLED and PCI_112_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_112_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_112_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_112
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_112.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_112_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_112, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_112_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_112, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_112
+            continue;
+        }
+
+        // PCI_113: PCI_113_CH_ENABLED and PCI_113_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_113_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_113_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_113
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_113.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_113_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_113, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_113_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_113, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_113
+            continue;
+        }
+
+        // PCI_114: PCI_114_CH_ENABLED and PCI_114_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_114_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_114_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_114
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_114.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_114_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_114, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_114_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_114, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_114
+            continue;
+        }
+
+        // PCI_115: PCI_115_CH_ENABLED and PCI_115_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_115_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_115_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_115
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_115.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_115_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_115, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_115_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_115, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_115
+            continue;
+        }
+
+        // PCI_116: PCI_116_CH_ENABLED and PCI_116_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_116_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_116_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_116
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_116.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_116_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_116, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_116_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_116, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_116
+            continue;
+        }
+
+        // PCI_117: PCI_117_CH_ENABLED and PCI_117_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_117_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_117_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_117
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_117.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_117_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_117, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_117_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_117, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_117
+            continue;
+        }
+
+        // PCI_118: PCI_118_CH_ENABLED and PCI_118_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_118_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_118_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_118
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_118.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_118_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_118, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_118_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_118, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_118
+            continue;
+        }
+
+        // PCI_119: PCI_119_CH_ENABLED and PCI_119_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_119_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_119_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_119
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_119.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_119_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_119, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_119_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_119, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_119
+            continue;
+        }
+
+        // PCI_120: PCI_120_CH_ENABLED and PCI_120_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_120_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_120_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_120
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_120.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_120_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_120, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_120_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_120, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_120
+            continue;
+        }
+
+        // PCI_121: PCI_121_CH_ENABLED and PCI_121_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_121_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_121_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_121
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_121.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_121_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_121, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_121_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_121, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_121
+            continue;
+        }
+
+        // PCI_122: PCI_122_CH_ENABLED and PCI_122_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_122_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_122_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_122
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_122.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_122_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_122, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_122_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_122, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_122
+            continue;
+        }
+
+        // PCI_123: PCI_123_CH_ENABLED and PCI_123_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_123_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_123_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_123
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_123.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_123_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_123, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_123_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_123, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_123
+            continue;
+        }
+
+        // PCI_124: PCI_124_CH_ENABLED and PCI_124_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_124_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_124_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_124
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_124.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_124_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_124, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_124_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_124, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_124
+            continue;
+        }
+
+        // PCI_125: PCI_125_CH_ENABLED and PCI_125_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_125_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_125_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_125
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_125.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_125_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_125, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_125_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_125, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_125
+            continue;
+        }
+
+        // PCI_126: PCI_126_CH_ENABLED and PCI_126_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_126_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_126_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_126
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_126.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_126_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_126, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_126_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_126, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_126
+            continue;
+        }
+
+        // PCI_127: PCI_127_CH_ENABLED and PCI_127_CH_FREQ: "TAG,pin,value" (pin-indexed, unlike the single-value tags below).
+        if (tag_index == SYSTEM_FILE_PCI_127_CH_ENABLED || tag_index == SYSTEM_FILE_PCI_127_CH_FREQ) {
+            #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_127
+            char *val2 = strtok(NULL, ",");
+            if (val2 != NULL && str_is_int8(val)) {
+                int ch = atoi(val);
+                if (ch >= 0 && ch < (int)GPIOPortExpander_ATMEGA2560_Input_127.max_pins) {
+                    if (tag_index == SYSTEM_FILE_PCI_127_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_127, (uint8_t)ch, atoi(val2) != 0);}
+                    else if (tag_index == SYSTEM_FILE_PCI_127_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_127, (uint8_t)ch, strtoull(val2, NULL, 10));}
+                    else { /* value failed validation for this tag: skip */ }
+                }
+            }
+            #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_127
+            continue;
+        }
+
 
         READ_INT8_TAG(SYSTEM_FILE_MATRIX_FILE, SatIOFileData.i_current_matrix_file_path);
         READ_BOOL_TAG(SYSTEM_FILE_LOAD_MATRIX_ON_STARTUP, matrixData.load_matrix_on_startup);

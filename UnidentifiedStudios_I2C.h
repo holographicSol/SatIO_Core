@@ -36,10 +36,8 @@
 
 #define I2C_ADDR_CONTROL_PAD 8
 
-#define I2C_ADDR_OUTPUT_PORTCONTROLLER_0 9
-#define I2C_ADDR_OUTPUT_PORTCONTROLLER_1 10
-
-#define I2C_ADDR_INPUT_PORTCONTROLLER_0  11
+// I2C_ADDR_INPUT_PORTCONTROLLER_N / I2C_ADDR_OUTPUT_PORTCONTROLLER_N now live in
+// UnidentifiedStudios_Config.h, alongside every SatIO_USE_GPIO_PORT_EXPANDER_INPUT_N/OUTPUT_N.
 
 // #####################################################################################################################
 // ## BEGIN I2C BUS PINS

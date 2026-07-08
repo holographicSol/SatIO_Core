@@ -381,22 +381,12 @@ extern "C" void app_main(void)
      * Queries each port controller live over I2C (UnidentifiedStudios_GPIOPortExpander.cpp)
      * for its pin_min/pin_max/analog_pins/digital_pins, populating structs.
      */
-    clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_0);
-    // clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_1);
-
-    printf("Discovering GPIOPortExpander configuration");
-    // initGPIOPortExpanders(iic_2,
-    //                       iic_0,
-    //                       I2C_ADDR_OUTPUT_PORTCONTROLLER_0,
-    //                       I2C_ADDR_OUTPUT_PORTCONTROLLER_1,
-    //                       I2C_ADDR_INPUT_PORTCONTROLLER_0);
-    // TEMP DIAGNOSTIC: confirm how many pins a sweep of Input_0 actually
-    // iterates (readGPIOPortExapander_All loops i < max_pins), to settle
-    // whether observed sweep rates are physically plausible for the pin count.
-    printf("GPIOPortExpander_ATMEGA2560_Input_0: max_pins=%d num_analog_pins=%d num_digital_pins=%d",
-             GPIOPortExpander_ATMEGA2560_Input_0.max_pins,
-             GPIOPortExpander_ATMEGA2560_Input_0.num_analog_pins,
-             GPIOPortExpander_ATMEGA2560_Input_0.num_digital_pins);
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_9
+    clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_9);
+    #endif
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_10
+    clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_10);
+    #endif
 
     /** ----------------------------------------------------------------------------
      * Serial1: GPS UART.
@@ -478,13 +468,13 @@ extern "C" void app_main(void)
     #endif
 
     // Auxiliary Input
-    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_0
+    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
     printf("creating auxiliary input task");
     createTaskInputPortController(); // (target: ?) Large general input
     #endif
 
     // Auxiliary Output
-    #ifdef SatIO_USE_SWITCHES
+    #ifdef SatIO_USE_MATRIX
     printf("creating auxiliary output task");
     createTaskSwitches(); // (target: max 1KHz) Fast general output
     #endif
