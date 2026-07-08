@@ -19,8 +19,8 @@ GPIO Port Expander - IIC I/O device.
 #include <limits.h>
 #include <stdlib.h>
 #include <Wire.h>
-#include "./i2c_helper.h"
-#include "./gpio_port_expander.h"
+#include "UnidentifiedStudios_I2C.h"
+#include "UnidentifiedStudios_GPIOPortExpander.h"
 
 // ------------------------------------------------------------------------------------------------------------------
 //                                                                                                              SETUP
