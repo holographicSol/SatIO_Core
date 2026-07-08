@@ -1,10 +1,8 @@
 /*
     main.cpp - Application entry point. Written By Benjamin Jack Cullen.
-
     Boots the system: configures the watchdog, brings up LVGL, opens the
     diagnostic UART, brings up the I2C buses and the GPS UART, starts every
     FreeRTOS task, synchronizes them, then shows the home screen.
-
     MISRA conventions used throughout this file:
     (1) Logging uses ESP_LOGI/ESP_LOGW instead of the <stdio.h> formatted
         output functions (MISRA C 2012 Rule 21.6).
@@ -23,10 +21,8 @@
     (7) Unsigned struct-literal members carry the 'U' suffix so their type
         is unambiguous (MISRA C 2012 Rule 7.2).
     (8) No commented-out code (MISRA C 2012 Dir 4.4).
-
     Intended to be MISRA Compliant (untested, unverified, in-progress).
 */
-
 #include "bsp/esp32_p4_wifi6_touch_lcd_xc.h"
 #include "bsp/esp-bsp.h"
 #include "esp_log.h"
@@ -39,14 +35,12 @@
 #include "esp_err.h"
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include <dirent.h>
-
 #include <limits.h>
 #include <string.h>
 #include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <Arduino.h>
-
 #include <sys/time.h>
 #include <rtc_wdt.h>
 #include <esp_task_wdt.h>
@@ -63,7 +57,6 @@
 #include "driver/uart.h"
 #include "esp_rom_uart.h"
 #include "./REG.h"
-
 #include "./UnidentifiedStudios_Config.h"
 #include "./UnidentifiedStudios_StrVal.h"
 #include "./UnidentifiedStudios_Meteors.h"
@@ -83,29 +76,24 @@
 #include "./UnidentifiedStudios_TaskHandler.h"
 #include "./UnidentifiedStudios_I2C.h"
 #include "./wit_c_sdk.h"
-
 #ifdef SatIO_DISPLAY_OPTION_LVGL
 #include "lvgl.h"
 #include "./UnidentifiedStudios_SatIOLVGL.h"
 #include "./UnidentifiedStudios_AstroClock.h"
 #endif
-
 #define UART0_NUM               UART_NUM_0
 #define UART0_BUF_SIZE          (1024)
 #define UART0_RD_BUF_SIZE       (UART0_BUF_SIZE)
 #define UART0_QUEUE_LENGTH      (20)
 #define UART0_TASK_STACK_SIZE   (3072)
 #define UART0_TASK_PRIORITY     (12)
-
 static const char *UART0_TAG    = "UART0_EVENTS";
 static const char *APP_MAIN_TAG = "APP_MAIN";
-
 // Shared by app_main() (creates the driver and its queue) and
 // uart0_event_task() (reads the queue), so file scope is required; this is
 // the documented exception to keeping objects function-local (MISRA C 2012
 // Rule 8.9).
 static QueueHandle_t uart0_queue;
-
 /** ----------------------------------------------------------------------------
  * UART0 Event Task.
  *
@@ -125,20 +113,16 @@ static QueueHandle_t uart0_queue;
  */
 static void uart0_event_task(void *pvParameters) {
     (void)pvParameters; // MISRA C 2012 Rule 2.7: unused FreeRTOS task parameter.
-
     static uint8_t dtmp[UART0_RD_BUF_SIZE];
     static char uart0_line_buffer[UART0_BUF_SIZE];
     static int uart0_line_pos = 0;
     uart_event_t event;
     int len = 0;
-
     uart_flush_input(UART0_NUM);
-
     for (;;) {
         // Rx
         if (xQueueReceive(uart0_queue, (void *)&event, portMAX_DELAY)) {
             memset(dtmp, 0, UART0_RD_BUF_SIZE); // Standard, portable equivalent of bzero().
-
             switch (event.type) {
                 case UART_DATA: {
                     // event.size reflects bytes queued in the driver's RX ring buffer,
@@ -146,22 +130,17 @@ static void uart0_event_task(void *pvParameters) {
                     // (excess bytes stay in the ring buffer for the next event).
                     size_t to_read = (event.size < sizeof(dtmp)) ? event.size : sizeof(dtmp);
                     len = uart_read_bytes(UART0_NUM, dtmp, to_read, 1000 / portTICK_PERIOD_MS);
-
                     // Accumulate data into line buffer, process on newline
                     for (int i = 0; i < len; i++) {
                         char c = (char)dtmp[i];
-
                         // Check for line terminator
                         if ((c == '\n') || (c == '\r')) {
-
                             if (uart0_line_pos > 0) {
                                 // Complete line received - process it
                                 uart0_line_buffer[uart0_line_pos] = '\0';
-
                                 // Copy to serial0Data.BUFFER_RX for CmdProcess
                                 memset(serial0Data.BUFFER_RX, 0, sizeof(serial0Data.BUFFER_RX));
                                 strncpy(serial0Data.BUFFER_RX, uart0_line_buffer, sizeof(serial0Data.BUFFER_RX) - 1);
-
                                 ESP_LOGI(UART0_TAG, "Received data: %s", serial0Data.BUFFER_RX);
                                 // uart0_event_task is not core-pinned and CmdProcess()
                                 // writes SatIOData/systemData directly (e.g. matrix/time
@@ -170,7 +149,6 @@ static void uart0_event_task(void *pvParameters) {
                                 xSemaphoreTake(dataMutex, portMAX_DELAY);
                                 CmdProcess();
                                 xSemaphoreGive(dataMutex);
-
                                 // Reset line buffer and keep scanning dtmp: a single
                                 // UART_DATA event's bytes can contain more than one
                                 // newline-terminated command (e.g. "CMD1\r\nCMD2\r\n"),
@@ -223,7 +201,6 @@ static void uart0_event_task(void *pvParameters) {
         }
     }
 }
-
 /** ----------------------------------------------------------------------------
  * Matrix Function Index Table.
  *
@@ -243,7 +220,6 @@ static void printMatrixFunctionIndexTable(void) {
     }
     printf("---------------------------------------------\n");
 }
-
 /** ----------------------------------------------------------------------------
  * Arduino Core Entry Point.
  *
@@ -255,7 +231,6 @@ static void printMatrixFunctionIndexTable(void) {
  */
 void setup() {
 }
-
 /** -----------------------------------------------------------------------------------------------
  * @brief Main application entry point.
  *
@@ -269,7 +244,6 @@ extern "C" void app_main(void)
     // ----------------------------------------------------------------------------
     // const uint32_t startup_delay_ms = 1000U; // Named so the duration is documented once.
     // delay(startup_delay_ms);
-
     /** ----------------------------------------------------------------------------
      * Watchdog Configuration.
      *
@@ -288,22 +262,18 @@ extern "C" void app_main(void)
         .trigger_panic = false,   // Log a warning instead of panicking on timeout.
     };
     ESP_ERROR_CHECK(esp_task_wdt_reconfigure(&wdt_config));
-
     // delay(5000);
-
     /** ----------------------------------------------------------------------------
      * Initialize Mutexes
      */
     initSystemTimeMutex(); // must exist before any task can touch tv_now/timeinfo
     initDataMutex();       // must exist before any task can touch SatIOData/systemData
-
     /** ----------------------------------------------------------------------------
      * LVGL Initialization
      */
     #ifdef SatIO_DISPLAY_OPTION_LVGL
     initSatIOUI();
     #endif
-
     /** ----------------------------------------------------------------------------
      * Diagnostic UART0 Setup.
      *
@@ -331,19 +301,16 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(uart_driver_install(UART0_NUM, UART0_BUF_SIZE * 2, UART0_BUF_SIZE, UART0_QUEUE_LENGTH, &uart0_queue, 0));
     (void)xTaskCreate(uart0_event_task, "uart0_event_task", UART0_TASK_STACK_SIZE, NULL, UART0_TASK_PRIORITY, NULL);
     ESP_LOGI(APP_MAIN_TAG, "UART0 ready - send data to GPIO1 (RX0)");
-
     /** ----------------------------------------------------------------------------
      * Matrix Function Index Table
      */
     printMatrixFunctionIndexTable();
-
     /** ----------------------------------------------------------------------------
      * System Time
      */
     printf("Initializing system time");
     SatIOData.systemTime.sync_immediately_flag=true;
     initSystemTime();
-
     /** ----------------------------------------------------------------------------
      * I2C Bus 2.
      *
@@ -359,7 +326,6 @@ extern "C" void app_main(void)
     iic_2.setTimeOut(I2C_TIMEOUT_MS_BUS2);
     (void)iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL, I2C_CLOCK_Hz_BUS2);
     iic_2.setClock(I2C_CLOCK_Hz_BUS2);
-
     /** ----------------------------------------------------------------------------
      * I2C Bus 0.
      *
@@ -374,20 +340,521 @@ extern "C" void app_main(void)
     iic_0.setTimeOut(I2C_TIMEOUT_MS_BUS0);
     (void)iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, I2C_CLOCK_Hz_BUS0);
     iic_0.setClock(I2C_CLOCK_Hz_BUS0);
-
     /** ----------------------------------------------------------------------------
-     * GPIOPortExpander auto-discovery.
+     * GPIOPortExpander.
      *
-     * Queries each port controller live over I2C (UnidentifiedStudios_GPIOPortExpander.cpp)
-     * for its pin_min/pin_max/analog_pins/digital_pins, populating structs.
      */
-    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_9
-    clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_9);
-    #endif
-    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT_10
-    clearGPIOPortController(GPIOPortExpander_ATMEGA2560_Output_10);
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_0
+    clearGPIOPortController(GPIOPE_OUTPUT_0);
     #endif
 
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_1
+    clearGPIOPortController(GPIOPE_OUTPUT_1);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_2
+    clearGPIOPortController(GPIOPE_OUTPUT_2);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_3
+    clearGPIOPortController(GPIOPE_OUTPUT_3);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_4
+    clearGPIOPortController(GPIOPE_OUTPUT_4);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_5
+    clearGPIOPortController(GPIOPE_OUTPUT_5);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_6
+    clearGPIOPortController(GPIOPE_OUTPUT_6);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_7
+    clearGPIOPortController(GPIOPE_OUTPUT_7);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_8
+    clearGPIOPortController(GPIOPE_OUTPUT_8);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_9
+    clearGPIOPortController(GPIOPE_OUTPUT_9);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_10
+    clearGPIOPortController(GPIOPE_OUTPUT_10);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_11
+    clearGPIOPortController(GPIOPE_OUTPUT_11);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_12
+    clearGPIOPortController(GPIOPE_OUTPUT_12);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_13
+    clearGPIOPortController(GPIOPE_OUTPUT_13);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_14
+    clearGPIOPortController(GPIOPE_OUTPUT_14);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_15
+    clearGPIOPortController(GPIOPE_OUTPUT_15);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_16
+    clearGPIOPortController(GPIOPE_OUTPUT_16);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_17
+    clearGPIOPortController(GPIOPE_OUTPUT_17);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_18
+    clearGPIOPortController(GPIOPE_OUTPUT_18);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_19
+    clearGPIOPortController(GPIOPE_OUTPUT_19);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_20
+    clearGPIOPortController(GPIOPE_OUTPUT_20);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_21
+    clearGPIOPortController(GPIOPE_OUTPUT_21);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_22
+    clearGPIOPortController(GPIOPE_OUTPUT_22);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_23
+    clearGPIOPortController(GPIOPE_OUTPUT_23);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_24
+    clearGPIOPortController(GPIOPE_OUTPUT_24);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_25
+    clearGPIOPortController(GPIOPE_OUTPUT_25);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_26
+    clearGPIOPortController(GPIOPE_OUTPUT_26);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_27
+    clearGPIOPortController(GPIOPE_OUTPUT_27);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_28
+    clearGPIOPortController(GPIOPE_OUTPUT_28);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_29
+    clearGPIOPortController(GPIOPE_OUTPUT_29);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_30
+    clearGPIOPortController(GPIOPE_OUTPUT_30);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_31
+    clearGPIOPortController(GPIOPE_OUTPUT_31);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_32
+    clearGPIOPortController(GPIOPE_OUTPUT_32);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_33
+    clearGPIOPortController(GPIOPE_OUTPUT_33);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_34
+    clearGPIOPortController(GPIOPE_OUTPUT_34);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_35
+    clearGPIOPortController(GPIOPE_OUTPUT_35);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_36
+    clearGPIOPortController(GPIOPE_OUTPUT_36);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_37
+    clearGPIOPortController(GPIOPE_OUTPUT_37);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_38
+    clearGPIOPortController(GPIOPE_OUTPUT_38);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_39
+    clearGPIOPortController(GPIOPE_OUTPUT_39);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_40
+    clearGPIOPortController(GPIOPE_OUTPUT_40);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_41
+    clearGPIOPortController(GPIOPE_OUTPUT_41);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_42
+    clearGPIOPortController(GPIOPE_OUTPUT_42);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_43
+    clearGPIOPortController(GPIOPE_OUTPUT_43);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_44
+    clearGPIOPortController(GPIOPE_OUTPUT_44);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_45
+    clearGPIOPortController(GPIOPE_OUTPUT_45);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_46
+    clearGPIOPortController(GPIOPE_OUTPUT_46);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_47
+    clearGPIOPortController(GPIOPE_OUTPUT_47);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_48
+    clearGPIOPortController(GPIOPE_OUTPUT_48);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_49
+    clearGPIOPortController(GPIOPE_OUTPUT_49);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_50
+    clearGPIOPortController(GPIOPE_OUTPUT_50);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_51
+    clearGPIOPortController(GPIOPE_OUTPUT_51);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_52
+    clearGPIOPortController(GPIOPE_OUTPUT_52);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_53
+    clearGPIOPortController(GPIOPE_OUTPUT_53);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_54
+    clearGPIOPortController(GPIOPE_OUTPUT_54);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_55
+    clearGPIOPortController(GPIOPE_OUTPUT_55);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_56
+    clearGPIOPortController(GPIOPE_OUTPUT_56);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_57
+    clearGPIOPortController(GPIOPE_OUTPUT_57);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_58
+    clearGPIOPortController(GPIOPE_OUTPUT_58);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_59
+    clearGPIOPortController(GPIOPE_OUTPUT_59);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_60
+    clearGPIOPortController(GPIOPE_OUTPUT_60);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_61
+    clearGPIOPortController(GPIOPE_OUTPUT_61);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_62
+    clearGPIOPortController(GPIOPE_OUTPUT_62);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_63
+    clearGPIOPortController(GPIOPE_OUTPUT_63);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_64
+    clearGPIOPortController(GPIOPE_OUTPUT_64);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_65
+    clearGPIOPortController(GPIOPE_OUTPUT_65);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_66
+    clearGPIOPortController(GPIOPE_OUTPUT_66);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_67
+    clearGPIOPortController(GPIOPE_OUTPUT_67);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_68
+    clearGPIOPortController(GPIOPE_OUTPUT_68);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_69
+    clearGPIOPortController(GPIOPE_OUTPUT_69);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_70
+    clearGPIOPortController(GPIOPE_OUTPUT_70);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_71
+    clearGPIOPortController(GPIOPE_OUTPUT_71);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_72
+    clearGPIOPortController(GPIOPE_OUTPUT_72);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_73
+    clearGPIOPortController(GPIOPE_OUTPUT_73);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_74
+    clearGPIOPortController(GPIOPE_OUTPUT_74);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_75
+    clearGPIOPortController(GPIOPE_OUTPUT_75);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_76
+    clearGPIOPortController(GPIOPE_OUTPUT_76);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_77
+    clearGPIOPortController(GPIOPE_OUTPUT_77);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_78
+    clearGPIOPortController(GPIOPE_OUTPUT_78);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_79
+    clearGPIOPortController(GPIOPE_OUTPUT_79);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_80
+    clearGPIOPortController(GPIOPE_OUTPUT_80);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_81
+    clearGPIOPortController(GPIOPE_OUTPUT_81);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_82
+    clearGPIOPortController(GPIOPE_OUTPUT_82);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_83
+    clearGPIOPortController(GPIOPE_OUTPUT_83);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_84
+    clearGPIOPortController(GPIOPE_OUTPUT_84);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_85
+    clearGPIOPortController(GPIOPE_OUTPUT_85);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_86
+    clearGPIOPortController(GPIOPE_OUTPUT_86);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_87
+    clearGPIOPortController(GPIOPE_OUTPUT_87);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_88
+    clearGPIOPortController(GPIOPE_OUTPUT_88);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_89
+    clearGPIOPortController(GPIOPE_OUTPUT_89);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_90
+    clearGPIOPortController(GPIOPE_OUTPUT_90);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_91
+    clearGPIOPortController(GPIOPE_OUTPUT_91);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_92
+    clearGPIOPortController(GPIOPE_OUTPUT_92);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_93
+    clearGPIOPortController(GPIOPE_OUTPUT_93);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_94
+    clearGPIOPortController(GPIOPE_OUTPUT_94);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_95
+    clearGPIOPortController(GPIOPE_OUTPUT_95);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_96
+    clearGPIOPortController(GPIOPE_OUTPUT_96);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_97
+    clearGPIOPortController(GPIOPE_OUTPUT_97);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_98
+    clearGPIOPortController(GPIOPE_OUTPUT_98);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_99
+    clearGPIOPortController(GPIOPE_OUTPUT_99);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_100
+    clearGPIOPortController(GPIOPE_OUTPUT_100);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_101
+    clearGPIOPortController(GPIOPE_OUTPUT_101);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_102
+    clearGPIOPortController(GPIOPE_OUTPUT_102);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_103
+    clearGPIOPortController(GPIOPE_OUTPUT_103);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_104
+    clearGPIOPortController(GPIOPE_OUTPUT_104);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_105
+    clearGPIOPortController(GPIOPE_OUTPUT_105);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_106
+    clearGPIOPortController(GPIOPE_OUTPUT_106);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_107
+    clearGPIOPortController(GPIOPE_OUTPUT_107);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_108
+    clearGPIOPortController(GPIOPE_OUTPUT_108);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_109
+    clearGPIOPortController(GPIOPE_OUTPUT_109);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_110
+    clearGPIOPortController(GPIOPE_OUTPUT_110);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_111
+    clearGPIOPortController(GPIOPE_OUTPUT_111);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_112
+    clearGPIOPortController(GPIOPE_OUTPUT_112);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_113
+    clearGPIOPortController(GPIOPE_OUTPUT_113);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_114
+    clearGPIOPortController(GPIOPE_OUTPUT_114);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_115
+    clearGPIOPortController(GPIOPE_OUTPUT_115);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_116
+    clearGPIOPortController(GPIOPE_OUTPUT_116);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_117
+    clearGPIOPortController(GPIOPE_OUTPUT_117);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_118
+    clearGPIOPortController(GPIOPE_OUTPUT_118);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_119
+    clearGPIOPortController(GPIOPE_OUTPUT_119);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_120
+    clearGPIOPortController(GPIOPE_OUTPUT_120);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_121
+    clearGPIOPortController(GPIOPE_OUTPUT_121);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_122
+    clearGPIOPortController(GPIOPE_OUTPUT_122);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_123
+    clearGPIOPortController(GPIOPE_OUTPUT_123);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_124
+    clearGPIOPortController(GPIOPE_OUTPUT_124);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_125
+    clearGPIOPortController(GPIOPE_OUTPUT_125);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_126
+    clearGPIOPortController(GPIOPE_OUTPUT_126);
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_127
+    clearGPIOPortController(GPIOPE_OUTPUT_127);
+    #endif
     /** ----------------------------------------------------------------------------
      * Serial1: GPS UART.
      *
@@ -419,14 +886,11 @@ extern "C" void app_main(void)
     printf("Serial1 baud rate: %lu", (unsigned long)gps_uart_baud_rate);
     printf("Serial1 hardware remap: RX=%d TX=%d", gps_uart_rxd_pin, gps_uart_txd_pin);
     #endif
-
     // Full ~0-3.3V input range; applies to every ADC channel.
     analogSetAttenuation(ADC_11db);
-
     // ----------------------------------------------------------------------------
     // Create Tasks.
     // ----------------------------------------------------------------------------
-
     // System Time
     printf("creating system time task");
     createTaskSystemTime();
@@ -440,8 +904,8 @@ extern "C" void app_main(void)
 
     // delay(5000);
 
-    #ifdef SatIO_USE_GPS_0
     // GPS
+    #ifdef SatIO_USE_GPS_0
     printf("creating GPS task");
     createTaskGPS(); // (target: 10Hz)
     #endif
@@ -468,17 +932,17 @@ extern "C" void app_main(void)
     #endif
 
     // Auxiliary Input
-    #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+    #ifdef SatIO_USE_GPIOPE_INPUT
     printf("creating auxiliary input task");
     createTaskInputPortController(); // (target: ?) Large general input
     #endif
 
-    // Auxiliary Output
+    // Matrix
     #ifdef SatIO_USE_MATRIX
     printf("creating auxiliary output task");
-    createTaskSwitches(); // (target: max 1KHz) Fast general output
+    createTaskSwitches(); // (target: max 1KHz) Fast general calc -> output
     #endif
-
+    
     // Universe
     #ifdef SatIO_USE_UNIVERSE
     printf("creating universe task");
@@ -495,18 +959,15 @@ extern "C" void app_main(void)
     // Attempt to approximately synchronize tasks
     printf("attempting to synchronize tasks");
     syncTasks();
-
     // ESP_LOGI(APP_MAIN_TAG, "waiting for tasks to settle");
     // const uint32_t task_settle_delay_ms = 5000U; // Gives every task time for a first pass before the UI starts.
     // delay(task_settle_delay_ms);
-
     // Display
     #ifdef SatIO_USE_DISPLAY
     printf("starting SatIO UI");
     flag_display_home_screen = true;
     createTaskDisplayUpdate();
     #endif
-
     // app_main() may now return: every task created above keeps running
     // under the FreeRTOS scheduler, and the ESP-IDF idle task takes over
     // this thread.

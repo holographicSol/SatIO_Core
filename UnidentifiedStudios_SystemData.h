@@ -129,12 +129,12 @@ struct systemStruct {
   // channel was checked (bounded by TASK_MAX_FREQ_ADMPLEX0/1).
   SystemConuters counters_mplex0_chan[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
   SystemConuters counters_mplex1_chan[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
-  SystemConuters counters_pci;
+  SystemConuters counters_gpiope0;
   // Per-pin read-rate counters, indexed by pin number: task_ffreq_t is the
   // pin's achieved accepted-read rate, gated by its own chan_freq_uS (see
   // setGPIOPortExpanderChannelFreq()); task_freq_t is how often the pin was
-  // checked (bounded by TASK_MAX_FREQ_PORTCONTROLLER_INPUT).
-  SystemConuters counters_pci_chan[GPIOPE_MAX_ATMEGA2560_MAX_PINS];
+  // checked (bounded by TASK_MAX_FREQ_GPIOE_INPUT).
+  SystemConuters counters_gpioe_chan[GPIOPE_MAX_ATMEGA2560_MAX_PINS];
   SystemConuters counters_uni;
   SystemConuters counters_mtx;
   SystemConuters counters_pco;

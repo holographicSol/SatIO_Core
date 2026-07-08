@@ -71,7 +71,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_UNIVERSE_PRIORITY              5
 #define TASK_STORAGE_PRIORITY               5
 #define TASK_SatIO_SERIAL_TX_PRIORITY       5
-#define TASK_INPUT_PORT_CONTROLLER_PRIORITY 5
+#define TASK_GPIOPE_INPUT_PRIORITY          5
 // CORE ASSIGNMENT
 #define TASK_SYSTEM_TIME_CORE               1
 #define TASK_GPS_CORE                       1
@@ -84,7 +84,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_ADMPLEX1_CORE                  1
 #endif
 
-#define TASK_INPUT_PORT_CONTROLLER_CORE     1
+#define TASK_GPIOPE_INPUT_CORE              1
 #define TASK_SWITCHES_CORE                  1
 #define TASK_UNIVERSE_CORE                  0
 #define TASK_STORAGE_CORE                   0
@@ -99,7 +99,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_UNIVERSE_STACK_SIZE            20480
 #define TASK_STORAGE_STACK_SIZE             6144
 #define TASK_SatIO_SERIAL_TX_STACK_SIZE     4096
-#define TASK_INPUT_PORT_CONTROLLER_STACK_SIZE 5096
+#define TASK_GPIOPE_INPUT_STACK_SIZE 5096
 #endif
 
 #ifdef SatIO_DISPLAY_OPTION_LVGL
@@ -114,7 +114,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_STORAGE_PRIORITY               5
 #define TASK_DISPLAY_PRIORITY               5
 #define TASK_SatIO_SERIAL_TX_PRIORITY       5
-#define TASK_INPUT_PORT_CONTROLLER_PRIORITY 5
+#define TASK_GPIOPE_INPUT_PRIORITY 5
 // CORE ASSIGNMENT
 #define TASK_SYSTEM_TIME_CORE               0
 #define TASK_GPS_CORE                       0
@@ -132,7 +132,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_STORAGE_CORE                   1
 #define TASK_DISPLAY_CORE                   0
 #define TASK_SatIO_SERIAL_TX_CORE           1
-#define TASK_INPUT_PORT_CONTROLLER_CORE     1
+#define TASK_GPIOPE_INPUT_CORE              1
 // STACK SIZES
 #define TASK_SYSTEM_TIME_STACK_SIZE         5120
 #define TASK_GPS_STACK_SIZE                 5120
@@ -144,7 +144,7 @@ TaskHandle_t TaskInputPortController;
 #define TASK_STORAGE_STACK_SIZE             6144
 #define TASK_DISPLAY_STACK_SIZE             32768
 #define TASK_SatIO_SERIAL_TX_STACK_SIZE     4096
-#define TASK_INPUT_PORT_CONTROLLER_STACK_SIZE 5096
+#define TASK_GPIOPE_INPUT_STACK_SIZE        5096
 #endif
 
 
@@ -183,7 +183,7 @@ static void notifyAllTasks(void) {
   if (TaskSwitches != nullptr) { xTaskNotifyGive(TaskSwitches); }
   #endif
 
-  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
+  #ifdef SatIO_USE_GPIOPE_INPUT
   if (TaskInputPortController != nullptr) { xTaskNotifyGive(TaskInputPortController); }
   #endif
 
@@ -345,9 +345,9 @@ static void intervalBreach1Second(void) {
   totalCounters(systemData.counters_mtx);
   #endif
 
-  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
-  totalCounters(systemData.counters_pci);
-  for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {totalCounters(systemData.counters_pci_chan[i_chan]);}
+  #ifdef SatIO_USE_GPIOPE_INPUT
+  totalCounters(systemData.counters_gpiope0);
+  for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {totalCounters(systemData.counters_gpioe_chan[i_chan]);}
   totalCounters(systemData.counters_pco);
   #endif
 
@@ -378,10 +378,10 @@ static void intervalBreach1Second(void) {
   }
 
   outputStat(); // uncomment for full stat
-  // ESP_LOGI("GPIOPortExpander_ATMEGA2560_Input_0", "max_pins=%d num_analog_pins=%d num_digital_pins=%d",
-  //         GPIOPortExpander_ATMEGA2560_Input_0.max_pins,
-  //         GPIOPortExpander_ATMEGA2560_Input_0.num_analog_pins,
-  //         GPIOPortExpander_ATMEGA2560_Input_0.num_digital_pins);
+  // ESP_LOGI("GPIOPE_INPUT_0", "max_pins=%d num_analog_pins=%d num_digital_pins=%d",
+  //         GPIOPE_INPUT_0.max_pins,
+  //         GPIOPE_INPUT_0.num_analog_pins,
+  //         GPIOPE_INPUT_0.num_digital_pins);
 
   clearCounters(systemData.counters_st);
 
@@ -411,9 +411,9 @@ static void intervalBreach1Second(void) {
   clearCounters(systemData.counters_mtx);
   #endif
 
-  #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
-  clearCounters(systemData.counters_pci);
-  for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {clearCounters(systemData.counters_pci_chan[i_chan]);}
+  #ifdef SatIO_USE_GPIOPE_INPUT
+  clearCounters(systemData.counters_gpiope0);
+  for (int i_chan=0; i_chan<GPIOPE_MAX_ATMEGA2560_MAX_PINS; i_chan++) {clearCounters(systemData.counters_gpioe_chan[i_chan]);}
   clearCounters(systemData.counters_pco);
   #endif
 
@@ -532,8 +532,8 @@ bool taskFrequencyDisplay()     { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_
 
 bool taskFrequencySatIOSerialTx() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_SatIO_SERIAL_TX); return true; }
 
-#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
-bool taskFrequencyInputPortController() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT); return true; }
+#ifdef SatIO_USE_GPIOPE_INPUT
+bool taskFrequencyInputPortController() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT); return true; }
 #endif
 
 /** ----------------------------------------------------------------------------
@@ -836,7 +836,7 @@ static void taskADMplex0(void *pvParameters) {
       // since its last read, so e.g. channel 0 can run at 1Hz alongside
       // channel 1 at 1000Hz within the same task, bounded by TASK_MAX_FREQ_ADMPLEX0.
       static int64_t admplex0_chan_last_read_uS[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS] = {0};
-      // Snapshotted once per pass so the counter loop below can't disagree with the
+      // Snapshot once per pass so the counter loop below can't disagree with the
       // read loop about which channels were enabled this cycle (a concurrent
       // CLI/LVGL disable between the two loops would otherwise drop a channel's
       // count for a cycle it was actually read in).
@@ -929,7 +929,7 @@ static void taskADMplex1(void *pvParameters) {
       // since its last read, so e.g. channel 0 can run at 1Hz alongside
       // channel 1 at 1000Hz within the same task, bounded by TASK_MAX_FREQ_ADMPLEX1.
       static int64_t admplex1_chan_last_read_uS[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS] = {0};
-      // Snapshotted once per pass so the counter loop below can't disagree with the
+      // Snapshot once per pass so the counter loop below can't disagree with the
       // read loop about which channels were enabled this cycle (a concurrent
       // CLI/LVGL disable between the two loops would otherwise drop a channel's
       // count for a cycle it was actually read in).
@@ -1050,7 +1050,7 @@ static void taskSwitches(void *pvParameters) {
       #endif
 
       int32_t count_write = 0;
-      #ifdef SatIO_USE_GPIO_PORT_EXPANDER_OUTPUT
+      #ifdef SatIO_USE_GPIOPE_OUTPUT
 
       // Clamp to MAX_MATRIX_SWITCHES
       for (int32_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
@@ -1061,7 +1061,7 @@ static void taskSwitches(void *pvParameters) {
           // Clear the flag now that the value has been sent.
           matrixData.matrix_switch_write_required[0][Mi] = false;
           
-          clearI2CLinkOutputPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink);
+          clearI2CLinkOutputPacket(GPIOPE_OUTPUT_9.i2cLink);
 
           // Select value to send as either the computer-assisted output value
           // or the override value.
@@ -1073,14 +1073,14 @@ static void taskSwitches(void *pvParameters) {
           uint32_t on_time = matrixData.output_pwm[0][Mi][INDEX_MATRIX_SWITCH_PWM_ON];
 
           // Build binary packet with human readable helper functions.
-          write_uint8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 0, GPIO_PE_CMD_WRITE_PIN_PWM);
-          write_uint8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 1, (uint8_t)Mi);
-          write_int8_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 2, (int8_t)matrixData.matrix_port_map[0][Mi]);
-          write_int32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 3, value_to_send);
-          write_uint32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 7, off_time);
-          write_uint32_ToPacket(GPIOPortExpander_ATMEGA2560_Output_9.i2cLink.OUTPUT_PACKET, 11, on_time);
+          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, GPIOPE_CMD_WRITE_PIN_PWM);
+          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, (uint8_t)Mi);
+          write_int8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, (int8_t)matrixData.matrix_port_map[0][Mi]);
+          write_int32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, value_to_send);
+          write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, off_time);
+          write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, on_time);
           // Write to slave.
-          writeI2CToSlaveBin(*GPIOPortExpander_ATMEGA2560_Output_9.wire, GPIOPortExpander_ATMEGA2560_Output_9.i2cLink, address, 15, 0, GPIOPortExpander_ATMEGA2560_Output_9.name);
+          writeI2CToSlaveBin(*GPIOPE_OUTPUT_9.wire, GPIOPE_OUTPUT_9.i2cLink, address, GPIOPE_OUTPUT_9.i2cLink.current_bytes, 0, GPIOPE_OUTPUT_9.name);
 
           count_write++;
         }
@@ -1116,7 +1116,7 @@ void createTaskSwitches() {
 }
 #endif
 
-#ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT
+#ifdef SatIO_USE_GPIOPE_INPUT
 /** ----------------------------------------------------------------------------
  * Input Controller Task. Intended to be used for 0-N input GPIO Port Expanders
  *
@@ -1139,33 +1139,37 @@ static void taskInputPortController(void *pvParameters) {
       // Read input port controller pins (customize as required).
       // ------------------------------------------------
       // Each pin is additionally rate-limited to its own chan_freq_uS: the
-      // task itself still wakes at TASK_MAX_FREQ_PORTCONTROLLER_INPUT
+      // task itself still wakes at TASK_MAX_FREQ_GPIOE_INPUT
       // (unchanged), but a pin is only actually read once that many
       // microseconds have passed since its last read, so e.g. pin 0 can run
       // at 1Hz alongside pin 1 at 1000Hz within the same task, bounded by
-      // TASK_MAX_FREQ_PORTCONTROLLER_INPUT. Mirrors taskADMplex0()/
+      // TASK_MAX_FREQ_GPIOE_INPUT. Mirrors taskADMplex0()/
       // taskADMplex1()'s per-channel throttle.
-      static int64_t pci_chan_last_read_uS[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {0};
-      // Snapshotted once per pass so the counter loop below can't disagree with the
+
+      // todo: replace pin_max with max_input_values
+
+      static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {0};
+      // Snapshot once per pass so the counter loop below can't disagree with the
       // read loop about which pins were enabled this cycle (a concurrent
       // CLI/LVGL disable between the two loops would otherwise drop a pin's
       // count for a cycle it was actually read in).
-      bool pci_chan_was_enabled[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
-      bool pci_chan_did_read[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
-      uint8_t pci_max_pins = (uint8_t)GPIOPortExpander_ATMEGA2560_Input_11.max_pins;
-      for (uint8_t i_chan = 0; i_chan < pci_max_pins; i_chan++) {
-        if (GPIOPortExpander_ATMEGA2560_Input_11.enabled[i_chan] == true) {
-          pci_chan_was_enabled[i_chan] = true;
-          if ((esp_timer_get_time() - pci_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPortExpander_ATMEGA2560_Input_11.chan_freq_uS[i_chan]) {
-            if (readGPIOPortExapander_Pin(GPIOPortExpander_ATMEGA2560_Input_11, i_chan)) {
-              pci_chan_last_read_uS[i_chan] = esp_timer_get_time();
-              pci_chan_did_read[i_chan] = true;
+      bool gpioe_chan_was_enabled[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
+      bool gpioe_chan_did_read[GPIOPE_MAX_ATMEGA2560_MAX_PINS] = {false};
+      uint8_t gpioe_max_pins = (uint8_t)GPIOPE_INPUT_11.max_pins;
+      for (uint8_t i_chan = 0; i_chan < gpioe_max_pins; i_chan++) {
+        if (GPIOPE_INPUT_11.enabled[i_chan] == true) {
+          gpioe_chan_was_enabled[i_chan] = true;
+          if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPE_INPUT_11.chan_freq_uS[i_chan]) {
+            if (readGPIOPortExapander_Pin(GPIOPE_INPUT_11, i_chan)) {
+              gpioe_chan_last_read_uS[i_chan] = esp_timer_get_time();
+              gpioe_chan_did_read[i_chan] = true;
             } else {
               printf("ERROR: readInputPortControllerReadPins (pin_index=%d)\n", i_chan);
             }
           }
         }
       }
+
       esp_task_wdt_reset();
       // --------------------------------------------
       // Task frequency counter
@@ -1173,17 +1177,17 @@ static void taskInputPortController(void *pvParameters) {
       // Per-pin Hz: task_freq_t is how often a pin was checked this second
       // (its ceiling); task_ffreq_t is how often it was actually read (its
       // achieved Hz, gated by chan_freq_uS above).
-      for (uint8_t i_chan = 0; i_chan < pci_max_pins; i_chan++) {
-        if (pci_chan_was_enabled[i_chan] == true) {
-          stepFCounter(systemData.counters_pci_chan[i_chan], 1);
-          if (pci_chan_did_read[i_chan] == true) {stepFFCounter(systemData.counters_pci_chan[i_chan], 1);}
+      for (uint8_t i_chan = 0; i_chan < gpioe_max_pins; i_chan++) {
+        if (gpioe_chan_was_enabled[i_chan] == true) {
+          stepFCounter(systemData.counters_gpioe_chan[i_chan], 1);
+          if (gpioe_chan_did_read[i_chan] == true) {stepFFCounter(systemData.counters_gpioe_chan[i_chan], 1);}
         }
       }
       xSemaphoreTake(dataMutex, portMAX_DELAY);
-      stepFFCounter(systemData.counters_pci, 1);
-      systemData.counters_pci.flag_c = true;
+      stepFFCounter(systemData.counters_gpiope0, 1);
+      systemData.counters_gpiope0.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
-      outputSerialPCInput();
+      outputSerialGPIOPEnput();
       #endif
       xSemaphoreGive(dataMutex);
     }
@@ -1192,7 +1196,7 @@ static void taskInputPortController(void *pvParameters) {
     // Task frequency counter
     // --------------------------------------------
     xSemaphoreTake(dataMutex, portMAX_DELAY);
-    stepFCounter(systemData.counters_pci, 1);
+    stepFCounter(systemData.counters_gpiope0, 1);
     xSemaphoreGive(dataMutex);
   }
 }
@@ -1200,11 +1204,11 @@ void createTaskInputPortController() {
   xTaskCreatePinnedToCore(
     taskInputPortController,             /* Function to implement the task */
     "TaskInputPortControllers",           /* Name of the task */
-    TASK_INPUT_PORT_CONTROLLER_STACK_SIZE, /* Stack size in words */
+    TASK_GPIOPE_INPUT_STACK_SIZE, /* Stack size in words */
     nullptr,                  /* Task input parameter */
-    TASK_INPUT_PORT_CONTROLLER_PRIORITY,   /* Priority of the task */
+    TASK_GPIOPE_INPUT_PRIORITY,   /* Priority of the task */
     &TaskInputPortController,            /* Task handle. */
-    TASK_INPUT_PORT_CONTROLLER_CORE);      /* Core where the task should run */
+    TASK_GPIOPE_INPUT_CORE);      /* Core where the task should run */
 }
 #endif
 
@@ -1365,7 +1369,7 @@ void createTaskUniverse() {
  * SatIO Serial Tx Task.
  *
  * @brief Transmits the aggregated SatIO ($SatIO) and port controller input
- *        ($PCINPT) sentences over the serial port, each gated by its own
+ *        ($GPIOEI) sentences over the serial port, each gated by its own
  *        systemData output-enabled flag.
  */
 static void taskSatIOSerialTx(void *pvParameters) {
@@ -1392,7 +1396,7 @@ static void taskSatIOSerialTx(void *pvParameters) {
       outputSerialGyro0();
       outputSerialUniverse();
       outputSerialMatrix();
-      outputSerialPCInput();
+      outputSerialGPIOPEnput();
       esp_task_wdt_reset();
 
       // --------------------------------------------

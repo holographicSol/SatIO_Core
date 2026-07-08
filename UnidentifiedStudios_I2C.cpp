@@ -28,6 +28,16 @@
 #include <cstdio>
 #include "UnidentifiedStudios_I2C.h"
 
+// AVR (ATmega2560) has exactly one hardware I2C peripheral, already
+// instantiated as the global `Wire` object by the Arduino AVR core. Unlike
+// ESP32's TwoWire, this platform's TwoWire has no bus-number constructor, so
+// this is a separate AVR-specific initiator: a reference alias for Wire,
+// not a second distinct instance.
+// TwoWire &iic_0 = Wire;
+// TwoWire iic_0(0);
+// TwoWire iic_1(1);
+// TwoWire iic_2(2);
+
 TwoWire iic_0(0);
 TwoWire iic_1(1);
 TwoWire iic_2(2);
@@ -128,6 +138,15 @@ void clearI2CLinkInputPacket(IICLink &iic_link) {
  */
 void clearI2CLinkOutputPacket(IICLink &iic_link) {
   memset(iic_link.OUTPUT_PACKET, 0, sizeof(iic_link.OUTPUT_PACKET));
+  resetI2CLinkCurrentBytes(iic_link);
+}
+
+/** ----------------------------------------------------------------------------
+ * @brief Resets the given IICLink's write cursor (current_bytes) to 0.
+ * @param iic_link Specify IICLink instance.
+ */
+void resetI2CLinkCurrentBytes(IICLink &iic_link) {
+  iic_link.current_bytes = 0;
 }
 
 /** ----------------------------------------------------------------------------
@@ -581,43 +600,48 @@ void read_nbytes_FromWire(TwoWire &wire, byte *value, size_t n_bytes) {
 }
 
 /**
- * @brief Write uint8_t to packet buffer at specified offset.
+ * @brief Write uint8_t to packet buffer at current_bytes, then step current_bytes by TYPE_WIDTH_UINT8_T.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_uint8_ToPacket(uint8_t *buffer, size_t offset, uint8_t value) {
-  buffer[offset] = value;
+void write_uint8_ToPacket(uint8_t *buffer, int64_t &current_bytes, uint8_t value) {
+  buffer[current_bytes] = value;
+  current_bytes = current_bytes + TYPE_WIDTH_UINT8_T;
 }
 
 /**
- * @brief Write int8_t to packet buffer at specified offset.
+ * @brief Write int8_t to packet buffer at current_bytes, then step current_bytes by TYPE_WIDTH_INT8_T.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_int8_ToPacket(uint8_t *buffer, size_t offset, int8_t value) {
-  buffer[offset] = (uint8_t)value;
+void write_int8_ToPacket(uint8_t *buffer, int64_t &current_bytes, int8_t value) {
+  buffer[current_bytes] = (uint8_t)value;
+  current_bytes = current_bytes + TYPE_WIDTH_INT8_T;
 }
 
 /** ----------------------------------------------------------------------------
- * Write uint16_t to packet buffer at specified offset (2 bytes, little-endian).
+ * Write uint16_t to packet buffer at current_bytes (2 bytes, little-endian), then
+ * step current_bytes by TYPE_WIDTH_UINT16_T.
  *
  * (1) MISRA Rule 7.2: shift/mask constants carry the 'U' suffix so they are
  *     unambiguously unsigned, matching the unsigned operand they apply to.
  * (2) Writes the low byte, then the high byte.
  *
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_uint16_ToPacket(uint8_t *buffer, size_t offset, uint16_t value) {
-  buffer[offset]     = (uint8_t)(value & 0xFFU);
-  buffer[offset + 1] = (uint8_t)((value >> 8U) & 0xFFU);
+void write_uint16_ToPacket(uint8_t *buffer, int64_t &current_bytes, uint16_t value) {
+  buffer[current_bytes]     = (uint8_t)(value & 0xFFU);
+  buffer[current_bytes + 1] = (uint8_t)((value >> 8U) & 0xFFU);
+  current_bytes = current_bytes + TYPE_WIDTH_UINT16_T;
 }
 
 /** ----------------------------------------------------------------------------
- * Write int16_t to packet buffer at specified offset (2 bytes, little-endian).
+ * Write int16_t to packet buffer at current_bytes (2 bytes, little-endian), then
+ * step current_bytes by TYPE_WIDTH_INT16_T.
  *
  * (1) MISRA Rule 10.1: value is widened to its unsigned counterpart before
  *     the shift/mask, since bitwise operators on a signed operand have
@@ -625,95 +649,103 @@ void write_uint16_ToPacket(uint8_t *buffer, size_t offset, uint16_t value) {
  * (2) Writes the low byte, then the high byte, of the unsigned representation.
  *
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_int16_ToPacket(uint8_t *buffer, size_t offset, int16_t value) {
+void write_int16_ToPacket(uint8_t *buffer, int64_t &current_bytes, int16_t value) {
   uint16_t uvalue = (uint16_t)value;
-  buffer[offset]     = (uint8_t)(uvalue & 0xFFU);
-  buffer[offset + 1] = (uint8_t)((uvalue >> 8U) & 0xFFU);
+  buffer[current_bytes]     = (uint8_t)(uvalue & 0xFFU);
+  buffer[current_bytes + 1] = (uint8_t)((uvalue >> 8U) & 0xFFU);
+  current_bytes = current_bytes + TYPE_WIDTH_INT16_T;
 }
 
 /**
- * @brief Write uint32_t to packet buffer at specified offset (4 bytes, little-endian).
+ * @brief Write uint32_t to packet buffer at current_bytes (4 bytes, little-endian), then step current_bytes by TYPE_WIDTH_UINT32_T.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_uint32_ToPacket(uint8_t *buffer, size_t offset, uint32_t value) {
-  buffer[offset]     = (uint8_t)(value & 0xFFU);
-  buffer[offset + 1] = (uint8_t)((value >> 8U) & 0xFFU);
-  buffer[offset + 2] = (uint8_t)((value >> 16U) & 0xFFU);
-  buffer[offset + 3] = (uint8_t)((value >> 24U) & 0xFFU);
+void write_uint32_ToPacket(uint8_t *buffer, int64_t &current_bytes, uint32_t value) {
+  buffer[current_bytes]     = (uint8_t)(value & 0xFFU);
+  buffer[current_bytes + 1] = (uint8_t)((value >> 8U) & 0xFFU);
+  buffer[current_bytes + 2] = (uint8_t)((value >> 16U) & 0xFFU);
+  buffer[current_bytes + 3] = (uint8_t)((value >> 24U) & 0xFFU);
+  current_bytes = current_bytes + TYPE_WIDTH_UINT32_T;
 }
 
 /**
- * @brief Write int32_t to packet buffer at specified offset (4 bytes, little-endian).
+ * @brief Write int32_t to packet buffer at current_bytes (4 bytes, little-endian), then step current_bytes by TYPE_WIDTH_INT32_T.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_int32_ToPacket(uint8_t *buffer, size_t offset, int32_t value) {
+void write_int32_ToPacket(uint8_t *buffer, int64_t &current_bytes, int32_t value) {
   uint32_t uvalue = (uint32_t)value;
-  buffer[offset]     = (uint8_t)(uvalue & 0xFFU);
-  buffer[offset + 1] = (uint8_t)((uvalue >> 8U) & 0xFFU);
-  buffer[offset + 2] = (uint8_t)((uvalue >> 16U) & 0xFFU);
-  buffer[offset + 3] = (uint8_t)((uvalue >> 24U) & 0xFFU);
+  buffer[current_bytes]     = (uint8_t)(uvalue & 0xFFU);
+  buffer[current_bytes + 1] = (uint8_t)((uvalue >> 8U) & 0xFFU);
+  buffer[current_bytes + 2] = (uint8_t)((uvalue >> 16U) & 0xFFU);
+  buffer[current_bytes + 3] = (uint8_t)((uvalue >> 24U) & 0xFFU);
+  current_bytes = current_bytes + TYPE_WIDTH_INT32_T;
 }
 
 /**
- * @brief Write uint64_t to packet buffer at specified offset (8 bytes, little-endian).
+ * @brief Write uint64_t to packet buffer at current_bytes (8 bytes, little-endian), then step current_bytes by TYPE_WIDTH_UINT64_T.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_uint64_ToPacket(uint8_t *buffer, size_t offset, uint64_t value) {
+void write_uint64_ToPacket(uint8_t *buffer, int64_t &current_bytes, uint64_t value) {
   for (size_t i = 0; i < 8U; i++) {
-    buffer[offset + i] = (uint8_t)((value >> (8U * (unsigned int)i)) & 0xFFU);
+    buffer[current_bytes + (int64_t)i] = (uint8_t)((value >> (8U * (unsigned int)i)) & 0xFFU);
   }
+  current_bytes = current_bytes + TYPE_WIDTH_UINT64_T;
 }
 
 /**
- * @brief Write int64_t to packet buffer at specified offset (8 bytes, little-endian).
+ * @brief Write int64_t to packet buffer at current_bytes (8 bytes, little-endian), then step current_bytes by TYPE_WIDTH_INT64_T.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_int64_ToPacket(uint8_t *buffer, size_t offset, int64_t value) {
+void write_int64_ToPacket(uint8_t *buffer, int64_t &current_bytes, int64_t value) {
   uint64_t uvalue = (uint64_t)value;
   for (size_t i = 0; i < 8U; i++) {
-    buffer[offset + i] = (uint8_t)((uvalue >> (8U * (unsigned int)i)) & 0xFFU);
+    buffer[current_bytes + (int64_t)i] = (uint8_t)((uvalue >> (8U * (unsigned int)i)) & 0xFFU);
   }
+  current_bytes = current_bytes + TYPE_WIDTH_INT64_T;
 }
 
 /**
- * @brief Write long to packet buffer at specified offset (little-endian).
+ * @brief Write long to packet buffer at current_bytes (little-endian), then step current_bytes by TYPE_WIDTH_LONG.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_long_ToPacket(uint8_t *buffer, size_t offset, long value) {
+void write_long_ToPacket(uint8_t *buffer, int64_t &current_bytes, long value) {
   unsigned long uvalue = (unsigned long)value;
-  for (size_t i = 0; i < sizeof(long); i++) {
-    buffer[offset + i] = (uint8_t)((uvalue >> (8U * (unsigned int)i)) & 0xFFU);
+  for (size_t i = 0; i < TYPE_WIDTH_LONG; i++) {
+    buffer[current_bytes + (int64_t)i] = (uint8_t)((uvalue >> (8U * (unsigned int)i)) & 0xFFU);
   }
+  current_bytes = current_bytes + (int64_t)TYPE_WIDTH_LONG;
 }
 
 /**
- * @brief Write long long to packet buffer at specified offset (8 bytes, little-endian).
+ * @brief Write long long to packet buffer at current_bytes (8 bytes, little-endian), then step current_bytes by TYPE_WIDTH_LONGLONG.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_longlong_ToPacket(uint8_t *buffer, size_t offset, long long value) {
+void write_longlong_ToPacket(uint8_t *buffer, int64_t &current_bytes, long long value) {
   unsigned long long uvalue = (unsigned long long)value;
-  for (size_t i = 0; i < sizeof(long long); i++) {
-    buffer[offset + i] = (uint8_t)((uvalue >> (8U * (unsigned int)i)) & 0xFFU);
+  for (size_t i = 0; i < TYPE_WIDTH_LONGLONG; i++) {
+    buffer[current_bytes + (int64_t)i] = (uint8_t)((uvalue >> (8U * (unsigned int)i)) & 0xFFU);
   }
+  current_bytes = current_bytes + (int64_t)TYPE_WIDTH_LONGLONG;
 }
 
 /** ----------------------------------------------------------------------------
- * Write float to packet buffer at specified offset (4 bytes, little-endian).
+ * Write float to packet buffer at current_bytes (4 bytes, little-endian), then
+ * step current_bytes by TYPE_WIDTH_FLOAT.
  *
  * (1) MISRA Rule 19.2: the float's bit pattern is copied out with memcpy
  *     rather than read through an inactive union member.
@@ -721,85 +753,92 @@ void write_longlong_ToPacket(uint8_t *buffer, size_t offset, long long value) {
  *     that buffer into the packet.
  *
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_float_ToPacket(uint8_t *buffer, size_t offset, float value) {
+void write_float_ToPacket(uint8_t *buffer, int64_t &current_bytes, float value) {
   uint8_t bytes[4];
   memcpy(bytes, &value, sizeof(value));
   for (size_t i = 0; i < sizeof(bytes); i++) {
-    buffer[offset + i] = bytes[i];
+    buffer[current_bytes + (int64_t)i] = bytes[i];
   }
+  current_bytes = current_bytes + TYPE_WIDTH_FLOAT;
 }
 
 /**
- * @brief Write double to packet buffer at specified offset (8 bytes, little-endian).
+ * @brief Write double to packet buffer at current_bytes (8 bytes, little-endian), then step current_bytes by TYPE_WIDTH_DOUBLE.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_double_ToPacket(uint8_t *buffer, size_t offset, double value) {
+void write_double_ToPacket(uint8_t *buffer, int64_t &current_bytes, double value) {
   uint8_t bytes[8];
   memcpy(bytes, &value, sizeof(value));
   for (size_t i = 0; i < sizeof(bytes); i++) {
-    buffer[offset + i] = bytes[i];
+    buffer[current_bytes + (int64_t)i] = bytes[i];
   }
+  current_bytes = current_bytes + TYPE_WIDTH_DOUBLE;
 }
 
 /**
- * @brief Write bool to packet buffer at specified offset.
+ * @brief Write bool to packet buffer at current_bytes, then step current_bytes by TYPE_WIDTH_BOOL.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_bool_ToPacket(uint8_t *buffer, size_t offset, bool value) {
-  buffer[offset] = (uint8_t)value;
+void write_bool_ToPacket(uint8_t *buffer, int64_t &current_bytes, bool value) {
+  buffer[current_bytes] = (uint8_t)value;
+  current_bytes = current_bytes + TYPE_WIDTH_BOOL;
 }
 
 /**
- * @brief Write char to packet buffer at specified offset.
+ * @brief Write char to packet buffer at current_bytes, then step current_bytes by TYPE_WIDTH_CHAR.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_char_ToPacket(uint8_t *buffer, size_t offset, char value) {
-  buffer[offset] = (uint8_t)value;
+void write_char_ToPacket(uint8_t *buffer, int64_t &current_bytes, char value) {
+  buffer[current_bytes] = (uint8_t)value;
+  current_bytes = current_bytes + TYPE_WIDTH_CHAR;
 }
 
 /**
- * @brief Write N chars to packet buffer at specified offset.
+ * @brief Write N chars to packet buffer at current_bytes, then step current_bytes by n_chars * TYPE_WIDTH_CHAR.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Pointer to char array to write.
  * @param n_chars Number of chars to write.
  * @warning Ensure source char array is at least n_chars in size.
  */
-void write_nchars_ToPacket(uint8_t *buffer, size_t offset, const char *value, size_t n_chars) {
+void write_nchars_ToPacket(uint8_t *buffer, int64_t &current_bytes, const char *value, size_t n_chars) {
   for (size_t i = 0; i < n_chars; i++) {
-    buffer[offset + i] = (uint8_t)value[i];
+    buffer[current_bytes + (int64_t)i] = (uint8_t)value[i];
   }
+  current_bytes = current_bytes + (int64_t)(n_chars * TYPE_WIDTH_CHAR);
 }
 
 /**
- * @brief Write byte to packet buffer at specified offset.
+ * @brief Write byte to packet buffer at current_bytes, then step current_bytes by TYPE_WIDTH_BYTE.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Value to write.
  */
-void write_byte_ToPacket(uint8_t *buffer, size_t offset, byte value) {
-  buffer[offset] = value;
+void write_byte_ToPacket(uint8_t *buffer, int64_t &current_bytes, byte value) {
+  buffer[current_bytes] = value;
+  current_bytes = current_bytes + TYPE_WIDTH_BYTE;
 }
 
 /**
- * @brief Write N bytes to packet buffer at specified offset.
+ * @brief Write N bytes to packet buffer at current_bytes, then step current_bytes by n_bytes * TYPE_WIDTH_BYTE.
  * @param buffer Pointer to packet buffer.
- * @param offset Byte offset in buffer.
+ * @param current_bytes In/out write cursor (byte offset in buffer).
  * @param value Pointer to byte array to write.
  * @param n_bytes Number of bytes to write.
  * @warning Ensure source array is at least n_bytes in size.
  */
-void write_nbytes_ToPacket(uint8_t *buffer, size_t offset, const uint8_t *value, size_t n_bytes) {
+void write_nbytes_ToPacket(uint8_t *buffer, int64_t &current_bytes, const uint8_t *value, size_t n_bytes) {
   for (size_t i = 0; i < n_bytes; i++) {
-    buffer[offset + i] = value[i];
+    buffer[current_bytes + (int64_t)i] = value[i];
   }
+  current_bytes = current_bytes + (int64_t)(n_bytes * TYPE_WIDTH_BYTE);
 }

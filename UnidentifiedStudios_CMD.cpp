@@ -61,7 +61,7 @@ struct Serial0Struct serial0Data = {
   .BUFFER_TX_GYRO0 = {0},
   .BUFFER_TX_UNI = {0},
   .BUFFER_TX_SWITCHES = {0},
-  .BUFFER_TX_PCI = {0},
+  .BUFFER_TX_GPIOPE = {0},
 };
 #endif
 
@@ -461,15 +461,15 @@ static void PrintHelp(void) {
 
   [ Port Controller Input ]
 
-      pci -c n --enable       Enable pin n on the input port controller (read every task cycle, subject to --freq).
-      pci -c n --disable      Disable pin n on the input port controller (data reports 0 while disabled).
-      pci -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
-      pci --all --enable      Enable every pin in one call.
-      pci --all --disable     Disable every pin in one call.
-      pci --all --freq uS     Set every pin's freq in one call.
+      gpiope0 -c n --enable       Enable pin n on the input port controller (read every task cycle, subject to --freq).
+      gpiope0 -c n --disable      Disable pin n on the input port controller (data reports 0 while disabled).
+      gpiope0 -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
+      gpiope0 --all --enable      Enable every pin in one call.
+      gpiope0 --all --disable     Disable every pin in one call.
+      gpiope0 --all --freq uS     Set every pin's freq in one call.
 
-      example: run pci pin 5 at ~1Hz alongside the rest of the enabled pins:
-      pci -c 5 --enable --freq 1000000
+      example: run gpiope0 pin 5 at ~1Hz alongside the rest of the enabled pins:
+      gpiope0 -c 5 --enable --freq 1000000
 
   [ INS ]
 
@@ -532,7 +532,7 @@ static void PrintHelp(void) {
       setdelay --gps                    Specify max task frequency in uS.
       setdelay --switch                 Specify max task frequency in uS.
       setdelay --storage                Specify max task frequency in uS.
-      setdelay --pci                    Specify max task frequency in uS.
+      setdelay --gpiope0                    Specify max task frequency in uS.
 
       example: setdelay --admplex0 20 --gyro0 200 --gps 10
 
@@ -562,7 +562,7 @@ static void PrintHelp(void) {
       stat --sentence --gnrmc     Takes arguments -e, -d.
       stat --sentence --gpatt     Takes arguments -e, -d.
       stat --sentence --matrix    Takes arguments -e, -d.
-      stat --sentence --pcinput   Takes arguments -e, -d.
+      stat --sentence --gpiope0nput   Takes arguments -e, -d.
       stat --sentence --admplex0  Takes arguments -e, -d.
       stat --sentence --admplex1  Takes arguments -e, -d.
       stat --sentence --gyro0     Takes arguments -e, -d.
@@ -1166,7 +1166,7 @@ void CmdProcess(void) {
               systemData.output_matrix_enabled=enable;
               printf("setting matrix output enabled: %d\n", systemData.output_matrix_enabled);
             }
-          if (argparser_has_flag(&parser, "pcinput") == true) {systemData.output_input_portcontroller=enable; printf("setting input_portcontroller_0 output enabled: %d\n", systemData.output_input_portcontroller);}
+          if (argparser_has_flag(&parser, "gpiope0nput") == true) {systemData.output_input_portcontroller=enable; printf("setting input_portcontroller_0 output enabled: %d\n", systemData.output_input_portcontroller);}
           if (argparser_has_flag(&parser, "admplex0") == true) {systemData.output_admplex0_enabled=enable; printf("setting admplex0 output enabled: %d\n", systemData.output_admplex0_enabled);}
           if (argparser_has_flag(&parser, "admplex1") == true) {systemData.output_admplex1_enabled=enable; printf("setting admplex1 output enabled: %d\n", systemData.output_admplex1_enabled);}
           if (argparser_has_flag(&parser, "gyro0") == true) {systemData.output_gyro_0_enabled=enable; printf("setting gyro_0 output enabled: %d\n", systemData.output_gyro_0_enabled);}
@@ -1356,31 +1356,31 @@ void CmdProcess(void) {
             if (argparser_has_flag(&parser, "freq") == true) {setADMultiplexerChannelFreq(ad_mux_1, admplex1_c, argparser_get_uint64(&parser, "freq", 0));}
           }
         }
-        // pci (input port controller)
-        #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
-        else if (strcmp(pos[0], "pci")==0) {
-          // pci --all --freq X : set every pin's freq in one call
-          // pci --all --enable/--disable : set every pin's enabled state in one call
+        // gpiope0 (input port controller)
+        #ifdef SatIO_USE_GPIOPE_INPUT_0
+        else if (strcmp(pos[0], "gpiope0")==0) {
+          // gpiope0 --all --freq X : set every pin's freq in one call
+          // gpiope0 --all --enable/--disable : set every pin's enabled state in one call
           if (argparser_has_flag(&parser, "all") == true) {
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              for (uint8_t p=0; p<(uint8_t)GPIOPortExpander_ATMEGA2560_Input_11.max_pins; p++) {setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_11, p, enable);}
+              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_11, p, enable);}
             }
             if (argparser_has_flag(&parser, "freq") == true) {
-              uint64_t pci_freq_all = argparser_get_uint64(&parser, "freq", 0);
-              for (uint8_t p=0; p<(uint8_t)GPIOPortExpander_ATMEGA2560_Input_11.max_pins; p++) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_11, p, pci_freq_all);}
+              uint64_t gpioe_freq_all = argparser_get_uint64(&parser, "freq", 0);
+              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_11, p, gpioe_freq_all);}
             }
           }
           else if (argparser_has_flag(&parser, "c") == true) {
-            uint8_t pci_c = argparser_get_uint8(&parser, "c", 0);
+            uint8_t gpioe_c = argparser_get_uint8(&parser, "c", 0);
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              setGPIOPortExpanderChannelEnabled(GPIOPortExpander_ATMEGA2560_Input_11, pci_c, enable);
+              setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_11, gpioe_c, enable);
             }
-            if (argparser_has_flag(&parser, "freq") == true) {setGPIOPortExpanderChannelFreq(GPIOPortExpander_ATMEGA2560_Input_11, pci_c, argparser_get_uint64(&parser, "freq", 0));}
+            if (argparser_has_flag(&parser, "freq") == true) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_11, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
           }
         }
-        #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
+        #endif // SatIO_USE_GPIOPE_INPUT
 
         // else if (strcmp(pos[0], "sdcard")==0) {
         //   if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
@@ -1432,8 +1432,8 @@ void CmdProcess(void) {
                 {setDelay(TaskStorage, argparser_get_uint32(&parser, "storage", pwrConfigCurrent.TASK_MAX_FREQ_STORAGE), &pwrConfigCurrent.TASK_MAX_FREQ_STORAGE);}
               #endif
 
-              if (argparser_has_flag(&parser, "pci"))
-                {setDelay(TaskInputPortController, argparser_get_uint32(&parser, "pci", pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT), &pwrConfigCurrent.TASK_MAX_FREQ_PORTCONTROLLER_INPUT);}
+              if (argparser_has_flag(&parser, "gpiope0"))
+                {setDelay(TaskInputPortController, argparser_get_uint32(&parser, "gpiope0", pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT), &pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT);}
             }
           }
         }
@@ -1463,7 +1463,7 @@ long i_output_config_matrix = 0;
 #define TXBUF_GYRO0    (serial0Data.BUFFER_TX_GYRO0)
 #define TXBUF_UNI      (serial0Data.BUFFER_TX_UNI)
 #define TXBUF_SWITCHES (serial0Data.BUFFER_TX_SWITCHES)
-#define TXBUF_PCI      (serial0Data.BUFFER_TX_PCI)
+#define TXBUF_GPIOPE      (serial0Data.BUFFER_TX_GPIOPE)
 #endif
 
 #ifdef SatIO_SERIAL_TX_OPTION_NEW_TASK
@@ -1478,7 +1478,7 @@ long i_output_config_matrix = 0;
 #define TXBUF_GYRO0    (serial0Data.BUFFER_TX)
 #define TXBUF_UNI      (serial0Data.BUFFER_TX)
 #define TXBUF_SWITCHES (serial0Data.BUFFER_TX)
-#define TXBUF_PCI      (serial0Data.BUFFER_TX)
+#define TXBUF_GPIOPE      (serial0Data.BUFFER_TX)
 #endif
 
 /*
@@ -1921,25 +1921,1551 @@ void outputSerialMatrix(void) {
   }
 }
 
-void outputSerialPCInput(void) {
-  if (systemData.counters_pci.flag_c == true) {
-    systemData.counters_pci.flag_c = false;
+void outputSerialGPIOPEnput(void) {
+  if (systemData.counters_gpiope0.flag_c == true) {
+    systemData.counters_gpiope0.flag_c = false;
+
     if (systemData.output_input_portcontroller == true) {
       char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
-      memset(TXBUF_PCI, 0, sizeof(TXBUF_PCI));
-      serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), "$PCINPT11,");
-      // append matrix switch state data
-      #ifdef SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
-      for (int i=0; i < 70; i++)
-        {serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), String(String(GPIOPortExpander_ATMEGA2560_Input_11.input_value[i])+",").c_str());}
-      #endif // SatIO_USE_GPIO_PORT_EXPANDER_INPUT_11
-      serial0_buffer_strip_trailing_comma(TXBUF_PCI);
-      createChecksumSerial0(TXBUF_PCI, checksum, sizeof(checksum));
-      serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), "*");
-      serial0_buffer_append(TXBUF_PCI, sizeof(TXBUF_PCI), checksum);
-      printf("%s\n", TXBUF_PCI);
+      #ifdef SatIO_USE_GPIOPE_INPUT_0
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE0,");
+      for (int i=0; i < GPIOPE_INPUT_0.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_0.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_0
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_1
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE1,");
+      for (int i=0; i < GPIOPE_INPUT_1.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_1.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_1
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_2
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE2,");
+      for (int i=0; i < GPIOPE_INPUT_2.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_2.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_2
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_3
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE3,");
+      for (int i=0; i < GPIOPE_INPUT_3.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_3.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_3
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_4
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE4,");
+      for (int i=0; i < GPIOPE_INPUT_4.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_4.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_4
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_5
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE5,");
+      for (int i=0; i < GPIOPE_INPUT_5.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_5.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_5
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_6
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE6,");
+      for (int i=0; i < GPIOPE_INPUT_6.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_6.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_6
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_7
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE7,");
+      for (int i=0; i < GPIOPE_INPUT_7.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_7.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_7
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_8
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE8,");
+      for (int i=0; i < GPIOPE_INPUT_8.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_8.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_8
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_9
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE9,");
+      for (int i=0; i < GPIOPE_INPUT_9.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_9.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_9
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_10
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE10,");
+      for (int i=0; i < GPIOPE_INPUT_10.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_10.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_10
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_11
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE11,");
+      for (int i=0; i < GPIOPE_INPUT_11.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_11.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_11
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_12
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE12,");
+      for (int i=0; i < GPIOPE_INPUT_12.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_12.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_12
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_13
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE13,");
+      for (int i=0; i < GPIOPE_INPUT_13.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_13.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_13
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_14
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE14,");
+      for (int i=0; i < GPIOPE_INPUT_14.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_14.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_14
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_15
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE15,");
+      for (int i=0; i < GPIOPE_INPUT_15.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_15.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_15
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_16
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE16,");
+      for (int i=0; i < GPIOPE_INPUT_16.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_16.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_16
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_17
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE17,");
+      for (int i=0; i < GPIOPE_INPUT_17.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_17.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_17
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_18
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE18,");
+      for (int i=0; i < GPIOPE_INPUT_18.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_18.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_18
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_19
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE19,");
+      for (int i=0; i < GPIOPE_INPUT_19.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_19.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_19
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_20
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE20,");
+      for (int i=0; i < GPIOPE_INPUT_20.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_20.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_20
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_21
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE21,");
+      for (int i=0; i < GPIOPE_INPUT_21.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_21.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_21
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_22
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE22,");
+      for (int i=0; i < GPIOPE_INPUT_22.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_22.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_22
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_23
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE23,");
+      for (int i=0; i < GPIOPE_INPUT_23.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_23.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_23
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_24
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE24,");
+      for (int i=0; i < GPIOPE_INPUT_24.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_24.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_24
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_25
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE25,");
+      for (int i=0; i < GPIOPE_INPUT_25.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_25.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_25
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_26
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE26,");
+      for (int i=0; i < GPIOPE_INPUT_26.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_26.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_26
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_27
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE27,");
+      for (int i=0; i < GPIOPE_INPUT_27.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_27.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_27
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_28
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE28,");
+      for (int i=0; i < GPIOPE_INPUT_28.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_28.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_28
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_29
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE29,");
+      for (int i=0; i < GPIOPE_INPUT_29.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_29.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_29
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_30
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE30,");
+      for (int i=0; i < GPIOPE_INPUT_30.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_30.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_30
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_31
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE31,");
+      for (int i=0; i < GPIOPE_INPUT_31.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_31.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_31
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_32
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE32,");
+      for (int i=0; i < GPIOPE_INPUT_32.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_32.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_32
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_33
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE33,");
+      for (int i=0; i < GPIOPE_INPUT_33.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_33.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_33
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_34
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE34,");
+      for (int i=0; i < GPIOPE_INPUT_34.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_34.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_34
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_35
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE35,");
+      for (int i=0; i < GPIOPE_INPUT_35.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_35.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_35
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_36
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE36,");
+      for (int i=0; i < GPIOPE_INPUT_36.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_36.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_36
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_37
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE37,");
+      for (int i=0; i < GPIOPE_INPUT_37.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_37.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_37
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_38
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE38,");
+      for (int i=0; i < GPIOPE_INPUT_38.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_38.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_38
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_39
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE39,");
+      for (int i=0; i < GPIOPE_INPUT_39.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_39.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_39
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_40
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE40,");
+      for (int i=0; i < GPIOPE_INPUT_40.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_40.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_40
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_41
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE41,");
+      for (int i=0; i < GPIOPE_INPUT_41.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_41.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_41
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_42
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE42,");
+      for (int i=0; i < GPIOPE_INPUT_42.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_42.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_42
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_43
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE43,");
+      for (int i=0; i < GPIOPE_INPUT_43.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_43.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_43
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_44
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE44,");
+      for (int i=0; i < GPIOPE_INPUT_44.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_44.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_44
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_45
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE45,");
+      for (int i=0; i < GPIOPE_INPUT_45.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_45.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_45
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_46
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE46,");
+      for (int i=0; i < GPIOPE_INPUT_46.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_46.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_46
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_47
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE47,");
+      for (int i=0; i < GPIOPE_INPUT_47.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_47.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_47
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_48
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE48,");
+      for (int i=0; i < GPIOPE_INPUT_48.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_48.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_48
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_49
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE49,");
+      for (int i=0; i < GPIOPE_INPUT_49.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_49.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_49
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_50
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE50,");
+      for (int i=0; i < GPIOPE_INPUT_50.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_50.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_50
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_51
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE51,");
+      for (int i=0; i < GPIOPE_INPUT_51.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_51.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_51
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_52
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE52,");
+      for (int i=0; i < GPIOPE_INPUT_52.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_52.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_52
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_53
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE53,");
+      for (int i=0; i < GPIOPE_INPUT_53.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_53.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_53
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_54
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE54,");
+      for (int i=0; i < GPIOPE_INPUT_54.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_54.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_54
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_55
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE55,");
+      for (int i=0; i < GPIOPE_INPUT_55.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_55.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_55
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_56
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE56,");
+      for (int i=0; i < GPIOPE_INPUT_56.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_56.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_56
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_57
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE57,");
+      for (int i=0; i < GPIOPE_INPUT_57.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_57.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_57
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_58
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE58,");
+      for (int i=0; i < GPIOPE_INPUT_58.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_58.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_58
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_59
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE59,");
+      for (int i=0; i < GPIOPE_INPUT_59.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_59.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_59
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_60
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE60,");
+      for (int i=0; i < GPIOPE_INPUT_60.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_60.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_60
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_61
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE61,");
+      for (int i=0; i < GPIOPE_INPUT_61.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_61.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_61
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_62
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE62,");
+      for (int i=0; i < GPIOPE_INPUT_62.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_62.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_62
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_63
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE63,");
+      for (int i=0; i < GPIOPE_INPUT_63.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_63.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_63
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_64
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE64,");
+      for (int i=0; i < GPIOPE_INPUT_64.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_64.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_64
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_65
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE65,");
+      for (int i=0; i < GPIOPE_INPUT_65.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_65.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_65
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_66
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE66,");
+      for (int i=0; i < GPIOPE_INPUT_66.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_66.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_66
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_67
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE67,");
+      for (int i=0; i < GPIOPE_INPUT_67.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_67.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_67
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_68
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE68,");
+      for (int i=0; i < GPIOPE_INPUT_68.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_68.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_68
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_69
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE69,");
+      for (int i=0; i < GPIOPE_INPUT_69.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_69.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_69
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_70
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE70,");
+      for (int i=0; i < GPIOPE_INPUT_70.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_70.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_70
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_71
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE71,");
+      for (int i=0; i < GPIOPE_INPUT_71.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_71.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_71
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_72
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE72,");
+      for (int i=0; i < GPIOPE_INPUT_72.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_72.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_72
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_73
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE73,");
+      for (int i=0; i < GPIOPE_INPUT_73.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_73.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_73
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_74
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE74,");
+      for (int i=0; i < GPIOPE_INPUT_74.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_74.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_74
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_75
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE75,");
+      for (int i=0; i < GPIOPE_INPUT_75.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_75.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_75
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_76
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE76,");
+      for (int i=0; i < GPIOPE_INPUT_76.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_76.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_76
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_77
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE77,");
+      for (int i=0; i < GPIOPE_INPUT_77.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_77.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_77
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_78
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE78,");
+      for (int i=0; i < GPIOPE_INPUT_78.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_78.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_78
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_79
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE79,");
+      for (int i=0; i < GPIOPE_INPUT_79.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_79.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_79
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_80
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE80,");
+      for (int i=0; i < GPIOPE_INPUT_80.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_80.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_80
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_81
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE81,");
+      for (int i=0; i < GPIOPE_INPUT_81.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_81.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_81
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_82
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE82,");
+      for (int i=0; i < GPIOPE_INPUT_82.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_82.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_82
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_83
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE83,");
+      for (int i=0; i < GPIOPE_INPUT_83.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_83.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_83
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_84
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE84,");
+      for (int i=0; i < GPIOPE_INPUT_84.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_84.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_84
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_85
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE85,");
+      for (int i=0; i < GPIOPE_INPUT_85.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_85.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_85
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_86
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE86,");
+      for (int i=0; i < GPIOPE_INPUT_86.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_86.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_86
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_87
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE87,");
+      for (int i=0; i < GPIOPE_INPUT_87.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_87.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_87
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_88
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE88,");
+      for (int i=0; i < GPIOPE_INPUT_88.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_88.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_88
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_89
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE89,");
+      for (int i=0; i < GPIOPE_INPUT_89.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_89.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_89
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_90
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE90,");
+      for (int i=0; i < GPIOPE_INPUT_90.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_90.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_90
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_91
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE91,");
+      for (int i=0; i < GPIOPE_INPUT_91.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_91.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_91
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_92
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE92,");
+      for (int i=0; i < GPIOPE_INPUT_92.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_92.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_92
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_93
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE93,");
+      for (int i=0; i < GPIOPE_INPUT_93.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_93.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_93
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_94
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE94,");
+      for (int i=0; i < GPIOPE_INPUT_94.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_94.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_94
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_95
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE95,");
+      for (int i=0; i < GPIOPE_INPUT_95.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_95.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_95
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_96
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE96,");
+      for (int i=0; i < GPIOPE_INPUT_96.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_96.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_96
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_97
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE97,");
+      for (int i=0; i < GPIOPE_INPUT_97.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_97.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_97
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_98
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE98,");
+      for (int i=0; i < GPIOPE_INPUT_98.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_98.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_98
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_99
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE99,");
+      for (int i=0; i < GPIOPE_INPUT_99.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_99.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_99
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_100
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE100,");
+      for (int i=0; i < GPIOPE_INPUT_100.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_100.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_100
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_101
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE101,");
+      for (int i=0; i < GPIOPE_INPUT_101.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_101.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_101
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_102
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE102,");
+      for (int i=0; i < GPIOPE_INPUT_102.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_102.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_102
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_103
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE103,");
+      for (int i=0; i < GPIOPE_INPUT_103.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_103.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_103
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_104
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE104,");
+      for (int i=0; i < GPIOPE_INPUT_104.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_104.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_104
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_105
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE105,");
+      for (int i=0; i < GPIOPE_INPUT_105.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_105.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_105
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_106
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE106,");
+      for (int i=0; i < GPIOPE_INPUT_106.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_106.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_106
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_107
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE107,");
+      for (int i=0; i < GPIOPE_INPUT_107.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_107.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_107
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_108
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE108,");
+      for (int i=0; i < GPIOPE_INPUT_108.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_108.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_108
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_109
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE109,");
+      for (int i=0; i < GPIOPE_INPUT_109.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_109.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_109
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_110
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE110,");
+      for (int i=0; i < GPIOPE_INPUT_110.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_110.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_110
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_111
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE111,");
+      for (int i=0; i < GPIOPE_INPUT_111.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_111.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_111
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_112
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE112,");
+      for (int i=0; i < GPIOPE_INPUT_112.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_112.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_112
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_113
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE113,");
+      for (int i=0; i < GPIOPE_INPUT_113.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_113.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_113
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_114
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE114,");
+      for (int i=0; i < GPIOPE_INPUT_114.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_114.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_114
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_115
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE115,");
+      for (int i=0; i < GPIOPE_INPUT_115.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_115.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_115
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_116
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE116,");
+      for (int i=0; i < GPIOPE_INPUT_116.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_116.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_116
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_117
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE117,");
+      for (int i=0; i < GPIOPE_INPUT_117.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_117.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_117
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_118
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE118,");
+      for (int i=0; i < GPIOPE_INPUT_118.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_118.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_118
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_119
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE119,");
+      for (int i=0; i < GPIOPE_INPUT_119.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_119.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_119
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_120
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE120,");
+      for (int i=0; i < GPIOPE_INPUT_120.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_120.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_120
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_121
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE121,");
+      for (int i=0; i < GPIOPE_INPUT_121.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_121.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_121
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_122
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE122,");
+      for (int i=0; i < GPIOPE_INPUT_122.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_122.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_122
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_123
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE123,");
+      for (int i=0; i < GPIOPE_INPUT_123.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_123.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_123
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_124
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE124,");
+      for (int i=0; i < GPIOPE_INPUT_124.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_124.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_124
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_125
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE125,");
+      for (int i=0; i < GPIOPE_INPUT_125.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_125.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_125
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_126
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE126,");
+      for (int i=0; i < GPIOPE_INPUT_126.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_126.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_126
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_127
+      memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE127,");
+      for (int i=0; i < GPIOPE_INPUT_127.max_input_values; i++)
+        {serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), String(String(GPIOPE_INPUT_127.input_value[i])+",").c_str());}
+      serial0_buffer_strip_trailing_comma(TXBUF_GPIOPE);
+      createChecksumSerial0(TXBUF_GPIOPE, checksum, sizeof(checksum));
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
+      serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
+      printf("%s\n", TXBUF_GPIOPE);
+      #endif // SatIO_USE_GPIOPE_INPUT_127
+
     }
+
   }
 }
 
@@ -2010,7 +3536,7 @@ void outputStat(void) {
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "INS",      systemData.counters_ins.task_ffreq_t,              systemData.counters_gyr0.task_freq_t); // INS runs inside the Gyro0 task
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex0",   systemData.counters_mplex0.task_ffreq_t,           systemData.counters_mplex0.task_freq_t);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex1",   systemData.counters_mplex1.task_ffreq_t,           systemData.counters_mplex1.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "PCI",      systemData.counters_pci.task_ffreq_t,              systemData.counters_pci.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPIOPE",      systemData.counters_gpiope0.task_ffreq_t,              systemData.counters_gpiope0.task_freq_t);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Uni",      systemData.counters_uni.task_ffreq_t,              systemData.counters_uni.task_freq_t);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Matrix",   systemData.counters_mtx.task_ffreq_t,              systemData.counters_mtx.task_freq_t);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "PCO",      systemData.counters_pco.task_ffreq_t,              systemData.counters_mtx.task_freq_t); // PCO runs inside the Matrix task
@@ -2065,25 +3591,25 @@ void outputStat(void) {
         #endif
     // }
     // ----------------------------------------------------------------------------------------------------------------------------
-    //                                                                                                        PRINT PER-PIN PCI Hz
+    //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
     /*
      * GPIOPE_MAX_ATMEGA2560_MAX_PINS (70) is wider than one
      * line, so this pages the same way the matrix switch dump below does.
      */
     {
-        int pci_full_page_start = 0;
-        int pci_full_page_end = 0;
+        int gpioe_full_page_start = 0;
+        int gpioe_full_page_end = 0;
         for (int page_start = 0; page_start < GPIOPE_MAX_ATMEGA2560_MAX_PINS; page_start += STAT_SWITCHES_PER_PAGE) {
             int page_end = page_start + STAT_SWITCHES_PER_PAGE;
-            if (page_start==0) {pci_full_page_start=page_start; pci_full_page_end=page_end;} // use page zero width as longest expected width
+            if (page_start==0) {gpioe_full_page_start=page_start; gpioe_full_page_end=page_end;} // use page zero width as longest expected width
             if (page_end > GPIOPE_MAX_ATMEGA2560_MAX_PINS) {page_end = GPIOPE_MAX_ATMEGA2560_MAX_PINS;}
-            printStatSeparator(pci_full_page_start, pci_full_page_end);
+            printStatSeparator(gpioe_full_page_start, gpioe_full_page_end);
             printf("                      ");
             printSwitchIndexHeader(page_start, page_end);
-            printStatSeparator(pci_full_page_start, pci_full_page_end);
-            printf("PCI Pin Hz         :  ");
-            for (int i=page_start; i<page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_pci_chan[i].task_ffreq_t);}
+            printStatSeparator(gpioe_full_page_start, gpioe_full_page_end);
+            printf("GPIOPE Pin Hz         :  ");
+            for (int i=page_start; i<page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_gpioe_chan[i].task_ffreq_t);}
             printf("\n");
         }
     }

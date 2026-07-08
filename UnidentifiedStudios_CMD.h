@@ -41,7 +41,7 @@ struct Serial0Struct {
   char BUFFER_TX_GYRO0[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
   char BUFFER_TX_UNI[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
   char BUFFER_TX_SWITCHES[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
-  char BUFFER_TX_PCI[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
+  char BUFFER_TX_GPIOPE[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
 };
 extern struct Serial0Struct serial0Data;
 #endif
@@ -80,6 +80,6 @@ void outputSerialADMplex0(void);
 void outputSerialADMplex1(void);
 void outputSerialUniverse(void);
 void outputSerialMatrix(void);
-void outputSerialPCInput(void);
+void outputSerialGPIOPEnput(void);
 
 #endif
