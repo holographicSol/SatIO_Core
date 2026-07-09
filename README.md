@@ -18,7 +18,7 @@ The switches can be used for, digital output, analog output, mapped output. For 
 ### Philosophy
 
 1. **Value Creation** — Safety, Stability, Accuracy. As SatIO develops, so should value creation, leading to safer, more accurate values in the hive over time. This can create a desirable improvement curve where in contrast, building a system from scratch every new project, has the potential to reintroduce bugs and 're-solve' the same problems. As SatIO develops, so does any system built on top of SatIO. Value creation should ideally be both read and write to and from the Hive.
-2. **Value Utilization** 
+2. **Value Utilization** —
 - The Matrix utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
    logic whereby any value in the system can be compared to any other value in the system and or comapred to a user defined
    value. The comaprisons use some basic operators, <>==, and in range. Every value in the matrix is treated as a double
