@@ -26,14 +26,21 @@ The switches can be used for, digital output, analog output, mapped output. For 
    Each Matrix Switch can hold more than one Matrix Function, all of which must result in true, in order to switch, and locic can run in an inverted mode, that inverts
    Matrix Function return boolean. Switches can be linked to other switches by using a special Matrix Function called Switch Link, which allows logic to be stacked
    accross switches and again inverted and or further gated, using the same or different output port. All Matrix Switches have programmable output ports and are -1 by default. Logic can be modulated up to int64_max, for PWM on N co-processor(s) that strictly handle I/O and modulation.
--  **Computer Assist** is automation, and takes control over a specified output port according to how the matrix switch for that port is configured. Note
+-  **Computer Assist Bool** is automation, and takes control over a specified output port according to how the matrix switch for that port is configured. Note
    that a switch is rendered fully automatic by Computer Assist being enabled for the same the same switch, meaning the computer will decide when to
    switch, how to modulate the switch, and why, all determined from the users programmable logic in the Matrix.
--  **Computer intention** provides insight into what the computer has calculated. Weather or not Computer Assist is enabled, Computer intention is
+-  **Computer Intention Bool** provides insight into what the computer has calculated. Weather or not Computer Assist is enabled, Computer Intention is
    visible for every switch, allowing a user or other system to see what the computer wants to do, with and or without actually doing it. Computer Assist
    can be enabled at any point for any switch, before and or during Computer Intent true/false. This 'layer' also fascilitates optional design choices being made, like the potential for semi-automatic functionality on a switch by switch basis, whereby Computer intention can be used as an indicator and the user
    can ultimately decide weather or not to switch, by flipping Computer Assist on/off.
--  **Switch Intention** is set according to Computer Intention, providing Computer Assist is enabled, for the same switch.
+-  **Switch Intention Bool** is set according to Computer Intention, providing Computer Assist is enabled, for the same switch. Computer intention is
+   always set, Switch Intention is only ever set if Computer Assist is enabled for the same switch.
+   **Output Values** can be digital (directly derived from switch intention), or analog from a mapped value in the system. Varoius output modes determine
+   what values will be output if and when a Switch Intention true.
+   **Mapped Values** Supports user defined mapping from a selection of values in the system. Mapped values can be used in two ways, [1] with the intention
+   of using the mapped value in a Matrix Switch Function and or [2] with the intention to use the mapped value as an Output Value. Map slots are not aligned
+   with Matrix Switch slots, so that multiple Matrix Switches and or Output values can utilize any map slot, simultaniously, without needing to map
+   anything twice or more, unecessarily. This means that a map slot indedx was required for Matrix Switches, whereby the map slot index values ARE aligned with Matrix Switches, and the values within the Index, point to user defined Map Slots.
 3. **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
 from real (dynamic) sensor data and or can be individually specified by the user (static). This allows
 for various options and scenarios like running as a station, simulation, and or where dynamically updating
