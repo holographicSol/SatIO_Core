@@ -27,7 +27,7 @@ The switches can be used for, digital output, analog output, mapped output. For 
    Matrix Function return boolean. Switches can be linked to other switches by using a special Matrix Function called Switch Link, which allows logic to be stacked
    accross switches and again inverted and or further gated, using the same or different output port. All Matrix Switches have programmable output ports and are -1 by default. Logic can be modulated up to int64_max, for PWM on N co-processor(s) that strictly handle I/O and modulation.
 -  **Computer Assist** is automation, and takes control over a specified output port according to how the matrix switch for that port is configured.
--  **Computer intention** provides insight into what the computer has calcualted. Weather or not Computer Assist is enabled, Computer intention is
+-  **Computer intention** provides insight into what the computer has calculated. Weather or not Computer Assist is enabled, Computer intention is
    visible for every switch, allowing a user or other system to see what the computer wants to do, if Computer Assist is enabled. Computer Assist
    can be enabled at any point for any switch, before and or during Computer Intent true/false.
 -  **Switch Intention** is set according to Computer Intention, providing Computer Assist is enabled, for the same switch.
