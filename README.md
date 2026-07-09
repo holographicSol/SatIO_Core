@@ -29,7 +29,8 @@ The switches can be used for, digital output, analog output, mapped output. For 
 -  **Computer Assist** is automation, and takes control over a specified output port according to how the matrix switch for that port is configured.
 -  **Computer intention** provides insight into what the computer has calculated. Weather or not Computer Assist is enabled, Computer intention is
    visible for every switch, allowing a user or other system to see what the computer wants to do, if Computer Assist is enabled. Computer Assist
-   can be enabled at any point for any switch, before and or during Computer Intent true/false.
+   can be enabled at any point for any switch, before and or during Computer Intent true/false. This 'layer' also fascilitates optional design choices being made, like the potential for semi-automatic functionality on a switch by switch basis, whereby Computer intention can be used as an indicator and the user
+   can ultimately decide weather or not to switch.
 -  **Switch Intention** is set according to Computer Intention, providing Computer Assist is enabled, for the same switch.
 3. **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
 from real (dynamic) sensor data and or can be individually specified by the user (static). This allows
