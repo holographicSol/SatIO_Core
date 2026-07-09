@@ -38,9 +38,7 @@ The switches can be used for, digital output, analog output, mapped output. For 
    **Output Values** can be digital (directly derived from switch intention), or analog from a mapped value in the system. Varoius output modes determine
    what values will be output if and when a Switch Intention true.
    **Mapped Values** supports user defined mapping from a selection of values in the system. Mapped values can be used in two ways, [1] with the intention
-   of using the mapped value in a Matrix Switch Function and or [2] with the intention to use the mapped value as an Output Value. Map slots are not aligned
-   with Matrix Switch slots, so that multiple Matrix Switches and or Output values can utilize any map slot, simultaniously, without needing to map
-   anything twice or more, unecessarily. This means that a map slot indedx was required for Matrix Switches, whereby the map slot index values ARE aligned with Matrix Switches, and the values within the Index, point to user defined Map Slots.
+   of using the mapped value in a Matrix Switch Function as a comparitor, and or [2] with the intention to use the mapped value as an Output Value. Map slots are not aligned with Matrix Switch slots, so that multiple Matrix Switches and or Output values can utilize any map slot, simultaniously, without needing to map anything twice or more, unecessarily. This means that a map slot indedx was required for Matrix Switches, whereby the map slot index values ARE aligned with Matrix Switches, and the values within the Index, point to user defined Map Slots.
 3. **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
 from real (dynamic) sensor data and or can be individually specified by the user (static). This allows
 for various options and scenarios like running as a station, simulation, and or where dynamically updating
