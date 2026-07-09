@@ -12,8 +12,8 @@ SatIO is a Value Hive & Programmable Switch, for building devices with and or on
 
 **The Hive** — SatIO creates and stores sensory data and extrapolated sensor data, that can be used by SatIO to switch I/O via programmable compounds of logic, and or can be simply passed out over serial for another device to read.
 
-**The Matrix** — This is a scalable, programmable switch that utilizes values from across the Hive, to perform calculations that result in either true or false. High/Low output is determined by the result. Devices built on top of SatIO can be distinguished by their matrix configurations, being different devices for different applications, and similar in that each of them are running on and or with SatIO.
-The switches can be used for, digital output, analog output, mapped output. For driving a peripheral, providing a peripheral with event triggers, or simply lighting up an led. With an ATMEGA2560 as the output controller, there are up to +-60 programmable matrix switches available, that's +-60 pins for SatIO to drive, through the programmable matrix logic.
+**The Matrix** — This is a scalable, programmable switch that utilizes values from across the Hive, to perform calculations that result in either true or false. High/Low output is determined by the result. Devices built on top of SatIO can be distinguished by their matrix configurations, being different devices for different applications, and similar in that each of them is running on and or with SatIO.
+The switches can be used for, digital output, analog output, mapped output. For driving a peripheral, providing a peripheral with event triggers, or simply lighting up a led. With an ATMEGA2560 as the output controller, there are up to +-60 programmable matrix switches available, that's +-60 pins for SatIO to drive, through the programmable matrix logic.
 
 ### Philosophy
 
@@ -22,7 +22,10 @@ The switches can be used for, digital output, analog output, mapped output. For 
 - The Matrix utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
    logic whereby any value in the system can be compared to any other value in the system and or comapred to a user defined
    value. The comaprisons use some basic operators, <>==, and in range. Every value in the matrix is treated as a double
-   and there are around 120 system values that can be used in the matrix as 'matrix functions'. Each matrix function accepts function values as X,Y,Z,, that are also stored in a matrix (See usage below for more matrix programmability). This means that the Matrix combinational potential is considerably high, and all possible combinations and all possible reasonings for any given combination may be impossible for one person to ever know or comprehend. The matrix is the core of SatIO and SatIO's potential, it makes SatIO a computer, however it does not make SatIO Turing Complete.
+   and there are around 120 system values that can be used in the matrix as 'matrix functions'. Each matrix function accepts function values as X,Y,Z, that are also stored in a matrix (See usage below for more matrix programmability options). This means that the Matrix combinational potential is considerably high, and all possible combinations and all possible reasonings for any given combination may be impossible for one person to ever know or comprehend. The matrix is the core of SatIO and SatIO's potential, it makes SatIO a computer, however it does not make SatIO Turing Complete.
+   Each Matrix Switch can hold more than one Matrix Function, all of which must result in true, in order to switch, and locic can run in an inverted mode, that inverts
+   Matrix Function return boolean. Switches can be linked to other switches by using a special Matrix Function called Switch Link, which allows logic to be stacked
+   accross switches and again inverted and or further gated, using the same or different output port. All Matrix Switches have programmable output ports and are -1 by default. Logic can be modulated up to int64_max, for PWM on a co-processor that strictly handles I/O and modulation.
 -  Computer Assist is automation, and takes control over a specified output port according to how the matrix switch for that port is configured.
 -  Computer intention provides insight into what the computer has calcualted. Weather or not Computer Assist is enabled, Computer intention is
    visible for every switch, allowing a user or other system to see what the computer wants to do, if Computer Assist is enabled. Computer Assist
@@ -455,3 +458,5 @@ help
 ---
 
 **Zip:** [drive.google.com/.../SatIO](https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=drive_link)
+
+
