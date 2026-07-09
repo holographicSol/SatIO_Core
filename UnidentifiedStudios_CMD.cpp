@@ -3516,56 +3516,52 @@ void outputStat(void) {
     //                                                                                                              PRINT CLOCKS
     // ----------------------------------------------------------------------------------------------------------------------------
     printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf(STAT_LABEL_FMT "%llu\n", "Timestamp (uS)", SatIOData.systemTime.unixtime_uS);
+    printf(STAT_LABEL_FMT "%llu\n", "Timestamp (unix uS)",  SatIOData.systemTime.unixtime_uS);
     printf(STAT_LABEL_FMT "%s %s syn=%s\n", "GPS Time",     SatIOData.GPSTime.padded_time_HHMMSS,            SatIOData.GPSTime.padded_date_DDMMYY,            SatIOData.GPSTime.sync_padded_time_HHMMSS);
     printf(STAT_LABEL_FMT "%s %s syn=%s\n", "System Time",  SatIOData.systemTime.padded_time_HHMMSS,         SatIOData.systemTime.padded_date_DDMMYY,         SatIOData.systemTime.sync_padded_time_HHMMSS);
     printf(STAT_LABEL_FMT "%s %s syn=%s\n", "Local Time",   SatIOData.localTime.padded_time_HHMMSS,          SatIOData.localTime.padded_date_DDMMYY,          SatIOData.localTime.sync_padded_time_HHMMSS);
     printf(STAT_LABEL_FMT "%s %s syn=%s\n", "LMST",         SatIOData.localMeanSolarTime.padded_time_HHMMSS, SatIOData.localMeanSolarTime.padded_date_DDMMYY, SatIOData.localMeanSolarTime.sync_padded_time_HHMMSS);
     printf(STAT_LABEL_FMT "%f\n", "LST", siderealExtraData.local_sidereal_time);
-
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                         PRINT TASK RATES (Hz)
-    // ----------------------------------------------------------------------------------------------------------------------------
-    printf(STAT_LABEL_FMT "%ld\n",   "Loop Rate",     systemData.total_loops_a_second);
-    printf(STAT_LABEL_FMT "%ldHz\n", "System Timing", systemData.counters_st.task_freq_t);
+    printf(STAT_LABEL_FMT "%s\n", "PowerConfig", pwrConfigCurrent.name);
     printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf("%-22s%-12s%-12s\n", "", "Function(Hz)", "Task(Hz)         (hit rate within current task Hz ceiling)");
+    printf("%-25s%-12s%-12s\n", "", "Func (Hz) /", "Task (Hz)");
     printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPS",      systemData.counters_gps.task_ffreq_t,              systemData.counters_gps.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Gyro0",    systemData.counters_gyr0.task_ffreq_t,             systemData.counters_gyr0.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "INS",      systemData.counters_ins.task_ffreq_t,              systemData.counters_gyr0.task_freq_t); // INS runs inside the Gyro0 task
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex0",   systemData.counters_mplex0.task_ffreq_t,           systemData.counters_mplex0.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex1",   systemData.counters_mplex1.task_ffreq_t,           systemData.counters_mplex1.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPIOPE",      systemData.counters_gpiope0.task_ffreq_t,              systemData.counters_gpiope0.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Uni",      systemData.counters_uni.task_ffreq_t,              systemData.counters_uni.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Matrix",   systemData.counters_mtx.task_ffreq_t,              systemData.counters_mtx.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "PCO",      systemData.counters_pco.task_ffreq_t,              systemData.counters_mtx.task_freq_t); // PCO runs inside the Matrix task
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Display",  systemData.counters_dsp.task_ffreq_t,              systemData.counters_dsp.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "SatIO Tx", systemData.counters_SatIO_serial_tx.task_ffreq_t,  systemData.counters_SatIO_serial_tx.task_freq_t);
+    printf(STAT_LABEL_FMT "%ld\n", "System Timing", systemData.counters_st.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPS",           systemData.counters_gps.task_ffreq_t,              systemData.counters_gps.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Gyro0",         systemData.counters_gyr0.task_ffreq_t,             systemData.counters_gyr0.task_freq_t);
+    // printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "INS",        systemData.counters_ins.task_ffreq_t,              systemData.counters_gyr0.task_freq_t); // INS runs inside the Gyro0 task
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex0",        systemData.counters_mplex0.task_ffreq_t,           systemData.counters_mplex0.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex1",        systemData.counters_mplex1.task_ffreq_t,           systemData.counters_mplex1.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Universe",      systemData.counters_uni.task_ffreq_t,              systemData.counters_uni.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPIOPE In",     systemData.counters_gpiope0.task_ffreq_t,          systemData.counters_gpiope0.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Matrix",        systemData.counters_mtx.task_ffreq_t,              systemData.counters_mtx.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPIOPE Out",    systemData.counters_pco.task_ffreq_t,              systemData.counters_mtx.task_freq_t); // PCO runs inside the Matrix task
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Display",       systemData.counters_dsp.task_ffreq_t,              systemData.counters_dsp.task_freq_t);
+    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "SatIO Tx",      systemData.counters_SatIO_serial_tx.task_ffreq_t,  systemData.counters_SatIO_serial_tx.task_freq_t);
 
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                    PRINT POSITION / TARGET
     // ----------------------------------------------------------------------------------------------------------------------------
     printf(STAT_LABEL_FMT "%s\n", "Satellites", gnggaData.satellite_count);
-    printf(STAT_LABEL_FMT "lat=%.7f  lon=%.7f\n", "Position (deg)",   SatIOData.degrees_latitude,        SatIOData.degrees_longitude);
-    printf(STAT_LABEL_FMT "lat=%.7f  lon=%.7f\n", "User Position",    SatIOData.user_degrees_latitude,   SatIOData.user_degrees_longitude);
-    printf(STAT_LABEL_FMT "lat=%.7f  lon=%.7f\n", "System Position",  SatIOData.system_degrees_latitude, SatIOData.system_degrees_longitude);
-    printf(STAT_LABEL_FMT "ra=%s  dec=%s\n", "Zenith RA/Dec", siderealExtraData.local_zenith_ra_dec.formatted_ra_str, siderealExtraData.local_zenith_ra_dec.formatted_dec_str);
-    printf(STAT_LABEL_FMT "ra=%s  dec=%s\n", "Gyro0 RA/Dec",  siderealExtraData.gyro_0_ra_dec.formatted_ra_str,       siderealExtraData.gyro_0_ra_dec.formatted_dec_str);
+    printf(STAT_LABEL_FMT "Lat=%.7f  Lon=%.7f\n", "Position (deg)",   SatIOData.degrees_latitude,        SatIOData.degrees_longitude);
+    printf(STAT_LABEL_FMT "Lat=%.7f  Lon=%.7f\n", "User Position",    SatIOData.user_degrees_latitude,   SatIOData.user_degrees_longitude);
+    printf(STAT_LABEL_FMT "Lat=%.7f  Lon=%.7f\n", "System Position",  SatIOData.system_degrees_latitude, SatIOData.system_degrees_longitude);
+    printf(STAT_LABEL_FMT "RA=%s     Dec=%s\n",   "Zenith RA/Dec", siderealExtraData.local_zenith_ra_dec.formatted_ra_str, siderealExtraData.local_zenith_ra_dec.formatted_dec_str);
+    printf(STAT_LABEL_FMT "RA=%s     Dec=%s\n",   "Gyro0 RA/Dec",  siderealExtraData.gyro_0_ra_dec.formatted_ra_str,       siderealExtraData.gyro_0_ra_dec.formatted_dec_str);
     printf(STAT_LABEL_FMT "alt=%.2f  hdg=%.2f  spd=%.2f\n", "Alt/Heading/Speed", SatIOData.altitude, SatIOData.ground_heading, SatIOData.speed);
 
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                 PRINT ORIENTATION / SENSORS
     // ----------------------------------------------------------------------------------------------------------------------------
     printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf("%-22s%-12s%-12s%-12s\n", "", "X", "Y", "Z");
+    printf("%-25s%-12s%-12s%-12s\n", "", "X", "Y", "Z");
     printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_F STAT_COL_FORMAT_F STAT_COL_FORMAT_F "\n", "Angle (deg)",   gyroData.gyro_0_ang_x, gyroData.gyro_0_ang_y, gyroData.gyro_0_ang_z);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_F STAT_COL_FORMAT_F STAT_COL_FORMAT_F "\n", "Gyro (deg/s)",  gyroData.gyro_0_gyr_x, gyroData.gyro_0_gyr_y, gyroData.gyro_0_gyr_z);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_F STAT_COL_FORMAT_F STAT_COL_FORMAT_F "\n", "Accel (g)",     gyroData.gyro_0_acc_x, gyroData.gyro_0_acc_y, gyroData.gyro_0_acc_z);
     printf(STAT_LABEL_FMT STAT_COL_FORMAT_D STAT_COL_FORMAT_D STAT_COL_FORMAT_D "\n", "Mag",           gyroData.gyro_0_mag_x, gyroData.gyro_0_mag_y, gyroData.gyro_0_mag_z);
-
-    printf(STAT_LABEL_FMT "%s\n", "PowerConfig", pwrConfigCurrent.name);
     // }
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                             PRINT PER-CHANNEL MULTIPLEXER Hz
@@ -3608,7 +3604,7 @@ void outputStat(void) {
             printf("                      ");
             printSwitchIndexHeader(page_start, page_end);
             printStatSeparator(gpioe_full_page_start, gpioe_full_page_end);
-            printf("GPIOPE Pin Hz         :  ");
+            printf("GPIOPE In Channel Hz  :  ");
             for (int i=page_start; i<page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_gpioe_chan[i].task_ffreq_t);}
             printf("\n");
         }
