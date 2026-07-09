@@ -19,6 +19,12 @@ The switches can be used for, digital output, analog output, mapped output. For 
 
 1. **Value Creation** — Safety, Stability, Accuracy. As SatIO develops, so should value creation, leading to safer, more accurate values in the hive over time. This can create a desirable improvement curve where in contrast, building a system from scratch every new project, has the potential to reintroduce bugs and 're-solve' the same problems. As SatIO develops, so does any system built on top of SatIO. Value creation should ideally be both read and write to and from the Hive.
 2. **Value Utilization** — The Matrix utilizes the values to switch output high/low and or analog. Serial output also utilizes the values by handing the values out to other devices on a bus. Value utilization should ideally only ever read from the Hive.
+3. **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
+from real (dynamic) sensor data and or can be individually specified by the user (static). This allows
+for various options and scenarios like running as a station, simulation, and or where dynamically updating
+the system values is not an option, like for example if there is no GPS. The system always uses system values,
+and the system values are set according to a values mode: GPS, Gyro, User. This means that calculations
+(like many calculations in the Universe task for example) that depend on certain values, can still function correctly, if the correct values are input manually and or automated input from another system.
 
 ### Matrix Philosophy
 
@@ -401,7 +407,7 @@ stat --sentence --gngga     Takes arguments -e, -d.
 stat --sentence --gnrmc     Takes arguments -e, -d.
 stat --sentence --gpatt     Takes arguments -e, -d.
 stat --sentence --matrix    Takes arguments -e, -d.
-stat --sentence --pcinput   Takes arguments -e, -d.
+stat --sentence --gpiope0nput   Takes arguments -e, -d.
 stat --sentence --admplex0  Takes arguments -e, -d.
 stat --sentence --gyro0     Takes arguments -e, -d.
 stat --sentence --sun       Takes arguments -e, -d.
