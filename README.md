@@ -18,7 +18,16 @@ The switches can be used for, digital output, analog output, mapped output. For 
 ### Philosophy
 
 1. **Value Creation** — Safety, Stability, Accuracy. As SatIO develops, so should value creation, leading to safer, more accurate values in the hive over time. This can create a desirable improvement curve where in contrast, building a system from scratch every new project, has the potential to reintroduce bugs and 're-solve' the same problems. As SatIO develops, so does any system built on top of SatIO. Value creation should ideally be both read and write to and from the Hive.
-2. **Value Utilization** — The Matrix utilizes the values to switch output high/low and or analog. Serial output also utilizes the values by handing the values out to other devices on a bus. Value utilization should ideally only ever read from the Hive.
+2. **Value Utilization** 
+- The Matrix utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
+   logic whereby any value in the system can be compared to any other value in the system and or comapred to a user defined
+   value. The comaprisons use some basic operators, <>==, and in range. Every value in the matrix is treated as a double
+   and there are around 120 system values that can be used in the matrix as 'matrix functions'. Each matrix function accepts function values as X,Y,Z,, that are also stored in a matrix (See usage below for more matrix programmability). This means that the Matrix combinational potential is considerably high, and all possible combinations and all possible reasonings for any given combination may be impossible for one person to ever know or comprehend. The matrix is the core of SatIO and SatIO's potential, it makes SatIO a computer, however it does not make SatIO Turing Complete.
+-  Computer Assist is automation, and takes control over a specified output port according to how the matrix switch for that port is configured.
+-  Computer intention provides insight into what the computer has calcualted. Weather or not Computer Assist is enabled, Computer intention is
+   visible for every switch, allowing a user or other system to see what the computer wants to do, if Computer Assist is enabled. Computer Assist
+   can be enabled at any point for any switch, before and or during Computer Intent true/false.
+-  Switch Intention is set according to Computer Intention, providing Computer Assist is enabled, for the same switch.
 3. **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
 from real (dynamic) sensor data and or can be individually specified by the user (static). This allows
 for various options and scenarios like running as a station, simulation, and or where dynamically updating
