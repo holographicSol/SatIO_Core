@@ -65,6 +65,6 @@ void setup() {
 
 void loop() {
   #ifdef GPIOPE_WRITE_MODE
-  modulator(&GPIOPortExpander_SLAVE); // for output: uncomment if required
+  modulator(); // for output: uncomment if required
   #endif
 }
