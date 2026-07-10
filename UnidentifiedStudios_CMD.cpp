@@ -508,6 +508,11 @@ static void PrintHelp(void) {
       SatIO --ground-heading-value-mode-user   User user defined ground heading.
       SatIO --set-ground-heading               Set ground heading in degrees.
 
+      [ RA/Dec ]
+      SatIO --ra-dec-value-mode-gyro           Use gyro-derived RA/Dec.
+      SatIO --ra-dec-value-mode-user           Use user defined RA/Dec target.
+      SatIO --set-ra-dec --ra-h n --ra-m n --ra-s n --dec-d n --dec-m n --dec-s n  Set user RA/Dec target (ra-h 0-23, dec-d -90 to 90).
+
   [ Gyro ]
 
       gyro --calacc        Callibrate the accelerometer.
@@ -654,7 +659,6 @@ static void PrintMatrixNData(int matrix_index) {
       matrixData.output_pwm[0][matrix_index][0],
       matrixData.output_pwm[0][matrix_index][1]);
     printf("[port] %d\n", matrixData.matrix_port_map[0][matrix_index]);
-    printf("[opca] %d\n", matrixData.output_portcontroller_address[0][matrix_index]);
     printf("[active] %d\n", matrixData.switch_intention[0][matrix_index]);
     printf("-----------------------------------------------------\n");
     for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
@@ -974,6 +978,23 @@ void setSpeed(double speed) {
 void setGroundHeading(double heading) {
   if (heading>=-360.0 && heading<=360.0 && isnan(heading)==false) {
     SatIOData.user_ground_heading=heading;
+  }
+}
+
+void setRaDec(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s) {
+  if (ra_h>=0 && ra_h<24 && ra_m>=0 && ra_m<60 && ra_s>=0.0f && ra_s<60.0f &&
+      dec_d>=-90 && dec_d<=90 && dec_m>=0 && dec_m<60 && dec_s>=0.0f && dec_s<60.0f) {
+    SatIOData.user_ra_dec.ra_h = ra_h;
+    SatIOData.user_ra_dec.ra_m = ra_m;
+    SatIOData.user_ra_dec.ra_s = ra_s;
+    SatIOData.user_ra_dec.dec_d = dec_d;
+    SatIOData.user_ra_dec.dec_m = dec_m;
+    SatIOData.user_ra_dec.dec_s = dec_s;
+
+    snprintf(SatIOData.user_ra_dec.formatted_ra_str,  sizeof(SatIOData.user_ra_dec.formatted_ra_str),  "%02d:%02d:%02.2f",  ra_h,  ra_m,  ra_s);
+    snprintf(SatIOData.user_ra_dec.formatted_dec_str, sizeof(SatIOData.user_ra_dec.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
+    snprintf(SatIOData.user_ra_dec.padded_ra_str,     sizeof(SatIOData.user_ra_dec.padded_ra_str),     "%02d%02d%02.2f",    ra_h,  ra_m,  ra_s);
+    snprintf(SatIOData.user_ra_dec.padded_dec_str,    sizeof(SatIOData.user_ra_dec.padded_dec_str),    "%+02d%02d%02.2f",   dec_d, dec_m, dec_s);
   }
 }
 
@@ -1312,6 +1333,17 @@ void CmdProcess(void) {
           }
           if (argparser_has_flag(&parser, "ground-heading-value-mode-gps") == true) {SatIOData.ground_heading_value_mode=SATIO_MODE_GPS;}
           if (argparser_has_flag(&parser, "ground-heading-value-mode-user") == true) {SatIOData.ground_heading_value_mode=SATIO_MODE_USER;}
+          // ra/dec
+          if (argparser_has_flag(&parser, "set-ra-dec") == true) {
+            setRaDec(argparser_get_int8(&parser, "ra-h", -1),
+                     argparser_get_int8(&parser, "ra-m", -1),
+                     argparser_get_float(&parser, "ra-s", -1.0f),
+                     argparser_get_int8(&parser, "dec-d", -1),
+                     argparser_get_int8(&parser, "dec-m", -1),
+                     argparser_get_float(&parser, "dec-s", -1.0f));
+          }
+          if (argparser_has_flag(&parser, "ra-dec-value-mode-gyro") == true) {SatIOData.ra_dec_value_mode=SATIO_MODE_GYRO;}
+          if (argparser_has_flag(&parser, "ra-dec-value-mode-user") == true) {SatIOData.ra_dec_value_mode=SATIO_MODE_USER;}
         }
         // gyro
         else if (strcmp(pos[0], "gyro")==0) {
@@ -1867,7 +1899,6 @@ void outputSerialMatrix(void) {
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.index_mapped_value[0][i_output_config_matrix])+",").c_str());
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.computer_assist[0][i_output_config_matrix])+",").c_str());
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.matrix_port_map[0][i_output_config_matrix])+",").c_str());
-        serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_portcontroller_address[0][i_output_config_matrix])+",").c_str());
         // serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.switch_intention[0][i_output_config_matrix])+",").c_str());
         // serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.computer_intention[0][i_output_config_matrix])+",").c_str());
         // serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_value[0][i_output_config_matrix])+",").c_str());
@@ -3485,6 +3516,19 @@ void outputSerialGPIOPEnput(void) {
 #define STAT_COL_WIDTH 12
 #define STAT_LABEL_WIDTH 22 // width of labels such as "Computer Assist    :  "
 #define STAT_LABEL_FMT "%-22s:  " // keep field width in sync with STAT_LABEL_WIDTH
+#define STAT_LABEL_BLANK_FMT "%-25s" // header/blank-label version of STAT_LABEL_FMT (same total width, no colon)
+#define STAT_WIDE_COL_WIDTH 16 // wide enough for the longest column label ("System Timing")
+#define STAT_WIDE_COL_FORMAT_S  "%-16s"
+#define STAT_WIDE_COL_FORMAT_LD "%-16ld"
+#define STAT_WIDE_COL_FORMAT_F  "%-16.7f"
+#define STAT_GYRO_COL_WIDTH 30 // wide enough for the longest header ("Angle (XZ=+/-180 Y=+/-90deg)")
+#define STAT_GYRO_COL_FORMAT_S  "%-30s"
+#define STAT_GYRO_COL_FORMAT_F  "%-30.2f"
+#define STAT_GYRO_COL_FORMAT_LD "%-30ld"
+// Every table in outputStat() shares one separator width: the widest table
+// (the GPIOPE/Computer Assist paged channel dumps, STAT_SWITCHES_PER_PAGE
+// columns wide) sets the width for every horizontal rule, not just its own.
+#define STAT_SEPARATOR_WIDTH (STAT_LABEL_WIDTH + (STAT_SWITCHES_PER_PAGE * STAT_COL_WIDTH))
 
 void printArray(signed long arr[], int start, int end) {
     for (int i = start; i < end; i++) {
@@ -3499,15 +3543,40 @@ static void printSwitchIndexHeader(int start, int end) {
 }
 
 /*
- * Prints a dashed rule sized to match the page's actual table width
- * (label column plus one STAT_COL_WIDTH-wide column per switch in
- * [start, end)) instead of a separately maintained fixed-length string.
+ * Prints a dashed rule STAT_SEPARATOR_WIDTH wide -- the same width
+ * everywhere in outputStat(), regardless of which table it separates.
  */
-static void printStatSeparator(int start, int end) {
-    int width = STAT_LABEL_WIDTH + ((end - start) * STAT_COL_WIDTH);
-
-    for (int i = 0; i < width; i++) {putchar('-');}
+static void printStatSeparator(void) {
+    for (int i = 0; i < STAT_SEPARATOR_WIDTH; i++) {putchar('-');}
     putchar('\n');
+}
+
+/*
+ * Prints the separator/index-header/separator block shared by every paged
+ * switch/channel table, labeling [page_start, page_end).
+ */
+static void printStatPageHeader(int page_start, int page_end) {
+    printStatSeparator();
+    printf(STAT_LABEL_BLANK_FMT, "");
+    printSwitchIndexHeader(page_start, page_end);
+    printStatSeparator();
+}
+
+/*
+ * Prints one paginated "<label>:  v0 v1 v2 ..." table of task_ffreq_t values
+ * for an array of per-channel/per-pin counters, paging in
+ * STAT_SWITCHES_PER_PAGE-wide chunks. Shared by the ADMPlex and GPIOPE Hz
+ * dumps so their paging logic lives in one place.
+ */
+static void printStatChannelHzTable(const char* label, const SystemConuters* counters, int count) {
+    for (int page_start = 0; page_start < count; page_start += STAT_SWITCHES_PER_PAGE) {
+        int page_end = page_start + STAT_SWITCHES_PER_PAGE;
+        if (page_end > count) {page_end = count;}
+        printStatPageHeader(page_start, page_end);
+        printf(STAT_LABEL_FMT, label);
+        for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)counters[i].task_ffreq_t);}
+        printf("\n");
+    }
 }
 
 void outputStat(void) {
@@ -3515,100 +3584,173 @@ void outputStat(void) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                              PRINT CLOCKS
     // ----------------------------------------------------------------------------------------------------------------------------
-    printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
     printf(STAT_LABEL_FMT "%llu\n", "Timestamp (unix uS)",  SatIOData.systemTime.unixtime_uS);
-    printf(STAT_LABEL_FMT "%s %s syn=%s\n", "GPS Time",     SatIOData.GPSTime.padded_time_HHMMSS,            SatIOData.GPSTime.padded_date_DDMMYY,            SatIOData.GPSTime.sync_padded_time_HHMMSS);
-    printf(STAT_LABEL_FMT "%s %s syn=%s\n", "System Time",  SatIOData.systemTime.padded_time_HHMMSS,         SatIOData.systemTime.padded_date_DDMMYY,         SatIOData.systemTime.sync_padded_time_HHMMSS);
-    printf(STAT_LABEL_FMT "%s %s syn=%s\n", "Local Time",   SatIOData.localTime.padded_time_HHMMSS,          SatIOData.localTime.padded_date_DDMMYY,          SatIOData.localTime.sync_padded_time_HHMMSS);
-    printf(STAT_LABEL_FMT "%s %s syn=%s\n", "LMST",         SatIOData.localMeanSolarTime.padded_time_HHMMSS, SatIOData.localMeanSolarTime.padded_date_DDMMYY, SatIOData.localMeanSolarTime.sync_padded_time_HHMMSS);
-    printf(STAT_LABEL_FMT "%f\n", "LST", siderealExtraData.local_sidereal_time);
+    {
+        struct StatTimeDomain { const char* label; const SatIOTimeData* t; };
+        const StatTimeDomain domains[] = {
+            {"GPS",    &SatIOData.GPSTime},
+            {"System", &SatIOData.systemTime},
+            {"Local",  &SatIOData.localTime},
+            {"LMST",   &SatIOData.localMeanSolarTime},
+            {"LST",    &SatIOData.localSiderealTime},
+        };
+        const int numDomains = sizeof(domains) / sizeof(domains[0]);
+
+        printStatSeparator();
+        printf(STAT_LABEL_BLANK_FMT, "");
+        for (int i = 0; i < numDomains; i++) {printf(STAT_WIDE_COL_FORMAT_S, domains[i].label);}
+        printf("\n");
+        printStatSeparator();
+        printf(STAT_LABEL_FMT, "Time");
+        for (int i = 0; i < numDomains; i++) {printf(STAT_WIDE_COL_FORMAT_S, domains[i].t->padded_time_HHMMSS);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Date");
+        for (int i = 0; i < numDomains; i++) {printf(STAT_WIDE_COL_FORMAT_S, domains[i].t->padded_date_DDMMYY);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Sync");
+        for (int i = 0; i < numDomains; i++) {printf(STAT_WIDE_COL_FORMAT_S, domains[i].t->sync_padded_time_HHMMSS);}
+        printf("\n");
+    }
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                         PRINT TASK RATES (Hz)
     printf(STAT_LABEL_FMT "%s\n", "PowerConfig", pwrConfigCurrent.name);
-    printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf("%-25s%-12s%-12s\n", "", "Func (Hz) /", "Task (Hz)");
-    printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf(STAT_LABEL_FMT "%ld\n", "System Timing", systemData.counters_st.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPS",           systemData.counters_gps.task_ffreq_t,              systemData.counters_gps.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Gyro0",         systemData.counters_gyr0.task_ffreq_t,             systemData.counters_gyr0.task_freq_t);
-    // printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "INS",        systemData.counters_ins.task_ffreq_t,              systemData.counters_gyr0.task_freq_t); // INS runs inside the Gyro0 task
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex0",        systemData.counters_mplex0.task_ffreq_t,           systemData.counters_mplex0.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Mplex1",        systemData.counters_mplex1.task_ffreq_t,           systemData.counters_mplex1.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Universe",      systemData.counters_uni.task_ffreq_t,              systemData.counters_uni.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPIOPE In",     systemData.counters_gpiope0.task_ffreq_t,          systemData.counters_gpiope0.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Matrix",        systemData.counters_mtx.task_ffreq_t,              systemData.counters_mtx.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "GPIOPE Out",    systemData.counters_pco.task_ffreq_t,              systemData.counters_mtx.task_freq_t); // PCO runs inside the Matrix task
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "Display",       systemData.counters_dsp.task_ffreq_t,              systemData.counters_dsp.task_freq_t);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_LD STAT_COL_FORMAT_LD "\n", "SatIO Tx",      systemData.counters_SatIO_serial_tx.task_ffreq_t,  systemData.counters_SatIO_serial_tx.task_freq_t);
+    {
+        struct StatRatePair { const char* label; long ffreq; long freq; };
+        const StatRatePair rates[] = {
+            {"System Timing",  systemData.counters_st.task_ffreq_t,              systemData.counters_st.task_freq_t},
+            {"GPS",            systemData.counters_gps.task_ffreq_t,             systemData.counters_gps.task_freq_t},
+            {"Gyro0",          systemData.counters_gyr0.task_ffreq_t,            systemData.counters_gyr0.task_freq_t},
+            // {"INS",         systemData.counters_ins.task_ffreq_t,             systemData.counters_gyr0.task_freq_t}, // INS runs inside the Gyro0 task
+            {"Mplex0",         systemData.counters_mplex0.task_ffreq_t,          systemData.counters_mplex0.task_freq_t},
+            {"Mplex1",         systemData.counters_mplex1.task_ffreq_t,          systemData.counters_mplex1.task_freq_t},
+            {"Universe",       systemData.counters_uni.task_ffreq_t,             systemData.counters_uni.task_freq_t},
+            {"GPIOPE In",      systemData.counters_gpiope0.task_ffreq_t,         systemData.counters_gpiope0.task_freq_t},
+            {"Matrix",         systemData.counters_mtx.task_ffreq_t,             systemData.counters_mtx.task_freq_t},
+            {"GPIOPE Out",     systemData.counters_pco.task_ffreq_t,             systemData.counters_mtx.task_freq_t}, // PCO runs inside the Matrix task
+            {"Display",        systemData.counters_dsp.task_ffreq_t,             systemData.counters_dsp.task_freq_t},
+            {"SatIO Tx",       systemData.counters_SatIO_serial_tx.task_ffreq_t, systemData.counters_SatIO_serial_tx.task_freq_t},
+        };
+        const int numRates = sizeof(rates) / sizeof(rates[0]);
+
+        printStatSeparator();
+        printf(STAT_LABEL_BLANK_FMT, "");
+        for (int i = 0; i < numRates; i++) {printf(STAT_WIDE_COL_FORMAT_S, rates[i].label);}
+        printf("\n");
+        printStatSeparator();
+        printf(STAT_LABEL_FMT, "Function Hz");
+        for (int i = 0; i < numRates; i++) {printf(STAT_WIDE_COL_FORMAT_LD, rates[i].ffreq);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Task Hz");
+        for (int i = 0; i < numRates; i++) {printf(STAT_WIDE_COL_FORMAT_LD, rates[i].freq);}
+        printf("\n");
+    }
 
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                    PRINT POSITION / TARGET
     // ----------------------------------------------------------------------------------------------------------------------------
+    printStatSeparator();
+    // satellites, precision factor,
     printf(STAT_LABEL_FMT "%s\n", "Satellites", gnggaData.satellite_count);
-    printf(STAT_LABEL_FMT "Lat=%.7f  Lon=%.7f\n", "Position (deg)",   SatIOData.degrees_latitude,        SatIOData.degrees_longitude);
-    printf(STAT_LABEL_FMT "Lat=%.7f  Lon=%.7f\n", "User Position",    SatIOData.user_degrees_latitude,   SatIOData.user_degrees_longitude);
-    printf(STAT_LABEL_FMT "Lat=%.7f  Lon=%.7f\n", "System Position",  SatIOData.system_degrees_latitude, SatIOData.system_degrees_longitude);
-    printf(STAT_LABEL_FMT "RA=%s     Dec=%s\n",   "Zenith RA/Dec", siderealExtraData.local_zenith_ra_dec.formatted_ra_str, siderealExtraData.local_zenith_ra_dec.formatted_dec_str);
-    printf(STAT_LABEL_FMT "RA=%s     Dec=%s\n",   "Gyro0 RA/Dec",  siderealExtraData.gyro_0_ra_dec.formatted_ra_str,       siderealExtraData.gyro_0_ra_dec.formatted_dec_str);
-    printf(STAT_LABEL_FMT "alt=%.2f  hdg=%.2f  spd=%.2f\n", "Alt/Heading/Speed", SatIOData.altitude, SatIOData.ground_heading, SatIOData.speed);
+    
+    // location
+    {
+        struct StatPosSource { const char* label; double lat; double lon; double heading; double altitude; double speed; };
+        const StatPosSource sources[] = {
+            {"GPS",    SatIOData.degrees_latitude,        SatIOData.degrees_longitude,        SatIOData.ground_heading,        SatIOData.altitude,        SatIOData.speed},
+            {"User",   SatIOData.user_degrees_latitude,   SatIOData.user_degrees_longitude,   SatIOData.user_ground_heading,   SatIOData.user_altitude,   SatIOData.user_speed},
+            {"System", SatIOData.system_degrees_latitude, SatIOData.system_degrees_longitude, SatIOData.system_ground_heading, SatIOData.system_altitude, SatIOData.system_speed},
+        };
+        const int numSources = sizeof(sources) / sizeof(sources[0]);
+        const char* columns[] = {"Latitude", "Longitude", "Heading", "Altitude", "Speed"};
+        const int numColumns = sizeof(columns) / sizeof(columns[0]);
+
+        printStatSeparator();
+        printf(STAT_LABEL_BLANK_FMT, "");
+        for (int i = 0; i < numColumns; i++) {printf(STAT_WIDE_COL_FORMAT_S, columns[i]);}
+        printf("\n");
+        printStatSeparator();
+        for (int i = 0; i < numSources; i++) {
+            printf(STAT_LABEL_FMT, sources[i].label);
+            printf(STAT_WIDE_COL_FORMAT_F, sources[i].lat);
+            printf(STAT_WIDE_COL_FORMAT_F, sources[i].lon);
+            printf(STAT_WIDE_COL_FORMAT_F, sources[i].heading);
+            printf(STAT_WIDE_COL_FORMAT_F, sources[i].altitude);
+            printf(STAT_WIDE_COL_FORMAT_F, sources[i].speed);
+            printf("\n");
+        }
+    }
+    /**
+     * Clestial Sphere Attitude.
+     * Observe if absolute local zenith RA Dec must always be correct.
+     * Observe if level, upright gyro RA Dec are accurate to absolute local zenith RA Dec.
+     */
+    {
+        struct StatRaDecSource { const char* label; const char* ra; const char* dec; };
+        const StatRaDecSource sources[] = {
+            {"Zenith", siderealExtraData.local_zenith_ra_dec.formatted_ra_str, siderealExtraData.local_zenith_ra_dec.formatted_dec_str},
+            {"Gyro",   siderealExtraData.gyro_0_ra_dec.formatted_ra_str,       siderealExtraData.gyro_0_ra_dec.formatted_dec_str},
+            {"User",   SatIOData.user_ra_dec.formatted_ra_str,                 SatIOData.user_ra_dec.formatted_dec_str},
+            {"System", SatIOData.system_ra_dec.formatted_ra_str,               SatIOData.system_ra_dec.formatted_dec_str},
+        };
+        const int numSources = sizeof(sources) / sizeof(sources[0]);
+
+        printStatSeparator();
+        printf(STAT_LABEL_BLANK_FMT, "");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_S, sources[i].label);}
+        printf("\n");
+        printStatSeparator();
+        printf(STAT_LABEL_FMT, "RA");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_S, sources[i].ra);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Dec");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_S, sources[i].dec);}
+        printf("\n");
+    }
 
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                 PRINT ORIENTATION / SENSORS
     // ----------------------------------------------------------------------------------------------------------------------------
-    printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf("%-25s%-12s%-12s%-12s\n", "", "X", "Y", "Z");
-    printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_F STAT_COL_FORMAT_F STAT_COL_FORMAT_F "\n", "Angle (deg)",   gyroData.gyro_0_ang_x, gyroData.gyro_0_ang_y, gyroData.gyro_0_ang_z);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_F STAT_COL_FORMAT_F STAT_COL_FORMAT_F "\n", "Gyro (deg/s)",  gyroData.gyro_0_gyr_x, gyroData.gyro_0_gyr_y, gyroData.gyro_0_gyr_z);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_F STAT_COL_FORMAT_F STAT_COL_FORMAT_F "\n", "Accel (g)",     gyroData.gyro_0_acc_x, gyroData.gyro_0_acc_y, gyroData.gyro_0_acc_z);
-    printf(STAT_LABEL_FMT STAT_COL_FORMAT_D STAT_COL_FORMAT_D STAT_COL_FORMAT_D "\n", "Mag",           gyroData.gyro_0_mag_x, gyroData.gyro_0_mag_y, gyroData.gyro_0_mag_z);
+    {
+        struct StatGyroAxis { const char* label; float angle; float gyro; float accel; int16_t mag; };
+        const StatGyroAxis axes[] = {
+            {"X", gyroData.gyro_0_ang_x, gyroData.gyro_0_gyr_x, gyroData.gyro_0_acc_x, gyroData.gyro_0_mag_x},
+            {"Y", gyroData.gyro_0_ang_y, gyroData.gyro_0_gyr_y, gyroData.gyro_0_acc_y, gyroData.gyro_0_mag_y},
+            {"Z", gyroData.gyro_0_ang_z, gyroData.gyro_0_gyr_z, gyroData.gyro_0_acc_z, gyroData.gyro_0_mag_z},
+        };
+        const int numAxes = sizeof(axes) / sizeof(axes[0]);
+        const char* columns[] = {"Angle (XZ=+/-180 Y=+/-90deg)", "Gyro (+/-2000deg/s)", "Acceleration (+/-16 G-Force)", "Magnetometer (+/-2Gauss)"};
+        const int numColumns = sizeof(columns) / sizeof(columns[0]);
+
+        printStatSeparator();
+        printf(STAT_LABEL_BLANK_FMT, "");
+        for (int i = 0; i < numColumns; i++) {printf(STAT_GYRO_COL_FORMAT_S, columns[i]);}
+        printf("\n");
+        printStatSeparator();
+        for (int i = 0; i < numAxes; i++) {
+            printf(STAT_LABEL_FMT, axes[i].label);
+            printf(STAT_GYRO_COL_FORMAT_F, axes[i].angle);
+            printf(STAT_GYRO_COL_FORMAT_F, axes[i].gyro);
+            printf(STAT_GYRO_COL_FORMAT_F, axes[i].accel);
+            printf(STAT_GYRO_COL_FORMAT_LD, (long)axes[i].mag);
+            printf("\n");
+        }
+    }
     // }
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                             PRINT PER-CHANNEL MULTIPLEXER Hz
     // ----------------------------------------------------------------------------------------------------------------------------
     // if (systemData.output_stat_v==true) {
         #ifdef SatIO_CD74HC4067_OPTION_USE_0
-        printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        printf("                      ");
-        printSwitchIndexHeader(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        printf("ADMPlex0 Ch Hz     :  ");
-        for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_mplex0_chan[i].task_ffreq_t);}
-        printf("\n");
+        printStatChannelHzTable("ADMPlex0 Ch Hz", systemData.counters_mplex0_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
         #endif
         #ifdef SatIO_CD74HC4067_OPTION_USE_1
-        printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        printf("                      ");
-        printSwitchIndexHeader(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        printStatSeparator(0, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        printf("ADMPlex1 Ch Hz     :  ");
-        for (int i=0; i<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_mplex1_chan[i].task_ffreq_t);}
-        printf("\n");
+        printStatChannelHzTable("ADMPlex1 Ch Hz", systemData.counters_mplex1_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
         #endif
     // }
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
-    /*
-     * GPIOPE_MAX_SIZE (70) is wider than one
-     * line, so this pages the same way the matrix switch dump below does.
-     */
-    {
-        int gpioe_full_page_start = 0;
-        int gpioe_full_page_end = 0;
-        for (int page_start = 0; page_start < GPIOPE_MAX_SIZE; page_start += STAT_SWITCHES_PER_PAGE) {
-            int page_end = page_start + STAT_SWITCHES_PER_PAGE;
-            if (page_start==0) {gpioe_full_page_start=page_start; gpioe_full_page_end=page_end;} // use page zero width as longest expected width
-            if (page_end > GPIOPE_MAX_SIZE) {page_end = GPIOPE_MAX_SIZE;}
-            printStatSeparator(gpioe_full_page_start, gpioe_full_page_end);
-            printf("                      ");
-            printSwitchIndexHeader(page_start, page_end);
-            printStatSeparator(gpioe_full_page_start, gpioe_full_page_end);
-            printf("GPIOPE In Channel Hz  :  ");
-            for (int i=page_start; i<page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)systemData.counters_gpioe_chan[i].task_ffreq_t);}
-            printf("\n");
-        }
-    }
+    printStatChannelHzTable("GPIOPE In Channel Hz", systemData.counters_gpioe_chan, GPIOPE_MAX_SIZE);
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT COMPUTER ASSIST
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -3618,27 +3760,21 @@ void outputStat(void) {
      * MAX_MATRIX_SWITCHES, so the last (partial) page never reads past the
      * end of matrixData's arrays.
      */
-    int full_page_start = 0;
-    int full_page_end = 0;
     if (systemData.output_stat_v==true) {
         for (int page_start = 0; page_start < MAX_MATRIX_SWITCHES; page_start += STAT_SWITCHES_PER_PAGE) {
             int page_end = page_start + STAT_SWITCHES_PER_PAGE;
-            if (page_start==0) {full_page_start=page_start; full_page_end=page_end;} // use page zero width as longest expected width
             if (page_end > MAX_MATRIX_SWITCHES) {page_end = MAX_MATRIX_SWITCHES;}
-            printStatSeparator(full_page_start, full_page_end);
-            printf("                      ");
-            printSwitchIndexHeader(page_start, page_end);
-            printStatSeparator(full_page_start, full_page_end);
-            printf("Computer Assist    :  ");
+            printStatPageHeader(page_start, page_end);
+            printf(STAT_LABEL_FMT, "Computer Assist");
             for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.computer_assist[0][i]);}
             printf("\n");
-            printf("Switch Intention   :  ");
+            printf(STAT_LABEL_FMT, "Switch Intention");
             for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.switch_intention[0][i]);}
             printf("\n");
-            printf("Computer Intention :  ");
+            printf(STAT_LABEL_FMT, "Computer Intention");
             for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.computer_intention[0][i]);}
             printf("\n");
-            printf("Output Value       :  ");
+            printf(STAT_LABEL_FMT, "Output Value");
             printArray(matrixData.output_value[0], page_start, page_end);
         }
     }

@@ -7,13 +7,37 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "UnidentifiedStudios_Config.h"
+#include "UnidentifiedStudios_Config.h" // remove dependency
 #include "UnidentifiedStudios_I2C.h"
 
 #define GPIOPE_MAX_SLAVE_PINS  70
 #define GPIOPE_MAX_SIZE        100
 
-/**
+// ------------------------------------------------------------
+// BUILD OPTIONS: Debug
+// ------------------------------------------------------------
+// #define GPIO_GPIOE_DEBUG_0
+// #define GPIO_GPIOE_DEBUG_1
+// #define GPIO_GPIOE_DEBUG_2
+// #define GPIO_GPIOE_BENCH
+// ------------------------------------------------------------
+// BUILD OPTIONS: MASTER/SLAVE MODE
+// ------------------------------------------------------------
+#define GPIOPE_MASTER_MODE
+// #define GPIOPE_SLAVE_MODE
+// ------------------------------------------------------------
+// BUILD OPTIONS: READ/WRITE MODE
+// ------------------------------------------------------------
+// #define GPIOPE_READ_MODE
+// #define GPIOPE_WRITE_MODE
+// ------------------------------------------------------------
+// BUILD OPTIONS: SELECT SLAVE DEVICE
+// ------------------------------------------------------------
+// #define GPIOPE_SLAVE_ATMEGA2560
+// #define GPIOPE_SLAVE_ESP32P4
+
+
+/** ------------------------------------------------------------
  * @brief GPIOPortExpander.
  */
 typedef struct GPIOPortExpander {
@@ -38,7 +62,7 @@ typedef struct GPIOPortExpander {
     unsigned long modulation_time[GPIOPE_MAX_SIZE][3];
     int32_t input_value[GPIOPE_MAX_SIZE];  // does not have to equal max pins
     int32_t output_value[GPIOPE_MAX_SIZE]; // does not have to equal max pins
-    int16_t port_map[GPIOPE_MAX_SIZE];      // logical index -> physical pin, -1 = unmapped
+    int8_t port_map[GPIOPE_MAX_SIZE];      // logical index -> physical pin, -1 = unmapped
     bool switch_state[GPIOPE_MAX_SIZE];     // per-pin modulation on/off tracking
     bool enabled[GPIOPE_MAX_SIZE];          // channels enabled/disabled
     uint64_t chan_freq_uS[GPIOPE_MAX_SIZE]; // per-pin minimum microseconds between accepted
@@ -47,73 +71,47 @@ typedef struct GPIOPortExpander {
 } GPIOPortExpander;
 
 // ------------------------------------------------------------
-/**
- * @brief BUILD OPTIONS
- */
+// COMMAND
 // ------------------------------------------------------------
-// ------------------------------------------------------------
-// Debug
-// ------------------------------------------------------------
-/**
- * @brief Uncomment to enable debug prints.
- *
- * GPIO_GPIOE_DEBUG_0: error conditions only (unrecognized REQUEST_ID/command, bad packet length).
- *
- * GPIO_GPIOE_DEBUG_1: receiveEventBus0Bin's entry line only (command byte + bytes received).
- *
- * GPIO_GPIOE_DEBUG_2: every other print (per-command state).
- *
- * @warning Only enable when required, or errors may be received.
- */
-#define GPIO_GPIOE_DEBUG_0
-// #define GPIO_GPIOE_DEBUG_1
-// #define GPIO_GPIOE_DEBUG_2
-// #define GPIO_GPIOE_BENCH
-// ------------------------------------------------------------
-// BUILD OPTIONS: MASTER/SLAVE MODE
-// ------------------------------------------------------------
-/**
- * @brief GPIOPE_MASTER_MODE - Setup to control a GPIO Expander module.
- */
-#define GPIOPE_MASTER_MODE
+#define GPIOPE_CMD_GET_INFO     130 // 0x82 - Get Slave device info 
+#define GPIOPE_CMD_GET_PINS     140 // 0x8C - Get Slave Pin List
 
-/**
- * @brief GPIOPE_SLAVE_MODE - Setup to be controlled by a master.
- */
-// #define GPIOPE_SLAVE_MODE
-// ------------------------------------------------------------
-// BUILD OPTIONS: READ/WRITE MODE
-// ------------------------------------------------------------
-/**
- * @brief GPIOPE_READ_MODE read pins for master
- */
-// #define GPIOPE_READ_MODE
+#define GPIOPE_CMD_SET_DEFAULT  100 // 0x64 - Default the Slave
 
-/**
- * @brief GPIOPE_WRITE_MODE write to pins for master
- */
-// #define GPIOPE_WRITE_MODE
-// ------------------------------------------------------------
-// BUILD OPTIONS: DEFAULT GLOBAL INSTANCES
-// ------------------------------------------------------------
-// extern GPIOPortExpander GPIOPortExpander_Default;
-// ------------------------------------------------------------
-// BUILD OPTIONS: DEFAULT SLAVE INSTANCE
-// ------------------------------------------------------------
-/**
- * @brief Slave device - This will determine which GPIOPortExpander
- *        instance will be used across all internal slave related
- *        functionality like for example recieve/request callbacks.
- */
-#define GPIOPE_SLAVE_ATMEGA2560
-// #define GPIOPE_SLAVE_ESP32P4
+#define GPIOPE_CMD_SET_PIN_PWM  110 // 0x6E - Write to Slave Pin
 
-#ifdef GPIOPE_SLAVE_ATMEGA2560
+#define GPIOPE_CMD_GET_VALUE    135 //      - Read from Slave Pin
+
+// ------------------------------------------------------------
+// Slave-side
+// ------------------------------------------------------------
+void requestEventBus0Bin();
+void receiveEventBus0Bin(int n_bytes_received);
+inline void buildPinKindLookup();
+inline void readPin(int8_t idx);
+inline void writedPin(int8_t idx);
+void activateModulatedPin(int8_t idx);
+void deactivateModulatedPin(int8_t idx);
+void resetModulatedPinList();
+const int8_t *modulatedPinIndices(int8_t *out_count);
+void modulator();
+
+// ------------------------------------------------------------
+// Master-side
+// ------------------------------------------------------------
+bool readGPIOPE_PIN(GPIOPortExpander &gpio_expander, uint8_t pin);
+bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
+void clearGPIOPortController(GPIOPortExpander gpio_expander);
+void setGPIOPortExpanderChannelEnabled(GPIOPortExpander &gpio_expander, uint8_t channel,  bool enabled);
+void setGPIOPortExpanderChannelFreq(GPIOPortExpander &gpio_expander, uint8_t pin, uint64_t freq_uS);
+
+
+// ------------------------------------------------------------
+// Externs
+// ------------------------------------------------------------
+#ifdef GPIOPE_SLAVE_MODE
 extern GPIOPortExpander GPIOPortExpander_SLAVE;
 #endif
-// ------------------------------------------------------------
-// BUILD OPTIONS: CUSTOM INSTANCES
-// ------------------------------------------------------------
 #ifdef SatIO_USE_GPIOPE_INPUT_0
 extern GPIOPortExpander GPIOPE_INPUT_0;
 #endif // SatIO_USE_GPIOPE_INPUT_0
@@ -882,93 +880,5 @@ extern GPIOPortExpander GPIOPE_OUTPUT_126;
 #ifdef SatIO_USE_GPIOPE_OUTPUT_127
 extern GPIOPortExpander GPIOPE_OUTPUT_127;
 #endif // SatIO_USE_GPIOPE_OUTPUT_127
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// Bus control commands.
-// Command bytes 0-69 directly address a pin (see MAX_GPIO_GPIOE_PINS).
-// Control commands below are pushed well above the pin range so they can
-// never collide with a pin number, even on boards with more pins than this one.
-// Brace-init enforces (at compile time) that each value actually fits a uint8_t.
-// ------------------------------------------------------------
-// COMMAND
-// ------------------------------------------------------------
-#define GPIOPE_CMD_CLEAR_DATA            100 // 0x64 - control-command range > expected pin max
-#define GPIOPE_CMD_WRITE_PIN_PWM         110 // 0x6E
-#define GPIOPE_CMD_RESET_CURRENT_PIN     120 // 0x78
-#define GPIOPE_CMD_GET_EXPANDER_INFO     130 // 0x82 - one-shot: pin_min,pin_max,max_pins,n_analog,n_digital
-#define GPIOPE_CMD_GET_VALUE_NUM         135 // 
-#define GPIOPE_CMD_GET_EXPANDER_PIN_LIST 140 // 0x8C - highest command in use, must fit uint8_t
-// ------------------------------------------------------------
-// Slave-side I2C event handlers for this device (Bus 0).
-// Register with Wire.onRequest()/Wire.onReceive() from the slave's setup().
-// On a master build these are simply unused and get dead-stripped.
-// ------------------------------------------------------------
-void requestEventBus0Bin();
-void receiveEventBus0Bin(int n_bytes_received);
-bool readGPIOPortExapander_All(GPIOPortExpander gpio_expander);
-
-// ------------------------------------------------------------
-// Slave-side: compact list of pin-array indices currently being
-// modulated by modulator() (main.cpp). Lets modulator() walk only the
-// pins actually modulating instead of scanning all max_pins every
-// loop() pass (measured ~184us fixed cost regardless of active count).
-// Maintained by CMD_WRITE_PIN_PWM / CMD_CLEAR_DATA (UnidentifiedStudios_GPIOPortExpander.cpp)
-// and by modulator() itself when a pin's modulation naturally ends.
-// On a master build these are simply unused and get dead-stripped.
-// ------------------------------------------------------------
-void activateModulatedPin(GPIOPortExpander *gpio_expander, int8_t idx);
-void deactivateModulatedPin(GPIOPortExpander *gpio_expander, int8_t idx);
-void resetModulatedPinList();
-const int8_t *modulatedPinIndices(int8_t *out_count);
-
-/**
- * Reads a single pin fresh, via the direct pin-addressing commands (0-69)
- * rather than the bulk CMD_RESET_CURRENT_PIN sequential pass used by
- * readGPIOPortExapander_All(). Master-side only.
- * @param gpio_expander Specify GPIOPortExpander instance
- * @param pin Specify pin index (bounds-checked against max_pins)
- * @return false if pin is out of range or the I2C request failed
- */
-bool readGPIOPortExapander_Pin(GPIOPortExpander gpio_expander, uint8_t pin);
-
-/**
- * Queries a slave for its expander-info header (pin_min, pin_max, max_pins,
- * num_analog_pins, num_digital_pins) followed by its full pin list, and
- * fills in the corresponding fields on gpio_expander. Master-side only.
- *
- * GPIOPE_DEFINE_INPUT(N)/GPIOPE_DEFINE_OUTPUT(N) leave these fields zeroed
- * since only the slave itself knows its real pin layout - call this once per
- * enabled GPIOPE_INPUT_N/OUTPUT_N instance (e.g. from setup()) before relying
- * on them.
- * @param gpio_expander Specify GPIOPortExpander instance
- * @return false if either I2C request failed
- */
-bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
-
- /**
- * Sends clear command to controller module.
- */
-void clearGPIOPortController(GPIOPortExpander gpio_expander);
-
-/**
- * Set a pin's minimum accepted-read period in microseconds, analogous to
- * setADMultiplexerChannelFreq() for the analog/digital multiplexer. The
- * owning task (taskInputPortController()) only calls readGPIOPortExapander_Pin()
- * for this pin once this many microseconds have passed since it last did;
- * 0 means "no floor" (read every task cycle, i.e. as fast as the task's own
- * TASK_MAX_FREQ allows).
- * @param gpio_expander Specify GPIOPortExpander instance
- * @param pin Specify pin index (bounds-checked against max_pins)
- * @param freq_uS Minimum microseconds between reads of this pin
- * @return None
- */
-void setGPIOPortExpanderChannelEnabled(GPIOPortExpander &gpio_expander, uint8_t channel,  bool enabled);
-void setGPIOPortExpanderChannelFreq(GPIOPortExpander &gpio_expander, uint8_t pin, uint64_t freq_uS);
-
-/**
- * Slave-side modulator for co-processing PWM away from master chip.
- */
-void modulator(GPIOPortExpander *expander);
 
 #endif // __GPIO_GPIOE__

@@ -264,6 +264,14 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(esp_task_wdt_reconfigure(&wdt_config));
     // delay(5000);
     /** ----------------------------------------------------------------------------
+     * sdcard_mount() (UnidentifiedStudios_SdCardHelper.cpp) is called on every
+     * taskStorage() cycle to catch SD card hotplug events, which re-enters
+     * bsp_sdcard_mount() -> sdmmc_host_init() even when already mounted. The
+     * driver's "SDMMC host already initialized, skipping init flow" INFO log
+     * is expected in that case, not an error, so it's silenced at the source.
+     */
+    esp_log_level_set("sdmmc_periph", ESP_LOG_WARN);
+    /** ----------------------------------------------------------------------------
      * Initialize Mutexes
      */
     initSystemTimeMutex(); // must exist before any task can touch tv_now/timeinfo

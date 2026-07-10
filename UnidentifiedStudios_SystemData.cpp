@@ -81,9 +81,6 @@ struct systemStruct systemData = {
   .counters_stg = {},
   .counters_log = {},
   .counters_SatIO_serial_tx = {},
-
-  .loops_a_second = 0,
-  .total_loops_a_second = 0,
 };
 
 void restore_system_defaults(void) {

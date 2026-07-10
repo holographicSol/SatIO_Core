@@ -440,6 +440,7 @@ static void intervalBreach1Second(void) {
   setSatIOAltitude();
   setSatIOSpeed();
   setSatIOGroundHeading();
+  setSatIORaDec();
   setGroundHeadingName(atof(gnrmcData.ground_heading));
 }
 
@@ -1052,19 +1053,19 @@ static void taskSwitches(void *pvParameters) {
       int32_t count_write = 0;
       #ifdef SatIO_USE_GPIOPE_OUTPUT
 
-      // test re-query (almost ready to utilize i2c max gpiope's)
+      // test re-query (almost ready to utilize up to i2caddr max gpiope's if defined)
       // queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
 
+      // todo: write all defined gpiope's (replace address set with gpiope output device select)
+
       // Clamp to MAX_MATRIX_SWITCHES
-      for (int32_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
+      for (int8_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
 
         int address = matrixData.output_portcontroller_address[0][Mi];
 
         if (matrixData.matrix_switch_write_required[0][Mi] == true) {
           // Clear the flag now that the value has been sent.
           matrixData.matrix_switch_write_required[0][Mi] = false;
-          
-          clearI2CLinkOutputPacket(GPIOPE_OUTPUT_9.i2cLink);
 
           // Select value to send as either the computer-assisted output value
           // or the override value.
@@ -1076,11 +1077,18 @@ static void taskSwitches(void *pvParameters) {
           uint32_t on_time = matrixData.output_pwm[0][Mi][INDEX_MATRIX_SWITCH_PWM_ON];
 
           // Build binary packet with human readable helper functions.
-          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, GPIOPE_CMD_WRITE_PIN_PWM);
-          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, (uint8_t)Mi);
-          write_int8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, (int8_t)matrixData.matrix_port_map[0][Mi]);
+          clearI2CLinkOutputPacket(GPIOPE_OUTPUT_9.i2cLink);
+          // Command
+          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, GPIOPE_CMD_SET_PIN_PWM);
+          // Index
+          write_int8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, Mi);
+          // Pin
+          write_int8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, matrixData.matrix_port_map[0][Mi]);
+          // Value
           write_int32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, value_to_send);
+          // PWM 0
           write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, off_time);
+          // PWM 1
           write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, on_time);
           // Write to slave.
           writeI2CToSlaveBin(GPIOPE_OUTPUT_9.wire, GPIOPE_OUTPUT_9.i2cLink, address, GPIOPE_OUTPUT_9.i2cLink.current_bytes, 0, GPIOPE_OUTPUT_9.name);
@@ -1139,32 +1147,25 @@ static void taskInputPortController(void *pvParameters) {
     if (taskFrequencyInputPortController() == true) {
 
       // ------------------------------------------------
-      // Read input port controller pins (customize as required).
+      // Read GPIOPE Input
       // ------------------------------------------------
-      // Each pin is additionally rate-limited to its own chan_freq_uS: the
-      // task itself still wakes at TASK_MAX_FREQ_GPIOE_INPUT
-      // (unchanged), but a pin is only actually read once that many
-      // microseconds have passed since its last read, so e.g. pin 0 can run
-      // at 1Hz alongside pin 1 at 1000Hz within the same task, bounded by
-      // TASK_MAX_FREQ_GPIOE_INPUT. Mirrors taskADMplex0()/
-      // taskADMplex1()'s per-channel throttle.
 
-      // test re-query (almost ready to utilize i2c max gpiope's)
+      // test re-query (almost ready to utilize up to i2c addr max gpiope's if defined)
+      // option read if interrupted, all gpiope's should interrupt on the same pin
       // queryGPIOPortExpanderInfo(GPIOPE_INPUT_11, I2C_ADDR_INPUT_GPIOE_11);
 
+      // todo: read all defined gpiope's
+
+      #ifdef SatIO_USE_GPIOPE_INPUT_11
       static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_SIZE] = {0};
-      // Snapshot once per pass so the counter loop below can't disagree with the
-      // read loop about which pins were enabled this cycle (a concurrent
-      // CLI/LVGL disable between the two loops would otherwise drop a pin's
-      // count for a cycle it was actually read in).
       bool gpioe_chan_was_enabled[GPIOPE_MAX_SIZE] = {false};
       bool gpioe_chan_did_read[GPIOPE_MAX_SIZE] = {false};
-      uint8_t gpioe_max_pins = (uint8_t)GPIOPE_INPUT_11.max_pins;
-      for (uint8_t i_chan = 0; i_chan < gpioe_max_pins; i_chan++) {
+      uint8_t gpioe_max_values = (uint8_t)GPIOPE_INPUT_11.max_input_values;
+      for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
         if (GPIOPE_INPUT_11.enabled[i_chan] == true) {
           gpioe_chan_was_enabled[i_chan] = true;
           if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPE_INPUT_11.chan_freq_uS[i_chan]) {
-            if (readGPIOPortExapander_Pin(GPIOPE_INPUT_11, i_chan)) {
+            if (readGPIOPE_PIN(GPIOPE_INPUT_11, i_chan)) {
               gpioe_chan_last_read_uS[i_chan] = esp_timer_get_time();
               gpioe_chan_did_read[i_chan] = true;
             } else {
@@ -1178,18 +1179,17 @@ static void taskInputPortController(void *pvParameters) {
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
-      // Per-pin Hz: task_freq_t is how often a pin was checked this second
-      // (its ceiling); task_ffreq_t is how often it was actually read (its
-      // achieved Hz, gated by chan_freq_uS above).
-      for (uint8_t i_chan = 0; i_chan < gpioe_max_pins; i_chan++) {
+      for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
         if (gpioe_chan_was_enabled[i_chan] == true) {
-          stepFCounter(systemData.counters_gpioe_chan[i_chan], 1);
-          if (gpioe_chan_did_read[i_chan] == true) {stepFFCounter(systemData.counters_gpioe_chan[i_chan], 1);}
+          if (gpioe_chan_did_read[i_chan] == true) {
+            systemData.counters_gpiope0.flag_c = true;
+            stepFFCounter(systemData.counters_gpioe_chan[i_chan], 1);
+          }
         }
       }
+      #endif
+
       xSemaphoreTake(dataMutex, portMAX_DELAY);
-      stepFFCounter(systemData.counters_gpiope0, 1);
-      systemData.counters_gpiope0.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
       outputSerialGPIOPEnput();
       #endif
@@ -1257,6 +1257,7 @@ static void taskUniverse(void *pvParameters) {
         SatIOData.localTime.minute,
         SatIOData.localTime.second,
         SatIOData.system_altitude);
+      storeLST(siderealExtraData.local_sidereal_time);
       esp_task_wdt_reset();
 
       // ------------------------------------------------

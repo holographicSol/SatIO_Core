@@ -116,6 +116,34 @@ struct SatIOStruct SatIOData = {
     .ground_heading_name = {0},
     .course_heading = 0.0,
     // ------------------------------------------------------------------------------------
+    // RA/DEC TARGET SETTINGS
+    // ------------------------------------------------------------------------------------
+    .user_ra_dec = {
+      .ra_h = 0,
+      .ra_m = 0,
+      .ra_s = 0,
+      .dec_d = 0,
+      .dec_m = 0,
+      .dec_s = 0,
+      .formatted_ra_str = "00:00:00",
+      .formatted_dec_str = "00:00:00",
+      .padded_ra_str = "000000",
+      .padded_dec_str = "000000",
+    },
+    .system_ra_dec = {
+      .ra_h = 0,
+      .ra_m = 0,
+      .ra_s = 0,
+      .dec_d = 0,
+      .dec_m = 0,
+      .dec_s = 0,
+      .formatted_ra_str = "00:00:00",
+      .formatted_dec_str = "00:00:00",
+      .padded_ra_str = "000000",
+      .padded_dec_str = "000000",
+    },
+    .ra_dec_value_mode = SATIO_MODE_GYRO,
+    // ------------------------------------------------------------------------------------
     // MILEAGE
     // ------------------------------------------------------------------------------------
     .mileage = "pending",
@@ -127,6 +155,7 @@ struct SatIOStruct SatIOData = {
     .systemTime = {},
     .localTime = {},
     .localMeanSolarTime = {},
+    .localSiderealTime = {},
 };
 
 LocPoint loc_point1_gps = {0.0, 0.0, 0.0, 0};
@@ -190,6 +219,20 @@ void setSatIOGroundHeading(void) {
   // ---------------------------------------------------------------------
   if      (SatIOData.ground_heading_value_mode==SATIO_MODE_GPS)  {SatIOData.system_ground_heading = SatIOData.ground_heading;}
   else if (SatIOData.ground_heading_value_mode==SATIO_MODE_USER) {SatIOData.system_ground_heading = SatIOData.user_ground_heading;}
+}
+
+/**
+ * Set SatIO RA/Dec target according to update mode. Unlike the other
+ * SatIO_MODE_GPS-backed fields above, RA/Dec has no GPS reading -- its
+ * live source is the gyro-derived zenith offset (siderealExtraData.gyro_0_ra_dec),
+ * so the two modes here are SATIO_MODE_GYRO and SATIO_MODE_USER.
+ */
+void setSatIORaDec(void) {
+  // ---------------------------------------------------------------------
+  // Select which value to use from the system.
+  // ---------------------------------------------------------------------
+  if      (SatIOData.ra_dec_value_mode==SATIO_MODE_GYRO) {SatIOData.system_ra_dec = siderealExtraData.gyro_0_ra_dec;}
+  else if (SatIOData.ra_dec_value_mode==SATIO_MODE_USER) {SatIOData.system_ra_dec = SatIOData.user_ra_dec;}
 }
 
 // ----------------------------------------------------------------------------------------
@@ -508,6 +551,37 @@ void storeLMST(void) {
 }
 
 // ----------------------------------------------------------------------------------------
+// storeLST.
+// ----------------------------------------------------------------------------------------
+/**
+ * Fills SatIOData.localSiderealTime from a decimal-hours LST reading
+ * (siderealExtraData.local_sidereal_time). Sidereal time has no calendar of
+ * its own, so the year/month/mday/yday/wday fields mirror systemTime -- the
+ * UTC instant the reading was taken for -- and unixtime_uS is left at 0,
+ * the same convention storeLMST() uses above.
+ */
+void storeLST(double decimal_hours) {
+  double hours = fmod(decimal_hours, 24.0);
+  if (hours < 0.0) {hours += 24.0;}
+
+  int hour = (int)hours;
+  double minutes_f = (hours - (double)hour) * 60.0;
+  int minute = (int)minutes_f;
+  int second = (int)(((minutes_f - (double)minute) * 60.0) + 0.5); // round to nearest second
+
+  if (second >= 60) {second -= 60; minute += 1;}
+  if (minute >= 60) {minute -= 60; hour += 1;}
+  if (hour >= 24) {hour -= 24;}
+
+  struct tm lst_tm = SatIOData.systemTime.time_struct;
+  lst_tm.tm_hour = hour;
+  lst_tm.tm_min = minute;
+  lst_tm.tm_sec = second;
+
+  storeTimeFromTm(SatIOData.localSiderealTime, lst_tm, 0U);
+}
+
+// ----------------------------------------------------------------------------------------
 // storeSyncTime.
 // ----------------------------------------------------------------------------------------
 /* Rule 8.7: internal linkage; only called from storeSyncTime() in this
@@ -570,6 +644,7 @@ void storeSyncTime(void) {
   snapshotSyncFields(SatIOData.systemTime);
   snapshotSyncFields(SatIOData.localTime);
   snapshotSyncFields(SatIOData.localMeanSolarTime);
+  snapshotSyncFields(SatIOData.localSiderealTime);
 }
 
 /* Rule 8.7: internal linkage; only called from setSystemTime() and
@@ -689,6 +764,7 @@ void applyPendingDateTimeStore(void) {
   storeSystemTime();
   storeLocalTime();
   storeLMST();
+  // storeLST(siderealExtraData.local_sidereal_time);
 }
 
 /* */
@@ -806,6 +882,7 @@ void initSystemTime(void) {
   storeSystemTime();
   storeLocalTime();
   storeLMST();
+  // storeLST(siderealExtraData.local_sidereal_time);
   Serial.println("[SYNC] system datetime: " +
                  String(SatIOData.systemTime.padded_time_HHMMSS) + " " +
                  String(SatIOData.systemTime.padded_date_DDMMYYYY) +

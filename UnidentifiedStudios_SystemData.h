@@ -143,9 +143,6 @@ struct systemStruct {
   SystemConuters counters_stg;
   SystemConuters counters_log;
   SystemConuters counters_SatIO_serial_tx;
-
-  int32_t loops_a_second;       // Main loop iterations since the last 1-second sample.
-  int32_t total_loops_a_second; // Main loop iterations per second, at the last sample.
 };
 extern struct systemStruct systemData;
 

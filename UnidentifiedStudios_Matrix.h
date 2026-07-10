@@ -815,7 +815,7 @@ struct MatrixStruct {
 
   // Matrix switch port per switch. Values correspond to pins on the port
   // controller; -1 marks a switch as unmapped.
-  int16_t matrix_port_map[1][MAX_MATRIX_SWITCHES];
+  int8_t matrix_port_map[1][MAX_MATRIX_SWITCHES];
 
   // Output value per switch: the value sent to the port controller
   // (digital/mapped).

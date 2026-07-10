@@ -38,6 +38,7 @@
 // Modes
 #define SATIO_MODE_GPS  0
 #define SATIO_MODE_USER 1
+#define SATIO_MODE_GYRO 2
 
 extern struct tm *timeinfo;
 extern struct timeval tv_now;
@@ -236,6 +237,12 @@ struct SatIOStruct {
     char   ground_heading_name[MAX_GLOBAL_ELEMENT_SIZE]; // Ground heading (e.g., N, NNE)
     double course_heading; // Stores current course heading (default north)
     // ------------------------------------------------------------------------------------
+    // RA/DEC TARGET SETTINGS
+    // ------------------------------------------------------------------------------------
+    RaDecData user_ra_dec;   // User specified RA/Dec target
+    RaDecData system_ra_dec; // System RA/Dec (Gyro0 / User)
+    int ra_dec_value_mode;   // Gyro / User
+    // ------------------------------------------------------------------------------------
     // MILEAGE
     // ------------------------------------------------------------------------------------
     char mileage[MAX_GLOBAL_ELEMENT_SIZE];        // Mileage (pending processing)
@@ -247,6 +254,7 @@ struct SatIOStruct {
     SatIOTimeData systemTime;
     SatIOTimeData localTime;
     SatIOTimeData localMeanSolarTime;
+    SatIOTimeData localSiderealTime; // hour/minute/second decoded from siderealExtraData.local_sidereal_time; date/day fields mirror systemTime (the UTC instant the reading was taken for)
 };
 extern struct SatIOStruct SatIOData;
 
@@ -294,6 +302,7 @@ void printAllTimes(void);
 void storeSystemTime(void);
 void storeLocalTime(void);
 void storeLMST(void);
+void storeLST(double decimal_hours);
 
 void extractDateTimeFromGPSData(void);
 void setSystemTime(long usec);
@@ -321,6 +330,7 @@ void setSatIOCoordinates(void);
 void setSatIOAltitude(void);
 void setSatIOSpeed(void);
 void setSatIOGroundHeading(void);
+void setSatIORaDec(void);
 void setGroundHeadingName(float num);
 
 #endif
