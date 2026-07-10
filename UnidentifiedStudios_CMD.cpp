@@ -773,6 +773,8 @@ void setMatrixModulation(int switch_idx, uint32_t pwm0, uint32_t pwm1) {
     matrixData.output_pwm[0][switch_idx][0]=pwm0;
     matrixData.output_pwm[0][switch_idx][1]=pwm1;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
+    // build in GPIOPE slave specific channel modulation (currently setup for a single GPIOPE device):
+    // GPIOPESetPWMByIndex(gpio_expander, i, pwm[i][0], pwm[i][1]);
   }
 }
 

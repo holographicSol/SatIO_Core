@@ -67,7 +67,11 @@ TaskHandle_t TaskInputPortController;
 #define TASK_GYRO_PRIORITY                  5
 #define TASK_ADMPLEX0_PRIORITY              5
 #define TASK_ADMPLEX1_PRIORITY              5
-#define TASK_SWITCHES_PRIORITY              5
+// TASK_SWITCHES_PRIORITY is one above its core-1 peers: it wakes rarely (gated
+// to TASK_MAX_FREQ_LOW_SWITCHES) but must send its pending I2C writes as soon
+// as it wakes rather than wait out a round-robin tick slice (up to ~1ms per
+// contending peer at CONFIG_FREERTOS_HZ=1000) behind same-priority tasks.
+#define TASK_SWITCHES_PRIORITY              1
 #define TASK_UNIVERSE_PRIORITY              5
 #define TASK_STORAGE_PRIORITY               5
 #define TASK_SatIO_SERIAL_TX_PRIORITY       5
@@ -85,7 +89,7 @@ TaskHandle_t TaskInputPortController;
 #endif
 
 #define TASK_GPIOPE_INPUT_CORE              1
-#define TASK_SWITCHES_CORE                  1
+#define TASK_SWITCHES_CORE                  0
 #define TASK_UNIVERSE_CORE                  0
 #define TASK_STORAGE_CORE                   0
 #define TASK_SatIO_SERIAL_TX_CORE           0
@@ -109,7 +113,11 @@ TaskHandle_t TaskInputPortController;
 #define TASK_GYRO_PRIORITY                  5
 #define TASK_ADMPLEX0_PRIORITY              5
 #define TASK_ADMPLEX1_PRIORITY              5
-#define TASK_SWITCHES_PRIORITY              5
+// TASK_SWITCHES_PRIORITY is one above its core-1 peers: it wakes rarely (gated
+// to TASK_MAX_FREQ_LOW_SWITCHES) but must send its pending I2C writes as soon
+// as it wakes rather than wait out a round-robin tick slice (up to ~1ms per
+// contending peer at CONFIG_FREERTOS_HZ=1000) behind same-priority tasks.
+#define TASK_SWITCHES_PRIORITY              6
 #define TASK_UNIVERSE_PRIORITY              5
 #define TASK_STORAGE_PRIORITY               5
 #define TASK_DISPLAY_PRIORITY               5
@@ -348,6 +356,9 @@ static void intervalBreach1Second(void) {
   #ifdef SatIO_USE_GPIOPE_INPUT
   totalCounters(systemData.counters_gpiope0);
   for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {totalCounters(systemData.counters_gpioe_chan[i_chan]);}
+  #endif
+
+  #ifdef SatIO_USE_GPIOPE_OUTPUT
   totalCounters(systemData.counters_pco);
   #endif
 
@@ -414,6 +425,9 @@ static void intervalBreach1Second(void) {
   #ifdef SatIO_USE_GPIOPE_INPUT
   clearCounters(systemData.counters_gpiope0);
   for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {clearCounters(systemData.counters_gpioe_chan[i_chan]);}
+  #endif
+
+  #ifdef SatIO_USE_GPIOPE_OUTPUT
   clearCounters(systemData.counters_pco);
   #endif
 
@@ -1014,14 +1028,18 @@ static void taskSwitches(void *pvParameters) {
 
     // Delay Task
     if (taskFrequencySwitches() == true) {
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
       esp_task_wdt_reset();
-
+      
       #ifdef SatIO_USE_MATRIX
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
       // ------------------------------------------------
       // Calculate.
       // ------------------------------------------------
+      unsigned long matrix_to = micros();
+      unsigned long matrix_t = 0;
       if (matrixSwitch()) {
+        xSemaphoreGive(dataMutex);
+        matrix_t = micros()-matrix_to;
         esp_task_wdt_reset();
         
         // --------------------------------------------
@@ -1029,9 +1047,10 @@ static void taskSwitches(void *pvParameters) {
         // --------------------------------------------
         stepFFCounter(systemData.counters_mtx, 1);
         systemData.counters_mtx.flag_c = true;
-
         #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
+        xSemaphoreTake(dataMutex, portMAX_DELAY);
         outputSerialMatrix();
+        xSemaphoreGive(dataMutex);
         #endif
         
       }
@@ -1040,18 +1059,27 @@ static void taskSwitches(void *pvParameters) {
       // ------------------------------------------------
       // Mapping.
       // ------------------------------------------------
+      unsigned long map_t0 = micros();
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
       map_values();
+      xSemaphoreGive(dataMutex);
+      unsigned long map_t = micros()-map_t0;
       esp_task_wdt_reset();
 
       // ------------------------------------------------
       // Output Values.
       // ------------------------------------------------
+      unsigned long output_val_t0 = micros();
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
       setOutputValues();
+      xSemaphoreGive(dataMutex);
+      unsigned long output_val_t = micros()-output_val_t0;
       esp_task_wdt_reset();
       #endif
 
-      int32_t count_write = 0;
       #ifdef SatIO_USE_GPIOPE_OUTPUT
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
+      int32_t count_write = 0;
 
       // test re-query (almost ready to utilize up to i2caddr max gpiope's if defined)
       // queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
@@ -1059,51 +1087,53 @@ static void taskSwitches(void *pvParameters) {
       // todo: write all defined gpiope's (replace address set with gpiope output device select)
 
       // Clamp to MAX_MATRIX_SWITCHES
-      for (int8_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
-
-        int address = matrixData.output_portcontroller_address[0][Mi];
-
+      for (uint8_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
         if (matrixData.matrix_switch_write_required[0][Mi] == true) {
+
+          unsigned long iic_t0 = micros();
+
           // Clear the flag now that the value has been sent.
           matrixData.matrix_switch_write_required[0][Mi] = false;
 
-          // Select value to send as either the computer-assisted output value
-          // or the override value.
-          int32_t value_to_send = matrixData.computer_assist[0][Mi]
+          // Currently allow address to be user defined (will be replaced in coming updates).
+          uint8_t address = matrixData.output_portcontroller_address[0][Mi];
+
+          // use output value or override the value.
+          uint8_t value_to_send = matrixData.computer_assist[0][Mi]
                             ? matrixData.output_value[0][Mi]
                             : matrixData.override_output_value[0][Mi];
 
-          uint32_t off_time = matrixData.output_pwm[0][Mi][INDEX_MATRIX_SWITCH_PWM_OFF];
-          uint32_t on_time = matrixData.output_pwm[0][Mi][INDEX_MATRIX_SWITCH_PWM_ON];
-
           // Build binary packet with human readable helper functions.
           clearI2CLinkOutputPacket(GPIOPE_OUTPUT_9.i2cLink);
+
           // Command
           write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, GPIOPE_CMD_SET_PIN_PWM);
           // Index
-          write_int8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, Mi);
-          // Pin
-          write_int8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, matrixData.matrix_port_map[0][Mi]);
+          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, (uint8_t)Mi);
           // Value
-          write_int32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, value_to_send);
-          // PWM 0
-          write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, off_time);
-          // PWM 1
-          write_uint32_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, on_time);
+          write_uint8_ToPacket(GPIOPE_OUTPUT_9.i2cLink.OUTPUT_PACKET, GPIOPE_OUTPUT_9.i2cLink.current_bytes, (uint8_t)value_to_send);
+
           // Write to slave.
           writeI2CToSlaveBin(GPIOPE_OUTPUT_9.wire, GPIOPE_OUTPUT_9.i2cLink, address, GPIOPE_OUTPUT_9.i2cLink.current_bytes, 0, GPIOPE_OUTPUT_9.name);
 
+          // monitor updated perf (<300uS from >1ms or 4ms)
+          // unsigned long iic_t = micros()-iic_t0;
+          // printf("matrix_t=%lduS  map_t=%lduS  output_val_t=%lduS  iic_t=%lduS  total=%lduS  (%lld bytes)\n",
+          //   matrix_t, map_t, output_val_t, iic_t,
+          //   (matrix_t + map_t + output_val_t + iic_t),
+          //   GPIOPE_OUTPUT_9.i2cLink.current_bytes
+          // );
           count_write++;
         }
       }
       esp_task_wdt_reset();
-      #endif
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
       stepFFCounter(systemData.counters_pco, count_write);
       systemData.counters_pco.flag_c = true;
       xSemaphoreGive(dataMutex);
+      #endif
 
     }
 

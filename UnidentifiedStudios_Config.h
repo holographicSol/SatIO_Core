@@ -29,7 +29,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
  * @warning Ensure only one SatIO_DISPLAY_OPTION is defined. 
  */
 // #define SatIO_DISPLAY_OPTION_HEADLESS
-// #define SatIO_USE_DISPLAY
+#define SatIO_USE_DISPLAY
 
 /**
  * @brief SatIO_DISPLAY_OPTION_LVGL - LVGL display option.
@@ -37,7 +37,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
  * @note If not defined then the project will be comiled for use without LVGL.
  * @warning Ensure only one SatIO_DISPLAY_OPTION is defined.
  */
-// #define SatIO_DISPLAY_OPTION_LVGL
+#define SatIO_DISPLAY_OPTION_LVGL
 // ----------------------------------------------------------------------------------------
 /**
  * @brief SatIO_SERIAL_TX_CURRENT_TASK
@@ -58,7 +58,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
  *       Requires memory for only one output buffer.
  * @warning Ensure only one SatIO_SERIAL_TX_OPTION is defined.
  */
-// #define SatIO_SERIAL_TX_OPTION_NEW_TASK
+#define SatIO_SERIAL_TX_OPTION_NEW_TASK
 // ----------------------------------------------------------------------------------------
 /**
  * POWER CONFIG
@@ -84,7 +84,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
  *       other cannot.
  */
 // Generally define GPIO Expanders
-#define SatIO_USE_GPIOPE_INPUT
+// #define SatIO_USE_GPIOPE_INPUT
 #define SatIO_USE_GPIOPE_OUTPUT
 
 // Specifically define GPIO Exapanders
@@ -99,7 +99,7 @@ extern bool ISR_Bool_MultiDisplayController_0;
 // #define SatIO_USE_GPIOPE_INPUT_8
 // #define SatIO_USE_GPIOPE_INPUT_9
 // #define SatIO_USE_GPIOPE_INPUT_10
-#define SatIO_USE_GPIOPE_INPUT_11
+// #define SatIO_USE_GPIOPE_INPUT_11
 // #define SatIO_USE_GPIOPE_INPUT_12
 // #define SatIO_USE_GPIOPE_INPUT_13
 // #define SatIO_USE_GPIOPE_INPUT_14
@@ -635,9 +635,6 @@ extern bool ISR_Bool_MultiDisplayController_0;
  * @warning These options have not been thoroughly tested in different combinations of being
  *          partially disabled. Until now, mostly everything has always been enabled. Testing pending.
  */
-#define SatIO_USE_DISPLAY
-#define SatIO_DISPLAY_OPTION_LVGL
-#define SatIO_SERIAL_TX_OPTION_NEW_TASK
 #define SatIO_USE_GPS_0
 #define SatIO_USE_INS
 #define SatIO_USE_GYRO_0

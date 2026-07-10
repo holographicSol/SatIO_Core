@@ -13,7 +13,8 @@
  */
 #ifdef GPIOPE_SLAVE_ATMEGA2560
 GPIOPortExpander GPIOPortExpander_SLAVE = {
-  .name = "GPIOPortExpander_ATMEGA2560",
+  "GPIOPortExpander_ATMEGA2560", // name (positional: avr-g++ 7.3's designated-initializer support
+                                 // can't handle a string literal assigned to a char[] via ".name = ...")
   .wire              = iic_0,
   .i2cLink           = I2CLinkBus0,
   .address           = 9,
@@ -367,6 +368,8 @@ void requestEventBus0Bin() {
 */
 void receiveEventBus0Bin(int n_bytes_received) {
 
+  unsigned long t0 = micros();
+
   if (n_bytes_received < 1) return;
 
   // Expects uint8 command byte!
@@ -376,6 +379,67 @@ void receiveEventBus0Bin(int n_bytes_received) {
   #endif
 
   switch (cmd) {
+
+    // ------------------------------------------------------------------------------------------
+    // Set Pin Value by Index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PIN_PWM: {
+      if (n_bytes_received != 2) {
+        while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
+        #ifdef GPIO_GPIOE_DEBUG_0
+        Serial.println("[GPIOPE_CMD_SET_PIN_PWM] packet must be 2 bytes!");
+        #endif
+        return;
+      }
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      // int8_t pin;
+      // read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
+      uint8_t value;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, value);
+
+      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
+
+      #ifdef GPIO_GPIOE_DEBUG_2
+      Serial.println(
+        "[GPIOPE_CMD_SET_PIN_PWM RCV]  idx=" + String(idx) +
+        "  pin=" + String(pin) +
+        "  value=" + String(value) +
+        "  off_time=" + String(off_time) +
+        "  on_time=" + String(on_time)
+      );
+      #endif
+
+      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
+      // GPIOPortExpander_SLAVE.port_map[idx]           = (uint8_t)pin;
+      GPIOPortExpander_SLAVE.output_value[idx]       = (int8_t)value;
+
+      if (value > 0 && (GPIOPortExpander_SLAVE.modulation_time[idx][0] != 0 || GPIOPortExpander_SLAVE.modulation_time[idx][1] != 0)) {
+        activateModulatedPin(idx);
+      } else {
+        deactivateModulatedPin(idx);
+      }
+
+      writedPin(idx);
+      
+      Serial.println("T0 " + String(micros()-t0)); // 100uS
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // Set Pin PWM by Index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PWM: {
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      uint32_t pwm0;
+      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm0);
+      uint32_t pwm1;
+      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm1);
+      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
+      GPIOPortExpander_SLAVE.modulation_time[idx][0] = (uint32_t)pwm0;
+      GPIOPortExpander_SLAVE.modulation_time[idx][1] = (uint32_t)pwm1;
+    }
 
     case GPIOPE_CMD_GET_INFO: {
       #ifdef GPIO_GPIOE_DEBUG_2
@@ -412,49 +476,6 @@ void receiveEventBus0Bin(int n_bytes_received) {
       resetModulatedPinList();
       GPIOPortExpander_SLAVE.current_pin = 0;
       while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();  // flush
-      break;
-    }
-
-    case GPIOPE_CMD_SET_PIN_PWM: {
-      if (n_bytes_received != 15) {
-        while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
-        #ifdef GPIO_GPIOE_DEBUG_0
-        Serial.println("[GPIOPE_CMD_SET_PIN_PWM] packet must be 15 bytes!");
-        #endif
-        return;
-      }
-      int8_t idx;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      int8_t pin;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
-      int32_t value;
-      read_int32_FromWire(GPIOPortExpander_SLAVE.wire, value);
-      uint32_t off_time;
-      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, off_time);
-      uint32_t on_time;
-      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, on_time);
-
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println(
-        "[GPIOPE_CMD_SET_PIN_PWM RCV]  idx=" + String(idx) +
-        "  pin=" + String(pin) +
-        "  value=" + String(value) +
-        "  off_time=" + String(off_time) +
-        "  on_time=" + String(on_time)
-      );
-      #endif
-
-      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
-      GPIOPortExpander_SLAVE.port_map[idx]           = pin;
-      GPIOPortExpander_SLAVE.output_value[idx]       = value;
-      GPIOPortExpander_SLAVE.modulation_time[idx][0] = off_time;
-      GPIOPortExpander_SLAVE.modulation_time[idx][1] = on_time;
-      if (value > 0 && (off_time != 0 || on_time != 0)) {
-        activateModulatedPin(idx);
-      } else {
-        deactivateModulatedPin(idx);
-      }
-      writedPin(idx);
       break;
     }
 
@@ -1586,10 +1607,65 @@ GPIOPE_DEFINE_OUTPUT(126)
 GPIOPE_DEFINE_OUTPUT(127)
 #endif // SatIO_USE_GPIOPE_OUTPUT_127
 
+bool GPIOPESetPinByIndex(GPIOPortExpander &gpio_expander, uint8_t index, int8_t pin) {
+  printf("%s  address=%d  (index=%d -> pin=%d)\n",
+    gpio_expander.name, gpio_expander.address, index, pin
+  );
+  // Build binary packet with human readable helper functions.
+  clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+  // Command
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PIN);
+  // Index
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
+  // Pin
+  write_int32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
+  // Write to slave.
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 1, gpio_expander.name);
+
+  return true;
+}
+
+bool GPIOPESetPWMByIndex(GPIOPortExpander &gpio_expander, uint8_t index, uint32_t off_time, uint32_t on_time) {
+  printf("%s  address=%d  (index=%d -> pwm0=%ld  pwm1=%ld)\n",
+    gpio_expander.name, gpio_expander.address, index, off_time, on_time
+  );
+  // Build binary packet with human readable helper functions.
+  clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+  // Command
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PWM);
+  // Index
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
+  // PWM 0
+  write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, off_time);
+  // PWM 1
+  write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, on_time);
+  // Write to slave.
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 1, gpio_expander.name);
+
+  return true;
+}
+
+bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander, int8_t *pins) {
+  printf("[GPIOPESetAllPins]\n");
+  for (int i=0; i<gpio_expander.max_pins; i++) {
+    GPIOPESetPinByIndex(gpio_expander, i, pins[i]);
+  }
+  return true;
+}
+
+bool GPIOPESetAllPWM(GPIOPortExpander &gpio_expander, uint32_t (*pwm)[2]) {
+  printf("[GPIOPESetAllPWM]\n");
+  bool ok = true;
+  for (int i=0; i<gpio_expander.max_pins; i++) {
+    ok &= GPIOPESetPWMByIndex(gpio_expander, i, pwm[i][0], pwm[i][1]);
+  }
+  return ok;
+}
+
 // ------------------------------------------------------------
 // Master-side: 
 // ------------------------------------------------------------
-bool readGPIOPE_PIN(GPIOPortExpander &gpio_expander, uint8_t pin) {
+bool readGPIOPE_PIN(GPIOPortExpander gpio_expander, uint8_t pin) {
   if (pin >= (uint8_t)gpio_expander.max_pins) {return false;}
 
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
@@ -1638,30 +1714,37 @@ bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address) 
   gpio_expander.max_input_values  = (int32_t)max_input_values;
   gpio_expander.max_output_values = (int32_t)max_output_values;
 
-  // ---- GPIOPE_CMD_GET_PINS: one (is_analog, pin) entry per query_cursor step ----
-  clearI2CLinkOutputPacket(gpio_expander.i2cLink);
-  gpio_expander.i2cLink.OUTPUT_PACKET[0] = GPIOPE_CMD_GET_PINS;
-  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 1, 0, "queryGPIOPortExpanderInfo");
+  // // ---- GPIOPE_CMD_GET_PINS: one (is_analog, pin) entry per query_cursor step ----
+  // clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+  // gpio_expander.i2cLink.OUTPUT_PACKET[0] = GPIOPE_CMD_GET_PINS;
+  // writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 1, 0, "queryGPIOPortExpanderInfo");
 
-  int num_entries = (int)gpio_expander.num_analog_pins + (int)gpio_expander.num_digital_pins;
-  int analog_i = 0, digital_i = 0;
-  for (int i = 0; i < num_entries; i++) {
-    if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 2, 0, "queryGPIOPortExpanderInfo")) {
-      return false;
-    }
-    uint8_t is_analog;
-    int8_t pin;
-    read_uint8_FromWire(gpio_expander.wire, is_analog);
-    read_int8_FromWire(gpio_expander.wire, pin);
-    if (is_analog) {
-      if (analog_i < GPIOPE_MAX_SIZE) gpio_expander.analog_pins[analog_i++] = pin;
-    } else {
-      if (digital_i < GPIOPE_MAX_SIZE) gpio_expander.digital_pins[digital_i++] = pin;
-    }
-  }
+  // int num_entries = (int)gpio_expander.num_analog_pins + (int)gpio_expander.num_digital_pins;
+  // int analog_i = 0, digital_i = 0;
+  // for (int i = 0; i < num_entries; i++) {
+  //   if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 2, 0, "queryGPIOPortExpanderInfo")) {
+  //     return false;
+  //   }
+  //   uint8_t is_analog;
+  //   int8_t pin;
+  //   read_uint8_FromWire(gpio_expander.wire, is_analog);
+  //   read_int8_FromWire(gpio_expander.wire, pin);
+  //   if (is_analog) {
+  //     if (analog_i < GPIOPE_MAX_SIZE) gpio_expander.analog_pins[analog_i++] = pin;
+  //   } else {
+  //     if (digital_i < GPIOPE_MAX_SIZE) gpio_expander.digital_pins[digital_i++] = pin;
+  //   }
+  // }
   return true;
 }
 
+/**
+ * Is currently, primarily used to set GPIOPE slave to default, when master loads.
+ * @note Above mentioned use case should be replaced by slave setting default automatically,
+ *       if not hearing from master for a period of time, which should be considered carefully
+ *       and should be on a programmable, switch by switch basis; after n time switch n turns off,
+ *       switch n+ remains on for n time / remains on, etc. Or all turn off after period.
+ */
 void clearGPIOPortController(GPIOPortExpander gpio_expander) {
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_DEFAULT);

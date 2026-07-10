@@ -351,6 +351,23 @@ extern "C" void app_main(void)
 
     delay(3000);
 
+    // Storage
+    #ifdef SatIO_USE_STORAGE
+    sdcardFlagData.load_system = true;
+    printf("creating storage task\n");
+    createTaskStorage(); // (target: 2Hz)
+    #endif
+    while (sdcardFlagData.load_system==true) {}
+    printf("loading system complete.\n");
+    if (matrixData.load_matrix_on_startup==true) {
+        while (sdcardFlagData.load_matrix==true) {}
+        printf("loading matrix complete.\n");
+        while (sdcardFlagData.load_mapping==true) {}
+        printf("loading mapping complete.\n");
+    }
+
+    delay(3000);
+
     /** ----------------------------------------------------------------------------
      * GPIOPortExpander.
      * 
@@ -394,7 +411,17 @@ extern "C" void app_main(void)
     #endif
 
     #ifdef SatIO_USE_GPIOPE_OUTPUT_9
+    // mew & required update...
+    // debug some matrix port map loaded to sanity check the following
+    printf("SWITCH 0 PORT 0: %d\n", matrixData.matrix_port_map[0][0]);
+    // query
     queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+    // debug check max pins populated from slave
+    printf("max_pins=%d\n", GPIOPE_OUTPUT_9.max_pins);
+    // clearGPIOPortController(GPIOPE_OUTPUT_9);
+    // setup the slave according to loaded data
+    GPIOPESetAllPins(GPIOPE_OUTPUT_9, matrixData.matrix_port_map[0]);
+    GPIOPESetAllPWM(GPIOPE_OUTPUT_9, matrixData.output_pwm[0]);
     #endif
 
     #ifdef SatIO_USE_GPIOPE_OUTPUT_10
@@ -1420,13 +1447,6 @@ extern "C" void app_main(void)
     // System Time
     printf("creating system time task");
     createTaskSystemTime();
-    
-    // Storage
-    #ifdef SatIO_USE_STORAGE
-    sdcardFlagData.load_system = true;
-    printf("creating storage task");
-    createTaskStorage(); // (target: 2Hz)
-    #endif
 
     // delay(5000);
 

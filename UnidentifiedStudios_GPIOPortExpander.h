@@ -82,6 +82,11 @@ typedef struct GPIOPortExpander {
 
 #define GPIOPE_CMD_GET_VALUE    135 //      - Read from Slave Pin
 
+#define GPIOPE_CMD_SET_PIN      136
+
+#define GPIOPE_CMD_SET_PWM      137
+
+
 // ------------------------------------------------------------
 // Slave-side
 // ------------------------------------------------------------
@@ -104,7 +109,10 @@ bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
 void clearGPIOPortController(GPIOPortExpander gpio_expander);
 void setGPIOPortExpanderChannelEnabled(GPIOPortExpander &gpio_expander, uint8_t channel,  bool enabled);
 void setGPIOPortExpanderChannelFreq(GPIOPortExpander &gpio_expander, uint8_t pin, uint64_t freq_uS);
-
+bool GPIOPESetPWMByIndex(GPIOPortExpander &gpio_expander, uint8_t index, uint32_t off_time, uint32_t on_time);
+bool GPIOPESetPinByIndex(GPIOPortExpander &gpio_expander, uint8_t index, int8_t pin);
+bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander, int8_t *pins);
+bool GPIOPESetAllPWM(GPIOPortExpander &gpio_expander, uint32_t (*pwm)[2]);
 
 // ------------------------------------------------------------
 // Externs
