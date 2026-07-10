@@ -56,7 +56,7 @@ void setup() {
   // ------------------------------------------------------------
   GPIOPortExpander_SLAVE.wire.onReceive(receiveEventBus0Bin);
 
-  Serial.println("[READY] Runnung.");
+  Serial.println("[READY] (waiting for initialization)");
 }
 
 // ------------------------------------------------------------------------------------------------------------------

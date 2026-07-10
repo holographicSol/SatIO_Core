@@ -17,7 +17,7 @@ GPIOPortExpander GPIOPortExpander_SLAVE = {
                                  // can't handle a string literal assigned to a char[] via ".name = ...")
   .wire              = iic_0,
   .i2cLink           = I2CLinkBus0,
-  .address           = 11,
+  .address           = 9,
   .current_pin       = 0,
   .pin_min           = -1,
   .pin_max           = 69,
@@ -368,6 +368,8 @@ void requestEventBus0Bin() {
 */
 void receiveEventBus0Bin(int n_bytes_received) {
 
+  unsigned long t0 = micros();
+
   if (n_bytes_received < 1) return;
 
   // Expects uint8 command byte!
@@ -377,6 +379,81 @@ void receiveEventBus0Bin(int n_bytes_received) {
   #endif
 
   switch (cmd) {
+
+    // ------------------------------------------------------------------------------------------
+    // Set Pin Value by Index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PIN_PWM: {
+      
+      // unsigned long t0 = micros();
+
+      if (n_bytes_received != 3) {
+        while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
+        #ifdef GPIO_GPIOE_DEBUG_0
+        Serial.println("[GPIOPE_CMD_SET_PIN_PWM] packet must be 3 bytes!");
+        #endif
+        return;
+      }
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      uint8_t value;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, value);
+
+      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
+
+      #ifdef GPIO_GPIOE_DEBUG_2
+      Serial.println(
+        "[GPIOPE_CMD_SET_PIN_PWM RCV]"
+        "  idx=" + String(idx) + " (pin=" + String(GPIOPortExpander_SLAVE.port_map[idx]) + ")" +
+        "  value=" + String(value)
+      );
+      #endif
+
+      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
+
+      GPIOPortExpander_SLAVE.output_value[idx]       = (int8_t)value;
+      if (value > 0 && (GPIOPortExpander_SLAVE.modulation_time[idx][0] != 0 || GPIOPortExpander_SLAVE.modulation_time[idx][1] != 0)) {
+        activateModulatedPin(idx);
+      } else {
+        deactivateModulatedPin(idx);
+      }
+
+      writedPin(idx);
+      
+      // Serial.println("T0 " + String(micros()-t0)); // >100uS -> <=40uS
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // Set Pin by Index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PIN: {
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      int8_t pin;
+      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
+      Serial.println("GPIOPE_CMD_SET_PIN  idx=" + String(idx) + "  pin=" + String(pin));
+      GPIOPortExpander_SLAVE.port_map[idx] = (int32_t)pin;
+      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // Set Pin PWM by Index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PWM: {
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      uint32_t pwm0;
+      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm0);
+      uint32_t pwm1;
+      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm1);
+      GPIOPortExpander_SLAVE.modulation_time[idx][0] = (uint32_t)pwm0;
+      GPIOPortExpander_SLAVE.modulation_time[idx][1] = (uint32_t)pwm1;
+      Serial.println( "GPIOPE_CMD_SET_PWM  idx=" + String(idx) + "  pwm0=" + String(pwm0) + "  pwm1=" + String(pwm1) );
+      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
+      break;
+    }
 
     case GPIOPE_CMD_GET_INFO: {
       #ifdef GPIO_GPIOE_DEBUG_2
@@ -413,49 +490,6 @@ void receiveEventBus0Bin(int n_bytes_received) {
       resetModulatedPinList();
       GPIOPortExpander_SLAVE.current_pin = 0;
       while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();  // flush
-      break;
-    }
-
-    case GPIOPE_CMD_SET_PIN_PWM: {
-      if (n_bytes_received != 15) {
-        while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
-        #ifdef GPIO_GPIOE_DEBUG_0
-        Serial.println("[GPIOPE_CMD_SET_PIN_PWM] packet must be 15 bytes!");
-        #endif
-        return;
-      }
-      int8_t idx;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      int8_t pin;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
-      int32_t value;
-      read_int32_FromWire(GPIOPortExpander_SLAVE.wire, value);
-      uint32_t off_time;
-      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, off_time);
-      uint32_t on_time;
-      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, on_time);
-
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println(
-        "[GPIOPE_CMD_SET_PIN_PWM RCV]  idx=" + String(idx) +
-        "  pin=" + String(pin) +
-        "  value=" + String(value) +
-        "  off_time=" + String(off_time) +
-        "  on_time=" + String(on_time)
-      );
-      #endif
-
-      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
-      GPIOPortExpander_SLAVE.port_map[idx]           = pin;
-      GPIOPortExpander_SLAVE.output_value[idx]       = value;
-      GPIOPortExpander_SLAVE.modulation_time[idx][0] = off_time;
-      GPIOPortExpander_SLAVE.modulation_time[idx][1] = on_time;
-      if (value > 0 && (off_time != 0 || on_time != 0)) {
-        activateModulatedPin(idx);
-      } else {
-        deactivateModulatedPin(idx);
-      }
-      writedPin(idx);
       break;
     }
 
@@ -1586,6 +1620,44 @@ GPIOPE_DEFINE_OUTPUT(126)
 #ifdef SatIO_USE_GPIOPE_OUTPUT_127
 GPIOPE_DEFINE_OUTPUT(127)
 #endif // SatIO_USE_GPIOPE_OUTPUT_127
+
+bool GPIOPESetPWMByIndex(GPIOPortExpander &gpio_expander, uint8_t index, uint32_t off_time, uint32_t on_time) {
+  // Build binary packet with human readable helper functions.
+  clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+  // Command
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PWM);
+  // Index
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
+  // PWM 0
+  write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, off_time);
+  // PWM 1
+  write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, on_time);
+  // Write to slave.
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, gpio_expander.name);
+
+  return true;
+}
+
+bool GPIOPESetPinByIndex(GPIOPortExpander &gpio_expander, uint8_t index, int8_t pin) {
+  // Build binary packet with human readable helper functions.
+  clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+  // Command
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PIN);
+  // Index
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
+  // PWM 0
+  write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
+  // Write to slave.
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, gpio_expander.name);
+
+  return true;
+}
+
+bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander, int8_t *pins) {
+  for (int i=0; i<gpio_expander.max_pins; i++) {
+    GPIOPESetPinByIndex(gpio_expander, i, pins[i]);
+  }
+}
 
 // ------------------------------------------------------------
 // Master-side: 

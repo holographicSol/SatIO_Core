@@ -15,7 +15,7 @@
 // ------------------------------------------------------------
 // BUILD OPTIONS: Debug
 // ------------------------------------------------------------
-// #define GPIO_GPIOE_DEBUG_0
+#define GPIO_GPIOE_DEBUG_0
 // #define GPIO_GPIOE_DEBUG_1
 // #define GPIO_GPIOE_DEBUG_2
 // #define GPIO_GPIOE_BENCH
@@ -27,8 +27,8 @@
 // ------------------------------------------------------------
 // BUILD OPTIONS: READ/WRITE MODE
 // ------------------------------------------------------------
-#define GPIOPE_READ_MODE
-// #define GPIOPE_WRITE_MODE
+// #define GPIOPE_READ_MODE
+#define GPIOPE_WRITE_MODE
 // ------------------------------------------------------------
 // BUILD OPTIONS: SELECT SLAVE DEVICE
 // ------------------------------------------------------------
@@ -81,6 +81,10 @@ typedef struct GPIOPortExpander {
 
 #define GPIOPE_CMD_GET_VALUE    135 //      - Read from Slave Pin
 
+#define GPIOPE_CMD_SET_PIN      136
+
+#define GPIOPE_CMD_SET_PWM      137
+
 // ------------------------------------------------------------
 // Slave-side
 // ------------------------------------------------------------
@@ -103,7 +107,9 @@ bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
 void clearGPIOPortController(GPIOPortExpander gpio_expander);
 void setGPIOPortExpanderChannelEnabled(GPIOPortExpander &gpio_expander, uint8_t channel,  bool enabled);
 void setGPIOPortExpanderChannelFreq(GPIOPortExpander &gpio_expander, uint8_t pin, uint64_t freq_uS);
-
+bool GPIOPESetPWMByIndex(GPIOPortExpander &gpio_expander, uint8_t index, uint32_t off_time, uint32_t on_time);
+bool GPIOPESetPinByIndex(GPIOPortExpander &gpio_expander, uint8_t index, int8_t pin);
+bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander, int8_t *pins);
 
 // ------------------------------------------------------------
 // Externs
