@@ -527,20 +527,36 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_MATRIX_OUTPUT_PWM_0:
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
-                matrixData.output_pwm[0][current_matrix_i][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
-                matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
+                uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
+                GPIOPortExpander* gpiope = isGPIOPE(address);
+                if (gpiope) {
+                    gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
+                    // change to single not all ->
+                    GPIOPESetAllPWM(*gpiope);
+                    queryGPIOPortExpanderInfo(*gpiope, gpiope->address);
+                    matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
+                }
             }
             else {
+                /* ensure statement terminated */
             }
             break;
         
         case KB_MATRIX_OUTPUT_PWM_1:
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
-                matrixData.output_pwm[0][current_matrix_i][INDEX_MATRIX_SWITCH_PWM_ON] = val;
-                matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
+                uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
+                GPIOPortExpander* gpiope = isGPIOPE(address);
+                if (gpiope) {
+                    gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_ON] = val;
+                    // change to single not all ->
+                    GPIOPESetAllPWM(*gpiope);
+                    queryGPIOPortExpanderInfo(*gpiope, gpiope->address);
+                    matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
+                }
             }
             else {
+                /* ensure statement terminated */
             }
             break;
         
@@ -17017,12 +17033,27 @@ void update_display_lvgl()
 
                 // Inverted
                 dd_select(mfc.dd_inverted_logic, matrixData.matrix_switch_inverted_logic[0][current_matrix_i][current_matrix_function_i]);
+                
+                // Currently allow address to be user defined (will be replaced in coming updates).
+                uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
 
-                // PWM Off
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.output_pwm[0][current_matrix_i][INDEX_MATRIX_SWITCH_PWM_OFF]); lv_label_set_text(mfc.val_pwm_0, buf); }
+                GPIOPortExpander* gpiope = isGPIOPE(address);
 
-                // PWM On
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.output_pwm[0][current_matrix_i][INDEX_MATRIX_SWITCH_PWM_ON]); lv_label_set_text(mfc.val_pwm_1, buf); }
+                if (gpiope) {
+                    { 
+                        // PWM Off
+                        char buf[MAX_GLOBAL_ELEMENT_SIZE];
+                        snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_OFF] );
+                        lv_label_set_text(mfc.val_pwm_0, buf);
+                    }
+    
+                    {
+                        // PWM On
+                        char buf[MAX_GLOBAL_ELEMENT_SIZE];
+                        snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_ON] );
+                        lv_label_set_text(mfc.val_pwm_1, buf);
+                    }
+                }
 
                 // Connected Map Slot
                 dd_select(mfc.dd_map_slot, matrixData.index_mapped_value[0][current_matrix_i]);

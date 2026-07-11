@@ -152,6 +152,13 @@ void activateModulatedPin(int8_t idx) {
   modulated_pin_pos[idx] = modulated_pin_count;
   modulated_pin_list[modulated_pin_count] = idx;
   modulated_pin_count++;
+  // Start the cycle clean: switch_state/last-toggle time may be stale from
+  // this pin's previous activation (e.g. a manual off never touches them),
+  // which would make modulator() think it's already mid-cycle and needs to
+  // turn off instead of on. Force "currently low, off-timer elapsed" so it
+  // turns on right away.
+  GPIOPortExpander_SLAVE.switch_state[idx] = false;
+  GPIOPortExpander_SLAVE.modulation_time[idx][2] = 0;
 }
 
 void deactivateModulatedPin(int8_t idx) {
@@ -221,7 +228,8 @@ void modulator() {
     const int16_t pin = GPIOPortExpander_SLAVE.port_map[i];
     const int32_t out_val = GPIOPortExpander_SLAVE.output_value[i];
     // cache this pin's row instead of re-indexing modulation_time[i]
-    unsigned long *mt = GPIOPortExpander_SLAVE.modulation_time[i];
+    uint32_t *mt = GPIOPortExpander_SLAVE.modulation_time[i];
+    // Serial.println("active_i=" + String(i) + "  pin=" + String(pin) + "  val=" + String(out_val));
     // ------------------------------------------------------
     // handle currently low
     // ------------------------------------------------------
@@ -230,6 +238,7 @@ void modulator() {
       // modulate on
       // ----------------------------------
       if ((now - mt[2]) >= mt[0]) {
+        // Serial.println("on");
         if (pin<54) {digitalWrite(pin, HIGH);}
         else {analogWrite(pin, out_val);}
         mt[2]=now;
@@ -245,6 +254,7 @@ void modulator() {
       // ----------------------------------
       if (mt[1]==0) {
         if ((now - mt[2]) >= mt[0]) {
+          // Serial.println("rem off");
           if (pin<54) {digitalWrite(pin, LOW);}
           else {analogWrite(pin, 0);}
           mt[2]=now;
@@ -261,6 +271,7 @@ void modulator() {
       // ----------------------------------
       else {
         if ((now - mt[2]) >= mt[1]) {
+          // Serial.println("off");
           if (pin<54) {digitalWrite(pin, LOW);}
           else {analogWrite(pin, 0);}
           mt[2]=now;
@@ -374,15 +385,15 @@ void requestEventBus0Bin() {
 */
 void receiveEventBus0Bin(int n_bytes_received) {
 
-  unsigned long t0 = micros();
+  // unsigned long t0 = micros();
 
   if (n_bytes_received < 1) return;
 
   // Expects uint8 command byte!
   uint8_t cmd = GPIOPortExpander_SLAVE.wire.read();
-  // #ifdef GPIO_GPIOE_DEBUG_1
+  #ifdef GPIO_GPIOE_DEBUG_1
   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
-  // #endif
+  #endif
 
   switch (cmd) {
 
@@ -415,7 +426,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
 
       GPIOPortExpander_SLAVE.port_map[idx]       = (int8_t)pin;
       
-      Serial.println("T0 " + String(micros()-t0)); // 100uS
+      // Serial.println("T0 " + String(micros()-t0)); // 100uS
       break;
     }
 
@@ -423,40 +434,42 @@ void receiveEventBus0Bin(int n_bytes_received) {
     // SET output value by portmap index
     // ------------------------------------------------------------------------------------------
     case GPIOPE_CMD_SET_PORTMAP_VALUE: {
-      if (n_bytes_received != 2) {
-        while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
-        #ifdef GPIO_GPIOE_DEBUG_0
-        Serial.println("[SET_PIN_VALUE] packet must be 2 bytes!");
-        #endif
-        return;
-      }
+      // if (n_bytes_received != 3) {
+      //   while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
+      //   #ifdef GPIO_GPIOE_DEBUG_0
+      //   Serial.println("[SET_PIN_VALUE] packet must be 3 bytes!");
+      //   #endif
+      //   return;
+      // }
       uint8_t idx;
       read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      uint8_t value;
-      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, value);
+      int32_t value;
+      read_int32_FromWire(GPIOPortExpander_SLAVE.wire, value);
 
       while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
 
       #ifdef GPIO_GPIOE_DEBUG_2
       Serial.println("set"
         " idx=" + String(idx) +
+        " (pin=" + String(GPIOPortExpander_SLAVE.port_map[idx]) + ")"
         " value=" + String(value)
       );
       #endif
 
       if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
 
-      GPIOPortExpander_SLAVE.output_value[idx]       = (int8_t)value;
+      GPIOPortExpander_SLAVE.output_value[idx]       = (int32_t)value;
 
       if (value > 0 && (GPIOPortExpander_SLAVE.modulation_time[idx][0] != 0 || GPIOPortExpander_SLAVE.modulation_time[idx][1] != 0)) {
+        // modulator() alone owns this pin's physical state from here -
+        // writing directly here would fight its on/off timing.
         activateModulatedPin(idx);
       } else {
         deactivateModulatedPin(idx);
+        writedPin(idx);
       }
 
-      writedPin(idx);
-      
-      Serial.println("T0 " + String(micros()-t0)); // 100uS
+      // Serial.println("T0 " + String(micros()-t0)); // 100uS
       break;
     }
 
@@ -578,7 +591,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
     .current_pin       = 0, \
     .pin_min           = 0, \
     .pin_max           = 0, \
-    .max_pins          = 0, \
+    .max_pins          = 100, \
     .num_analog_pins   = 0, \
     .num_digital_pins  = 0, \
     .max_input_values  = GPIOPE_MAX_SIZE, \
@@ -605,7 +618,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
     .current_pin       = 0, \
     .pin_min           = 0, \
     .pin_max           = 0, \
-    .max_pins          = 0, \
+    .max_pins          = 100, \
     .num_analog_pins   = 0, \
     .num_digital_pins  = 0, \
     .max_input_values  = GPIOPE_MAX_SIZE, \
@@ -1691,7 +1704,7 @@ bool GPIOPESetPWMByIndex(GPIOPortExpander &gpio_expander, uint8_t index, uint32_
 }
 
 bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander) {
-  printf("[GPIOPESetAllPins]\n");
+  if (gpio_expander.max_pins == 0) {printf("[GPIOPESetAllPins] max pins 0. exiting."); return false;}
   for (int i=0; i<gpio_expander.max_pins; i++) {
     GPIOPESetPinByIndex(gpio_expander, i, gpio_expander.port_map[i]);
   }
@@ -1699,10 +1712,10 @@ bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander) {
 }
 
 bool GPIOPESetAllPWM(GPIOPortExpander &gpio_expander) {
-  printf("[GPIOPESetAllPWM]\n");
+  if (gpio_expander.max_pins == 0) {printf("[GPIOPESetAllPWM] max pins 0. exiting."); return false;}
   bool ok = true;
   for (int i=0; i<gpio_expander.max_pins; i++) {
-    ok &= GPIOPESetPWMByIndex(gpio_expander, i, gpio_expander.modulation_time[i][0], gpio_expander.modulation_time[i][1]);
+    GPIOPESetPWMByIndex(gpio_expander, i, gpio_expander.modulation_time[i][0], gpio_expander.modulation_time[i][1]);
   }
   return ok;
 }
@@ -1867,3 +1880,917 @@ void setGPIOPortExpanderChannelFreq(GPIOPortExpander &gpio_expander, uint8_t pin
 }
 
 #endif
+
+/**
+ * Can be used to return a valid GPIOPE for a given address.
+ */
+GPIOPortExpander* isGPIOPE(uint8_t address) {
+
+  GPIOPortExpander *gpiope = nullptr;
+
+  switch (address) {
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_0
+    case I2C_ADDR_INPUT_GPIOE_0: {
+      gpiope = &GPIOPE_OUTPUT_0;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_1
+    case I2C_ADDR_INPUT_GPIOE_1: {
+      gpiope = &GPIOPE_OUTPUT_1;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_2
+    case I2C_ADDR_INPUT_GPIOE_2: {
+      gpiope = &GPIOPE_OUTPUT_2;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_3
+    case I2C_ADDR_INPUT_GPIOE_3: {
+      gpiope = &GPIOPE_OUTPUT_3;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_4
+    case I2C_ADDR_INPUT_GPIOE_4: {
+      gpiope = &GPIOPE_OUTPUT_4;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_5
+    case I2C_ADDR_INPUT_GPIOE_5: {
+      gpiope = &GPIOPE_OUTPUT_5;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_6
+    case I2C_ADDR_INPUT_GPIOE_6: {
+      gpiope = &GPIOPE_OUTPUT_6;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_7
+    case I2C_ADDR_INPUT_GPIOE_7: {
+      gpiope = &GPIOPE_OUTPUT_7;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_8
+    case I2C_ADDR_INPUT_GPIOE_8: {
+      gpiope = &GPIOPE_OUTPUT_8;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_9
+    case I2C_ADDR_INPUT_GPIOE_9: {
+      gpiope = &GPIOPE_OUTPUT_9;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_10
+    case I2C_ADDR_INPUT_GPIOE_10: {
+      gpiope = &GPIOPE_OUTPUT_10;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_11
+    case I2C_ADDR_INPUT_GPIOE_11: {
+      gpiope = &GPIOPE_OUTPUT_11;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_12
+    case I2C_ADDR_INPUT_GPIOE_12: {
+      gpiope = &GPIOPE_OUTPUT_12;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_13
+    case I2C_ADDR_INPUT_GPIOE_13: {
+      gpiope = &GPIOPE_OUTPUT_13;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_14
+    case I2C_ADDR_INPUT_GPIOE_14: {
+      gpiope = &GPIOPE_OUTPUT_14;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_15
+    case I2C_ADDR_INPUT_GPIOE_15: {
+      gpiope = &GPIOPE_OUTPUT_15;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_16
+    case I2C_ADDR_INPUT_GPIOE_16: {
+      gpiope = &GPIOPE_OUTPUT_16;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_17
+    case I2C_ADDR_INPUT_GPIOE_17: {
+      gpiope = &GPIOPE_OUTPUT_17;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_18
+    case I2C_ADDR_INPUT_GPIOE_18: {
+      gpiope = &GPIOPE_OUTPUT_18;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_19
+    case I2C_ADDR_INPUT_GPIOE_19: {
+      gpiope = &GPIOPE_OUTPUT_19;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_20
+    case I2C_ADDR_INPUT_GPIOE_20: {
+      gpiope = &GPIOPE_OUTPUT_20;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_21
+    case I2C_ADDR_INPUT_GPIOE_21: {
+      gpiope = &GPIOPE_OUTPUT_21;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_22
+    case I2C_ADDR_INPUT_GPIOE_22: {
+      gpiope = &GPIOPE_OUTPUT_22;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_23
+    case I2C_ADDR_INPUT_GPIOE_23: {
+      gpiope = &GPIOPE_OUTPUT_23;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_24
+    case I2C_ADDR_INPUT_GPIOE_24: {
+      gpiope = &GPIOPE_OUTPUT_24;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_25
+    case I2C_ADDR_INPUT_GPIOE_25: {
+      gpiope = &GPIOPE_OUTPUT_25;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_26
+    case I2C_ADDR_INPUT_GPIOE_26: {
+      gpiope = &GPIOPE_OUTPUT_26;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_27
+    case I2C_ADDR_INPUT_GPIOE_27: {
+      gpiope = &GPIOPE_OUTPUT_27;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_28
+    case I2C_ADDR_INPUT_GPIOE_28: {
+      gpiope = &GPIOPE_OUTPUT_28;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_29
+    case I2C_ADDR_INPUT_GPIOE_29: {
+      gpiope = &GPIOPE_OUTPUT_29;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_30
+    case I2C_ADDR_INPUT_GPIOE_30: {
+      gpiope = &GPIOPE_OUTPUT_30;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_31
+    case I2C_ADDR_INPUT_GPIOE_31: {
+      gpiope = &GPIOPE_OUTPUT_31;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_32
+    case I2C_ADDR_INPUT_GPIOE_32: {
+      gpiope = &GPIOPE_OUTPUT_32;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_33
+    case I2C_ADDR_INPUT_GPIOE_33: {
+      gpiope = &GPIOPE_OUTPUT_33;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_34
+    case I2C_ADDR_INPUT_GPIOE_34: {
+      gpiope = &GPIOPE_OUTPUT_34;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_35
+    case I2C_ADDR_INPUT_GPIOE_35: {
+      gpiope = &GPIOPE_OUTPUT_35;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_36
+    case I2C_ADDR_INPUT_GPIOE_36: {
+      gpiope = &GPIOPE_OUTPUT_36;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_37
+    case I2C_ADDR_INPUT_GPIOE_37: {
+      gpiope = &GPIOPE_OUTPUT_37;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_38
+    case I2C_ADDR_INPUT_GPIOE_38: {
+      gpiope = &GPIOPE_OUTPUT_38;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_39
+    case I2C_ADDR_INPUT_GPIOE_39: {
+      gpiope = &GPIOPE_OUTPUT_39;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_40
+    case I2C_ADDR_INPUT_GPIOE_40: {
+      gpiope = &GPIOPE_OUTPUT_40;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_41
+    case I2C_ADDR_INPUT_GPIOE_41: {
+      gpiope = &GPIOPE_OUTPUT_41;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_42
+    case I2C_ADDR_INPUT_GPIOE_42: {
+      gpiope = &GPIOPE_OUTPUT_42;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_43
+    case I2C_ADDR_INPUT_GPIOE_43: {
+      gpiope = &GPIOPE_OUTPUT_43;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_44
+    case I2C_ADDR_INPUT_GPIOE_44: {
+      gpiope = &GPIOPE_OUTPUT_44;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_45
+    case I2C_ADDR_INPUT_GPIOE_45: {
+      gpiope = &GPIOPE_OUTPUT_45;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_46
+    case I2C_ADDR_INPUT_GPIOE_46: {
+      gpiope = &GPIOPE_OUTPUT_46;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_47
+    case I2C_ADDR_INPUT_GPIOE_47: {
+      gpiope = &GPIOPE_OUTPUT_47;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_48
+    case I2C_ADDR_INPUT_GPIOE_48: {
+      gpiope = &GPIOPE_OUTPUT_48;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_49
+    case I2C_ADDR_INPUT_GPIOE_49: {
+      gpiope = &GPIOPE_OUTPUT_49;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_50
+    case I2C_ADDR_INPUT_GPIOE_50: {
+      gpiope = &GPIOPE_OUTPUT_50;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_51
+    case I2C_ADDR_INPUT_GPIOE_51: {
+      gpiope = &GPIOPE_OUTPUT_51;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_52
+    case I2C_ADDR_INPUT_GPIOE_52: {
+      gpiope = &GPIOPE_OUTPUT_52;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_53
+    case I2C_ADDR_INPUT_GPIOE_53: {
+      gpiope = &GPIOPE_OUTPUT_53;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_54
+    case I2C_ADDR_INPUT_GPIOE_54: {
+      gpiope = &GPIOPE_OUTPUT_54;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_55
+    case I2C_ADDR_INPUT_GPIOE_55: {
+      gpiope = &GPIOPE_OUTPUT_55;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_56
+    case I2C_ADDR_INPUT_GPIOE_56: {
+      gpiope = &GPIOPE_OUTPUT_56;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_57
+    case I2C_ADDR_INPUT_GPIOE_57: {
+      gpiope = &GPIOPE_OUTPUT_57;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_58
+    case I2C_ADDR_INPUT_GPIOE_58: {
+      gpiope = &GPIOPE_OUTPUT_58;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_59
+    case I2C_ADDR_INPUT_GPIOE_59: {
+      gpiope = &GPIOPE_OUTPUT_59;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_60
+    case I2C_ADDR_INPUT_GPIOE_60: {
+      gpiope = &GPIOPE_OUTPUT_60;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_61
+    case I2C_ADDR_INPUT_GPIOE_61: {
+      gpiope = &GPIOPE_OUTPUT_61;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_62
+    case I2C_ADDR_INPUT_GPIOE_62: {
+      gpiope = &GPIOPE_OUTPUT_62;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_63
+    case I2C_ADDR_INPUT_GPIOE_63: {
+      gpiope = &GPIOPE_OUTPUT_63;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_64
+    case I2C_ADDR_INPUT_GPIOE_64: {
+      gpiope = &GPIOPE_OUTPUT_64;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_65
+    case I2C_ADDR_INPUT_GPIOE_65: {
+      gpiope = &GPIOPE_OUTPUT_65;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_66
+    case I2C_ADDR_INPUT_GPIOE_66: {
+      gpiope = &GPIOPE_OUTPUT_66;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_67
+    case I2C_ADDR_INPUT_GPIOE_67: {
+      gpiope = &GPIOPE_OUTPUT_67;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_68
+    case I2C_ADDR_INPUT_GPIOE_68: {
+      gpiope = &GPIOPE_OUTPUT_68;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_69
+    case I2C_ADDR_INPUT_GPIOE_69: {
+      gpiope = &GPIOPE_OUTPUT_69;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_70
+    case I2C_ADDR_INPUT_GPIOE_70: {
+      gpiope = &GPIOPE_OUTPUT_70;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_71
+    case I2C_ADDR_INPUT_GPIOE_71: {
+      gpiope = &GPIOPE_OUTPUT_71;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_72
+    case I2C_ADDR_INPUT_GPIOE_72: {
+      gpiope = &GPIOPE_OUTPUT_72;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_73
+    case I2C_ADDR_INPUT_GPIOE_73: {
+      gpiope = &GPIOPE_OUTPUT_73;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_74
+    case I2C_ADDR_INPUT_GPIOE_74: {
+      gpiope = &GPIOPE_OUTPUT_74;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_75
+    case I2C_ADDR_INPUT_GPIOE_75: {
+      gpiope = &GPIOPE_OUTPUT_75;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_76
+    case I2C_ADDR_INPUT_GPIOE_76: {
+      gpiope = &GPIOPE_OUTPUT_76;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_77
+    case I2C_ADDR_INPUT_GPIOE_77: {
+      gpiope = &GPIOPE_OUTPUT_77;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_78
+    case I2C_ADDR_INPUT_GPIOE_78: {
+      gpiope = &GPIOPE_OUTPUT_78;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_79
+    case I2C_ADDR_INPUT_GPIOE_79: {
+      gpiope = &GPIOPE_OUTPUT_79;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_80
+    case I2C_ADDR_INPUT_GPIOE_80: {
+      gpiope = &GPIOPE_OUTPUT_80;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_81
+    case I2C_ADDR_INPUT_GPIOE_81: {
+      gpiope = &GPIOPE_OUTPUT_81;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_82
+    case I2C_ADDR_INPUT_GPIOE_82: {
+      gpiope = &GPIOPE_OUTPUT_82;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_83
+    case I2C_ADDR_INPUT_GPIOE_83: {
+      gpiope = &GPIOPE_OUTPUT_83;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_84
+    case I2C_ADDR_INPUT_GPIOE_84: {
+      gpiope = &GPIOPE_OUTPUT_84;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_85
+    case I2C_ADDR_INPUT_GPIOE_85: {
+      gpiope = &GPIOPE_OUTPUT_85;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_86
+    case I2C_ADDR_INPUT_GPIOE_86: {
+      gpiope = &GPIOPE_OUTPUT_86;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_87
+    case I2C_ADDR_INPUT_GPIOE_87: {
+      gpiope = &GPIOPE_OUTPUT_87;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_88
+    case I2C_ADDR_INPUT_GPIOE_88: {
+      gpiope = &GPIOPE_OUTPUT_88;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_89
+    case I2C_ADDR_INPUT_GPIOE_89: {
+      gpiope = &GPIOPE_OUTPUT_89;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_90
+    case I2C_ADDR_INPUT_GPIOE_90: {
+      gpiope = &GPIOPE_OUTPUT_90;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_91
+    case I2C_ADDR_INPUT_GPIOE_91: {
+      gpiope = &GPIOPE_OUTPUT_91;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_92
+    case I2C_ADDR_INPUT_GPIOE_92: {
+      gpiope = &GPIOPE_OUTPUT_92;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_93
+    case I2C_ADDR_INPUT_GPIOE_93: {
+      gpiope = &GPIOPE_OUTPUT_93;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_94
+    case I2C_ADDR_INPUT_GPIOE_94: {
+      gpiope = &GPIOPE_OUTPUT_94;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_95
+    case I2C_ADDR_INPUT_GPIOE_95: {
+      gpiope = &GPIOPE_OUTPUT_95;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_96
+    case I2C_ADDR_INPUT_GPIOE_96: {
+      gpiope = &GPIOPE_OUTPUT_96;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_97
+    case I2C_ADDR_INPUT_GPIOE_97: {
+      gpiope = &GPIOPE_OUTPUT_97;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_98
+    case I2C_ADDR_INPUT_GPIOE_98: {
+      gpiope = &GPIOPE_OUTPUT_98;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_99
+    case I2C_ADDR_INPUT_GPIOE_99: {
+      gpiope = &GPIOPE_OUTPUT_99;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_100
+    case I2C_ADDR_INPUT_GPIOE_100: {
+      gpiope = &GPIOPE_OUTPUT_100;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_101
+    case I2C_ADDR_INPUT_GPIOE_101: {
+      gpiope = &GPIOPE_OUTPUT_101;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_102
+    case I2C_ADDR_INPUT_GPIOE_102: {
+      gpiope = &GPIOPE_OUTPUT_102;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_103
+    case I2C_ADDR_INPUT_GPIOE_103: {
+      gpiope = &GPIOPE_OUTPUT_103;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_104
+    case I2C_ADDR_INPUT_GPIOE_104: {
+      gpiope = &GPIOPE_OUTPUT_104;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_105
+    case I2C_ADDR_INPUT_GPIOE_105: {
+      gpiope = &GPIOPE_OUTPUT_105;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_106
+    case I2C_ADDR_INPUT_GPIOE_106: {
+      gpiope = &GPIOPE_OUTPUT_106;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_107
+    case I2C_ADDR_INPUT_GPIOE_107: {
+      gpiope = &GPIOPE_OUTPUT_107;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_108
+    case I2C_ADDR_INPUT_GPIOE_108: {
+      gpiope = &GPIOPE_OUTPUT_108;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_109
+    case I2C_ADDR_INPUT_GPIOE_109: {
+      gpiope = &GPIOPE_OUTPUT_109;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_110
+    case I2C_ADDR_INPUT_GPIOE_110: {
+      gpiope = &GPIOPE_OUTPUT_110;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_111
+    case I2C_ADDR_INPUT_GPIOE_111: {
+      gpiope = &GPIOPE_OUTPUT_111;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_112
+    case I2C_ADDR_INPUT_GPIOE_112: {
+      gpiope = &GPIOPE_OUTPUT_112;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_113
+    case I2C_ADDR_INPUT_GPIOE_113: {
+      gpiope = &GPIOPE_OUTPUT_113;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_114
+    case I2C_ADDR_INPUT_GPIOE_114: {
+      gpiope = &GPIOPE_OUTPUT_114;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_115
+    case I2C_ADDR_INPUT_GPIOE_115: {
+      gpiope = &GPIOPE_OUTPUT_115;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_116
+    case I2C_ADDR_INPUT_GPIOE_116: {
+      gpiope = &GPIOPE_OUTPUT_116;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_117
+    case I2C_ADDR_INPUT_GPIOE_117: {
+      gpiope = &GPIOPE_OUTPUT_117;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_118
+    case I2C_ADDR_INPUT_GPIOE_118: {
+      gpiope = &GPIOPE_OUTPUT_118;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_119
+    case I2C_ADDR_INPUT_GPIOE_119: {
+      gpiope = &GPIOPE_OUTPUT_119;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_120
+    case I2C_ADDR_INPUT_GPIOE_120: {
+      gpiope = &GPIOPE_OUTPUT_120;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_121
+    case I2C_ADDR_INPUT_GPIOE_121: {
+      gpiope = &GPIOPE_OUTPUT_121;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_122
+    case I2C_ADDR_INPUT_GPIOE_122: {
+      gpiope = &GPIOPE_OUTPUT_122;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_123
+    case I2C_ADDR_INPUT_GPIOE_123: {
+      gpiope = &GPIOPE_OUTPUT_123;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_124
+    case I2C_ADDR_INPUT_GPIOE_124: {
+      gpiope = &GPIOPE_OUTPUT_124;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_125
+    case I2C_ADDR_INPUT_GPIOE_125: {
+      gpiope = &GPIOPE_OUTPUT_125;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_126
+    case I2C_ADDR_INPUT_GPIOE_126: {
+      gpiope = &GPIOPE_OUTPUT_126;
+      break;
+    }
+    #endif
+
+    #ifdef SatIO_USE_GPIOPE_OUTPUT_127
+    case I2C_ADDR_INPUT_GPIOE_127: {
+      gpiope = &GPIOPE_OUTPUT_127;
+      break;
+    }
+    #endif
+
+    default: {
+      // printf("warning: no gpiope device found for I2C address=%d\n", address);
+      break;
+    }
+  }
+
+  return gpiope;
+}

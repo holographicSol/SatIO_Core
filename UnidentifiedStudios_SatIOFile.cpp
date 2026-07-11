@@ -6709,12 +6709,16 @@ bool saveSystemFile(const char *filepath) {
 
     // GPIOPE_OUTPUT_9: GPIOPE_OUTPUT_9_PORTMAP / GPIOPE_OUTPUT_9_PWM
     #ifdef SatIO_USE_GPIOPE_OUTPUT_9
+    printf("reading GPIOPE_OUTPUT_9:\n");
     for (int i_ch=0; i_ch<(int)GPIOPE_OUTPUT_9.max_pins; i_ch++) {
         snprintf(lineBuf, 256, "%s,%d,%d", getSystemTag(SYSTEM_FILE_GPIOE_OUTPUT_9_PORTMAP), i_ch, (int)GPIOPE_OUTPUT_9.port_map[i_ch]);
+        printf("%s\n", lineBuf);
         printLine(f, lineBuf);
     }
+    printf("reading GPIOPE_OUTPUT_9:\n");
     for (int i_ch=0; i_ch<(int)GPIOPE_OUTPUT_9.max_pins; i_ch++) {
         snprintf(lineBuf, 256, "%s,%d,%lu,%lu", getSystemTag(SYSTEM_FILE_GPIOE_OUTPUT_9_PWM), i_ch, (unsigned long)GPIOPE_OUTPUT_9.modulation_time[i_ch][0], (unsigned long)GPIOPE_OUTPUT_9.modulation_time[i_ch][1]);
+        printf("%s\n", lineBuf);
         printLine(f, lineBuf);
     }
     #endif // SatIO_USE_GPIOPE_OUTPUT_9
@@ -8224,7 +8228,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_0.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_0_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_0, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_0_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_0, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8240,7 +8244,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_1.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_1_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_1, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_1_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_1, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8256,7 +8260,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_2.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_2_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_2, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_2_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_2, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8272,7 +8276,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_3.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_3_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_3, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_3_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_3, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8288,7 +8292,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_4.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_4_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_4, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_4_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_4, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8304,7 +8308,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_5.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_5_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_5, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_5_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_5, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8320,7 +8324,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_6.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_6_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_6, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_6_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_6, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8336,7 +8340,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_7.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_7_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_7, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_7_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_7, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8352,7 +8356,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_8.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_8_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_8, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_8_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_8, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8368,7 +8372,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_9.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_9_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_9, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_9_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_9, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8384,7 +8388,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_10.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_10_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_10, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_10_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_10, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8400,7 +8404,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_11.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_11_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_11, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_11_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_11, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8416,7 +8420,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_12.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_12_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_12, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_12_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_12, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8432,7 +8436,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_13.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_13_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_13, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_13_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_13, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8448,7 +8452,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_14.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_14_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_14, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_14_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_14, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8464,7 +8468,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_15.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_15_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_15, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_15_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_15, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8480,7 +8484,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_16.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_16_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_16, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_16_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_16, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8496,7 +8500,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_17.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_17_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_17, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_17_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_17, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8512,7 +8516,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_18.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_18_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_18, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_18_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_18, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8528,7 +8532,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_19.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_19_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_19, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_19_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_19, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8544,7 +8548,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_20.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_20_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_20, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_20_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_20, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8560,7 +8564,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_21.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_21_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_21, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_21_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_21, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8576,7 +8580,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_22.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_22_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_22, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_22_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_22, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8592,7 +8596,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_23.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_23_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_23, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_23_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_23, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8608,7 +8612,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_24.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_24_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_24, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_24_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_24, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8624,7 +8628,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_25.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_25_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_25, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_25_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_25, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8640,7 +8644,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_26.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_26_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_26, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_26_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_26, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8656,7 +8660,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_27.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_27_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_27, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_27_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_27, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8672,7 +8676,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_28.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_28_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_28, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_28_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_28, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8688,7 +8692,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_29.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_29_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_29, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_29_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_29, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8704,7 +8708,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_30.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_30_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_30, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_30_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_30, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8720,7 +8724,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_31.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_31_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_31, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_31_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_31, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8736,7 +8740,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_32.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_32_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_32, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_32_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_32, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8752,7 +8756,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_33.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_33_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_33, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_33_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_33, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8768,7 +8772,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_34.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_34_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_34, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_34_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_34, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8784,7 +8788,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_35.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_35_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_35, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_35_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_35, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8800,7 +8804,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_36.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_36_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_36, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_36_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_36, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8816,7 +8820,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_37.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_37_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_37, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_37_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_37, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8832,7 +8836,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_38.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_38_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_38, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_38_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_38, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8848,7 +8852,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_39.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_39_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_39, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_39_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_39, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8864,7 +8868,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_40.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_40_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_40, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_40_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_40, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8880,7 +8884,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_41.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_41_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_41, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_41_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_41, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8896,7 +8900,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_42.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_42_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_42, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_42_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_42, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8912,7 +8916,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_43.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_43_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_43, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_43_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_43, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8928,7 +8932,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_44.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_44_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_44, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_44_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_44, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8944,7 +8948,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_45.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_45_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_45, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_45_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_45, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8960,7 +8964,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_46.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_46_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_46, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_46_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_46, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8976,7 +8980,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_47.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_47_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_47, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_47_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_47, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -8992,7 +8996,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_48.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_48_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_48, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_48_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_48, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9008,7 +9012,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_49.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_49_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_49, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_49_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_49, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9024,7 +9028,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_50.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_50_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_50, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_50_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_50, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9040,7 +9044,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_51.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_51_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_51, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_51_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_51, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9056,7 +9060,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_52.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_52_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_52, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_52_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_52, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9072,7 +9076,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_53.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_53_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_53, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_53_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_53, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9088,7 +9092,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_54.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_54_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_54, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_54_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_54, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9104,7 +9108,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_55.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_55_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_55, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_55_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_55, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9120,7 +9124,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_56.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_56_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_56, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_56_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_56, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9136,7 +9140,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_57.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_57_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_57, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_57_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_57, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9152,7 +9156,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_58.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_58_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_58, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_58_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_58, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9168,7 +9172,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_59.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_59_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_59, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_59_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_59, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9184,7 +9188,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_60.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_60_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_60, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_60_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_60, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9200,7 +9204,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_61.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_61_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_61, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_61_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_61, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9216,7 +9220,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_62.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_62_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_62, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_62_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_62, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9232,7 +9236,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_63.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_63_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_63, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_63_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_63, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9248,7 +9252,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_64.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_64_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_64, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_64_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_64, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9264,7 +9268,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_65.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_65_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_65, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_65_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_65, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9280,7 +9284,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_66.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_66_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_66, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_66_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_66, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9296,7 +9300,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_67.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_67_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_67, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_67_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_67, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9312,7 +9316,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_68.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_68_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_68, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_68_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_68, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9328,7 +9332,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_69.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_69_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_69, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_69_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_69, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9344,7 +9348,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_70.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_70_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_70, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_70_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_70, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9360,7 +9364,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_71.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_71_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_71, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_71_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_71, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9376,7 +9380,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_72.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_72_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_72, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_72_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_72, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9392,7 +9396,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_73.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_73_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_73, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_73_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_73, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9408,7 +9412,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_74.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_74_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_74, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_74_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_74, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9424,7 +9428,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_75.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_75_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_75, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_75_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_75, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9440,7 +9444,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_76.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_76_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_76, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_76_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_76, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9456,7 +9460,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_77.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_77_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_77, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_77_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_77, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9472,7 +9476,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_78.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_78_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_78, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_78_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_78, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9488,7 +9492,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_79.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_79_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_79, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_79_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_79, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9504,7 +9508,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_80.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_80_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_80, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_80_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_80, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9520,7 +9524,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_81.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_81_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_81, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_81_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_81, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9536,7 +9540,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_82.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_82_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_82, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_82_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_82, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9552,7 +9556,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_83.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_83_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_83, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_83_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_83, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9568,7 +9572,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_84.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_84_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_84, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_84_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_84, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9584,7 +9588,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_85.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_85_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_85, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_85_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_85, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9600,7 +9604,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_86.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_86_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_86, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_86_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_86, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9616,7 +9620,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_87.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_87_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_87, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_87_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_87, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9632,7 +9636,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_88.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_88_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_88, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_88_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_88, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9648,7 +9652,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_89.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_89_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_89, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_89_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_89, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9664,7 +9668,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_90.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_90_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_90, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_90_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_90, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9680,7 +9684,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_91.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_91_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_91, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_91_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_91, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9696,7 +9700,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_92.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_92_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_92, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_92_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_92, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9712,7 +9716,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_93.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_93_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_93, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_93_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_93, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9728,7 +9732,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_94.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_94_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_94, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_94_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_94, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9744,7 +9748,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_95.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_95_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_95, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_95_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_95, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9760,7 +9764,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_96.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_96_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_96, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_96_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_96, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9776,7 +9780,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_97.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_97_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_97, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_97_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_97, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9792,7 +9796,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_98.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_98_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_98, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_98_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_98, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9808,7 +9812,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_99.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_99_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_99, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_99_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_99, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9824,7 +9828,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_100.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_100_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_100, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_100_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_100, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9840,7 +9844,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_101.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_101_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_101, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_101_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_101, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9856,7 +9860,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_102.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_102_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_102, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_102_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_102, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9872,7 +9876,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_103.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_103_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_103, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_103_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_103, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9888,7 +9892,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_104.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_104_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_104, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_104_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_104, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9904,7 +9908,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_105.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_105_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_105, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_105_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_105, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9920,7 +9924,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_106.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_106_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_106, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_106_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_106, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9936,7 +9940,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_107.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_107_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_107, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_107_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_107, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9952,7 +9956,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_108.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_108_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_108, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_108_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_108, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9968,7 +9972,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_109.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_109_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_109, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_109_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_109, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -9984,7 +9988,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_110.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_110_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_110, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_110_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_110, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10000,7 +10004,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_111.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_111_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_111, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_111_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_111, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10016,7 +10020,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_112.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_112_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_112, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_112_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_112, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10032,7 +10036,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_113.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_113_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_113, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_113_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_113, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10048,7 +10052,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_114.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_114_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_114, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_114_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_114, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10064,7 +10068,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_115.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_115_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_115, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_115_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_115, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10080,7 +10084,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_116.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_116_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_116, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_116_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_116, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10096,7 +10100,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_117.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_117_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_117, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_117_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_117, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10112,7 +10116,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_118.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_118_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_118, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_118_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_118, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10128,7 +10132,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_119.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_119_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_119, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_119_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_119, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10144,7 +10148,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_120.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_120_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_120, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_120_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_120, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10160,7 +10164,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_121.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_121_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_121, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_121_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_121, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10176,7 +10180,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_122.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_122_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_122, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_122_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_122, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10192,7 +10196,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_123.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_123_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_123, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_123_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_123, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10208,7 +10212,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_124.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_124_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_124, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_124_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_124, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10224,7 +10228,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_125.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_125_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_125, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_125_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_125, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10240,7 +10244,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_126.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_126_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_126, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_126_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_126, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10256,7 +10260,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_127.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     if (tag_index == SYSTEM_FILE_GPIOE_127_CH_ENABLED && str_is_bool(val2)) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_127, (uint8_t)ch, atoi(val2) != 0);}
                     else if (tag_index == SYSTEM_FILE_GPIOE_127_CH_FREQ && str_is_uint64(val2)) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_127, (uint8_t)ch, strtoull(val2, NULL, 10));}
                     else { /* value failed validation for this tag: skip */ }
@@ -10271,7 +10275,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_0.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_0.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10285,7 +10289,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_0.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_0.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_0.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10300,7 +10304,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_1.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_1.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10314,7 +10318,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_1.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_1.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_1.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10329,7 +10333,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_2.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_2.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10343,7 +10347,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_2.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_2.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_2.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10358,7 +10362,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_3.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_3.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10372,7 +10376,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_3.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_3.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_3.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10387,7 +10391,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_4.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_4.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10401,7 +10405,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_4.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_4.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_4.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10416,7 +10420,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_5.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_5.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10430,7 +10434,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_5.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_5.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_5.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10445,7 +10449,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_6.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_6.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10459,7 +10463,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_6.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_6.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_6.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10474,7 +10478,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_7.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_7.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10488,7 +10492,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_7.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_7.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_7.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10503,7 +10507,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_8.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_8.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10517,7 +10521,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_8.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_8.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_8.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10532,7 +10536,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_9.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_9.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10546,7 +10550,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_9.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_9.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_9.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10561,7 +10565,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_10.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_10.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10575,7 +10579,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_10.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_10.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_10.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10590,7 +10594,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_11.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_11.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10604,7 +10608,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_11.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_11.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_11.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10619,7 +10623,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_12.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_12.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10633,7 +10637,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_12.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_12.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_12.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10648,7 +10652,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_13.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_13.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10662,7 +10666,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_13.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_13.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_13.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10677,7 +10681,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_14.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_14.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10691,7 +10695,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_14.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_14.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_14.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10706,7 +10710,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_15.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_15.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10720,7 +10724,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_15.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_15.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_15.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10735,7 +10739,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_16.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_16.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10749,7 +10753,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_16.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_16.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_16.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10764,7 +10768,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_17.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_17.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10778,7 +10782,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_17.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_17.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_17.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10793,7 +10797,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_18.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_18.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10807,7 +10811,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_18.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_18.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_18.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10822,7 +10826,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_19.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_19.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10836,7 +10840,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_19.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_19.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_19.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10851,7 +10855,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_20.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_20.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10865,7 +10869,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_20.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_20.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_20.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10880,7 +10884,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_21.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_21.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10894,7 +10898,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_21.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_21.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_21.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10909,7 +10913,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_22.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_22.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10923,7 +10927,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_22.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_22.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_22.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10938,7 +10942,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_23.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_23.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10952,7 +10956,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_23.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_23.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_23.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10967,7 +10971,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_24.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_24.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -10981,7 +10985,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_24.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_24.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_24.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -10996,7 +11000,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_25.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_25.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11010,7 +11014,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_25.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_25.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_25.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11025,7 +11029,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_26.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_26.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11039,7 +11043,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_26.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_26.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_26.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11054,7 +11058,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_27.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_27.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11068,7 +11072,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_27.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_27.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_27.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11083,7 +11087,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_28.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_28.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11097,7 +11101,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_28.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_28.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_28.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11112,7 +11116,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_29.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_29.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11126,7 +11130,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_29.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_29.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_29.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11141,7 +11145,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_30.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_30.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11155,7 +11159,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_30.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_30.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_30.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11170,7 +11174,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_31.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_31.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11184,7 +11188,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_31.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_31.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_31.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11199,7 +11203,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_32.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_32.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11213,7 +11217,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_32.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_32.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_32.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11228,7 +11232,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_33.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_33.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11242,7 +11246,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_33.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_33.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_33.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11257,7 +11261,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_34.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_34.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11271,7 +11275,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_34.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_34.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_34.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11286,7 +11290,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_35.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_35.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11300,7 +11304,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_35.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_35.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_35.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11315,7 +11319,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_36.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_36.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11329,7 +11333,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_36.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_36.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_36.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11344,7 +11348,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_37.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_37.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11358,7 +11362,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_37.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_37.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_37.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11373,7 +11377,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_38.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_38.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11387,7 +11391,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_38.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_38.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_38.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11402,7 +11406,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_39.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_39.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11416,7 +11420,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_39.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_39.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_39.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11431,7 +11435,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_40.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_40.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11445,7 +11449,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_40.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_40.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_40.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11460,7 +11464,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_41.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_41.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11474,7 +11478,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_41.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_41.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_41.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11489,7 +11493,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_42.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_42.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11503,7 +11507,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_42.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_42.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_42.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11518,7 +11522,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_43.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_43.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11532,7 +11536,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_43.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_43.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_43.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11547,7 +11551,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_44.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_44.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11561,7 +11565,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_44.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_44.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_44.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11576,7 +11580,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_45.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_45.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11590,7 +11594,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_45.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_45.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_45.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11605,7 +11609,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_46.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_46.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11619,7 +11623,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_46.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_46.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_46.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11634,7 +11638,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_47.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_47.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11648,7 +11652,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_47.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_47.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_47.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11663,7 +11667,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_48.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_48.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11677,7 +11681,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_48.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_48.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_48.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11692,7 +11696,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_49.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_49.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11706,7 +11710,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_49.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_49.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_49.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11721,7 +11725,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_50.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_50.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11735,7 +11739,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_50.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_50.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_50.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11750,7 +11754,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_51.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_51.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11764,7 +11768,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_51.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_51.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_51.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11779,7 +11783,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_52.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_52.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11793,7 +11797,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_52.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_52.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_52.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11808,7 +11812,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_53.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_53.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11822,7 +11826,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_53.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_53.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_53.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11837,7 +11841,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_54.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_54.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11851,7 +11855,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_54.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_54.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_54.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11866,7 +11870,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_55.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_55.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11880,7 +11884,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_55.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_55.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_55.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11895,7 +11899,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_56.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_56.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11909,7 +11913,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_56.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_56.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_56.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11924,7 +11928,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_57.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_57.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11938,7 +11942,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_57.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_57.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_57.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11953,7 +11957,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_58.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_58.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11967,7 +11971,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_58.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_58.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_58.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -11982,7 +11986,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_59.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_59.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -11996,7 +12000,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_59.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_59.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_59.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12011,7 +12015,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_60.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_60.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12025,7 +12029,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_60.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_60.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_60.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12040,7 +12044,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_61.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_61.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12054,7 +12058,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_61.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_61.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_61.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12069,7 +12073,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_62.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_62.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12083,7 +12087,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_62.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_62.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_62.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12098,7 +12102,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_63.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_63.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12112,7 +12116,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_63.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_63.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_63.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12127,7 +12131,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_64.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_64.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12141,7 +12145,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_64.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_64.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_64.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12156,7 +12160,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_65.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_65.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12170,7 +12174,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_65.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_65.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_65.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12185,7 +12189,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_66.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_66.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12199,7 +12203,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_66.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_66.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_66.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12214,7 +12218,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_67.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_67.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12228,7 +12232,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_67.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_67.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_67.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12243,7 +12247,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_68.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_68.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12257,7 +12261,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_68.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_68.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_68.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12272,7 +12276,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_69.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_69.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12286,7 +12290,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_69.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_69.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_69.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12301,7 +12305,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_70.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_70.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12315,7 +12319,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_70.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_70.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_70.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12330,7 +12334,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_71.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_71.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12344,7 +12348,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_71.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_71.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_71.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12359,7 +12363,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_72.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_72.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12373,7 +12377,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_72.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_72.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_72.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12388,7 +12392,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_73.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_73.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12402,7 +12406,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_73.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_73.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_73.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12417,7 +12421,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_74.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_74.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12431,7 +12435,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_74.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_74.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_74.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12446,7 +12450,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_75.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_75.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12460,7 +12464,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_75.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_75.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_75.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12475,7 +12479,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_76.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_76.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12489,7 +12493,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_76.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_76.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_76.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12504,7 +12508,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_77.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_77.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12518,7 +12522,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_77.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_77.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_77.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12533,7 +12537,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_78.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_78.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12547,7 +12551,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_78.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_78.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_78.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12562,7 +12566,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_79.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_79.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12576,7 +12580,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_79.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_79.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_79.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12591,7 +12595,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_80.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_80.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12605,7 +12609,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_80.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_80.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_80.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12620,7 +12624,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_81.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_81.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12634,7 +12638,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_81.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_81.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_81.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12649,7 +12653,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_82.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_82.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12663,7 +12667,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_82.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_82.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_82.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12678,7 +12682,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_83.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_83.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12692,7 +12696,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_83.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_83.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_83.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12707,7 +12711,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_84.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_84.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12721,7 +12725,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_84.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_84.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_84.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12736,7 +12740,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_85.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_85.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12750,7 +12754,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_85.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_85.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_85.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12765,7 +12769,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_86.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_86.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12779,7 +12783,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_86.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_86.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_86.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12794,7 +12798,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_87.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_87.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12808,7 +12812,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_87.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_87.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_87.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12823,7 +12827,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_88.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_88.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12837,7 +12841,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_88.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_88.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_88.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12852,7 +12856,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_89.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_89.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12866,7 +12870,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_89.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_89.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_89.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12881,7 +12885,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_90.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_90.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12895,7 +12899,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_90.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_90.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_90.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12910,7 +12914,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_91.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_91.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12924,7 +12928,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_91.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_91.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_91.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12939,7 +12943,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_92.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_92.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12953,7 +12957,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_92.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_92.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_92.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12968,7 +12972,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_93.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_93.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -12982,7 +12986,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_93.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_93.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_93.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -12997,7 +13001,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_94.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_94.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13011,7 +13015,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_94.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_94.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_94.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13026,7 +13030,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_95.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_95.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13040,7 +13044,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_95.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_95.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_95.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13055,7 +13059,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_96.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_96.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13069,7 +13073,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_96.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_96.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_96.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13084,7 +13088,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_97.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_97.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13098,7 +13102,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_97.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_97.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_97.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13113,7 +13117,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_98.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_98.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13127,7 +13131,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_98.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_98.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_98.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13142,7 +13146,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_99.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_99.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13156,7 +13160,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_99.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_99.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_99.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13171,7 +13175,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_100.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_100.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13185,7 +13189,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_100.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_100.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_100.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13200,7 +13204,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_101.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_101.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13214,7 +13218,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_101.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_101.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_101.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13229,7 +13233,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_102.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_102.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13243,7 +13247,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_102.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_102.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_102.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13258,7 +13262,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_103.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_103.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13272,7 +13276,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_103.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_103.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_103.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13287,7 +13291,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_104.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_104.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13301,7 +13305,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_104.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_104.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_104.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13316,7 +13320,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_105.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_105.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13330,7 +13334,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_105.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_105.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_105.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13345,7 +13349,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_106.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_106.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13359,7 +13363,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_106.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_106.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_106.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13374,7 +13378,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_107.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_107.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13388,7 +13392,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_107.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_107.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_107.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13403,7 +13407,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_108.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_108.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13417,7 +13421,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_108.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_108.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_108.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13432,7 +13436,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_109.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_109.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13446,7 +13450,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_109.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_109.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_109.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13461,7 +13465,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_110.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_110.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13475,7 +13479,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_110.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_110.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_110.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13490,7 +13494,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_111.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_111.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13504,7 +13508,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_111.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_111.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_111.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13519,7 +13523,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_112.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_112.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13533,7 +13537,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_112.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_112.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_112.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13548,7 +13552,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_113.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_113.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13562,7 +13566,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_113.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_113.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_113.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13577,7 +13581,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_114.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_114.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13591,7 +13595,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_114.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_114.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_114.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13606,7 +13610,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_115.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_115.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13620,7 +13624,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_115.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_115.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_115.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13635,7 +13639,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_116.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_116.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13649,7 +13653,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_116.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_116.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_116.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13664,7 +13668,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_117.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_117.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13678,7 +13682,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_117.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_117.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_117.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13693,7 +13697,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_118.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_118.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13707,7 +13711,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_118.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_118.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_118.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13722,7 +13726,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_119.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_119.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13736,7 +13740,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_119.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_119.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_119.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13751,7 +13755,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_120.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_120.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13765,7 +13769,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_120.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_120.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_120.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13780,7 +13784,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_121.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_121.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13794,7 +13798,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_121.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_121.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_121.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13809,7 +13813,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_122.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_122.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13823,7 +13827,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_122.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_122.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_122.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13838,7 +13842,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_123.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_123.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13852,7 +13856,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_123.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_123.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_123.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13867,7 +13871,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_124.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_124.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13881,7 +13885,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_124.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_124.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_124.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13896,7 +13900,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_125.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_125.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13910,7 +13914,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_125.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_125.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_125.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13925,7 +13929,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_126.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_126.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13939,7 +13943,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_126.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_126.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_126.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13954,7 +13958,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_127.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_127.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13968,7 +13972,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_INPUT_127.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_INPUT_127.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_INPUT_127.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -13983,7 +13987,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_0.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_0.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -13997,7 +14001,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_0.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_0.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_0.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14012,7 +14016,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_1.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_1.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14026,7 +14030,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_1.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_1.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_1.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14041,7 +14045,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_2.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_2.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14055,7 +14059,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_2.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_2.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_2.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14070,7 +14074,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_3.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_3.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14084,7 +14088,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_3.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_3.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_3.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14099,7 +14103,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_4.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_4.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14113,7 +14117,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_4.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_4.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_4.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14128,7 +14132,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_5.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_5.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14142,7 +14146,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_5.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_5.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_5.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14157,7 +14161,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_6.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_6.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14171,7 +14175,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_6.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_6.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_6.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14186,7 +14190,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_7.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_7.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14200,7 +14204,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_7.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_7.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_7.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14215,7 +14219,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_8.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_8.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14229,7 +14233,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_8.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_8.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_8.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14244,7 +14248,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_9.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_9.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14258,7 +14262,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_9.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_9.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_9.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14273,7 +14277,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_10.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_10.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14287,7 +14291,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_10.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_10.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_10.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14302,7 +14306,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_11.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_11.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14316,7 +14320,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_11.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_11.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_11.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14331,7 +14335,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_12.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_12.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14345,7 +14349,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_12.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_12.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_12.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14360,7 +14364,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_13.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_13.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14374,7 +14378,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_13.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_13.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_13.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14389,7 +14393,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_14.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_14.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14403,7 +14407,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_14.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_14.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_14.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14418,7 +14422,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_15.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_15.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14432,7 +14436,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_15.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_15.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_15.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14447,7 +14451,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_16.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_16.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14461,7 +14465,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_16.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_16.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_16.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14476,7 +14480,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_17.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_17.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14490,7 +14494,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_17.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_17.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_17.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14505,7 +14509,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_18.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_18.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14519,7 +14523,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_18.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_18.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_18.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14534,7 +14538,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_19.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_19.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14548,7 +14552,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_19.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_19.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_19.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14563,7 +14567,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_20.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_20.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14577,7 +14581,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_20.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_20.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_20.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14592,7 +14596,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_21.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_21.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14606,7 +14610,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_21.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_21.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_21.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14621,7 +14625,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_22.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_22.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14635,7 +14639,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_22.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_22.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_22.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14650,7 +14654,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_23.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_23.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14664,7 +14668,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_23.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_23.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_23.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14679,7 +14683,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_24.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_24.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14693,7 +14697,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_24.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_24.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_24.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14708,7 +14712,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_25.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_25.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14722,7 +14726,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_25.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_25.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_25.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14737,7 +14741,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_26.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_26.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14751,7 +14755,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_26.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_26.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_26.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14766,7 +14770,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_27.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_27.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14780,7 +14784,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_27.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_27.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_27.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14795,7 +14799,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_28.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_28.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14809,7 +14813,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_28.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_28.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_28.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14824,7 +14828,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_29.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_29.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14838,7 +14842,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_29.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_29.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_29.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14853,7 +14857,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_30.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_30.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14867,7 +14871,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_30.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_30.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_30.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14882,7 +14886,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_31.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_31.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14896,7 +14900,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_31.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_31.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_31.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14911,7 +14915,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_32.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_32.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14925,7 +14929,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_32.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_32.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_32.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14940,7 +14944,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_33.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_33.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14954,7 +14958,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_33.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_33.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_33.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14969,7 +14973,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_34.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_34.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -14983,7 +14987,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_34.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_34.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_34.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -14998,7 +15002,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_35.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_35.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15012,7 +15016,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_35.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_35.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_35.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15027,7 +15031,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_36.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_36.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15041,7 +15045,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_36.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_36.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_36.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15056,7 +15060,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_37.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_37.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15070,7 +15074,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_37.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_37.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_37.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15085,7 +15089,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_38.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_38.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15099,7 +15103,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_38.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_38.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_38.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15114,7 +15118,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_39.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_39.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15128,7 +15132,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_39.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_39.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_39.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15143,7 +15147,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_40.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_40.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15157,7 +15161,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_40.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_40.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_40.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15172,7 +15176,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_41.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_41.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15186,7 +15190,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_41.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_41.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_41.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15201,7 +15205,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_42.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_42.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15215,7 +15219,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_42.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_42.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_42.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15230,7 +15234,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_43.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_43.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15244,7 +15248,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_43.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_43.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_43.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15259,7 +15263,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_44.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_44.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15273,7 +15277,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_44.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_44.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_44.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15288,7 +15292,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_45.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_45.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15302,7 +15306,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_45.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_45.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_45.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15317,7 +15321,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_46.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_46.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15331,7 +15335,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_46.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_46.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_46.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15346,7 +15350,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_47.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_47.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15360,7 +15364,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_47.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_47.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_47.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15375,7 +15379,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_48.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_48.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15389,7 +15393,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_48.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_48.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_48.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15404,7 +15408,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_49.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_49.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15418,7 +15422,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_49.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_49.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_49.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15433,7 +15437,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_50.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_50.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15447,7 +15451,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_50.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_50.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_50.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15462,7 +15466,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_51.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_51.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15476,7 +15480,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_51.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_51.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_51.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15491,7 +15495,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_52.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_52.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15505,7 +15509,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_52.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_52.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_52.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15520,7 +15524,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_53.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_53.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15534,7 +15538,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_53.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_53.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_53.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15549,7 +15553,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_54.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_54.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15563,7 +15567,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_54.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_54.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_54.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15578,7 +15582,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_55.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_55.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15592,7 +15596,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_55.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_55.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_55.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15607,7 +15611,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_56.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_56.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15621,7 +15625,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_56.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_56.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_56.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15636,7 +15640,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_57.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_57.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15650,7 +15654,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_57.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_57.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_57.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15665,7 +15669,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_58.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_58.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15679,7 +15683,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_58.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_58.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_58.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15694,7 +15698,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_59.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_59.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15708,7 +15712,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_59.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_59.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_59.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15723,7 +15727,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_60.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_60.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15737,7 +15741,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_60.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_60.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_60.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15752,7 +15756,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_61.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_61.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15766,7 +15770,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_61.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_61.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_61.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15781,7 +15785,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_62.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_62.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15795,7 +15799,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_62.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_62.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_62.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15810,7 +15814,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_63.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_63.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15824,7 +15828,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_63.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_63.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_63.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15839,7 +15843,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_64.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_64.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15853,7 +15857,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_64.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_64.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_64.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15868,7 +15872,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_65.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_65.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15882,7 +15886,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_65.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_65.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_65.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15897,7 +15901,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_66.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_66.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15911,7 +15915,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_66.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_66.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_66.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15926,7 +15930,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_67.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_67.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15940,7 +15944,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_67.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_67.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_67.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15955,7 +15959,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_68.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_68.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15969,7 +15973,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_68.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_68.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_68.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -15984,7 +15988,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_69.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_69.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -15998,7 +16002,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_69.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_69.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_69.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16013,7 +16017,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_70.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_70.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16027,7 +16031,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_70.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_70.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_70.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16042,7 +16046,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_71.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_71.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16056,7 +16060,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_71.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_71.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_71.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16071,7 +16075,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_72.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_72.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16085,7 +16089,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_72.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_72.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_72.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16100,7 +16104,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_73.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_73.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16114,7 +16118,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_73.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_73.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_73.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16129,7 +16133,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_74.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_74.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16143,7 +16147,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_74.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_74.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_74.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16158,7 +16162,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_75.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_75.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16172,7 +16176,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_75.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_75.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_75.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16187,7 +16191,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_76.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_76.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16201,7 +16205,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_76.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_76.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_76.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16216,7 +16220,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_77.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_77.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16230,7 +16234,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_77.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_77.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_77.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16245,7 +16249,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_78.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_78.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16259,7 +16263,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_78.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_78.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_78.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16274,7 +16278,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_79.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_79.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16288,7 +16292,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_79.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_79.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_79.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16303,7 +16307,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_80.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_80.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16317,7 +16321,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_80.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_80.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_80.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16332,7 +16336,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_81.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_81.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16346,7 +16350,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_81.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_81.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_81.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16361,7 +16365,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_82.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_82.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16375,7 +16379,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_82.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_82.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_82.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16390,7 +16394,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_83.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_83.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16404,7 +16408,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_83.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_83.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_83.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16419,7 +16423,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_84.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_84.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16433,7 +16437,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_84.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_84.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_84.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16448,7 +16452,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_85.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_85.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16462,7 +16466,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_85.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_85.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_85.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16477,7 +16481,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_86.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_86.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16491,7 +16495,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_86.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_86.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_86.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16506,7 +16510,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_87.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_87.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16520,7 +16524,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_87.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_87.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_87.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16535,7 +16539,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_88.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_88.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16549,7 +16553,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_88.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_88.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_88.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16564,7 +16568,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_89.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_89.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16578,7 +16582,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_89.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_89.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_89.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16593,7 +16597,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_90.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_90.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16607,7 +16611,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_90.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_90.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_90.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16622,7 +16626,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_91.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_91.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16636,7 +16640,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_91.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_91.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_91.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16651,7 +16655,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_92.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_92.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16665,7 +16669,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_92.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_92.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_92.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16680,7 +16684,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_93.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_93.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16694,7 +16698,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_93.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_93.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_93.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16709,7 +16713,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_94.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_94.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16723,7 +16727,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_94.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_94.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_94.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16738,7 +16742,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_95.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_95.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16752,7 +16756,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_95.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_95.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_95.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16767,7 +16771,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_96.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_96.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16781,7 +16785,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_96.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_96.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_96.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16796,7 +16800,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_97.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_97.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16810,7 +16814,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_97.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_97.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_97.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16825,7 +16829,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_98.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_98.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16839,7 +16843,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_98.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_98.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_98.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16854,7 +16858,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_99.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_99.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16868,7 +16872,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_99.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_99.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_99.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16883,7 +16887,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_100.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_100.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16897,7 +16901,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_100.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_100.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_100.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16912,7 +16916,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_101.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_101.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16926,7 +16930,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_101.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_101.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_101.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16941,7 +16945,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_102.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_102.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16955,7 +16959,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_102.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_102.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_102.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16970,7 +16974,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_103.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_103.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -16984,7 +16988,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_103.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_103.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_103.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -16999,7 +17003,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_104.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_104.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17013,7 +17017,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_104.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_104.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_104.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17028,7 +17032,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_105.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_105.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17042,7 +17046,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_105.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_105.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_105.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17057,7 +17061,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_106.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_106.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17071,7 +17075,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_106.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_106.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_106.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17086,7 +17090,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_107.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_107.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17100,7 +17104,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_107.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_107.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_107.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17115,7 +17119,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_108.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_108.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17129,7 +17133,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_108.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_108.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_108.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17144,7 +17148,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_109.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_109.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17158,7 +17162,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_109.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_109.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_109.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17173,7 +17177,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_110.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_110.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17187,7 +17191,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_110.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_110.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_110.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17202,7 +17206,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_111.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_111.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17216,7 +17220,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_111.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_111.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_111.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17231,7 +17235,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_112.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_112.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17245,7 +17249,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_112.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_112.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_112.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17260,7 +17264,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_113.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_113.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17274,7 +17278,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_113.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_113.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_113.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17289,7 +17293,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_114.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_114.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17303,7 +17307,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_114.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_114.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_114.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17318,7 +17322,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_115.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_115.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17332,7 +17336,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_115.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_115.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_115.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17347,7 +17351,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_116.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_116.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17361,7 +17365,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_116.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_116.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_116.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17376,7 +17380,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_117.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_117.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17390,7 +17394,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_117.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_117.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_117.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17405,7 +17409,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_118.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_118.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17419,7 +17423,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_118.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_118.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_118.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17434,7 +17438,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_119.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_119.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17448,7 +17452,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_119.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_119.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_119.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17463,7 +17467,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_120.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_120.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17477,7 +17481,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_120.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_120.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_120.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17492,7 +17496,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_121.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_121.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17506,7 +17510,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_121.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_121.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_121.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17521,7 +17525,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_122.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_122.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17535,7 +17539,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_122.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_122.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_122.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17550,7 +17554,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_123.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_123.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17564,7 +17568,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_123.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_123.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_123.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17579,7 +17583,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_124.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_124.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17593,7 +17597,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_124.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_124.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_124.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17608,7 +17612,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_125.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_125.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17622,7 +17626,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_125.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_125.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_125.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17637,7 +17641,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_126.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_126.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17651,7 +17655,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_126.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_126.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_126.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }
@@ -17666,7 +17670,7 @@ bool loadSystemFile(const char *filepath) {
             char *val2 = strtok(NULL, ",");
             if (val2 != NULL && str_is_int8(val) && str_is_int8(val2)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_127.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_127.port_map[ch] = (int8_t)atoi(val2);
                 }
             }
@@ -17680,7 +17684,7 @@ bool loadSystemFile(const char *filepath) {
             char *val3 = strtok(NULL, ",");
             if (val2 != NULL && val3 != NULL && str_is_int8(val) && str_is_uint32(val2) && str_is_uint32(val3)) {
                 int ch = atoi(val);
-                if (ch >= 0 && ch < (int)GPIOPE_OUTPUT_127.max_pins) {
+                if (ch >= 0 && ch < GPIOPE_MAX_SIZE) {
                     GPIOPE_OUTPUT_127.modulation_time[ch][0] = strtoul(val2, NULL, 10);
                     GPIOPE_OUTPUT_127.modulation_time[ch][1] = strtoul(val3, NULL, 10);
                 }

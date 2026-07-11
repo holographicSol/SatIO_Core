@@ -34,7 +34,10 @@
 // ------------------------------------------------------------
 // #define GPIOPE_SLAVE_ATMEGA2560
 // #define GPIOPE_SLAVE_ESP32P4
-
+// ------------------------------------------------------------
+// BUILD OPTIONS: SET DEFAULT IO ADDRESS
+// ------------------------------------------------------------
+#define GPIO_DEFAULT_IO_ADDRESS 9
 
 /** ------------------------------------------------------------
  * @brief GPIOPortExpander.
@@ -58,6 +61,12 @@ typedef struct GPIOPortExpander {
                             // pin-value-read protocol (CMD_RESET_CURRENT_PIN)
     int8_t analog_pins[GPIOPE_MAX_SIZE];
     int8_t digital_pins[GPIOPE_MAX_SIZE];
+    /**
+     * Pulse Width Modulation Per switch.
+     *
+     * 0 : uS time off period (0uS = remain on).
+     * 1 : uS time on period  (0uS = remain off).
+     */
     uint32_t modulation_time[GPIOPE_MAX_SIZE][3];
     int32_t input_value[GPIOPE_MAX_SIZE];  // does not have to equal max pins
     int32_t output_value[GPIOPE_MAX_SIZE]; // does not have to equal max pins
@@ -102,6 +111,7 @@ void modulator();
 // ------------------------------------------------------------
 // Master-side
 // ------------------------------------------------------------
+GPIOPortExpander* isGPIOPE(uint8_t address);
 bool readGPIOPE_PIN(GPIOPortExpander &gpio_expander, uint8_t pin);
 bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
 void clearGPIOPortController(GPIOPortExpander gpio_expander);

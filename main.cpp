@@ -358,17 +358,10 @@ extern "C" void app_main(void)
     createTaskStorage(); // (target: 2Hz)
     #endif
     while (sdcardFlagData.load_system==true) {}
-    printf("loading system complete.\n");
-    if (matrixData.load_matrix_on_startup==true) {
-        while (sdcardFlagData.load_matrix==true) {}
-        printf("loading matrix complete.\n");
-        while (sdcardFlagData.load_mapping==true) {}
-        printf("loading mapping complete.\n");
-    }
-    // while (sdcardFlagData.load_system || sdcardFlagData.load_matrix ||
-    // sdcardFlagData.load_mapping == true)
+    while (sdcardFlagData.load_system || sdcardFlagData.load_matrix ||
+    sdcardFlagData.load_mapping == true) {}
 
-    delay(3000);
+    delay(5000);
 
     /** ----------------------------------------------------------------------------
      * GPIOPortExpander.

@@ -62,7 +62,7 @@ struct MatrixStruct matrixData = {
 
   // will be access num for gpiope device
   .gpiope_address = { {I2C_ADDR_OUTPUT_GPIOE_9} },
-  .matrix_port_map  { {0} },
+  .matrix_port_map = { {0} },
 
   .computer_assist={ {false} },
   .switch_intention={ {false} },
@@ -81,7 +81,6 @@ struct MatrixStruct matrixData = {
   },
   .index_mapped_value={ {0} },
   .matrix_switch_write_required={ {false} },
-  .output_pwm={ {{0,0}} },
   .inverted_logic_names=
   {
     "Standard", // 0
@@ -5330,8 +5329,8 @@ void override_all_computer_assists(void) {
 static void set_matrix_default(int32_t matrix_switch) {
   matrixData.matrix_port_map[0][matrix_switch] = 0;
   matrixData.output_mode[0][matrix_switch] = 0;
-  matrixData.output_pwm[0][matrix_switch][INDEX_MATRIX_SWITCH_PWM_OFF] = 0;
-  matrixData.output_pwm[0][matrix_switch][INDEX_MATRIX_SWITCH_PWM_ON] = 0;
+  // matrixData.output_pwm[0][matrix_switch][INDEX_MATRIX_SWITCH_PWM_OFF] = 0;
+  // matrixData.output_pwm[0][matrix_switch][INDEX_MATRIX_SWITCH_PWM_ON] = 0;
   matrixData.flux_value[0][matrix_switch] = 0;
   matrixData.switch_intention[0][matrix_switch] = false;
   matrixData.computer_intention[0][matrix_switch] = false;

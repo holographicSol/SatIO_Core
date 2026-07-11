@@ -34,6 +34,7 @@
 #include "UnidentifiedStudios_Config.h"
 #include "UnidentifiedStudios_I2C.h"
 #include "UnidentifiedStudios_Mapping.h"
+#include "UnidentifiedStudios_GPIOPortExpander.h"
 
 // Scale Matrix Size
 #define MAX_MATRIX_SWITCHES SATIO_MAX_MATRIX_SWITCHES // logical max is current subjective max<=sytem memory capacity (actual max is subjective max<=sytem memory capacity and or limited by portcontroller max I/O range if using port controller for output)
@@ -856,14 +857,6 @@ struct MatrixStruct {
   // True when a switch's output value has changed and still needs to be
   // written to the output port controller.
   bool matrix_switch_write_required[1][MAX_MATRIX_SWITCHES];
-
-  /**
-   * Output Pulse Width Modulation per switch.
-   *
-   * 0 : uS time off period (0uS = remain on).
-   * 1 : uS time on period  (0uS = remain off).
-   */
-  uint32_t output_pwm[1][MAX_MATRIX_SWITCHES][2];
 
   /**
    * Inverted logic names, indexed by the matrix_switch_inverted_logic

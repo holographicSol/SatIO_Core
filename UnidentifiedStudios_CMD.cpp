@@ -655,9 +655,9 @@ static void PrintMatrixNData(int matrix_index) {
     printf("[computer assist] %d\n", matrixData.computer_assist[0][matrix_index]);
     printf("[output mode] %d\n", (int)matrixData.output_mode[0][matrix_index]);
     printf("[flux] %lu\n", matrixData.flux_value[0][matrix_index]);
-    printf("[pwm] 0: %lu 1: %lu\n",
-      matrixData.output_pwm[0][matrix_index][0],
-      matrixData.output_pwm[0][matrix_index][1]);
+    // printf("[pwm] 0: %lu 1: %lu\n",
+      // matrixData.output_pwm[0][matrix_index][0],
+      // matrixData.output_pwm[0][matrix_index][1]);
     printf("[gpiope port slot] %d\n", matrixData.matrix_port_map[0][matrix_index]);
     printf("[active] %d\n", matrixData.switch_intention[0][matrix_index]);
     printf("-----------------------------------------------------\n");
@@ -706,6 +706,12 @@ void setAllSentenceOutput(bool enable) {
   systemData.output_uranus_enabled=enable;
   systemData.output_neptune_enabled=enable;
   systemData.output_meteors_enabled=enable;
+}
+
+void setOutputPortControllerAddress(int switch_idx, int address) {
+  if ((switch_idx >= 0 && switch_idx < MAX_MATRIX_SWITCHES) && (address >=0 && address < 128)) {
+    matrixData.gpiope_address[0][switch_idx] = address;
+  }
 }
 
 void setMatrixGPIOPEPortSlot(int switch_idx, int slot_n) {
@@ -1301,8 +1307,7 @@ void CmdProcess(void) {
           // now sets an index number for accessing gpiope portmap list
           if (has_s && argparser_has_flag(&parser, "port-slot") == true) {setMatrixGPIOPEPortSlot(s, argparser_get_int8(&parser, "port-slot", 0));}
 
-          // will be access number for gpioe index
-          // if (has_s && argparser_has_flag(&parser, "opca") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "opca", 0));}
+          if (has_s && argparser_has_flag(&parser, "opca") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "opca", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fn") == true) {setMatrixFunction(s, f, argparser_get_int8(&parser, "fn", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fx") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_X, argparser_get_double(&parser, "fx", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fy") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_Y, argparser_get_double(&parser, "fy", 0));}
@@ -1927,8 +1932,8 @@ void outputSerialMatrix(void) {
           serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.matrix_function_xyz[0][i_output_config_matrix][Fi][INDEX_MATRIX_FUNTION_Z])+",").c_str());
         }
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.flux_value[0][i_output_config_matrix])+",").c_str());
-        serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_pwm[0][i_output_config_matrix][0])+",").c_str());
-        serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_pwm[0][i_output_config_matrix][1])+",").c_str());
+        // serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_pwm[0][i_output_config_matrix][0])+",").c_str());
+        // serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_pwm[0][i_output_config_matrix][1])+",").c_str());
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.output_mode[0][i_output_config_matrix])+",").c_str());
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.index_mapped_value[0][i_output_config_matrix])+",").c_str());
         serial0_buffer_append(TXBUF_SWITCHES, sizeof(TXBUF_SWITCHES), String(String(matrixData.computer_assist[0][i_output_config_matrix])+",").c_str());
