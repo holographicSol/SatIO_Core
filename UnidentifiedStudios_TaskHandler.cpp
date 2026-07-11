@@ -137,7 +137,7 @@ TaskHandle_t TaskInputPortController;
 
 #define TASK_SWITCHES_CORE                  1
 #define TASK_UNIVERSE_CORE                  1
-#define TASK_STORAGE_CORE                   1
+#define TASK_STORAGE_CORE                   0
 #define TASK_DISPLAY_CORE                   0
 #define TASK_SatIO_SERIAL_TX_CORE           1
 #define TASK_GPIOPE_INPUT_CORE              1
@@ -1997,7 +1997,7 @@ static void taskSwitches(void *pvParameters) {
             #endif
 
             default: {
-              printf("warning: no gpiope device found for I2C address=%d", address);
+              printf("warning: no gpiope device found for I2C address=%d\n", address);
               break;
             }
           }
