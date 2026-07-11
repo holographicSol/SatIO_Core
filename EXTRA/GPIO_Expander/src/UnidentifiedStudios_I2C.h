@@ -36,9 +36,6 @@
 
 #define I2C_ADDR_CONTROL_PAD 9
 
-// I2C_ADDR_INPUT_GPIOE_N / I2C_ADDR_OUTPUT_GPIOE_N now live in
-// UnidentifiedStudios_Config.h, alongside every SatIO_USE_GPIOPE_INPUT_N/OUTPUT_N.
-
 // #####################################################################################################################
 // ## BEGIN I2C BUS PINS
 // #####################################################################################################################
@@ -550,5 +547,134 @@ void write_byte_ToPacket(uint8_t *buffer, int64_t &current_bytes, byte value);
  * @warning Ensure source array is at least n_bytes in size.
  */
 void write_nbytes_ToPacket(uint8_t *buffer, int64_t &current_bytes, const uint8_t *value, size_t n_bytes);
+
+#define I2C_ADDR_0  0
+#define I2C_ADDR_1  1
+#define I2C_ADDR_2  2
+#define I2C_ADDR_3  3
+#define I2C_ADDR_4  4
+#define I2C_ADDR_5  5
+#define I2C_ADDR_6  6
+#define I2C_ADDR_7  7
+#define I2C_ADDR_8  8
+#define I2C_ADDR_9  9
+#define I2C_ADDR_10  10
+#define I2C_ADDR_11  11
+#define I2C_ADDR_12  12
+#define I2C_ADDR_13  13
+#define I2C_ADDR_14  14
+#define I2C_ADDR_15  15
+#define I2C_ADDR_16  16
+#define I2C_ADDR_17  17
+#define I2C_ADDR_18  18
+#define I2C_ADDR_19  19
+#define I2C_ADDR_20  20
+#define I2C_ADDR_21  21
+#define I2C_ADDR_22  22
+#define I2C_ADDR_23  23
+#define I2C_ADDR_24  24
+#define I2C_ADDR_25  25
+#define I2C_ADDR_26  26
+#define I2C_ADDR_27  27
+#define I2C_ADDR_28  28
+#define I2C_ADDR_29  29
+#define I2C_ADDR_30  30
+#define I2C_ADDR_31  31
+#define I2C_ADDR_32  32
+#define I2C_ADDR_33  33
+#define I2C_ADDR_34  34
+#define I2C_ADDR_35  35
+#define I2C_ADDR_36  36
+#define I2C_ADDR_37  37
+#define I2C_ADDR_38  38
+#define I2C_ADDR_39  39
+#define I2C_ADDR_40  40
+#define I2C_ADDR_41  41
+#define I2C_ADDR_42  42
+#define I2C_ADDR_43  43
+#define I2C_ADDR_44  44
+#define I2C_ADDR_45  45
+#define I2C_ADDR_46  46
+#define I2C_ADDR_47  47
+#define I2C_ADDR_48  48
+#define I2C_ADDR_49  49
+#define I2C_ADDR_50  50
+#define I2C_ADDR_51  51
+#define I2C_ADDR_52  52
+#define I2C_ADDR_53  53
+#define I2C_ADDR_54  54
+#define I2C_ADDR_55  55
+#define I2C_ADDR_56  56
+#define I2C_ADDR_57  57
+#define I2C_ADDR_58  58
+#define I2C_ADDR_59  59
+#define I2C_ADDR_60  60
+#define I2C_ADDR_61  61
+#define I2C_ADDR_62  62
+#define I2C_ADDR_63  63
+#define I2C_ADDR_64  64
+#define I2C_ADDR_65  65
+#define I2C_ADDR_66  66
+#define I2C_ADDR_67  67
+#define I2C_ADDR_68  68
+#define I2C_ADDR_69  69
+#define I2C_ADDR_70  70
+#define I2C_ADDR_71  71
+#define I2C_ADDR_72  72
+#define I2C_ADDR_73  73
+#define I2C_ADDR_74  74
+#define I2C_ADDR_75  75
+#define I2C_ADDR_76  76
+#define I2C_ADDR_77  77
+#define I2C_ADDR_78  78
+#define I2C_ADDR_79  79
+#define I2C_ADDR_80  80
+#define I2C_ADDR_81  81
+#define I2C_ADDR_82  82
+#define I2C_ADDR_83  83
+#define I2C_ADDR_84  84
+#define I2C_ADDR_85  85
+#define I2C_ADDR_86  86
+#define I2C_ADDR_87  87
+#define I2C_ADDR_88  88
+#define I2C_ADDR_89  89
+#define I2C_ADDR_90  90
+#define I2C_ADDR_91  91
+#define I2C_ADDR_92  92
+#define I2C_ADDR_93  93
+#define I2C_ADDR_94  94
+#define I2C_ADDR_95  95
+#define I2C_ADDR_96  96
+#define I2C_ADDR_97  97
+#define I2C_ADDR_98  98
+#define I2C_ADDR_99  99
+#define I2C_ADDR_100  100
+#define I2C_ADDR_101  101
+#define I2C_ADDR_102  102
+#define I2C_ADDR_103  103
+#define I2C_ADDR_104  104
+#define I2C_ADDR_105  105
+#define I2C_ADDR_106  106
+#define I2C_ADDR_107  107
+#define I2C_ADDR_108  108
+#define I2C_ADDR_109  109
+#define I2C_ADDR_110  110
+#define I2C_ADDR_111  111
+#define I2C_ADDR_112  112
+#define I2C_ADDR_113  113
+#define I2C_ADDR_114  114
+#define I2C_ADDR_115  115
+#define I2C_ADDR_116  116
+#define I2C_ADDR_117  117
+#define I2C_ADDR_118  118
+#define I2C_ADDR_119  119
+#define I2C_ADDR_120  120
+#define I2C_ADDR_121  121
+#define I2C_ADDR_122  122
+#define I2C_ADDR_123  123
+#define I2C_ADDR_124  124
+#define I2C_ADDR_125  125
+#define I2C_ADDR_126  126
+#define I2C_ADDR_127  127
 
 #endif // I2C_HELPER_H

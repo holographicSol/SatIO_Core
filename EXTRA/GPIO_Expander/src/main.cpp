@@ -65,6 +65,6 @@ void setup() {
 
 void loop() {
   #ifdef GPIOPE_WRITE_MODE
-  modulator(); // for output: uncomment if required
+  GPIOPE_Output_Modulator(); // for output: uncomment if required
   #endif
 }
