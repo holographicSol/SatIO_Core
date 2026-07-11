@@ -532,8 +532,8 @@ void keyboard_event_cb(lv_event_t * e)
                 if (gpiope) {
                     gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
                     // change to single not all ->
-                    GPIOPESetAllPWM(*gpiope);
-                    queryGPIOPortExpanderInfo(*gpiope, gpiope->address);
+                    GPIOPE_Set_All_Portmap_Index_PWM(*gpiope);
+                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
                     matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
                 }
             }
@@ -550,8 +550,8 @@ void keyboard_event_cb(lv_event_t * e)
                 if (gpiope) {
                     gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_ON] = val;
                     // change to single not all ->
-                    GPIOPESetAllPWM(*gpiope);
-                    queryGPIOPortExpanderInfo(*gpiope, gpiope->address);
+                    GPIOPE_Set_All_Portmap_Index_PWM(*gpiope);
+                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
                     matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
                 }
             }

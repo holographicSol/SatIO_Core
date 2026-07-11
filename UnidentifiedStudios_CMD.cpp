@@ -238,8 +238,8 @@ static void PrintHelp(void) {
       matrix --startup-disable
       matrix -s n                 Specify switch index n.
       matrix -f n                 Specify function index n.
-      matrix -p n                 Set port for switch -s.
-      matrix --opca n             Set output port controller I2C address for switch -s.
+      matrix -p n                 Set port slot for switch -s (Pins in slots are defined by gpiope command).  
+      matrix --gpiope n           Set GPIOPE I2C address for switch -s.
       matrix -fn n                Set function -f for switch -s. Primary Comparitors:
                                   [0] NONE
                                   [1] ON
@@ -459,10 +459,10 @@ static void PrintHelp(void) {
       example: run admplex0 channel 3 at ~1Hz alongside the rest of the enabled channels:
       admplex0 -c 3 --enable --freq 1000000
 
-  [ Port Controller Input ]
+  [ Port Expander Input ]
 
-      gpiope -c n --enable       Enable pin n on the input port controller (read every task cycle, subject to --freq).
-      gpiope -c n --disable      Disable pin n on the input port controller (data reports 0 while disabled).
+      gpiope -c n --enable       Enable pin n on the input port expander (read every task cycle, subject to --freq).
+      gpiope -c n --disable      Disable pin n on the input port expander (data reports 0 while disabled).
       gpiope -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
       gpiope --all --enable      Enable every pin in one call.
       gpiope --all --disable     Disable every pin in one call.
@@ -471,12 +471,12 @@ static void PrintHelp(void) {
       example: run gpiope pin 5 at ~1Hz alongside the rest of the enabled pins:
       gpiope -c 5 --enable --freq 1000000
 
-  [ Output Port Expander ]
+  [ Port Expander Output ]
 
-      gpiope -d n -i n -p n               Set the port controller output for gpiope device n, pin index n, to port n.
-      gpiope -d n -i n --pwm0 n --pwm1 n  Set pin index n uS time off period (pwm0) and time on period (pwm1).
+      gpiope -d n -i n -p n               Set port for GPIOPE device. -d device_address -i slot_index -p pin_num. (matrix -p can be pointed at a gpiope slot). 
+      gpiope -d n -i n --pwm0 n --pwm1 n  Set pin index uS off period (pwm0) and uS on period (pwm1).
 
-      example: gpiope -d 9 -i 0 -p 33
+      example: gpiope -d 9 -i 0 -p 0
 
   [ INS ]
 
@@ -1257,10 +1257,10 @@ void CmdProcess(void) {
             int8_t p = argparser_get_int8(&parser, "p", -1); // new port
             switch (d) {
               
-              #ifdef SatIO_USE_GPIOPE_OUTPUT_9
-              case I2C_ADDR_INPUT_GPIOE_9: {
-                GPIOPESetPinByIndex(GPIOPE_OUTPUT_9, i, p);
-                queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+              #ifdef GPIOPE_USE_OUTPUT_9
+              case I2C_ADDR_9: {
+                GPIOPE_Set_Portmap_Index_As_Pin(GPIOPE_OUTPUT_9, i, p);
+                GPIOPE_QueryDevice(GPIOPE_OUTPUT_9, I2C_ADDR_9);
                 break;
               }
               #endif
@@ -1277,10 +1277,10 @@ void CmdProcess(void) {
             uint32_t pwm1 = argparser_get_uint32(&parser, "pwm1", 0);
             switch (d) {
 
-              #ifdef SatIO_USE_GPIOPE_OUTPUT_9
-              case I2C_ADDR_INPUT_GPIOE_9: {
-                GPIOPESetPWMByIndex(GPIOPE_OUTPUT_9, i, pwm0, pwm1);
-                queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+              #ifdef GPIOPE_USE_OUTPUT_9
+              case I2C_ADDR_9: {
+                GPIOPE_Set_Portmap_Index_As_PWM(GPIOPE_OUTPUT_9, i, pwm0, pwm1);
+                GPIOPE_QueryDevice(GPIOPE_OUTPUT_9, I2C_ADDR_9);
                 break;
               }
               #endif
@@ -1311,7 +1311,7 @@ void CmdProcess(void) {
           int f = argparser_get_int8(&parser, "f", 0);
 
           // now sets an index number for accessing gpiope portmap list
-          if (has_s && argparser_has_flag(&parser, "port-slot") == true) {setMatrixGPIOPEPortSlot(s, argparser_get_int8(&parser, "port-slot", 0));}
+          if (has_s && argparser_has_flag(&parser, "p") == true) {setMatrixGPIOPEPortSlot(s, argparser_get_int8(&parser, "p", 0));}
 
           if (has_s && argparser_has_flag(&parser, "opca") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "opca", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fn") == true) {setMatrixFunction(s, f, argparser_get_int8(&parser, "fn", 0));}
@@ -1434,30 +1434,30 @@ void CmdProcess(void) {
           }
         }
         // gpiope (input port controller)
-        #ifdef SatIO_USE_GPIOPE_INPUT_0
+        #ifdef GPIOPE_USE_INPUT_0
         else if (strcmp(pos[0], "gpiope")==0) {
           // gpiope --all --freq X : set every pin's freq in one call
           // gpiope --all --enable/--disable : set every pin's enabled state in one call
           if (argparser_has_flag(&parser, "all") == true) {
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_11, p, enable);}
+              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {GPIOPE_Set_Channel_Enabled(GPIOPE_INPUT_11, p, enable);}
             }
             if (argparser_has_flag(&parser, "freq") == true) {
               uint64_t gpioe_freq_all = argparser_get_uint64(&parser, "freq", 0);
-              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_11, p, gpioe_freq_all);}
+              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {GPIOPE_Set_Channel_Frequency(GPIOPE_INPUT_11, p, gpioe_freq_all);}
             }
           }
           else if (argparser_has_flag(&parser, "c") == true) {
             uint8_t gpioe_c = argparser_get_uint8(&parser, "c", 0);
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              setGPIOPortExpanderChannelEnabled(GPIOPE_INPUT_11, gpioe_c, enable);
+              GPIOPE_Set_Channel_Enabled(GPIOPE_INPUT_11, gpioe_c, enable);
             }
-            if (argparser_has_flag(&parser, "freq") == true) {setGPIOPortExpanderChannelFreq(GPIOPE_INPUT_11, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
+            if (argparser_has_flag(&parser, "freq") == true) {GPIOPE_Set_Channel_Frequency(GPIOPE_INPUT_11, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
           }
         }
-        #endif // SatIO_USE_GPIOPE_INPUT
+        #endif // GPIOPE_USE_INPUT
 
         // else if (strcmp(pos[0], "sdcard")==0) {
         //   if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
@@ -2004,7 +2004,7 @@ void outputSerialGPIOPEnput(void) {
     if (systemData.output_input_portcontroller == true) {
       char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_0
+      #ifdef GPIOPE_USE_INPUT_0
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE0,");
       for (int i=0; i < GPIOPE_INPUT_0.max_input_values; i++)
@@ -2014,9 +2014,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_0
+      #endif // GPIOPE_USE_INPUT_0
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_1
+      #ifdef GPIOPE_USE_INPUT_1
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE1,");
       for (int i=0; i < GPIOPE_INPUT_1.max_input_values; i++)
@@ -2026,9 +2026,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_1
+      #endif // GPIOPE_USE_INPUT_1
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_2
+      #ifdef GPIOPE_USE_INPUT_2
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE2,");
       for (int i=0; i < GPIOPE_INPUT_2.max_input_values; i++)
@@ -2038,9 +2038,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_2
+      #endif // GPIOPE_USE_INPUT_2
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_3
+      #ifdef GPIOPE_USE_INPUT_3
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE3,");
       for (int i=0; i < GPIOPE_INPUT_3.max_input_values; i++)
@@ -2050,9 +2050,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_3
+      #endif // GPIOPE_USE_INPUT_3
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_4
+      #ifdef GPIOPE_USE_INPUT_4
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE4,");
       for (int i=0; i < GPIOPE_INPUT_4.max_input_values; i++)
@@ -2062,9 +2062,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_4
+      #endif // GPIOPE_USE_INPUT_4
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_5
+      #ifdef GPIOPE_USE_INPUT_5
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE5,");
       for (int i=0; i < GPIOPE_INPUT_5.max_input_values; i++)
@@ -2074,9 +2074,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_5
+      #endif // GPIOPE_USE_INPUT_5
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_6
+      #ifdef GPIOPE_USE_INPUT_6
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE6,");
       for (int i=0; i < GPIOPE_INPUT_6.max_input_values; i++)
@@ -2086,9 +2086,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_6
+      #endif // GPIOPE_USE_INPUT_6
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_7
+      #ifdef GPIOPE_USE_INPUT_7
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE7,");
       for (int i=0; i < GPIOPE_INPUT_7.max_input_values; i++)
@@ -2098,9 +2098,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_7
+      #endif // GPIOPE_USE_INPUT_7
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_8
+      #ifdef GPIOPE_USE_INPUT_8
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE8,");
       for (int i=0; i < GPIOPE_INPUT_8.max_input_values; i++)
@@ -2110,9 +2110,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_8
+      #endif // GPIOPE_USE_INPUT_8
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_9
+      #ifdef GPIOPE_USE_INPUT_9
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE9,");
       for (int i=0; i < GPIOPE_INPUT_9.max_input_values; i++)
@@ -2122,9 +2122,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_9
+      #endif // GPIOPE_USE_INPUT_9
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_10
+      #ifdef GPIOPE_USE_INPUT_10
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE10,");
       for (int i=0; i < GPIOPE_INPUT_10.max_input_values; i++)
@@ -2134,9 +2134,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_10
+      #endif // GPIOPE_USE_INPUT_10
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_11
+      #ifdef GPIOPE_USE_INPUT_11
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE11,");
       for (int i=0; i < GPIOPE_INPUT_11.max_input_values; i++)
@@ -2146,9 +2146,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_11
+      #endif // GPIOPE_USE_INPUT_11
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_12
+      #ifdef GPIOPE_USE_INPUT_12
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE12,");
       for (int i=0; i < GPIOPE_INPUT_12.max_input_values; i++)
@@ -2158,9 +2158,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_12
+      #endif // GPIOPE_USE_INPUT_12
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_13
+      #ifdef GPIOPE_USE_INPUT_13
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE13,");
       for (int i=0; i < GPIOPE_INPUT_13.max_input_values; i++)
@@ -2170,9 +2170,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_13
+      #endif // GPIOPE_USE_INPUT_13
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_14
+      #ifdef GPIOPE_USE_INPUT_14
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE14,");
       for (int i=0; i < GPIOPE_INPUT_14.max_input_values; i++)
@@ -2182,9 +2182,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_14
+      #endif // GPIOPE_USE_INPUT_14
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_15
+      #ifdef GPIOPE_USE_INPUT_15
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE15,");
       for (int i=0; i < GPIOPE_INPUT_15.max_input_values; i++)
@@ -2194,9 +2194,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_15
+      #endif // GPIOPE_USE_INPUT_15
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_16
+      #ifdef GPIOPE_USE_INPUT_16
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE16,");
       for (int i=0; i < GPIOPE_INPUT_16.max_input_values; i++)
@@ -2206,9 +2206,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_16
+      #endif // GPIOPE_USE_INPUT_16
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_17
+      #ifdef GPIOPE_USE_INPUT_17
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE17,");
       for (int i=0; i < GPIOPE_INPUT_17.max_input_values; i++)
@@ -2218,9 +2218,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_17
+      #endif // GPIOPE_USE_INPUT_17
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_18
+      #ifdef GPIOPE_USE_INPUT_18
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE18,");
       for (int i=0; i < GPIOPE_INPUT_18.max_input_values; i++)
@@ -2230,9 +2230,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_18
+      #endif // GPIOPE_USE_INPUT_18
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_19
+      #ifdef GPIOPE_USE_INPUT_19
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE19,");
       for (int i=0; i < GPIOPE_INPUT_19.max_input_values; i++)
@@ -2242,9 +2242,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_19
+      #endif // GPIOPE_USE_INPUT_19
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_20
+      #ifdef GPIOPE_USE_INPUT_20
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE20,");
       for (int i=0; i < GPIOPE_INPUT_20.max_input_values; i++)
@@ -2254,9 +2254,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_20
+      #endif // GPIOPE_USE_INPUT_20
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_21
+      #ifdef GPIOPE_USE_INPUT_21
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE21,");
       for (int i=0; i < GPIOPE_INPUT_21.max_input_values; i++)
@@ -2266,9 +2266,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_21
+      #endif // GPIOPE_USE_INPUT_21
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_22
+      #ifdef GPIOPE_USE_INPUT_22
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE22,");
       for (int i=0; i < GPIOPE_INPUT_22.max_input_values; i++)
@@ -2278,9 +2278,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_22
+      #endif // GPIOPE_USE_INPUT_22
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_23
+      #ifdef GPIOPE_USE_INPUT_23
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE23,");
       for (int i=0; i < GPIOPE_INPUT_23.max_input_values; i++)
@@ -2290,9 +2290,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_23
+      #endif // GPIOPE_USE_INPUT_23
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_24
+      #ifdef GPIOPE_USE_INPUT_24
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE24,");
       for (int i=0; i < GPIOPE_INPUT_24.max_input_values; i++)
@@ -2302,9 +2302,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_24
+      #endif // GPIOPE_USE_INPUT_24
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_25
+      #ifdef GPIOPE_USE_INPUT_25
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE25,");
       for (int i=0; i < GPIOPE_INPUT_25.max_input_values; i++)
@@ -2314,9 +2314,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_25
+      #endif // GPIOPE_USE_INPUT_25
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_26
+      #ifdef GPIOPE_USE_INPUT_26
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE26,");
       for (int i=0; i < GPIOPE_INPUT_26.max_input_values; i++)
@@ -2326,9 +2326,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_26
+      #endif // GPIOPE_USE_INPUT_26
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_27
+      #ifdef GPIOPE_USE_INPUT_27
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE27,");
       for (int i=0; i < GPIOPE_INPUT_27.max_input_values; i++)
@@ -2338,9 +2338,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_27
+      #endif // GPIOPE_USE_INPUT_27
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_28
+      #ifdef GPIOPE_USE_INPUT_28
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE28,");
       for (int i=0; i < GPIOPE_INPUT_28.max_input_values; i++)
@@ -2350,9 +2350,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_28
+      #endif // GPIOPE_USE_INPUT_28
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_29
+      #ifdef GPIOPE_USE_INPUT_29
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE29,");
       for (int i=0; i < GPIOPE_INPUT_29.max_input_values; i++)
@@ -2362,9 +2362,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_29
+      #endif // GPIOPE_USE_INPUT_29
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_30
+      #ifdef GPIOPE_USE_INPUT_30
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE30,");
       for (int i=0; i < GPIOPE_INPUT_30.max_input_values; i++)
@@ -2374,9 +2374,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_30
+      #endif // GPIOPE_USE_INPUT_30
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_31
+      #ifdef GPIOPE_USE_INPUT_31
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE31,");
       for (int i=0; i < GPIOPE_INPUT_31.max_input_values; i++)
@@ -2386,9 +2386,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_31
+      #endif // GPIOPE_USE_INPUT_31
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_32
+      #ifdef GPIOPE_USE_INPUT_32
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE32,");
       for (int i=0; i < GPIOPE_INPUT_32.max_input_values; i++)
@@ -2398,9 +2398,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_32
+      #endif // GPIOPE_USE_INPUT_32
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_33
+      #ifdef GPIOPE_USE_INPUT_33
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE33,");
       for (int i=0; i < GPIOPE_INPUT_33.max_input_values; i++)
@@ -2410,9 +2410,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_33
+      #endif // GPIOPE_USE_INPUT_33
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_34
+      #ifdef GPIOPE_USE_INPUT_34
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE34,");
       for (int i=0; i < GPIOPE_INPUT_34.max_input_values; i++)
@@ -2422,9 +2422,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_34
+      #endif // GPIOPE_USE_INPUT_34
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_35
+      #ifdef GPIOPE_USE_INPUT_35
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE35,");
       for (int i=0; i < GPIOPE_INPUT_35.max_input_values; i++)
@@ -2434,9 +2434,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_35
+      #endif // GPIOPE_USE_INPUT_35
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_36
+      #ifdef GPIOPE_USE_INPUT_36
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE36,");
       for (int i=0; i < GPIOPE_INPUT_36.max_input_values; i++)
@@ -2446,9 +2446,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_36
+      #endif // GPIOPE_USE_INPUT_36
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_37
+      #ifdef GPIOPE_USE_INPUT_37
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE37,");
       for (int i=0; i < GPIOPE_INPUT_37.max_input_values; i++)
@@ -2458,9 +2458,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_37
+      #endif // GPIOPE_USE_INPUT_37
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_38
+      #ifdef GPIOPE_USE_INPUT_38
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE38,");
       for (int i=0; i < GPIOPE_INPUT_38.max_input_values; i++)
@@ -2470,9 +2470,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_38
+      #endif // GPIOPE_USE_INPUT_38
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_39
+      #ifdef GPIOPE_USE_INPUT_39
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE39,");
       for (int i=0; i < GPIOPE_INPUT_39.max_input_values; i++)
@@ -2482,9 +2482,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_39
+      #endif // GPIOPE_USE_INPUT_39
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_40
+      #ifdef GPIOPE_USE_INPUT_40
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE40,");
       for (int i=0; i < GPIOPE_INPUT_40.max_input_values; i++)
@@ -2494,9 +2494,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_40
+      #endif // GPIOPE_USE_INPUT_40
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_41
+      #ifdef GPIOPE_USE_INPUT_41
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE41,");
       for (int i=0; i < GPIOPE_INPUT_41.max_input_values; i++)
@@ -2506,9 +2506,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_41
+      #endif // GPIOPE_USE_INPUT_41
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_42
+      #ifdef GPIOPE_USE_INPUT_42
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE42,");
       for (int i=0; i < GPIOPE_INPUT_42.max_input_values; i++)
@@ -2518,9 +2518,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_42
+      #endif // GPIOPE_USE_INPUT_42
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_43
+      #ifdef GPIOPE_USE_INPUT_43
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE43,");
       for (int i=0; i < GPIOPE_INPUT_43.max_input_values; i++)
@@ -2530,9 +2530,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_43
+      #endif // GPIOPE_USE_INPUT_43
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_44
+      #ifdef GPIOPE_USE_INPUT_44
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE44,");
       for (int i=0; i < GPIOPE_INPUT_44.max_input_values; i++)
@@ -2542,9 +2542,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_44
+      #endif // GPIOPE_USE_INPUT_44
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_45
+      #ifdef GPIOPE_USE_INPUT_45
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE45,");
       for (int i=0; i < GPIOPE_INPUT_45.max_input_values; i++)
@@ -2554,9 +2554,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_45
+      #endif // GPIOPE_USE_INPUT_45
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_46
+      #ifdef GPIOPE_USE_INPUT_46
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE46,");
       for (int i=0; i < GPIOPE_INPUT_46.max_input_values; i++)
@@ -2566,9 +2566,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_46
+      #endif // GPIOPE_USE_INPUT_46
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_47
+      #ifdef GPIOPE_USE_INPUT_47
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE47,");
       for (int i=0; i < GPIOPE_INPUT_47.max_input_values; i++)
@@ -2578,9 +2578,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_47
+      #endif // GPIOPE_USE_INPUT_47
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_48
+      #ifdef GPIOPE_USE_INPUT_48
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE48,");
       for (int i=0; i < GPIOPE_INPUT_48.max_input_values; i++)
@@ -2590,9 +2590,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_48
+      #endif // GPIOPE_USE_INPUT_48
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_49
+      #ifdef GPIOPE_USE_INPUT_49
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE49,");
       for (int i=0; i < GPIOPE_INPUT_49.max_input_values; i++)
@@ -2602,9 +2602,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_49
+      #endif // GPIOPE_USE_INPUT_49
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_50
+      #ifdef GPIOPE_USE_INPUT_50
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE50,");
       for (int i=0; i < GPIOPE_INPUT_50.max_input_values; i++)
@@ -2614,9 +2614,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_50
+      #endif // GPIOPE_USE_INPUT_50
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_51
+      #ifdef GPIOPE_USE_INPUT_51
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE51,");
       for (int i=0; i < GPIOPE_INPUT_51.max_input_values; i++)
@@ -2626,9 +2626,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_51
+      #endif // GPIOPE_USE_INPUT_51
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_52
+      #ifdef GPIOPE_USE_INPUT_52
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE52,");
       for (int i=0; i < GPIOPE_INPUT_52.max_input_values; i++)
@@ -2638,9 +2638,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_52
+      #endif // GPIOPE_USE_INPUT_52
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_53
+      #ifdef GPIOPE_USE_INPUT_53
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE53,");
       for (int i=0; i < GPIOPE_INPUT_53.max_input_values; i++)
@@ -2650,9 +2650,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_53
+      #endif // GPIOPE_USE_INPUT_53
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_54
+      #ifdef GPIOPE_USE_INPUT_54
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE54,");
       for (int i=0; i < GPIOPE_INPUT_54.max_input_values; i++)
@@ -2662,9 +2662,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_54
+      #endif // GPIOPE_USE_INPUT_54
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_55
+      #ifdef GPIOPE_USE_INPUT_55
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE55,");
       for (int i=0; i < GPIOPE_INPUT_55.max_input_values; i++)
@@ -2674,9 +2674,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_55
+      #endif // GPIOPE_USE_INPUT_55
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_56
+      #ifdef GPIOPE_USE_INPUT_56
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE56,");
       for (int i=0; i < GPIOPE_INPUT_56.max_input_values; i++)
@@ -2686,9 +2686,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_56
+      #endif // GPIOPE_USE_INPUT_56
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_57
+      #ifdef GPIOPE_USE_INPUT_57
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE57,");
       for (int i=0; i < GPIOPE_INPUT_57.max_input_values; i++)
@@ -2698,9 +2698,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_57
+      #endif // GPIOPE_USE_INPUT_57
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_58
+      #ifdef GPIOPE_USE_INPUT_58
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE58,");
       for (int i=0; i < GPIOPE_INPUT_58.max_input_values; i++)
@@ -2710,9 +2710,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_58
+      #endif // GPIOPE_USE_INPUT_58
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_59
+      #ifdef GPIOPE_USE_INPUT_59
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE59,");
       for (int i=0; i < GPIOPE_INPUT_59.max_input_values; i++)
@@ -2722,9 +2722,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_59
+      #endif // GPIOPE_USE_INPUT_59
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_60
+      #ifdef GPIOPE_USE_INPUT_60
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE60,");
       for (int i=0; i < GPIOPE_INPUT_60.max_input_values; i++)
@@ -2734,9 +2734,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_60
+      #endif // GPIOPE_USE_INPUT_60
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_61
+      #ifdef GPIOPE_USE_INPUT_61
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE61,");
       for (int i=0; i < GPIOPE_INPUT_61.max_input_values; i++)
@@ -2746,9 +2746,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_61
+      #endif // GPIOPE_USE_INPUT_61
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_62
+      #ifdef GPIOPE_USE_INPUT_62
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE62,");
       for (int i=0; i < GPIOPE_INPUT_62.max_input_values; i++)
@@ -2758,9 +2758,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_62
+      #endif // GPIOPE_USE_INPUT_62
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_63
+      #ifdef GPIOPE_USE_INPUT_63
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE63,");
       for (int i=0; i < GPIOPE_INPUT_63.max_input_values; i++)
@@ -2770,9 +2770,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_63
+      #endif // GPIOPE_USE_INPUT_63
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_64
+      #ifdef GPIOPE_USE_INPUT_64
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE64,");
       for (int i=0; i < GPIOPE_INPUT_64.max_input_values; i++)
@@ -2782,9 +2782,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_64
+      #endif // GPIOPE_USE_INPUT_64
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_65
+      #ifdef GPIOPE_USE_INPUT_65
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE65,");
       for (int i=0; i < GPIOPE_INPUT_65.max_input_values; i++)
@@ -2794,9 +2794,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_65
+      #endif // GPIOPE_USE_INPUT_65
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_66
+      #ifdef GPIOPE_USE_INPUT_66
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE66,");
       for (int i=0; i < GPIOPE_INPUT_66.max_input_values; i++)
@@ -2806,9 +2806,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_66
+      #endif // GPIOPE_USE_INPUT_66
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_67
+      #ifdef GPIOPE_USE_INPUT_67
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE67,");
       for (int i=0; i < GPIOPE_INPUT_67.max_input_values; i++)
@@ -2818,9 +2818,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_67
+      #endif // GPIOPE_USE_INPUT_67
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_68
+      #ifdef GPIOPE_USE_INPUT_68
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE68,");
       for (int i=0; i < GPIOPE_INPUT_68.max_input_values; i++)
@@ -2830,9 +2830,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_68
+      #endif // GPIOPE_USE_INPUT_68
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_69
+      #ifdef GPIOPE_USE_INPUT_69
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE69,");
       for (int i=0; i < GPIOPE_INPUT_69.max_input_values; i++)
@@ -2842,9 +2842,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_69
+      #endif // GPIOPE_USE_INPUT_69
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_70
+      #ifdef GPIOPE_USE_INPUT_70
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE70,");
       for (int i=0; i < GPIOPE_INPUT_70.max_input_values; i++)
@@ -2854,9 +2854,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_70
+      #endif // GPIOPE_USE_INPUT_70
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_71
+      #ifdef GPIOPE_USE_INPUT_71
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE71,");
       for (int i=0; i < GPIOPE_INPUT_71.max_input_values; i++)
@@ -2866,9 +2866,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_71
+      #endif // GPIOPE_USE_INPUT_71
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_72
+      #ifdef GPIOPE_USE_INPUT_72
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE72,");
       for (int i=0; i < GPIOPE_INPUT_72.max_input_values; i++)
@@ -2878,9 +2878,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_72
+      #endif // GPIOPE_USE_INPUT_72
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_73
+      #ifdef GPIOPE_USE_INPUT_73
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE73,");
       for (int i=0; i < GPIOPE_INPUT_73.max_input_values; i++)
@@ -2890,9 +2890,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_73
+      #endif // GPIOPE_USE_INPUT_73
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_74
+      #ifdef GPIOPE_USE_INPUT_74
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE74,");
       for (int i=0; i < GPIOPE_INPUT_74.max_input_values; i++)
@@ -2902,9 +2902,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_74
+      #endif // GPIOPE_USE_INPUT_74
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_75
+      #ifdef GPIOPE_USE_INPUT_75
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE75,");
       for (int i=0; i < GPIOPE_INPUT_75.max_input_values; i++)
@@ -2914,9 +2914,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_75
+      #endif // GPIOPE_USE_INPUT_75
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_76
+      #ifdef GPIOPE_USE_INPUT_76
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE76,");
       for (int i=0; i < GPIOPE_INPUT_76.max_input_values; i++)
@@ -2926,9 +2926,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_76
+      #endif // GPIOPE_USE_INPUT_76
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_77
+      #ifdef GPIOPE_USE_INPUT_77
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE77,");
       for (int i=0; i < GPIOPE_INPUT_77.max_input_values; i++)
@@ -2938,9 +2938,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_77
+      #endif // GPIOPE_USE_INPUT_77
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_78
+      #ifdef GPIOPE_USE_INPUT_78
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE78,");
       for (int i=0; i < GPIOPE_INPUT_78.max_input_values; i++)
@@ -2950,9 +2950,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_78
+      #endif // GPIOPE_USE_INPUT_78
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_79
+      #ifdef GPIOPE_USE_INPUT_79
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE79,");
       for (int i=0; i < GPIOPE_INPUT_79.max_input_values; i++)
@@ -2962,9 +2962,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_79
+      #endif // GPIOPE_USE_INPUT_79
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_80
+      #ifdef GPIOPE_USE_INPUT_80
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE80,");
       for (int i=0; i < GPIOPE_INPUT_80.max_input_values; i++)
@@ -2974,9 +2974,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_80
+      #endif // GPIOPE_USE_INPUT_80
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_81
+      #ifdef GPIOPE_USE_INPUT_81
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE81,");
       for (int i=0; i < GPIOPE_INPUT_81.max_input_values; i++)
@@ -2986,9 +2986,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_81
+      #endif // GPIOPE_USE_INPUT_81
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_82
+      #ifdef GPIOPE_USE_INPUT_82
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE82,");
       for (int i=0; i < GPIOPE_INPUT_82.max_input_values; i++)
@@ -2998,9 +2998,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_82
+      #endif // GPIOPE_USE_INPUT_82
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_83
+      #ifdef GPIOPE_USE_INPUT_83
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE83,");
       for (int i=0; i < GPIOPE_INPUT_83.max_input_values; i++)
@@ -3010,9 +3010,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_83
+      #endif // GPIOPE_USE_INPUT_83
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_84
+      #ifdef GPIOPE_USE_INPUT_84
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE84,");
       for (int i=0; i < GPIOPE_INPUT_84.max_input_values; i++)
@@ -3022,9 +3022,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_84
+      #endif // GPIOPE_USE_INPUT_84
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_85
+      #ifdef GPIOPE_USE_INPUT_85
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE85,");
       for (int i=0; i < GPIOPE_INPUT_85.max_input_values; i++)
@@ -3034,9 +3034,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_85
+      #endif // GPIOPE_USE_INPUT_85
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_86
+      #ifdef GPIOPE_USE_INPUT_86
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE86,");
       for (int i=0; i < GPIOPE_INPUT_86.max_input_values; i++)
@@ -3046,9 +3046,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_86
+      #endif // GPIOPE_USE_INPUT_86
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_87
+      #ifdef GPIOPE_USE_INPUT_87
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE87,");
       for (int i=0; i < GPIOPE_INPUT_87.max_input_values; i++)
@@ -3058,9 +3058,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_87
+      #endif // GPIOPE_USE_INPUT_87
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_88
+      #ifdef GPIOPE_USE_INPUT_88
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE88,");
       for (int i=0; i < GPIOPE_INPUT_88.max_input_values; i++)
@@ -3070,9 +3070,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_88
+      #endif // GPIOPE_USE_INPUT_88
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_89
+      #ifdef GPIOPE_USE_INPUT_89
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE89,");
       for (int i=0; i < GPIOPE_INPUT_89.max_input_values; i++)
@@ -3082,9 +3082,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_89
+      #endif // GPIOPE_USE_INPUT_89
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_90
+      #ifdef GPIOPE_USE_INPUT_90
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE90,");
       for (int i=0; i < GPIOPE_INPUT_90.max_input_values; i++)
@@ -3094,9 +3094,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_90
+      #endif // GPIOPE_USE_INPUT_90
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_91
+      #ifdef GPIOPE_USE_INPUT_91
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE91,");
       for (int i=0; i < GPIOPE_INPUT_91.max_input_values; i++)
@@ -3106,9 +3106,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_91
+      #endif // GPIOPE_USE_INPUT_91
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_92
+      #ifdef GPIOPE_USE_INPUT_92
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE92,");
       for (int i=0; i < GPIOPE_INPUT_92.max_input_values; i++)
@@ -3118,9 +3118,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_92
+      #endif // GPIOPE_USE_INPUT_92
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_93
+      #ifdef GPIOPE_USE_INPUT_93
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE93,");
       for (int i=0; i < GPIOPE_INPUT_93.max_input_values; i++)
@@ -3130,9 +3130,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_93
+      #endif // GPIOPE_USE_INPUT_93
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_94
+      #ifdef GPIOPE_USE_INPUT_94
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE94,");
       for (int i=0; i < GPIOPE_INPUT_94.max_input_values; i++)
@@ -3142,9 +3142,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_94
+      #endif // GPIOPE_USE_INPUT_94
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_95
+      #ifdef GPIOPE_USE_INPUT_95
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE95,");
       for (int i=0; i < GPIOPE_INPUT_95.max_input_values; i++)
@@ -3154,9 +3154,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_95
+      #endif // GPIOPE_USE_INPUT_95
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_96
+      #ifdef GPIOPE_USE_INPUT_96
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE96,");
       for (int i=0; i < GPIOPE_INPUT_96.max_input_values; i++)
@@ -3166,9 +3166,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_96
+      #endif // GPIOPE_USE_INPUT_96
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_97
+      #ifdef GPIOPE_USE_INPUT_97
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE97,");
       for (int i=0; i < GPIOPE_INPUT_97.max_input_values; i++)
@@ -3178,9 +3178,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_97
+      #endif // GPIOPE_USE_INPUT_97
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_98
+      #ifdef GPIOPE_USE_INPUT_98
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE98,");
       for (int i=0; i < GPIOPE_INPUT_98.max_input_values; i++)
@@ -3190,9 +3190,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_98
+      #endif // GPIOPE_USE_INPUT_98
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_99
+      #ifdef GPIOPE_USE_INPUT_99
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE99,");
       for (int i=0; i < GPIOPE_INPUT_99.max_input_values; i++)
@@ -3202,9 +3202,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_99
+      #endif // GPIOPE_USE_INPUT_99
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_100
+      #ifdef GPIOPE_USE_INPUT_100
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE100,");
       for (int i=0; i < GPIOPE_INPUT_100.max_input_values; i++)
@@ -3214,9 +3214,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_100
+      #endif // GPIOPE_USE_INPUT_100
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_101
+      #ifdef GPIOPE_USE_INPUT_101
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE101,");
       for (int i=0; i < GPIOPE_INPUT_101.max_input_values; i++)
@@ -3226,9 +3226,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_101
+      #endif // GPIOPE_USE_INPUT_101
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_102
+      #ifdef GPIOPE_USE_INPUT_102
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE102,");
       for (int i=0; i < GPIOPE_INPUT_102.max_input_values; i++)
@@ -3238,9 +3238,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_102
+      #endif // GPIOPE_USE_INPUT_102
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_103
+      #ifdef GPIOPE_USE_INPUT_103
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE103,");
       for (int i=0; i < GPIOPE_INPUT_103.max_input_values; i++)
@@ -3250,9 +3250,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_103
+      #endif // GPIOPE_USE_INPUT_103
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_104
+      #ifdef GPIOPE_USE_INPUT_104
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE104,");
       for (int i=0; i < GPIOPE_INPUT_104.max_input_values; i++)
@@ -3262,9 +3262,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_104
+      #endif // GPIOPE_USE_INPUT_104
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_105
+      #ifdef GPIOPE_USE_INPUT_105
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE105,");
       for (int i=0; i < GPIOPE_INPUT_105.max_input_values; i++)
@@ -3274,9 +3274,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_105
+      #endif // GPIOPE_USE_INPUT_105
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_106
+      #ifdef GPIOPE_USE_INPUT_106
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE106,");
       for (int i=0; i < GPIOPE_INPUT_106.max_input_values; i++)
@@ -3286,9 +3286,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_106
+      #endif // GPIOPE_USE_INPUT_106
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_107
+      #ifdef GPIOPE_USE_INPUT_107
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE107,");
       for (int i=0; i < GPIOPE_INPUT_107.max_input_values; i++)
@@ -3298,9 +3298,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_107
+      #endif // GPIOPE_USE_INPUT_107
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_108
+      #ifdef GPIOPE_USE_INPUT_108
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE108,");
       for (int i=0; i < GPIOPE_INPUT_108.max_input_values; i++)
@@ -3310,9 +3310,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_108
+      #endif // GPIOPE_USE_INPUT_108
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_109
+      #ifdef GPIOPE_USE_INPUT_109
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE109,");
       for (int i=0; i < GPIOPE_INPUT_109.max_input_values; i++)
@@ -3322,9 +3322,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_109
+      #endif // GPIOPE_USE_INPUT_109
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_110
+      #ifdef GPIOPE_USE_INPUT_110
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE110,");
       for (int i=0; i < GPIOPE_INPUT_110.max_input_values; i++)
@@ -3334,9 +3334,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_110
+      #endif // GPIOPE_USE_INPUT_110
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_111
+      #ifdef GPIOPE_USE_INPUT_111
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE111,");
       for (int i=0; i < GPIOPE_INPUT_111.max_input_values; i++)
@@ -3346,9 +3346,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_111
+      #endif // GPIOPE_USE_INPUT_111
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_112
+      #ifdef GPIOPE_USE_INPUT_112
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE112,");
       for (int i=0; i < GPIOPE_INPUT_112.max_input_values; i++)
@@ -3358,9 +3358,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_112
+      #endif // GPIOPE_USE_INPUT_112
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_113
+      #ifdef GPIOPE_USE_INPUT_113
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE113,");
       for (int i=0; i < GPIOPE_INPUT_113.max_input_values; i++)
@@ -3370,9 +3370,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_113
+      #endif // GPIOPE_USE_INPUT_113
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_114
+      #ifdef GPIOPE_USE_INPUT_114
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE114,");
       for (int i=0; i < GPIOPE_INPUT_114.max_input_values; i++)
@@ -3382,9 +3382,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_114
+      #endif // GPIOPE_USE_INPUT_114
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_115
+      #ifdef GPIOPE_USE_INPUT_115
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE115,");
       for (int i=0; i < GPIOPE_INPUT_115.max_input_values; i++)
@@ -3394,9 +3394,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_115
+      #endif // GPIOPE_USE_INPUT_115
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_116
+      #ifdef GPIOPE_USE_INPUT_116
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE116,");
       for (int i=0; i < GPIOPE_INPUT_116.max_input_values; i++)
@@ -3406,9 +3406,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_116
+      #endif // GPIOPE_USE_INPUT_116
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_117
+      #ifdef GPIOPE_USE_INPUT_117
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE117,");
       for (int i=0; i < GPIOPE_INPUT_117.max_input_values; i++)
@@ -3418,9 +3418,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_117
+      #endif // GPIOPE_USE_INPUT_117
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_118
+      #ifdef GPIOPE_USE_INPUT_118
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE118,");
       for (int i=0; i < GPIOPE_INPUT_118.max_input_values; i++)
@@ -3430,9 +3430,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_118
+      #endif // GPIOPE_USE_INPUT_118
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_119
+      #ifdef GPIOPE_USE_INPUT_119
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE119,");
       for (int i=0; i < GPIOPE_INPUT_119.max_input_values; i++)
@@ -3442,9 +3442,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_119
+      #endif // GPIOPE_USE_INPUT_119
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_120
+      #ifdef GPIOPE_USE_INPUT_120
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE120,");
       for (int i=0; i < GPIOPE_INPUT_120.max_input_values; i++)
@@ -3454,9 +3454,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_120
+      #endif // GPIOPE_USE_INPUT_120
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_121
+      #ifdef GPIOPE_USE_INPUT_121
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE121,");
       for (int i=0; i < GPIOPE_INPUT_121.max_input_values; i++)
@@ -3466,9 +3466,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_121
+      #endif // GPIOPE_USE_INPUT_121
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_122
+      #ifdef GPIOPE_USE_INPUT_122
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE122,");
       for (int i=0; i < GPIOPE_INPUT_122.max_input_values; i++)
@@ -3478,9 +3478,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_122
+      #endif // GPIOPE_USE_INPUT_122
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_123
+      #ifdef GPIOPE_USE_INPUT_123
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE123,");
       for (int i=0; i < GPIOPE_INPUT_123.max_input_values; i++)
@@ -3490,9 +3490,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_123
+      #endif // GPIOPE_USE_INPUT_123
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_124
+      #ifdef GPIOPE_USE_INPUT_124
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE124,");
       for (int i=0; i < GPIOPE_INPUT_124.max_input_values; i++)
@@ -3502,9 +3502,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_124
+      #endif // GPIOPE_USE_INPUT_124
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_125
+      #ifdef GPIOPE_USE_INPUT_125
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE125,");
       for (int i=0; i < GPIOPE_INPUT_125.max_input_values; i++)
@@ -3514,9 +3514,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_125
+      #endif // GPIOPE_USE_INPUT_125
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_126
+      #ifdef GPIOPE_USE_INPUT_126
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE126,");
       for (int i=0; i < GPIOPE_INPUT_126.max_input_values; i++)
@@ -3526,9 +3526,9 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_126
+      #endif // GPIOPE_USE_INPUT_126
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_127
+      #ifdef GPIOPE_USE_INPUT_127
       memset(TXBUF_GPIOPE, 0, sizeof(TXBUF_GPIOPE));
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "$GPIOE127,");
       for (int i=0; i < GPIOPE_INPUT_127.max_input_values; i++)
@@ -3538,7 +3538,7 @@ void outputSerialGPIOPEnput(void) {
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), "*");
       serial0_buffer_append(TXBUF_GPIOPE, sizeof(TXBUF_GPIOPE), checksum);
       printf("%s\n", TXBUF_GPIOPE);
-      #endif // SatIO_USE_GPIOPE_INPUT_127
+      #endif // GPIOPE_USE_INPUT_127
 
     }
 

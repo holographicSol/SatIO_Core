@@ -132,7 +132,7 @@ struct systemStruct {
   SystemConuters counters_gpiope0;
   // Per-pin read-rate counters, indexed by pin number: task_ffreq_t is the
   // pin's achieved accepted-read rate, gated by its own chan_freq_uS (see
-  // setGPIOPortExpanderChannelFreq()); task_freq_t is how often the pin was
+  // GPIOPE_Set_Channel_Frequency()); task_freq_t is how often the pin was
   // checked (bounded by TASK_MAX_FREQ_GPIOE_INPUT).
   SystemConuters counters_gpioe_chan[GPIOPE_MAX_SIZE];
   SystemConuters counters_uni;

@@ -61,7 +61,7 @@ struct MatrixStruct matrixData = {
   .matrix_sentence={0},
 
   // will be access num for gpiope device
-  .gpiope_address = { {I2C_ADDR_OUTPUT_GPIOE_9} },
+  .gpiope_address = { {I2C_ADDR_9} },
   .matrix_port_map = { {0} },
 
   .computer_assist={ {false} },
@@ -246,515 +246,515 @@ struct MatrixStruct matrixData = {
     "SD Card Mounted",
     #endif // SatIO_USE_STORAGE
     
-    #ifdef SatIO_USE_GPIOPE_INPUT_0
+    #ifdef GPIOPE_USE_INPUT_0
     "GPIO EXPANDER INPUT 0",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_1
+    #ifdef GPIOPE_USE_INPUT_1
     "GPIO EXPANDER INPUT 1",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_2
+    #ifdef GPIOPE_USE_INPUT_2
     "GPIO EXPANDER INPUT 2",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_3
+    #ifdef GPIOPE_USE_INPUT_3
     "GPIO EXPANDER INPUT 3",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_4
+    #ifdef GPIOPE_USE_INPUT_4
     "GPIO EXPANDER INPUT 4",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_5
+    #ifdef GPIOPE_USE_INPUT_5
     "GPIO EXPANDER INPUT 5",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_6
+    #ifdef GPIOPE_USE_INPUT_6
     "GPIO EXPANDER INPUT 6",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_7
+    #ifdef GPIOPE_USE_INPUT_7
     "GPIO EXPANDER INPUT 7",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_8
+    #ifdef GPIOPE_USE_INPUT_8
     "GPIO EXPANDER INPUT 8",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_9
+    #ifdef GPIOPE_USE_INPUT_9
     "GPIO EXPANDER INPUT 9",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_10
+    #ifdef GPIOPE_USE_INPUT_10
     "GPIO EXPANDER INPUT 10",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_11
+    #ifdef GPIOPE_USE_INPUT_11
     "GPIO EXPANDER INPUT 11",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_12
+    #ifdef GPIOPE_USE_INPUT_12
     "GPIO EXPANDER INPUT 12",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_13
+    #ifdef GPIOPE_USE_INPUT_13
     "GPIO EXPANDER INPUT 13",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_14
+    #ifdef GPIOPE_USE_INPUT_14
     "GPIO EXPANDER INPUT 14",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_15
+    #ifdef GPIOPE_USE_INPUT_15
     "GPIO EXPANDER INPUT 15",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_16
+    #ifdef GPIOPE_USE_INPUT_16
     "GPIO EXPANDER INPUT 16",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_17
+    #ifdef GPIOPE_USE_INPUT_17
     "GPIO EXPANDER INPUT 17",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_18
+    #ifdef GPIOPE_USE_INPUT_18
     "GPIO EXPANDER INPUT 18",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_19
+    #ifdef GPIOPE_USE_INPUT_19
     "GPIO EXPANDER INPUT 19",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_20
+    #ifdef GPIOPE_USE_INPUT_20
     "GPIO EXPANDER INPUT 20",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_21
+    #ifdef GPIOPE_USE_INPUT_21
     "GPIO EXPANDER INPUT 21",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_22
+    #ifdef GPIOPE_USE_INPUT_22
     "GPIO EXPANDER INPUT 22",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_23
+    #ifdef GPIOPE_USE_INPUT_23
     "GPIO EXPANDER INPUT 23",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_24
+    #ifdef GPIOPE_USE_INPUT_24
     "GPIO EXPANDER INPUT 24",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_25
+    #ifdef GPIOPE_USE_INPUT_25
     "GPIO EXPANDER INPUT 25",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_26
+    #ifdef GPIOPE_USE_INPUT_26
     "GPIO EXPANDER INPUT 26",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_27
+    #ifdef GPIOPE_USE_INPUT_27
     "GPIO EXPANDER INPUT 27",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_28
+    #ifdef GPIOPE_USE_INPUT_28
     "GPIO EXPANDER INPUT 28",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_29
+    #ifdef GPIOPE_USE_INPUT_29
     "GPIO EXPANDER INPUT 29",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_30
+    #ifdef GPIOPE_USE_INPUT_30
     "GPIO EXPANDER INPUT 30",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_31
+    #ifdef GPIOPE_USE_INPUT_31
     "GPIO EXPANDER INPUT 31",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_32
+    #ifdef GPIOPE_USE_INPUT_32
     "GPIO EXPANDER INPUT 32",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_33
+    #ifdef GPIOPE_USE_INPUT_33
     "GPIO EXPANDER INPUT 33",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_34
+    #ifdef GPIOPE_USE_INPUT_34
     "GPIO EXPANDER INPUT 34",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_35
+    #ifdef GPIOPE_USE_INPUT_35
     "GPIO EXPANDER INPUT 35",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_36
+    #ifdef GPIOPE_USE_INPUT_36
     "GPIO EXPANDER INPUT 36",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_37
+    #ifdef GPIOPE_USE_INPUT_37
     "GPIO EXPANDER INPUT 37",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_38
+    #ifdef GPIOPE_USE_INPUT_38
     "GPIO EXPANDER INPUT 38",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_39
+    #ifdef GPIOPE_USE_INPUT_39
     "GPIO EXPANDER INPUT 39",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_40
+    #ifdef GPIOPE_USE_INPUT_40
     "GPIO EXPANDER INPUT 40",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_41
+    #ifdef GPIOPE_USE_INPUT_41
     "GPIO EXPANDER INPUT 41",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_42
+    #ifdef GPIOPE_USE_INPUT_42
     "GPIO EXPANDER INPUT 42",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_43
+    #ifdef GPIOPE_USE_INPUT_43
     "GPIO EXPANDER INPUT 43",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_44
+    #ifdef GPIOPE_USE_INPUT_44
     "GPIO EXPANDER INPUT 44",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_45
+    #ifdef GPIOPE_USE_INPUT_45
     "GPIO EXPANDER INPUT 45",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_46
+    #ifdef GPIOPE_USE_INPUT_46
     "GPIO EXPANDER INPUT 46",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_47
+    #ifdef GPIOPE_USE_INPUT_47
     "GPIO EXPANDER INPUT 47",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_48
+    #ifdef GPIOPE_USE_INPUT_48
     "GPIO EXPANDER INPUT 48",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_49
+    #ifdef GPIOPE_USE_INPUT_49
     "GPIO EXPANDER INPUT 49",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_50
+    #ifdef GPIOPE_USE_INPUT_50
     "GPIO EXPANDER INPUT 50",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_51
+    #ifdef GPIOPE_USE_INPUT_51
     "GPIO EXPANDER INPUT 51",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_52
+    #ifdef GPIOPE_USE_INPUT_52
     "GPIO EXPANDER INPUT 52",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_53
+    #ifdef GPIOPE_USE_INPUT_53
     "GPIO EXPANDER INPUT 53",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_54
+    #ifdef GPIOPE_USE_INPUT_54
     "GPIO EXPANDER INPUT 54",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_55
+    #ifdef GPIOPE_USE_INPUT_55
     "GPIO EXPANDER INPUT 55",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_56
+    #ifdef GPIOPE_USE_INPUT_56
     "GPIO EXPANDER INPUT 56",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_57
+    #ifdef GPIOPE_USE_INPUT_57
     "GPIO EXPANDER INPUT 57",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_58
+    #ifdef GPIOPE_USE_INPUT_58
     "GPIO EXPANDER INPUT 58",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_59
+    #ifdef GPIOPE_USE_INPUT_59
     "GPIO EXPANDER INPUT 59",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_60
+    #ifdef GPIOPE_USE_INPUT_60
     "GPIO EXPANDER INPUT 60",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_61
+    #ifdef GPIOPE_USE_INPUT_61
     "GPIO EXPANDER INPUT 61",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_62
+    #ifdef GPIOPE_USE_INPUT_62
     "GPIO EXPANDER INPUT 62",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_63
+    #ifdef GPIOPE_USE_INPUT_63
     "GPIO EXPANDER INPUT 63",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_64
+    #ifdef GPIOPE_USE_INPUT_64
     "GPIO EXPANDER INPUT 64",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_65
+    #ifdef GPIOPE_USE_INPUT_65
     "GPIO EXPANDER INPUT 65",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_66
+    #ifdef GPIOPE_USE_INPUT_66
     "GPIO EXPANDER INPUT 66",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_67
+    #ifdef GPIOPE_USE_INPUT_67
     "GPIO EXPANDER INPUT 67",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_68
+    #ifdef GPIOPE_USE_INPUT_68
     "GPIO EXPANDER INPUT 68",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_69
+    #ifdef GPIOPE_USE_INPUT_69
     "GPIO EXPANDER INPUT 69",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_70
+    #ifdef GPIOPE_USE_INPUT_70
     "GPIO EXPANDER INPUT 70",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_71
+    #ifdef GPIOPE_USE_INPUT_71
     "GPIO EXPANDER INPUT 71",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_72
+    #ifdef GPIOPE_USE_INPUT_72
     "GPIO EXPANDER INPUT 72",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_73
+    #ifdef GPIOPE_USE_INPUT_73
     "GPIO EXPANDER INPUT 73",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_74
+    #ifdef GPIOPE_USE_INPUT_74
     "GPIO EXPANDER INPUT 74",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_75
+    #ifdef GPIOPE_USE_INPUT_75
     "GPIO EXPANDER INPUT 75",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_76
+    #ifdef GPIOPE_USE_INPUT_76
     "GPIO EXPANDER INPUT 76",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_77
+    #ifdef GPIOPE_USE_INPUT_77
     "GPIO EXPANDER INPUT 77",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_78
+    #ifdef GPIOPE_USE_INPUT_78
     "GPIO EXPANDER INPUT 78",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_79
+    #ifdef GPIOPE_USE_INPUT_79
     "GPIO EXPANDER INPUT 79",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_80
+    #ifdef GPIOPE_USE_INPUT_80
     "GPIO EXPANDER INPUT 80",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_81
+    #ifdef GPIOPE_USE_INPUT_81
     "GPIO EXPANDER INPUT 81",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_82
+    #ifdef GPIOPE_USE_INPUT_82
     "GPIO EXPANDER INPUT 82",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_83
+    #ifdef GPIOPE_USE_INPUT_83
     "GPIO EXPANDER INPUT 83",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_84
+    #ifdef GPIOPE_USE_INPUT_84
     "GPIO EXPANDER INPUT 84",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_85
+    #ifdef GPIOPE_USE_INPUT_85
     "GPIO EXPANDER INPUT 85",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_86
+    #ifdef GPIOPE_USE_INPUT_86
     "GPIO EXPANDER INPUT 86",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_87
+    #ifdef GPIOPE_USE_INPUT_87
     "GPIO EXPANDER INPUT 87",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_88
+    #ifdef GPIOPE_USE_INPUT_88
     "GPIO EXPANDER INPUT 88",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_89
+    #ifdef GPIOPE_USE_INPUT_89
     "GPIO EXPANDER INPUT 89",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_90
+    #ifdef GPIOPE_USE_INPUT_90
     "GPIO EXPANDER INPUT 90",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_91
+    #ifdef GPIOPE_USE_INPUT_91
     "GPIO EXPANDER INPUT 91",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_92
+    #ifdef GPIOPE_USE_INPUT_92
     "GPIO EXPANDER INPUT 92",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_93
+    #ifdef GPIOPE_USE_INPUT_93
     "GPIO EXPANDER INPUT 93",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_94
+    #ifdef GPIOPE_USE_INPUT_94
     "GPIO EXPANDER INPUT 94",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_95
+    #ifdef GPIOPE_USE_INPUT_95
     "GPIO EXPANDER INPUT 95",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_96
+    #ifdef GPIOPE_USE_INPUT_96
     "GPIO EXPANDER INPUT 96",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_97
+    #ifdef GPIOPE_USE_INPUT_97
     "GPIO EXPANDER INPUT 97",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_98
+    #ifdef GPIOPE_USE_INPUT_98
     "GPIO EXPANDER INPUT 98",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_99
+    #ifdef GPIOPE_USE_INPUT_99
     "GPIO EXPANDER INPUT 99",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_100
+    #ifdef GPIOPE_USE_INPUT_100
     "GPIO EXPANDER INPUT 100",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_101
+    #ifdef GPIOPE_USE_INPUT_101
     "GPIO EXPANDER INPUT 101",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_102
+    #ifdef GPIOPE_USE_INPUT_102
     "GPIO EXPANDER INPUT 102",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_103
+    #ifdef GPIOPE_USE_INPUT_103
     "GPIO EXPANDER INPUT 103",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_104
+    #ifdef GPIOPE_USE_INPUT_104
     "GPIO EXPANDER INPUT 104",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_105
+    #ifdef GPIOPE_USE_INPUT_105
     "GPIO EXPANDER INPUT 105",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_106
+    #ifdef GPIOPE_USE_INPUT_106
     "GPIO EXPANDER INPUT 106",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_107
+    #ifdef GPIOPE_USE_INPUT_107
     "GPIO EXPANDER INPUT 107",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_108
+    #ifdef GPIOPE_USE_INPUT_108
     "GPIO EXPANDER INPUT 108",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_109
+    #ifdef GPIOPE_USE_INPUT_109
     "GPIO EXPANDER INPUT 109",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_110
+    #ifdef GPIOPE_USE_INPUT_110
     "GPIO EXPANDER INPUT 110",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_111
+    #ifdef GPIOPE_USE_INPUT_111
     "GPIO EXPANDER INPUT 111",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_112
+    #ifdef GPIOPE_USE_INPUT_112
     "GPIO EXPANDER INPUT 112",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_113
+    #ifdef GPIOPE_USE_INPUT_113
     "GPIO EXPANDER INPUT 113",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_114
+    #ifdef GPIOPE_USE_INPUT_114
     "GPIO EXPANDER INPUT 114",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_115
+    #ifdef GPIOPE_USE_INPUT_115
     "GPIO EXPANDER INPUT 115",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_116
+    #ifdef GPIOPE_USE_INPUT_116
     "GPIO EXPANDER INPUT 116",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_117
+    #ifdef GPIOPE_USE_INPUT_117
     "GPIO EXPANDER INPUT 117",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_118
+    #ifdef GPIOPE_USE_INPUT_118
     "GPIO EXPANDER INPUT 118",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_119
+    #ifdef GPIOPE_USE_INPUT_119
     "GPIO EXPANDER INPUT 119",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_120
+    #ifdef GPIOPE_USE_INPUT_120
     "GPIO EXPANDER INPUT 120",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_121
+    #ifdef GPIOPE_USE_INPUT_121
     "GPIO EXPANDER INPUT 121",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_122
+    #ifdef GPIOPE_USE_INPUT_122
     "GPIO EXPANDER INPUT 122",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_123
+    #ifdef GPIOPE_USE_INPUT_123
     "GPIO EXPANDER INPUT 123",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_124
+    #ifdef GPIOPE_USE_INPUT_124
     "GPIO EXPANDER INPUT 124",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_125
+    #ifdef GPIOPE_USE_INPUT_125
     "GPIO EXPANDER INPUT 125",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_126
+    #ifdef GPIOPE_USE_INPUT_126
     "GPIO EXPANDER INPUT 126",
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_127
+    #ifdef GPIOPE_USE_INPUT_127
     "GPIO EXPANDER INPUT 127",
     #endif
 
@@ -1476,7 +1476,7 @@ bool matrixSwitch(void) {
           break;
         #endif // SatIO_USE_STORAGE
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_0
+        #ifdef GPIOPE_USE_INPUT_0
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_0: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1488,7 +1488,7 @@ bool matrixSwitch(void) {
         }
         #endif
         
-        #ifdef SatIO_USE_GPIOPE_INPUT_1
+        #ifdef GPIOPE_USE_INPUT_1
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_1: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1500,7 +1500,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_2
+        #ifdef GPIOPE_USE_INPUT_2
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_2: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1512,7 +1512,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_3
+        #ifdef GPIOPE_USE_INPUT_3
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_3: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1524,7 +1524,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_4
+        #ifdef GPIOPE_USE_INPUT_4
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_4: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1536,7 +1536,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_5
+        #ifdef GPIOPE_USE_INPUT_5
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_5: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1548,7 +1548,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_6
+        #ifdef GPIOPE_USE_INPUT_6
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_6: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1560,7 +1560,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_7
+        #ifdef GPIOPE_USE_INPUT_7
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_7: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1572,7 +1572,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_8
+        #ifdef GPIOPE_USE_INPUT_8
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_8: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1584,7 +1584,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_9
+        #ifdef GPIOPE_USE_INPUT_9
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_9: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1596,7 +1596,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_10
+        #ifdef GPIOPE_USE_INPUT_10
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_10: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1608,7 +1608,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_11
+        #ifdef GPIOPE_USE_INPUT_11
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_11: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1620,7 +1620,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_12
+        #ifdef GPIOPE_USE_INPUT_12
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_12: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1632,7 +1632,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_13
+        #ifdef GPIOPE_USE_INPUT_13
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_13: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1644,7 +1644,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_14
+        #ifdef GPIOPE_USE_INPUT_14
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_14: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1656,7 +1656,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_15
+        #ifdef GPIOPE_USE_INPUT_15
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_15: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1668,7 +1668,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_16
+        #ifdef GPIOPE_USE_INPUT_16
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_16: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1680,7 +1680,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_17
+        #ifdef GPIOPE_USE_INPUT_17
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_17: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1692,7 +1692,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_18
+        #ifdef GPIOPE_USE_INPUT_18
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_18: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1704,7 +1704,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_19
+        #ifdef GPIOPE_USE_INPUT_19
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_19: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1716,7 +1716,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_20
+        #ifdef GPIOPE_USE_INPUT_20
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_20: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1728,7 +1728,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_21
+        #ifdef GPIOPE_USE_INPUT_21
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_21: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1740,7 +1740,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_22
+        #ifdef GPIOPE_USE_INPUT_22
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_22: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1752,7 +1752,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_23
+        #ifdef GPIOPE_USE_INPUT_23
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_23: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1764,7 +1764,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_24
+        #ifdef GPIOPE_USE_INPUT_24
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_24: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1776,7 +1776,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_25
+        #ifdef GPIOPE_USE_INPUT_25
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_25: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1788,7 +1788,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_26
+        #ifdef GPIOPE_USE_INPUT_26
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_26: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1800,7 +1800,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_27
+        #ifdef GPIOPE_USE_INPUT_27
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_27: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1812,7 +1812,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_28
+        #ifdef GPIOPE_USE_INPUT_28
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_28: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1824,7 +1824,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_29
+        #ifdef GPIOPE_USE_INPUT_29
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_29: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1836,7 +1836,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_30
+        #ifdef GPIOPE_USE_INPUT_30
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_30: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1848,7 +1848,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_31
+        #ifdef GPIOPE_USE_INPUT_31
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_31: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1860,7 +1860,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_32
+        #ifdef GPIOPE_USE_INPUT_32
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_32: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1872,7 +1872,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_33
+        #ifdef GPIOPE_USE_INPUT_33
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_33: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1884,7 +1884,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_34
+        #ifdef GPIOPE_USE_INPUT_34
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_34: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1896,7 +1896,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_35
+        #ifdef GPIOPE_USE_INPUT_35
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_35: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1908,7 +1908,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_36
+        #ifdef GPIOPE_USE_INPUT_36
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_36: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1920,7 +1920,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_37
+        #ifdef GPIOPE_USE_INPUT_37
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_37: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1932,7 +1932,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_38
+        #ifdef GPIOPE_USE_INPUT_38
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_38: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1944,7 +1944,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_39
+        #ifdef GPIOPE_USE_INPUT_39
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_39: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1956,7 +1956,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_40
+        #ifdef GPIOPE_USE_INPUT_40
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_40: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1968,7 +1968,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_41
+        #ifdef GPIOPE_USE_INPUT_41
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_41: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1980,7 +1980,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_42
+        #ifdef GPIOPE_USE_INPUT_42
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_42: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -1992,7 +1992,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_43
+        #ifdef GPIOPE_USE_INPUT_43
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_43: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2004,7 +2004,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_44
+        #ifdef GPIOPE_USE_INPUT_44
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_44: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2016,7 +2016,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_45
+        #ifdef GPIOPE_USE_INPUT_45
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_45: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2028,7 +2028,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_46
+        #ifdef GPIOPE_USE_INPUT_46
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_46: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2040,7 +2040,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_47
+        #ifdef GPIOPE_USE_INPUT_47
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_47: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2052,7 +2052,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_48
+        #ifdef GPIOPE_USE_INPUT_48
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_48: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2064,7 +2064,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_49
+        #ifdef GPIOPE_USE_INPUT_49
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_49: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2076,7 +2076,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_50
+        #ifdef GPIOPE_USE_INPUT_50
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_50: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2088,7 +2088,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_51
+        #ifdef GPIOPE_USE_INPUT_51
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_51: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2100,7 +2100,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_52
+        #ifdef GPIOPE_USE_INPUT_52
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_52: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2112,7 +2112,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_53
+        #ifdef GPIOPE_USE_INPUT_53
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_53: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2124,7 +2124,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_54
+        #ifdef GPIOPE_USE_INPUT_54
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_54: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2136,7 +2136,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_55
+        #ifdef GPIOPE_USE_INPUT_55
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_55: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2148,7 +2148,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_56
+        #ifdef GPIOPE_USE_INPUT_56
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_56: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2160,7 +2160,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_57
+        #ifdef GPIOPE_USE_INPUT_57
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_57: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2172,7 +2172,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_58
+        #ifdef GPIOPE_USE_INPUT_58
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_58: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2184,7 +2184,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_59
+        #ifdef GPIOPE_USE_INPUT_59
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_59: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2196,7 +2196,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_60
+        #ifdef GPIOPE_USE_INPUT_60
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_60: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2208,7 +2208,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_61
+        #ifdef GPIOPE_USE_INPUT_61
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_61: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2220,7 +2220,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_62
+        #ifdef GPIOPE_USE_INPUT_62
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_62: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2232,7 +2232,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_63
+        #ifdef GPIOPE_USE_INPUT_63
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_63: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2244,7 +2244,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_64
+        #ifdef GPIOPE_USE_INPUT_64
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_64: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2256,7 +2256,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_65
+        #ifdef GPIOPE_USE_INPUT_65
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_65: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2268,7 +2268,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_66
+        #ifdef GPIOPE_USE_INPUT_66
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_66: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2280,7 +2280,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_67
+        #ifdef GPIOPE_USE_INPUT_67
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_67: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2292,7 +2292,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_68
+        #ifdef GPIOPE_USE_INPUT_68
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_68: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2304,7 +2304,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_69
+        #ifdef GPIOPE_USE_INPUT_69
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_69: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2316,7 +2316,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_70
+        #ifdef GPIOPE_USE_INPUT_70
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_70: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2328,7 +2328,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_71
+        #ifdef GPIOPE_USE_INPUT_71
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_71: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2340,7 +2340,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_72
+        #ifdef GPIOPE_USE_INPUT_72
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_72: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2352,7 +2352,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_73
+        #ifdef GPIOPE_USE_INPUT_73
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_73: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2364,7 +2364,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_74
+        #ifdef GPIOPE_USE_INPUT_74
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_74: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2376,7 +2376,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_75
+        #ifdef GPIOPE_USE_INPUT_75
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_75: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2388,7 +2388,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_76
+        #ifdef GPIOPE_USE_INPUT_76
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_76: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2400,7 +2400,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_77
+        #ifdef GPIOPE_USE_INPUT_77
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_77: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2412,7 +2412,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_78
+        #ifdef GPIOPE_USE_INPUT_78
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_78: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2424,7 +2424,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_79
+        #ifdef GPIOPE_USE_INPUT_79
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_79: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2436,7 +2436,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_80
+        #ifdef GPIOPE_USE_INPUT_80
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_80: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2448,7 +2448,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_81
+        #ifdef GPIOPE_USE_INPUT_81
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_81: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2460,7 +2460,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_82
+        #ifdef GPIOPE_USE_INPUT_82
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_82: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2472,7 +2472,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_83
+        #ifdef GPIOPE_USE_INPUT_83
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_83: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2484,7 +2484,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_84
+        #ifdef GPIOPE_USE_INPUT_84
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_84: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2496,7 +2496,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_85
+        #ifdef GPIOPE_USE_INPUT_85
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_85: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2508,7 +2508,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_86
+        #ifdef GPIOPE_USE_INPUT_86
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_86: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2520,7 +2520,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_87
+        #ifdef GPIOPE_USE_INPUT_87
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_87: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2532,7 +2532,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_88
+        #ifdef GPIOPE_USE_INPUT_88
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_88: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2544,7 +2544,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_89
+        #ifdef GPIOPE_USE_INPUT_89
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_89: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2556,7 +2556,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_90
+        #ifdef GPIOPE_USE_INPUT_90
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_90: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2568,7 +2568,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_91
+        #ifdef GPIOPE_USE_INPUT_91
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_91: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2580,7 +2580,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_92
+        #ifdef GPIOPE_USE_INPUT_92
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_92: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2592,7 +2592,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_93
+        #ifdef GPIOPE_USE_INPUT_93
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_93: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2604,7 +2604,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_94
+        #ifdef GPIOPE_USE_INPUT_94
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_94: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2616,7 +2616,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_95
+        #ifdef GPIOPE_USE_INPUT_95
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_95: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2628,7 +2628,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_96
+        #ifdef GPIOPE_USE_INPUT_96
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_96: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2640,7 +2640,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_97
+        #ifdef GPIOPE_USE_INPUT_97
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_97: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2652,7 +2652,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_98
+        #ifdef GPIOPE_USE_INPUT_98
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_98: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2664,7 +2664,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_99
+        #ifdef GPIOPE_USE_INPUT_99
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_99: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2676,7 +2676,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_100
+        #ifdef GPIOPE_USE_INPUT_100
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_100: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2688,7 +2688,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_101
+        #ifdef GPIOPE_USE_INPUT_101
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_101: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2700,7 +2700,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_102
+        #ifdef GPIOPE_USE_INPUT_102
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_102: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2712,7 +2712,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_103
+        #ifdef GPIOPE_USE_INPUT_103
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_103: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2724,7 +2724,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_104
+        #ifdef GPIOPE_USE_INPUT_104
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_104: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2736,7 +2736,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_105
+        #ifdef GPIOPE_USE_INPUT_105
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_105: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2748,7 +2748,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_106
+        #ifdef GPIOPE_USE_INPUT_106
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_106: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2760,7 +2760,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_107
+        #ifdef GPIOPE_USE_INPUT_107
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_107: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2772,7 +2772,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_108
+        #ifdef GPIOPE_USE_INPUT_108
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_108: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2784,7 +2784,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_109
+        #ifdef GPIOPE_USE_INPUT_109
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_109: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2796,7 +2796,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_110
+        #ifdef GPIOPE_USE_INPUT_110
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_110: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2808,7 +2808,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_111
+        #ifdef GPIOPE_USE_INPUT_111
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_111: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2820,7 +2820,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_112
+        #ifdef GPIOPE_USE_INPUT_112
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_112: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2832,7 +2832,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_113
+        #ifdef GPIOPE_USE_INPUT_113
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_113: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2844,7 +2844,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_114
+        #ifdef GPIOPE_USE_INPUT_114
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_114: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2856,7 +2856,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_115
+        #ifdef GPIOPE_USE_INPUT_115
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_115: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2868,7 +2868,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_116
+        #ifdef GPIOPE_USE_INPUT_116
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_116: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2880,7 +2880,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_117
+        #ifdef GPIOPE_USE_INPUT_117
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_117: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2892,7 +2892,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_118
+        #ifdef GPIOPE_USE_INPUT_118
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_118: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2904,7 +2904,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_119
+        #ifdef GPIOPE_USE_INPUT_119
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_119: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2916,7 +2916,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_120
+        #ifdef GPIOPE_USE_INPUT_120
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_120: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2928,7 +2928,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_121
+        #ifdef GPIOPE_USE_INPUT_121
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_121: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2940,7 +2940,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_122
+        #ifdef GPIOPE_USE_INPUT_122
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_122: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2952,7 +2952,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_123
+        #ifdef GPIOPE_USE_INPUT_123
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_123: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2964,7 +2964,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_124
+        #ifdef GPIOPE_USE_INPUT_124
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_124: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2976,7 +2976,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_125
+        #ifdef GPIOPE_USE_INPUT_125
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_125: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -2988,7 +2988,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_126
+        #ifdef GPIOPE_USE_INPUT_126
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_126: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -3000,7 +3000,7 @@ bool matrixSwitch(void) {
         }
         #endif
 
-        #ifdef SatIO_USE_GPIOPE_INPUT_127
+        #ifdef GPIOPE_USE_INPUT_127
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_127: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
@@ -3685,7 +3685,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
       break;
     #endif // SatIO_USE_STORAGE
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_0
+    #ifdef GPIOPE_USE_INPUT_0
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_0: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3697,7 +3697,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_1
+    #ifdef GPIOPE_USE_INPUT_1
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_1: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3709,7 +3709,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_2
+    #ifdef GPIOPE_USE_INPUT_2
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_2: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3721,7 +3721,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_3
+    #ifdef GPIOPE_USE_INPUT_3
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_3: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3733,7 +3733,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_4
+    #ifdef GPIOPE_USE_INPUT_4
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_4: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3745,7 +3745,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_5
+    #ifdef GPIOPE_USE_INPUT_5
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_5: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3757,7 +3757,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_6
+    #ifdef GPIOPE_USE_INPUT_6
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_6: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3769,7 +3769,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_7
+    #ifdef GPIOPE_USE_INPUT_7
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_7: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3781,7 +3781,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_8
+    #ifdef GPIOPE_USE_INPUT_8
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_8: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3793,7 +3793,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_9
+    #ifdef GPIOPE_USE_INPUT_9
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_9: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3805,7 +3805,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_10
+    #ifdef GPIOPE_USE_INPUT_10
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_10: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3817,7 +3817,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_11
+    #ifdef GPIOPE_USE_INPUT_11
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_11: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3829,7 +3829,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_12
+    #ifdef GPIOPE_USE_INPUT_12
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_12: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3841,7 +3841,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_13
+    #ifdef GPIOPE_USE_INPUT_13
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_13: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3853,7 +3853,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_14
+    #ifdef GPIOPE_USE_INPUT_14
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_14: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3865,7 +3865,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_15
+    #ifdef GPIOPE_USE_INPUT_15
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_15: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3877,7 +3877,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_16
+    #ifdef GPIOPE_USE_INPUT_16
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_16: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3889,7 +3889,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_17
+    #ifdef GPIOPE_USE_INPUT_17
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_17: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3901,7 +3901,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_18
+    #ifdef GPIOPE_USE_INPUT_18
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_18: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3913,7 +3913,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_19
+    #ifdef GPIOPE_USE_INPUT_19
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_19: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3925,7 +3925,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_20
+    #ifdef GPIOPE_USE_INPUT_20
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_20: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3937,7 +3937,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_21
+    #ifdef GPIOPE_USE_INPUT_21
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_21: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3949,7 +3949,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_22
+    #ifdef GPIOPE_USE_INPUT_22
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_22: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3961,7 +3961,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_23
+    #ifdef GPIOPE_USE_INPUT_23
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_23: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3973,7 +3973,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_24
+    #ifdef GPIOPE_USE_INPUT_24
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_24: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3985,7 +3985,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_25
+    #ifdef GPIOPE_USE_INPUT_25
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_25: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -3997,7 +3997,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_26
+    #ifdef GPIOPE_USE_INPUT_26
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_26: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4009,7 +4009,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_27
+    #ifdef GPIOPE_USE_INPUT_27
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_27: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4021,7 +4021,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_28
+    #ifdef GPIOPE_USE_INPUT_28
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_28: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4033,7 +4033,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_29
+    #ifdef GPIOPE_USE_INPUT_29
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_29: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4045,7 +4045,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_30
+    #ifdef GPIOPE_USE_INPUT_30
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_30: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4057,7 +4057,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_31
+    #ifdef GPIOPE_USE_INPUT_31
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_31: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4069,7 +4069,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_32
+    #ifdef GPIOPE_USE_INPUT_32
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_32: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4081,7 +4081,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_33
+    #ifdef GPIOPE_USE_INPUT_33
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_33: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4093,7 +4093,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_34
+    #ifdef GPIOPE_USE_INPUT_34
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_34: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4105,7 +4105,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_35
+    #ifdef GPIOPE_USE_INPUT_35
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_35: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4117,7 +4117,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_36
+    #ifdef GPIOPE_USE_INPUT_36
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_36: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4129,7 +4129,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_37
+    #ifdef GPIOPE_USE_INPUT_37
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_37: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4141,7 +4141,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_38
+    #ifdef GPIOPE_USE_INPUT_38
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_38: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4153,7 +4153,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_39
+    #ifdef GPIOPE_USE_INPUT_39
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_39: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4165,7 +4165,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_40
+    #ifdef GPIOPE_USE_INPUT_40
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_40: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4177,7 +4177,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_41
+    #ifdef GPIOPE_USE_INPUT_41
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_41: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4189,7 +4189,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_42
+    #ifdef GPIOPE_USE_INPUT_42
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_42: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4201,7 +4201,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_43
+    #ifdef GPIOPE_USE_INPUT_43
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_43: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4213,7 +4213,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_44
+    #ifdef GPIOPE_USE_INPUT_44
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_44: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4225,7 +4225,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_45
+    #ifdef GPIOPE_USE_INPUT_45
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_45: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4237,7 +4237,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_46
+    #ifdef GPIOPE_USE_INPUT_46
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_46: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4249,7 +4249,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_47
+    #ifdef GPIOPE_USE_INPUT_47
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_47: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4261,7 +4261,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_48
+    #ifdef GPIOPE_USE_INPUT_48
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_48: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4273,7 +4273,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_49
+    #ifdef GPIOPE_USE_INPUT_49
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_49: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4285,7 +4285,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_50
+    #ifdef GPIOPE_USE_INPUT_50
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_50: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4297,7 +4297,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_51
+    #ifdef GPIOPE_USE_INPUT_51
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_51: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4309,7 +4309,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_52
+    #ifdef GPIOPE_USE_INPUT_52
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_52: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4321,7 +4321,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_53
+    #ifdef GPIOPE_USE_INPUT_53
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_53: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4333,7 +4333,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_54
+    #ifdef GPIOPE_USE_INPUT_54
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_54: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4345,7 +4345,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_55
+    #ifdef GPIOPE_USE_INPUT_55
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_55: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4357,7 +4357,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_56
+    #ifdef GPIOPE_USE_INPUT_56
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_56: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4369,7 +4369,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_57
+    #ifdef GPIOPE_USE_INPUT_57
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_57: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4381,7 +4381,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_58
+    #ifdef GPIOPE_USE_INPUT_58
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_58: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4393,7 +4393,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_59
+    #ifdef GPIOPE_USE_INPUT_59
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_59: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4405,7 +4405,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_60
+    #ifdef GPIOPE_USE_INPUT_60
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_60: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4417,7 +4417,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_61
+    #ifdef GPIOPE_USE_INPUT_61
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_61: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4429,7 +4429,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_62
+    #ifdef GPIOPE_USE_INPUT_62
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_62: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4441,7 +4441,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_63
+    #ifdef GPIOPE_USE_INPUT_63
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_63: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4453,7 +4453,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_64
+    #ifdef GPIOPE_USE_INPUT_64
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_64: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4465,7 +4465,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_65
+    #ifdef GPIOPE_USE_INPUT_65
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_65: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4477,7 +4477,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_66
+    #ifdef GPIOPE_USE_INPUT_66
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_66: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4489,7 +4489,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_67
+    #ifdef GPIOPE_USE_INPUT_67
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_67: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4501,7 +4501,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_68
+    #ifdef GPIOPE_USE_INPUT_68
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_68: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4513,7 +4513,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_69
+    #ifdef GPIOPE_USE_INPUT_69
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_69: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4525,7 +4525,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_70
+    #ifdef GPIOPE_USE_INPUT_70
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_70: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4537,7 +4537,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_71
+    #ifdef GPIOPE_USE_INPUT_71
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_71: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4549,7 +4549,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_72
+    #ifdef GPIOPE_USE_INPUT_72
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_72: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4561,7 +4561,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_73
+    #ifdef GPIOPE_USE_INPUT_73
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_73: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4573,7 +4573,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_74
+    #ifdef GPIOPE_USE_INPUT_74
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_74: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4585,7 +4585,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_75
+    #ifdef GPIOPE_USE_INPUT_75
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_75: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4597,7 +4597,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_76
+    #ifdef GPIOPE_USE_INPUT_76
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_76: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4609,7 +4609,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_77
+    #ifdef GPIOPE_USE_INPUT_77
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_77: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4621,7 +4621,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_78
+    #ifdef GPIOPE_USE_INPUT_78
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_78: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4633,7 +4633,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_79
+    #ifdef GPIOPE_USE_INPUT_79
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_79: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4645,7 +4645,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_80
+    #ifdef GPIOPE_USE_INPUT_80
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_80: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4657,7 +4657,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_81
+    #ifdef GPIOPE_USE_INPUT_81
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_81: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4669,7 +4669,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_82
+    #ifdef GPIOPE_USE_INPUT_82
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_82: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4681,7 +4681,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_83
+    #ifdef GPIOPE_USE_INPUT_83
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_83: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4693,7 +4693,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_84
+    #ifdef GPIOPE_USE_INPUT_84
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_84: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4705,7 +4705,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_85
+    #ifdef GPIOPE_USE_INPUT_85
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_85: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4717,7 +4717,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_86
+    #ifdef GPIOPE_USE_INPUT_86
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_86: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4729,7 +4729,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_87
+    #ifdef GPIOPE_USE_INPUT_87
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_87: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4741,7 +4741,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_88
+    #ifdef GPIOPE_USE_INPUT_88
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_88: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4753,7 +4753,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_89
+    #ifdef GPIOPE_USE_INPUT_89
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_89: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4765,7 +4765,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_90
+    #ifdef GPIOPE_USE_INPUT_90
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_90: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4777,7 +4777,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_91
+    #ifdef GPIOPE_USE_INPUT_91
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_91: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4789,7 +4789,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_92
+    #ifdef GPIOPE_USE_INPUT_92
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_92: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4801,7 +4801,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_93
+    #ifdef GPIOPE_USE_INPUT_93
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_93: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4813,7 +4813,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_94
+    #ifdef GPIOPE_USE_INPUT_94
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_94: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4825,7 +4825,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_95
+    #ifdef GPIOPE_USE_INPUT_95
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_95: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4837,7 +4837,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_96
+    #ifdef GPIOPE_USE_INPUT_96
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_96: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4849,7 +4849,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_97
+    #ifdef GPIOPE_USE_INPUT_97
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_97: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4861,7 +4861,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_98
+    #ifdef GPIOPE_USE_INPUT_98
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_98: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4873,7 +4873,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_99
+    #ifdef GPIOPE_USE_INPUT_99
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_99: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4885,7 +4885,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_100
+    #ifdef GPIOPE_USE_INPUT_100
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_100: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4897,7 +4897,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_101
+    #ifdef GPIOPE_USE_INPUT_101
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_101: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4909,7 +4909,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_102
+    #ifdef GPIOPE_USE_INPUT_102
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_102: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4921,7 +4921,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_103
+    #ifdef GPIOPE_USE_INPUT_103
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_103: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4933,7 +4933,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_104
+    #ifdef GPIOPE_USE_INPUT_104
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_104: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4945,7 +4945,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_105
+    #ifdef GPIOPE_USE_INPUT_105
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_105: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4957,7 +4957,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_106
+    #ifdef GPIOPE_USE_INPUT_106
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_106: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4969,7 +4969,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_107
+    #ifdef GPIOPE_USE_INPUT_107
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_107: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4981,7 +4981,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_108
+    #ifdef GPIOPE_USE_INPUT_108
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_108: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -4993,7 +4993,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_109
+    #ifdef GPIOPE_USE_INPUT_109
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_109: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5005,7 +5005,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_110
+    #ifdef GPIOPE_USE_INPUT_110
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_110: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5017,7 +5017,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_111
+    #ifdef GPIOPE_USE_INPUT_111
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_111: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5029,7 +5029,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_112
+    #ifdef GPIOPE_USE_INPUT_112
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_112: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5041,7 +5041,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_113
+    #ifdef GPIOPE_USE_INPUT_113
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_113: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5053,7 +5053,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_114
+    #ifdef GPIOPE_USE_INPUT_114
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_114: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5065,7 +5065,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_115
+    #ifdef GPIOPE_USE_INPUT_115
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_115: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5077,7 +5077,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_116
+    #ifdef GPIOPE_USE_INPUT_116
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_116: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5089,7 +5089,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_117
+    #ifdef GPIOPE_USE_INPUT_117
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_117: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5101,7 +5101,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_118
+    #ifdef GPIOPE_USE_INPUT_118
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_118: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5113,7 +5113,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_119
+    #ifdef GPIOPE_USE_INPUT_119
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_119: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5125,7 +5125,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_120
+    #ifdef GPIOPE_USE_INPUT_120
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_120: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5137,7 +5137,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_121
+    #ifdef GPIOPE_USE_INPUT_121
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_121: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5149,7 +5149,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_122
+    #ifdef GPIOPE_USE_INPUT_122
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_122: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5161,7 +5161,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_123
+    #ifdef GPIOPE_USE_INPUT_123
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_123: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5173,7 +5173,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_124
+    #ifdef GPIOPE_USE_INPUT_124
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_124: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5185,7 +5185,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_125
+    #ifdef GPIOPE_USE_INPUT_125
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_125: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5197,7 +5197,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_126
+    #ifdef GPIOPE_USE_INPUT_126
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_126: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
@@ -5209,7 +5209,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     }
     #endif
 
-    #ifdef SatIO_USE_GPIOPE_INPUT_127
+    #ifdef GPIOPE_USE_INPUT_127
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_127: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;

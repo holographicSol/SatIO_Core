@@ -191,7 +191,7 @@ static void notifyAllTasks(void) {
   if (TaskSwitches != nullptr) { xTaskNotifyGive(TaskSwitches); }
   #endif
 
-  #ifdef SatIO_USE_GPIOPE_INPUT
+  #ifdef GPIOPE_USE_INPUT
   if (TaskInputPortController != nullptr) { xTaskNotifyGive(TaskInputPortController); }
   #endif
 
@@ -353,12 +353,12 @@ static void intervalBreach1Second(void) {
   totalCounters(systemData.counters_mtx);
   #endif
 
-  #ifdef SatIO_USE_GPIOPE_INPUT
+  #ifdef GPIOPE_USE_INPUT
   totalCounters(systemData.counters_gpiope0);
   for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {totalCounters(systemData.counters_gpioe_chan[i_chan]);}
   #endif
 
-  #ifdef SatIO_USE_GPIOPE_OUTPUT
+  #ifdef GPIOPE_USE_OUTPUT
   totalCounters(systemData.counters_pco);
   #endif
 
@@ -422,12 +422,12 @@ static void intervalBreach1Second(void) {
   clearCounters(systemData.counters_mtx);
   #endif
 
-  #ifdef SatIO_USE_GPIOPE_INPUT
+  #ifdef GPIOPE_USE_INPUT
   clearCounters(systemData.counters_gpiope0);
   for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {clearCounters(systemData.counters_gpioe_chan[i_chan]);}
   #endif
 
-  #ifdef SatIO_USE_GPIOPE_OUTPUT
+  #ifdef GPIOPE_USE_OUTPUT
   clearCounters(systemData.counters_pco);
   #endif
 
@@ -547,7 +547,7 @@ bool taskFrequencyDisplay()     { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_
 
 bool taskFrequencySatIOSerialTx() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_SatIO_SERIAL_TX); return true; }
 
-#ifdef SatIO_USE_GPIOPE_INPUT
+#ifdef GPIOPE_USE_INPUT
 bool taskFrequencyInputPortController() { TASK_FREQ_WAIT(pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT); return true; }
 #endif
 
@@ -1076,12 +1076,12 @@ static void taskSwitches(void *pvParameters) {
       esp_task_wdt_reset();
       #endif
 
-      #ifdef SatIO_USE_GPIOPE_OUTPUT
+      #ifdef GPIOPE_USE_OUTPUT
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       int32_t count_write = 0;
 
       // test re-query (almost ready to utilize up to i2caddr max gpiope's if defined)
-      // queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+      // GPIOPE_QueryDevice(GPIOPE_OUTPUT_9, I2C_ADDR_9);
 
       // todo: write all defined gpiope's (replace address set with gpiope output device select)
 
@@ -1160,7 +1160,7 @@ void createTaskSwitches() {
 }
 #endif
 
-#ifdef SatIO_USE_GPIOPE_INPUT
+#ifdef GPIOPE_USE_INPUT
 /** ----------------------------------------------------------------------------
  * Input Controller Task. Intended to be used for 0-N input GPIO Port Expanders
  *
@@ -1185,11 +1185,11 @@ static void taskInputPortController(void *pvParameters) {
 
       // test re-query (almost ready to utilize up to i2c addr max gpiope's if defined)
       // option read if interrupted, all gpiope's should interrupt on the same pin
-      // queryGPIOPortExpanderInfo(GPIOPE_INPUT_11, I2C_ADDR_INPUT_GPIOE_11);
+      // GPIOPE_QueryDevice(GPIOPE_INPUT_11, I2C_ADDR_11);
 
       // todo: read all defined gpiope's
 
-      #ifdef SatIO_USE_GPIOPE_INPUT_11
+      #ifdef GPIOPE_USE_INPUT_11
       static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_SIZE] = {0};
       bool gpioe_chan_was_enabled[GPIOPE_MAX_SIZE] = {false};
       bool gpioe_chan_did_read[GPIOPE_MAX_SIZE] = {false};
@@ -1198,7 +1198,7 @@ static void taskInputPortController(void *pvParameters) {
         if (GPIOPE_INPUT_11.enabled[i_chan] == true) {
           gpioe_chan_was_enabled[i_chan] = true;
           if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPE_INPUT_11.chan_freq_uS[i_chan]) {
-            if (readGPIOPE_PIN(GPIOPE_INPUT_11, i_chan)) {
+            if (GPIOPE_Read_Pin(GPIOPE_INPUT_11, i_chan)) {
               gpioe_chan_last_read_uS[i_chan] = esp_timer_get_time();
               gpioe_chan_did_read[i_chan] = true;
             } else {
