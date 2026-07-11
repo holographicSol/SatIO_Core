@@ -640,7 +640,7 @@ static void snapshotSyncFields(SatIOTimeData &t) {
  * "now" and SatIOData.systemTime.sync_hour is "at the last sync".
  */
 void storeSyncTime(void) {
-  snapshotSyncFields(SatIOData.GPSTime);
+  // snapshotSyncFields(SatIOData.GPSTime);
   snapshotSyncFields(SatIOData.systemTime);
   snapshotSyncFields(SatIOData.localTime);
   snapshotSyncFields(SatIOData.localMeanSolarTime);
@@ -818,14 +818,16 @@ static void applyPendingDateTime(void) {
 }
 
 // Reset GPSTime.sync after 1 second
+int64_t prev_gps_sync_time;
 int64_t GPS_SYNC_TIMEOUT_uS = 1000000;
 
 void syncTimeGPS(void) {
 
   // Clear sync flag (used for gps sync indicators)
   if (SatIOData.GPSTime.sync == true) {
-    if ((SatIOData.systemTime.unixtime_uS >= SatIOData.GPSTime.sync_unixtime_uS + GPS_SYNC_TIMEOUT_uS) ||
-        (SatIOData.systemTime.unixtime_uS < SatIOData.GPSTime.sync_unixtime_uS)) {
+    int64_t tnow = esp_timer_get_time();
+    if ((tnow >= prev_gps_sync_time + GPS_SYNC_TIMEOUT_uS) ||
+        (tnow < prev_gps_sync_time - GPS_SYNC_TIMEOUT_uS)) {
       SatIOData.GPSTime.sync = false;
     }
   }
@@ -849,8 +851,8 @@ void syncTimeGPS(void) {
         if (SatIOData.tmp_millisecond_int==0) {
           applyPendingDateTime();
           SatIOData.systemTime.sync_immediately_flag=false;
+          prev_gps_sync_time = esp_timer_get_time();
           SatIOData.GPSTime.sync = true;
-          SatIOData.GPSTime.sync_unixtime_uS = SatIOData.systemTime.unixtime_uS;
           printf("syn: 0\n");
         }
       }
@@ -861,8 +863,8 @@ void syncTimeGPS(void) {
         if (SatIOData.tmp_second_int==0 && SatIOData.tmp_millisecond_int==0) {
           applyPendingDateTime();
           SatIOData.systemTime.sync_immediately_flag=false;
+          prev_gps_sync_time = esp_timer_get_time();
           SatIOData.GPSTime.sync = true;
-          SatIOData.GPSTime.sync_unixtime_uS = SatIOData.systemTime.unixtime_uS;
           printf("syn: 1\n");
         }
       }
