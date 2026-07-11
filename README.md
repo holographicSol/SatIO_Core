@@ -306,7 +306,7 @@ matrix --startup-enable
 matrix --startup-disable
 matrix -s n                 Specify switch index n.
 matrix -f n                 Specify function index n.
-matrix -p n                 Set port for switch -s.
+matrix -p n                 Set GPIOPE port slot for switch -s.
 matrix --gpiope n           Set GPIOPE I2C address for switch -s.
 matrix -fn n                Set function -f for switch -s. See available matrix functions.
 matrix -fx n                Set function -f value x for switch -s.
