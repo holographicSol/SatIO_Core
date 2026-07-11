@@ -228,29 +228,67 @@ system -log                 Automatically log data to disk (See performance for 
 Many values can be mapped and then used in the matrix and or sent directly to the port controller.
 
 ```
-mapping --save
-mapping --load
-mapping --delete
-mapping -s n       Specify map slot n.
-mapping -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
-mapping -c0 n      Configuration map slot -s  value to map. See available map values.
-mapping -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
-mapping -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
-mapping -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
-mapping -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
-mapping -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected fluctuation at center)
+map --new      Clears all mapping in memory.
+map --save
+map --load
+map --delete
+map -s n       Specify map slot n.
+map -m n       Specify slot -s mode. (0 : map min to max) (1 : center map x0) (2 : center map x1)
+map -c0 n      Configuration map slot -s value to map. See available map values.
+map -c1 n      Configuration map slot -s. (mode 0 : in_min)  (mode 1 : approximate center value)
+map -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range : 0 to approximate center value)
+map -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
+map -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
+map -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected fluctuation at center)
+```
+
+### Available Map Values
+
+```
+[0]  Digital
+[1]  YawGPATT
+[2]  RollGPATT
+[3]  PitchGPATT
+[4]  Gyro0AccX
+[5]  Gyro0AccY
+[6]  Gyro0AccZ
+[7]  Gyro0AngX
+[8]  Gyro0AngY
+[9]  Gyro0AngZ
+[10] Gyro0MagX
+[11] Gyro0MagY
+[12] Gyro0MagZ
+[13] Gyro0GyroX
+[14] Gyro0GyroY
+[15] Gyro0GyroZ
+[16] ADMPlex0_0
+[17] ADMPlex0_1
+[18] ADMPlex0_2
+[19] ADMPlex0_3
+[20] ADMPlex0_4
+[21] ADMPlex0_5
+[22] ADMPlex0_6
+[23] ADMPlex0_7
+[24] ADMPlex0_8
+[25] ADMPlex0_9
+[26] ADMPlex0_10
+[27] ADMPlex0_11
+[28] ADMPlex0_12
+[29] ADMPlex0_13
+[30] ADMPlex0_14
+[31] ADMPlex0_15
 ```
 
 **Example** — map analog stick axis x0 on admplex0 channel 0 into map slot 0:
 
 ```
-mapping -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+map -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 ```
 
 **Example** — map analog stick axis x1 on admplex0 channel 1 into map slot 1:
 
 ```
-mapping -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
+map -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
 ```
 
 ---
@@ -269,12 +307,16 @@ matrix --startup-disable
 matrix -s n                 Specify switch index n.
 matrix -f n                 Specify function index n.
 matrix -p n                 Set port for switch -s.
+matrix --opca n             Set output port controller I2C address for switch -s.
 matrix -fn n                Set function -f for switch -s. See available matrix functions.
 matrix -fx n                Set function -f value x for switch -s.
 matrix -fy n                Set function -f value y for switch -s.
 matrix -fz n                Set function -f value z for switch -s.
 matrix -fi n                Set function -f logic inverted for switch -s.
-matrix -fo n                Set function -f operator for switch -s.
+matrix -fo n                Set function -f operator for switch -s. See available switch function operators.
+matrix --xyz-mode-x n       Specify function comparitor mode for X. See function XYZ modes.
+matrix --xyz-mode-y n       Specify function comparitor mode for Y. See function XYZ modes.
+matrix --xyz-mode-z n       Specify function comparitor mode for Z. See function XYZ modes.
 matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
 matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
 matrix --flux n             Set switch -s output fluctuation threshold.
@@ -284,34 +326,59 @@ matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : m
 matrix --map-slot n         Set switch -s output as map slot n value.
 ```
 
-**Example** — default all switch configurations:
+---
+
+## Multiplexer
 
 ```
-matrix --new
+admplex0 -c n --enable    Enable channel n on ADMPlex0 (read every task cycle, subject to --freq).
+admplex0 -c n --disable   Disable channel n on ADMPlex0 (data reports NAN while disabled).
+admplex0 -c n --freq uS   Minimum microseconds between reads of channel n (0 = read every task cycle).
+admplex0 --all --freq uS  Set every channel's freq in one call.
+admplex1 -c n --enable    Enable channel n on ADMPlex1.
+admplex1 -c n --disable   Disable channel n on ADMPlex1.
+admplex1 -c n --freq uS   Minimum microseconds between reads of channel n on ADMPlex1.
+admplex1 --all --freq uS  Set every channel's freq in one call.
 ```
 
-**Example** — stat switch zero:
+**Example** — run admplex0 channel 3 at ~1Hz alongside the rest of the enabled channels:
 
 ```
-stat --matrix 0
+admplex0 -c 3 --enable --freq 1000000
 ```
 
-**Example** — set switch zero:
+---
+
+## GPIO Port Expander: Input
 
 ```
-matrix -s 0 -f 0 -p 33 -fn 85 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
+gpiope -c n --enable       Enable pin n on the input port controller (read every task cycle, subject to --freq).
+gpiope -c n --disable      Disable pin n on the input port controller (data reports 0 while disabled).
+gpiope -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
+gpiope --all --enable      Enable every pin in one call.
+gpiope --all --disable     Disable every pin in one call.
+gpiope --all --freq uS     Set every pin's freq in one call.
 ```
 
-**Example** — set mapped output mode:
+**Example** — run gpiope pin 5 at ~1Hz alongside the rest of the enabled pins:
 
 ```
-matrix -s 0 --omode 1
+gpiope -c 5 --enable --freq 1000000
 ```
 
-**Example** — set matrix logic output mode:
+---
+
+## GPIO Port Expander: Output
 
 ```
-matrix -s 0 --omode 0
+gpiope -d n -i n -p n               Set the port controller output for gpiope device n, pin index n, to port n.
+gpiope -d n -i n --pwm0 n --pwm1 n  Set pin index n uS time off period (pwm0) and time on period (pwm1).
+```
+
+**Example:**
+
+```
+gpiope -d 9 -i 0 -p 33
 ```
 
 ---
@@ -326,40 +393,58 @@ ins -gyro n           INS uses gyro for attitude. (0 : gyro heading) (1 : gps he
 ins -p n              Set INS minimum required gps precision factor to initialize.
 ins -s n              Set INS minimum required speed to initialize.
 ins -r n              Set INS maximum required heading range difference to initialize (difference between gps heading and gyro heading).
-ins --reset-forced n  Reset INS remains on after conditions met.
+ins --reset-forced    Reset INS remains on after conditions met.
 ```
 
 ---
 
-## SatIO
+### Time
 
 ```
-SatIO --coord-update-mode-gps     Use GPS latitude, longitude values.
-SatIO --coord-update-mode-static  Do not update latitude, longitude unless --set-coord or otherwise.
-SatIO --set-coord -lat n -lon n   Set degrees latitude and longitude (ensure --coord-update-mode-static before --set-coord).
-SatIO --utc-offset n              Set +-seconds offset time.
-SatIO --auto-datetime-on          Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
-SatIO --auto-datetime-off         Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
-SatIO --set-datetime --year n --month n --mday n --hour n --minute n --second n  (must be UTC except if utc offset 0).
+SatIO --utc-offset n             Set +-seconds offset time.
+SatIO --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+SatIO --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+SatIO --set-datetime --year n --month n --mday n --hour n --minute n --second n  (expects UTC +- 0).
+```
 
-SatIO --speed-mode-gps     Use GPS speed values.
-SatIO --speed-mode-static  Do not update speed unless --set-speed or otherwise.
-SatIO --set-speed n        Set speed in meters per second (ensure --speed-mode-static before --set-speed).
-SatIO --speed-unit-KTS     Use default knots.
-SatIO --speed-unit-KPH     Convert knots per second to K/PH.
-SatIO --speed-unit-MPH     Convert knots per second to M/PH.
-SatIO --speed-unit-mPS     Convert knots per second to meters per second.
+### Location
 
-SatIO --altitude-mode-gps         Use GPS altitude values.
-SatIO --altitude-mode-static      Do not update speed unless --set-altitude or otherwise.
-SatIO --set-altitude n            Set altitude in meters (ensure --altitude-mode-static before --set-altitude).
-SatIO --altitude-unit-meters      Use default meters altitude.
-SatIO --altitude-unit-kilometers  Convert meters to kilometers.
-SatIO --altitude-unit-miles       Convert meters to miles.
+```
+SatIO --coord-value-mode-gps      Use GPS coordinates.
+SatIO --coord-value-mode-user     Use user defined coordinates.
+SatIO --set-coord -lat n -lon n   Set degrees latitude and longitude.
+```
 
-SatIO --ground-heading-update-mode-gps     Use GPS ground heading values.
-SatIO --ground-heading-update-mode-static  Do not update heading unless --set-ground-heading or otherwise.
-SatIO --set-ground-heading                 Set ground heading in degrees (0-360. Ensure --ground-heading-update-mode-static before --ground-heading).
+### Speed
+
+```
+SatIO --speed-value-mode-gps   Use GPS speed.
+SatIO --speed-value-mode-user  Use user defined speed.
+SatIO --set-speed n            Set speed in meters per second.
+```
+
+### Altitude
+
+```
+SatIO --altitude-value-mode-gps   Use GPS altitude values.
+SatIO --altitude-value-mode-user  Use user defined altitude.
+SatIO --set-altitude n            Set altitude in meters.
+```
+
+### Ground Heading
+
+```
+SatIO --ground-heading-value-mode-gps   Use GPS ground heading values.
+SatIO --ground-heading-value-mode-user  Use user defined ground heading.
+SatIO --set-ground-heading n            Set ground heading in degrees.
+```
+
+### RA/Dec
+
+```
+SatIO --ra-dec-value-mode-gyro  Use gyro-derived RA/Dec.
+SatIO --ra-dec-value-mode-user  Use user defined RA/Dec target.
+SatIO --set-ra-dec --ra-h n --ra-m n --ra-s n --dec-d n --dec-m n --dec-s n  Set user RA/Dec target (ra-h 0-23, dec-d -90 to 90).
 ```
 
 ---
@@ -376,6 +461,8 @@ gyro --calmag-end    End calibrating the magnetometer.
 
 ## SDCard
 
+*(currently disabled)*
+
 ```
 sdcard --mount
 sdcard --unmount
@@ -390,18 +477,36 @@ powercfg --power-saving          Sets power configuration to low power consumpti
 powercfg --power-balanced        Sets power configuration to balanced.
 powercfg --ultimate-performance  Sets power configuration to ultimate performance mode.
 
-setdelay --admplex0               Specify max task frequency in uS.
-setdelay --gyro0                  Specify max task frequency in uS.
-setdelay --universe               Specify max task frequency in uS.
-setdelay --gps                    Specify max task frequency in uS.
-setdelay --switch                 Specify max task frequency in uS.
-setdelay --storage                Specify max task frequency in uS.
+powercfg --setdelay --admplex0   Specify max task frequency in uS.
+powercfg --setdelay --admplex1   Specify max task frequency in uS.
+powercfg --setdelay --gyro0      Specify max task frequency in uS.
+powercfg --setdelay --universe   Specify max task frequency in uS.
+powercfg --setdelay --gps        Specify max task frequency in uS.
+powercfg --setdelay --switch     Specify max task frequency in uS.
+powercfg --setdelay --storage    Specify max task frequency in uS.
+powercfg --setdelay --gpiope0    Specify max task frequency in uS.
 ```
 
 **Example:**
 
 ```
-setdelay --admplex0 20 --gyro0 200 --gps 10
+powercfg --setdelay --admplex0 1000 --gyro0 200 --gps 10
+```
+
+---
+
+## StarNav
+
+*(currently disabled)*
+
+```
+starnav RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
+```
+
+**Example:**
+
+```
+starnav 6 45 8.9 -16 42 58.0
 ```
 
 ---
@@ -411,36 +516,35 @@ setdelay --admplex0 20 --gyro0 200 --gps 10
 ```
 stat -e     Enable print.
 stat -d     Disable print.
-stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
-stat --partition-table      Print partition table.
-stat --memory-ram           Print ram information.
-stat --sdcard               Print matrix information.
+stat -t     Enables/disables serial print stats and counters (includes partition table, RAM, and SD card info). Takes arguments -e, -d.
 stat --system               Print system configuration.
-stat --matrix               Print matrix configuration.
 stat --matrix n             Print matrix switch n configuration.
 stat --matrix -A            Print configuration of all matrix switches.
-stat --mapping              Print configuration of all mapping slots.
+stat -map n                 Print map slot n data.
+stat -map -A                Print all map slot data.
 stat --sentence -A          Print all sentences. Takes arguments -e, -d.
 stat --sentence --SatIO     Takes arguments -e, -d.
-stat --sentence --ins       Takes arguments -e, -d.
 stat --sentence --gngga     Takes arguments -e, -d.
 stat --sentence --gnrmc     Takes arguments -e, -d.
 stat --sentence --gpatt     Takes arguments -e, -d.
 stat --sentence --matrix    Takes arguments -e, -d.
 stat --sentence --gpiope0nput   Takes arguments -e, -d.
 stat --sentence --admplex0  Takes arguments -e, -d.
+stat --sentence --admplex1  Takes arguments -e, -d.
 stat --sentence --gyro0     Takes arguments -e, -d.
 stat --sentence --sun       Takes arguments -e, -d.
-stat --sentence --mercury   Takes arguments -e, -d.
-stat --sentence --venus     Takes arguments -e, -d.
 stat --sentence --earth     Takes arguments -e, -d.
 stat --sentence --luna      Takes arguments -e, -d.
+stat --sentence --mercury   Takes arguments -e, -d.
+stat --sentence --venus     Takes arguments -e, -d.
 stat --sentence --mars      Takes arguments -e, -d.
 stat --sentence --jupiter   Takes arguments -e, -d.
 stat --sentence --saturn    Takes arguments -e, -d.
 stat --sentence --uranus    Takes arguments -e, -d.
 stat --sentence --neptune   Takes arguments -e, -d.
 stat --sentence --meteors   Takes arguments -e, -d.
+stat --sentence --xmatrix   Print/toggle matrix-config sentence output. Takes arguments -e, -d.
+stat --sentence --xmap      Print/toggle mapping-config sentence output. Takes arguments -e, -d.
 ```
 
 ---
@@ -466,5 +570,4 @@ help
 ---
 
 **Zip:** [drive.google.com/.../SatIO](https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=drive_link)
-
 

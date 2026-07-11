@@ -461,15 +461,22 @@ static void PrintHelp(void) {
 
   [ Port Controller Input ]
 
-      gpiope0 -c n --enable       Enable pin n on the input port controller (read every task cycle, subject to --freq).
-      gpiope0 -c n --disable      Disable pin n on the input port controller (data reports 0 while disabled).
-      gpiope0 -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
-      gpiope0 --all --enable      Enable every pin in one call.
-      gpiope0 --all --disable     Disable every pin in one call.
-      gpiope0 --all --freq uS     Set every pin's freq in one call.
+      gpiope -c n --enable       Enable pin n on the input port controller (read every task cycle, subject to --freq).
+      gpiope -c n --disable      Disable pin n on the input port controller (data reports 0 while disabled).
+      gpiope -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
+      gpiope --all --enable      Enable every pin in one call.
+      gpiope --all --disable     Disable every pin in one call.
+      gpiope --all --freq uS     Set every pin's freq in one call.
 
-      example: run gpiope0 pin 5 at ~1Hz alongside the rest of the enabled pins:
-      gpiope0 -c 5 --enable --freq 1000000
+      example: run gpiope pin 5 at ~1Hz alongside the rest of the enabled pins:
+      gpiope -c 5 --enable --freq 1000000
+
+  [ Output Port Expander ]
+
+      gpiope -d n -i n -p n               Set the port controller output for gpiope device n, pin index n, to port n.
+      gpiope -d n -i n --pwm0 n --pwm1 n  Set pin index n uS time off period (pwm0) and time on period (pwm1).
+
+      example: gpiope -d 9 -i 0 -p 33
 
   [ INS ]
 
@@ -519,7 +526,7 @@ static void PrintHelp(void) {
       gyro --calmag-start  Begin calibrating the magnetometer.
       gyro --calmag-end    End calibrating the magnetometer.
 
-  [ SDCard ]
+  [ SDCard ] (currently disabled)
 
       sdcard --mount
       sdcard --unmount
@@ -530,48 +537,45 @@ static void PrintHelp(void) {
       powercfg --power-balanced        Sets power configuration to balanced.
       powercfg --ultimate-performance  Sets power configuration to ultimate performance mode.
 
-      setdelay --admplex0               Specify max task frequency in uS.
-      setdelay --admplex1               Specify max task frequency in uS.
-      setdelay --gyro0                  Specify max task frequency in uS.
-      setdelay --universe               Specify max task frequency in uS.
-      setdelay --gps                    Specify max task frequency in uS.
-      setdelay --switch                 Specify max task frequency in uS.
-      setdelay --storage                Specify max task frequency in uS.
-      setdelay --gpiope0                    Specify max task frequency in uS.
+      powercfg --setdelay --admplex0   Specify max task frequency in uS.
+      powercfg --setdelay --admplex1   Specify max task frequency in uS.
+      powercfg --setdelay --gyro0      Specify max task frequency in uS.
+      powercfg --setdelay --universe   Specify max task frequency in uS.
+      powercfg --setdelay --gps        Specify max task frequency in uS.
+      powercfg --setdelay --switch     Specify max task frequency in uS.
+      powercfg --setdelay --storage    Specify max task frequency in uS.
+      powercfg --setdelay --gpiope    Specify max task frequency in uS.
 
-      example: setdelay --admplex0 20 --gyro0 200 --gps 10
+      example: powercfg --setdelay --admplex0 20 --gyro0 200 --gps 10
 
-  [ StarNav ]
+  [ StarNav ] (currently disabled)
 
       starnav RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
-    
+
       example: starnav 6 45 8.9 -16 42 58.0
 
   [ Stat ]
 
       stat -e     Enable print.
       stat -d     Disable print.
-      stat -t     Enables/disables serial print stats and counters. Takes arguments -e, -d.
-      stat --partition-table      Print partition table.
-      stat --memory-ram           Print ram information.
-      stat --sdcard               Print SDCard information.
+      stat -t     Enables/disables serial print stats and counters (includes partition table, RAM, and SD card info). Takes arguments -e, -d.
       stat --system               Print system configuration.
       stat --matrix n             Print matrix switch n configuration.
       stat --matrix -A            Print configuration of all matrix switches.
-      stat --map n                Print map slot n data.
-      stat --map -A               Print all map slot data.
+      stat -map n                 Print map slot n data.
+      stat -map -A                Print all map slot data.
       stat --sentence -A          Print all sentences. Takes arguments -e, -d.
       stat --sentence --SatIO     Takes arguments -e, -d.
-      stat --sentence --ins       Takes arguments -e, -d.
       stat --sentence --gngga     Takes arguments -e, -d.
       stat --sentence --gnrmc     Takes arguments -e, -d.
       stat --sentence --gpatt     Takes arguments -e, -d.
       stat --sentence --matrix    Takes arguments -e, -d.
-      stat --sentence --gpiope0nput   Takes arguments -e, -d.
+      stat --sentence --gpiope    Takes arguments -e, -d.
       stat --sentence --admplex0  Takes arguments -e, -d.
       stat --sentence --admplex1  Takes arguments -e, -d.
       stat --sentence --gyro0     Takes arguments -e, -d.
       stat --sentence --sun       Takes arguments -e, -d.
+      stat --sentence --earth     Takes arguments -e, -d.
       stat --sentence --luna      Takes arguments -e, -d.
       stat --sentence --mercury   Takes arguments -e, -d.
       stat --sentence --venus     Takes arguments -e, -d.
@@ -581,6 +585,8 @@ static void PrintHelp(void) {
       stat --sentence --uranus    Takes arguments -e, -d.
       stat --sentence --neptune   Takes arguments -e, -d.
       stat --sentence --meteors   Takes arguments -e, -d.
+      stat --sentence --xmatrix   Print/toggle matrix-config sentence output. Takes arguments -e, -d.
+      stat --sentence --xmap      Print/toggle mapping-config sentence output. Takes arguments -e, -d.
 
   [ Other ]
 
@@ -1176,12 +1182,12 @@ void CmdProcess(void) {
               systemData.output_matrix_enabled=enable;
               printf("setting matrix output enabled: %d\n", systemData.output_matrix_enabled);
             }
-          if (argparser_has_flag(&parser, "gpiope0nput") == true) {systemData.output_input_portcontroller=enable; printf("setting input_portcontroller_0 output enabled: %d\n", systemData.output_input_portcontroller);}
+          if (argparser_has_flag(&parser, "gpiope") == true) {systemData.output_input_portcontroller=enable; printf("setting input_portcontroller_0 output enabled: %d\n", systemData.output_input_portcontroller);}
           if (argparser_has_flag(&parser, "admplex0") == true) {systemData.output_admplex0_enabled=enable; printf("setting admplex0 output enabled: %d\n", systemData.output_admplex0_enabled);}
           if (argparser_has_flag(&parser, "admplex1") == true) {systemData.output_admplex1_enabled=enable; printf("setting admplex1 output enabled: %d\n", systemData.output_admplex1_enabled);}
           if (argparser_has_flag(&parser, "gyro0") == true) {systemData.output_gyro_0_enabled=enable; printf("setting gyro_0 output enabled: %d\n", systemData.output_gyro_0_enabled);}
           if (argparser_has_flag(&parser, "sun") == true) {systemData.output_sun_enabled=enable; printf("setting sun output enabled: %d\n", systemData.output_sun_enabled);}
-          if (argparser_has_flag(&parser, "earth") == true) {systemData.output_sun_enabled=enable; printf("setting earth output enabled: %d\n", systemData.output_earth_enabled);}
+          if (argparser_has_flag(&parser, "earth") == true) {systemData.output_earth_enabled=enable; printf("setting earth output enabled: %d\n", systemData.output_earth_enabled);}
           if (argparser_has_flag(&parser, "luna") == true) {systemData.output_luna_enabled=enable; printf("setting luna output enabled: %d\n", systemData.output_luna_enabled);}
           if (argparser_has_flag(&parser, "mercury") == true) {systemData.output_mercury_enabled=enable; printf("setting mercury output enabled: %d\n", systemData.output_mercury_enabled);}
           if (argparser_has_flag(&parser, "venus") == true) {systemData.output_venus_enabled=enable; printf("setting venus output enabled: %d\n", systemData.output_venus_enabled);}
@@ -1427,11 +1433,11 @@ void CmdProcess(void) {
             if (argparser_has_flag(&parser, "freq") == true) {setADMultiplexerChannelFreq(ad_mux_1, admplex1_c, argparser_get_uint64(&parser, "freq", 0));}
           }
         }
-        // gpiope0 (input port controller)
+        // gpiope (input port controller)
         #ifdef SatIO_USE_GPIOPE_INPUT_0
-        else if (strcmp(pos[0], "gpiope0")==0) {
-          // gpiope0 --all --freq X : set every pin's freq in one call
-          // gpiope0 --all --enable/--disable : set every pin's enabled state in one call
+        else if (strcmp(pos[0], "gpiope")==0) {
+          // gpiope --all --freq X : set every pin's freq in one call
+          // gpiope --all --enable/--disable : set every pin's enabled state in one call
           if (argparser_has_flag(&parser, "all") == true) {
             if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
                 argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
@@ -1503,8 +1509,8 @@ void CmdProcess(void) {
                 {setDelay(TaskStorage, argparser_get_uint32(&parser, "storage", pwrConfigCurrent.TASK_MAX_FREQ_STORAGE), &pwrConfigCurrent.TASK_MAX_FREQ_STORAGE);}
               #endif
 
-              if (argparser_has_flag(&parser, "gpiope0"))
-                {setDelay(TaskInputPortController, argparser_get_uint32(&parser, "gpiope0", pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT), &pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT);}
+              if (argparser_has_flag(&parser, "gpiope"))
+                {setDelay(TaskInputPortController, argparser_get_uint32(&parser, "gpiope", pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT), &pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT);}
             }
           }
         }
