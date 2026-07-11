@@ -796,7 +796,12 @@ struct MatrixStruct {
    *  Each switch has it's own output port controller address.
    *  Initiated with a default address.
    */
-  uint8_t output_portcontroller_address[1][MAX_MATRIX_SWITCHES];
+
+   // Per switch addresses of GPIOPE devices
+  uint8_t gpiope_address[1][MAX_MATRIX_SWITCHES];
+
+  // Index number to access a GPIOPe device portmap (GPIOPE portmap is configured woth GPIOPE)
+  uint8_t matrix_port_map[1][MAX_MATRIX_SWITCHES];
 
   // Enable/disable computer assist per switch. See struct-level note on the
   // leading dimension.
@@ -812,10 +817,6 @@ struct MatrixStruct {
   // the ability here to observe computer intention, with and without computer actually
   // switching.
   bool computer_intention[1][MAX_MATRIX_SWITCHES];
-
-  // Matrix switch port per switch. Values correspond to pins on the port
-  // controller; -1 marks a switch as unmapped.
-  int8_t matrix_port_map[1][MAX_MATRIX_SWITCHES];
 
   // Output value per switch: the value sent to the port controller
   // (digital/mapped).

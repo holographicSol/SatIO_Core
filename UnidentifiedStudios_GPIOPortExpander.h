@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "UnidentifiedStudios_Config.h" // remove dependency
 #include "UnidentifiedStudios_I2C.h"
 
 #define GPIOPE_MAX_SLAVE_PINS  70
@@ -59,7 +58,7 @@ typedef struct GPIOPortExpander {
                             // pin-value-read protocol (CMD_RESET_CURRENT_PIN)
     int8_t analog_pins[GPIOPE_MAX_SIZE];
     int8_t digital_pins[GPIOPE_MAX_SIZE];
-    unsigned long modulation_time[GPIOPE_MAX_SIZE][3];
+    uint32_t modulation_time[GPIOPE_MAX_SIZE][3];
     int32_t input_value[GPIOPE_MAX_SIZE];  // does not have to equal max pins
     int32_t output_value[GPIOPE_MAX_SIZE]; // does not have to equal max pins
     int8_t port_map[GPIOPE_MAX_SIZE];      // logical index -> physical pin, -1 = unmapped
@@ -73,18 +72,17 @@ typedef struct GPIOPortExpander {
 // ------------------------------------------------------------
 // COMMAND
 // ------------------------------------------------------------
-#define GPIOPE_CMD_GET_INFO     130 // 0x82 - Get Slave device info 
-#define GPIOPE_CMD_GET_PINS     140 // 0x8C - Get Slave Pin List
+#define GPIOPE_CMD_GET_INFO     101 // get slave info 
+#define GPIOPE_CMD_GET_PINS     102 // get slave pin list
+#define GPIOPE_CMD_GET_PWM      103 // get slave pwm list
 
-#define GPIOPE_CMD_SET_DEFAULT  100 // 0x64 - Default the Slave
+#define GPIOPE_CMD_SET_DEFAULT       109 // default the slave
 
-#define GPIOPE_CMD_SET_PIN_PWM  110 // 0x6E - Write to Slave Pin
+#define GPIOPE_CMD_SET_PORTMAP_PIN   110 // set portmap index x as pin y 
 
-#define GPIOPE_CMD_GET_VALUE    135 //      - Read from Slave Pin
-
-#define GPIOPE_CMD_SET_PIN      136
-
-#define GPIOPE_CMD_SET_PWM      137
+#define GPIOPE_CMD_SET_PORTMAP_PWM   111 // set portmap index x pwm as yz
+ 
+#define GPIOPE_CMD_SET_PORTMAP_VALUE 112 // set portmapped output value as n
 
 
 // ------------------------------------------------------------
@@ -111,8 +109,8 @@ void setGPIOPortExpanderChannelEnabled(GPIOPortExpander &gpio_expander, uint8_t 
 void setGPIOPortExpanderChannelFreq(GPIOPortExpander &gpio_expander, uint8_t pin, uint64_t freq_uS);
 bool GPIOPESetPWMByIndex(GPIOPortExpander &gpio_expander, uint8_t index, uint32_t off_time, uint32_t on_time);
 bool GPIOPESetPinByIndex(GPIOPortExpander &gpio_expander, uint8_t index, int8_t pin);
-bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander, int8_t *pins);
-bool GPIOPESetAllPWM(GPIOPortExpander &gpio_expander, uint32_t (*pwm)[2]);
+bool GPIOPESetAllPins(GPIOPortExpander &gpio_expander);
+bool GPIOPESetAllPWM(GPIOPortExpander &gpio_expander);
 
 // ------------------------------------------------------------
 // Externs

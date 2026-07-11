@@ -364,7 +364,7 @@ static kb_ctx_t matrix_value_y_ctx = { .target = KB_MATRIX_VALUE_Y, .strval_type
 static kb_ctx_t matrix_value_z_ctx = { .target = KB_MATRIX_VALUE_Z, .strval_type = STRVAL_DOUBLE };
 static kb_ctx_t matrix_output_pwm_0_ctx = { .target = KB_MATRIX_OUTPUT_PWM_0, .strval_type = STRVAL_UINT32 };
 static kb_ctx_t matrix_output_pwm_1_ctx = { .target = KB_MATRIX_OUTPUT_PWM_1, .strval_type = STRVAL_UINT32 };
-static kb_ctx_t matrix_port_map_ctx = { .target = KB_MATRIX_PORT_MAP, .strval_type = STRVAL_INT16 };
+static kb_ctx_t matrix_port_map_ctx = { .target = KB_MATRIX_PORT_MAP, .strval_type = STRVAL_UINT8 };
 
 static kb_ctx_t mapping_c1_ctx = { .target = KB_MAPPING_C1, .strval_type = STRVAL_INT32 };
 static kb_ctx_t mapping_c2_ctx = { .target = KB_MAPPING_C2, .strval_type = STRVAL_INT32 };
@@ -546,7 +546,7 @@ void keyboard_event_cb(lv_event_t * e)
         
         case KB_MATRIX_PORT_MAP:
             if (strval_validate(ctx->strval_type, input)) {
-                int16_t val = atoi(input);
+                uint8_t val = atoi(input);
                 matrixData.matrix_port_map[0][current_matrix_i] = val;
                 matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
             }
@@ -17030,7 +17030,7 @@ void update_display_lvgl()
                 // Output Mode
                 dd_select(mfc.dd_output_mode, matrixData.output_mode[0][current_matrix_i]);
 
-                // Output Port
+                // Output Port Slot
                 { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.matrix_port_map[0][current_matrix_i]); lv_label_set_text(mfc.val_port_map, buf); }
 
                 // ----------------------------------------------------------------------------------------------------------------------------

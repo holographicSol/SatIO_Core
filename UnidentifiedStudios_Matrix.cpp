@@ -60,13 +60,14 @@ struct MatrixStruct matrixData = {
 
   .matrix_sentence={0},
 
-  .output_portcontroller_address = { {I2C_ADDR_OUTPUT_GPIOE_9} },
+  // will be access num for gpiope device
+  .gpiope_address = { {I2C_ADDR_OUTPUT_GPIOE_9} },
+  .matrix_port_map  { {0} },
 
   .computer_assist={ {false} },
   .switch_intention={ {false} },
   .prev_switch_intention={{ false} },
   .computer_intention={ {false} },
-  .matrix_port_map={ {-1} },
   .output_value={ {0} },
   .prev_output_value={ {0} },
   .flux_value={ {0} },
@@ -5327,7 +5328,7 @@ void override_all_computer_assists(void) {
  * @param matrix_switch Switch index to reset.
  */
 static void set_matrix_default(int32_t matrix_switch) {
-  matrixData.matrix_port_map[0][matrix_switch] = -1;
+  matrixData.matrix_port_map[0][matrix_switch] = 0;
   matrixData.output_mode[0][matrix_switch] = 0;
   matrixData.output_pwm[0][matrix_switch][INDEX_MATRIX_SWITCH_PWM_OFF] = 0;
   matrixData.output_pwm[0][matrix_switch][INDEX_MATRIX_SWITCH_PWM_ON] = 0;

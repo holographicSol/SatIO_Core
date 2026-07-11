@@ -658,7 +658,7 @@ static void PrintMatrixNData(int matrix_index) {
     printf("[pwm] 0: %lu 1: %lu\n",
       matrixData.output_pwm[0][matrix_index][0],
       matrixData.output_pwm[0][matrix_index][1]);
-    printf("[port] %d\n", matrixData.matrix_port_map[0][matrix_index]);
+    printf("[gpiope port slot] %d\n", matrixData.matrix_port_map[0][matrix_index]);
     printf("[active] %d\n", matrixData.switch_intention[0][matrix_index]);
     printf("-----------------------------------------------------\n");
     for (int Fi=0; Fi<MAX_MATRIX_SWITCH_FUNCTIONS; Fi++) {
@@ -708,16 +708,9 @@ void setAllSentenceOutput(bool enable) {
   systemData.output_meteors_enabled=enable;
 }
 
-void setMatrixPort(int switch_idx, signed int port_n) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && port_n>=-1 && port_n<MAX_MATRIX_SWITCHES) {
-    matrixData.matrix_port_map[0][switch_idx]=port_n;
-    matrixData.matrix_switch_write_required[0][switch_idx]=true;
-  }
-}
-
-void setOutputPortControllerAddress(int switch_idx, uint8_t address) {
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES) {
-    matrixData.output_portcontroller_address[0][switch_idx]=address;
+void setMatrixGPIOPEPortSlot(int switch_idx, int slot_n) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && slot_n>=-1 && slot_n<MAX_MATRIX_SWITCHES) {
+    matrixData.matrix_port_map[0][switch_idx]=slot_n;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
@@ -763,18 +756,6 @@ void setMatrixOperator(int switch_idx, int func_idx, int func_o) {
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_o>=0 && func_o<MAX_MATRIX_OPERATORS) {
     matrixData.matrix_switch_operator_index[0][switch_idx][func_idx]=func_o;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
-  }
-}
-
-void setMatrixModulation(int switch_idx, uint32_t pwm0, uint32_t pwm1) {
-  /* pwm0/pwm1 are unsigned: only the upper bound is a real check (Rule 14.3,
-     an unsigned value is never < 0). */
-  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && pwm0<UINT32_MAX && pwm1<UINT32_MAX) {
-    matrixData.output_pwm[0][switch_idx][0]=pwm0;
-    matrixData.output_pwm[0][switch_idx][1]=pwm1;
-    matrixData.matrix_switch_write_required[0][switch_idx]=true;
-    // build in GPIOPE slave specific channel modulation (currently setup for a single GPIOPE device):
-    // GPIOPESetPWMByIndex(gpio_expander, i, pwm[i][0], pwm[i][1]);
   }
 }
 
@@ -1253,6 +1234,52 @@ void CmdProcess(void) {
             }
           }
         }
+        // gpiope
+        else if (strcmp(pos[0], "gpiope")==0) {
+          bool has_d = argparser_has_flag(&parser, "d") == true;
+          bool has_i = argparser_has_flag(&parser, "i") == true;
+          int8_t d = argparser_get_int8(&parser, "d", -1); // device
+          int8_t i = argparser_get_int8(&parser, "i", -1); // index
+          // set port by index
+          if (has_d && has_i && argparser_has_flag(&parser, "p") == true) {
+            int8_t p = argparser_get_int8(&parser, "p", -1); // new port
+            switch (d) {
+              
+              #ifdef SatIO_USE_GPIOPE_OUTPUT_9
+              case I2C_ADDR_INPUT_GPIOE_9: {
+                GPIOPESetPinByIndex(GPIOPE_OUTPUT_9, i, p);
+                queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+                break;
+              }
+              #endif
+
+              default: {
+                printf("gpiope unchanged. specified unknown gpiope device!");
+                break;
+              }
+            }
+          }
+          // set pwm by index
+          if (has_d && has_i && argparser_has_flag(&parser, "pwm0") && argparser_has_flag(&parser, "pwm1") == true) {
+            uint32_t pwm0 = argparser_get_uint32(&parser, "pwm0", 0);
+            uint32_t pwm1 = argparser_get_uint32(&parser, "pwm1", 0);
+            switch (d) {
+
+              #ifdef SatIO_USE_GPIOPE_OUTPUT_9
+              case I2C_ADDR_INPUT_GPIOE_9: {
+                GPIOPESetPWMByIndex(GPIOPE_OUTPUT_9, i, pwm0, pwm1);
+                queryGPIOPortExpanderInfo(GPIOPE_OUTPUT_9, I2C_ADDR_OUTPUT_GPIOE_9);
+                break;
+              }
+              #endif
+
+              default: {
+                printf("gpiope unchanged. specified unknown gpiope device!");
+                break;
+              }
+            }
+          }
+        }
         // matrix
         else if (strcmp(pos[0], "matrix")==0) {
           if (argparser_has_flag(&parser, "startup-enable") == true) {matrixData.load_matrix_on_startup=true;}
@@ -1270,15 +1297,20 @@ void CmdProcess(void) {
           bool has_f = argparser_has_flag(&parser, "f") == true;
           int s = argparser_get_int8(&parser, "s", -1);
           int f = argparser_get_int8(&parser, "f", 0);
-          if (has_s && argparser_has_flag(&parser, "p") == true) {setMatrixPort(s, argparser_get_int8(&parser, "p", -1));}
-          if (has_s && argparser_has_flag(&parser, "opca") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "opca", 0));}
+
+          // now sets an index number for accessing gpiope portmap list
+          if (has_s && argparser_has_flag(&parser, "port-slot") == true) {setMatrixGPIOPEPortSlot(s, argparser_get_int8(&parser, "port-slot", 0));}
+
+          // will be access number for gpioe index
+          // if (has_s && argparser_has_flag(&parser, "opca") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "opca", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fn") == true) {setMatrixFunction(s, f, argparser_get_int8(&parser, "fn", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fx") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_X, argparser_get_double(&parser, "fx", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fy") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_Y, argparser_get_double(&parser, "fy", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fz") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_Z, argparser_get_double(&parser, "fz", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fi") == true) {setMatrixInverted(s, f, argparser_get_int8(&parser, "fi", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fo") == true) {setMatrixOperator(s, f, argparser_get_int8(&parser, "fo", 0));}
-          if (has_s && argparser_has_flag(&parser, "pwm0") == true && argparser_has_flag(&parser, "pwm1") == true) {setMatrixModulation(s, argparser_get_uint32(&parser, "pwm0", 0), argparser_get_uint32(&parser, "pwm1", 0));}
+          
+          
           if (has_s && argparser_has_flag(&parser, "flux") == true) {setFlux(s, argparser_get_uint32(&parser, "flux", -1));}
           if (has_s && argparser_has_flag(&parser, "oride") == true) {setOverrideOutputValue(s, argparser_get_int32(&parser, "oride", -1));}
           if (has_s && argparser_has_flag(&parser, "computer-assist") == true) {setComputerAssist(s, argparser_get_int8(&parser, "computer-assist", -1));}
@@ -3752,7 +3784,7 @@ void outputStat(void) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
-    printStatChannelHzTable("GPIOPE In Channel Hz", systemData.counters_gpioe_chan, GPIOPE_MAX_SIZE);
+    // printStatChannelHzTable("GPIOPE In Channel Hz", systemData.counters_gpioe_chan, GPIOPE_MAX_SIZE);
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT COMPUTER ASSIST
     // ----------------------------------------------------------------------------------------------------------------------------
