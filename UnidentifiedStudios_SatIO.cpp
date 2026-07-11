@@ -640,7 +640,7 @@ static void snapshotSyncFields(SatIOTimeData &t) {
  * "now" and SatIOData.systemTime.sync_hour is "at the last sync".
  */
 void storeSyncTime(void) {
-  // snapshotSyncFields(SatIOData.GPSTime);
+  snapshotSyncFields(SatIOData.GPSTime);
   snapshotSyncFields(SatIOData.systemTime);
   snapshotSyncFields(SatIOData.localTime);
   snapshotSyncFields(SatIOData.localMeanSolarTime);
