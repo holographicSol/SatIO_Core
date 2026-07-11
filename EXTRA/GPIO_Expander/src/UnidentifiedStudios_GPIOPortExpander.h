@@ -15,9 +15,9 @@
 // ------------------------------------------------------------
 // BUILD OPTIONS: Debug
 // ------------------------------------------------------------
-#define GPIO_GPIOE_DEBUG_0
+// #define GPIO_GPIOE_DEBUG_0
 // #define GPIO_GPIOE_DEBUG_1
-// #define GPIO_GPIOE_DEBUG_2
+#define GPIO_GPIOE_DEBUG_2
 // #define GPIO_GPIOE_BENCH
 // ------------------------------------------------------------
 // BUILD OPTIONS: MASTER/SLAVE MODE
@@ -102,6 +102,7 @@ void modulator();
 // ------------------------------------------------------------
 // Master-side
 // ------------------------------------------------------------
+GPIOPortExpander* isGPIOPE(uint8_t address);
 bool readGPIOPE_PIN(GPIOPortExpander &gpio_expander, uint8_t pin);
 bool queryGPIOPortExpanderInfo(GPIOPortExpander &gpio_expander, int8_t address);
 void clearGPIOPortController(GPIOPortExpander gpio_expander);
