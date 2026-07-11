@@ -661,11 +661,11 @@ bool GPIOPE_Set_All_Portmap_Index_PWM(GPIOPortExpander &gpio_expander) {
 bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin) {
   if (pin >= (uint8_t)gpio_expander.max_pins) {return false;}
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
-  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_READ_PIN);
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_GET_READ_PIN);
   write_int8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
   writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, "GPIOPE_Read_Pin");
 
-  if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 4, 0, "GPIOPE_Read_Pin")) {
+  if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, 0, "GPIOPE_Read_Pin")) {
     return false;
   }
   uint8_t value;
@@ -697,7 +697,7 @@ bool GPIOPE_QueryDevice(GPIOPortExpander &gpio_expander, int8_t address) {
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_GET_INFO);
   writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, address, gpio_expander.i2cLink.current_bytes, 0, "GPIOPE_QueryDevice");
-  if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, address, 7, 0, "GPIOPE_QueryDevice")) {
+  if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, address, GPIOPE_EXPECTED_BYTES_GET_INFO, 0, "GPIOPE_QueryDevice")) {
     return false;
   }
   int8_t  pin_min, pin_max, max_pins, num_analog_pins, num_digital_pins;
@@ -724,7 +724,7 @@ bool GPIOPE_QueryDevice(GPIOPortExpander &gpio_expander, int8_t address) {
   writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, "GPIOPE_QueryDevice");
   int analog_i = 0, digital_i = 0;
   for (int i = 0; i < gpio_expander.pin_max; i++) {
-    if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 3, 0, "GPIOPE_QueryDevice")) {
+    if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_PINS, 0, "GPIOPE_QueryDevice")) {
       return false;
     }
     uint8_t is_analog;
@@ -747,7 +747,7 @@ bool GPIOPE_QueryDevice(GPIOPortExpander &gpio_expander, int8_t address) {
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_GET_PWM);
   writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, "GPIOPE_QueryDevice");
   for (int i = 0; i < gpio_expander.max_pins; i++) {
-    if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, 8, 0, "GPIOPE_QueryDevice")) {
+    if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_PWM, 0, "GPIOPE_QueryDevice")) {
       return false;
     }
     uint32_t off_time, on_time;

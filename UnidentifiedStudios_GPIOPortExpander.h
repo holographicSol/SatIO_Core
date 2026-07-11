@@ -363,10 +363,31 @@ typedef struct GPIOPortExpander {
 #define GPIOPE_CMD_SET_PORTMAP_PWM   111 // set portmap index x pwm as yz
 #define GPIOPE_CMD_SET_PORTMAP_VALUE 112 // set portmapped output value as n
 
-#define GPIOPE_CMD_READ_PIN          120 // read pin
+#define GPIOPE_CMD_GET_READ_PIN      120 // read pin
 
-
-// #define EXPECTED READ BYTES LEN PER COMMAND  
+/**
+ * Predefined expected packet sizes for certain commands.
+ * 
+ * This Should be used when writing and reading so that
+ * the defined size is always sent and the same defined
+ * size is always read.
+ * 
+ * Worst case intended scenario is truncation rather than
+ * overflow.
+ * 
+ * It's also more efficient and therefore performs better
+ * than placing a packet size in bytes, into the packet
+ * itself each time, where a size can be known/expected.
+ * 
+ * Provides symmetry between GPIOPE slaves and masters.
+ * 
+ * This may be made redundant in the furture if fixed
+ * width packets (padded) are preferred over performance.
+ */
+#define GPIOPE_EXPECTED_BYTES_GET_INFO 13
+#define GPIOPE_EXPECTED_BYTES_GET_PINS 3
+#define GPIOPE_EXPECTED_BYTES_GET_PWM  8
+#define GPIOPE_EXPECTED_BYTES_GET_READ_PIN  1
 
 // ------------------------------------------------------------
 // Slave-side
