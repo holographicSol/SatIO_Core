@@ -307,7 +307,7 @@ matrix --startup-disable
 matrix -s n                 Specify switch index n.
 matrix -f n                 Specify function index n.
 matrix -p n                 Set port for switch -s.
-matrix --opca n             Set output port controller I2C address for switch -s.
+matrix --gpiope n           Set GPIOPE I2C address for switch -s.
 matrix -fn n                Set function -f for switch -s. See available matrix functions.
 matrix -fx n                Set function -f value x for switch -s.
 matrix -fy n                Set function -f value y for switch -s.
@@ -528,7 +528,7 @@ stat --sentence --gngga     Takes arguments -e, -d.
 stat --sentence --gnrmc     Takes arguments -e, -d.
 stat --sentence --gpatt     Takes arguments -e, -d.
 stat --sentence --matrix    Takes arguments -e, -d.
-stat --sentence --gpiope0nput   Takes arguments -e, -d.
+stat --sentence --gpiope    Takes arguments -e, -d.
 stat --sentence --admplex0  Takes arguments -e, -d.
 stat --sentence --admplex1  Takes arguments -e, -d.
 stat --sentence --gyro0     Takes arguments -e, -d.
@@ -562,10 +562,8 @@ help
 ## To Do
 
 - [ ] AI I2C modules returning int's as classifiers.
-- [ ] SRTM data. Use NASA shuttle radar topographical mission data.
-- [ ] Ability to add custom IIC sensor modules after flashing.
+- [ ] SRTM data. Use NASA shuttle radar topographical mission data for ground elevation in meters.
 - [ ] PCB fabrication.
-- [ ] UI after migration complete.
 
 ---
 
