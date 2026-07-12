@@ -488,8 +488,8 @@ void receiveEventBus0Bin(int n_bytes_received) {
       }
       uint8_t idx;
       read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      uint8_t value;
-      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, value);
+      int32_t value;
+      read_int32_FromWire(GPIOPortExpander_SLAVE.wire, value);
 
       #ifdef GPIO_GPIOE_DEBUG_CASE_DETAIL
       Serial.println("set"
@@ -501,7 +501,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
 
       if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
 
-      GPIOPortExpander_SLAVE.output_value[idx] = (uint8_t)value;
+      GPIOPortExpander_SLAVE.output_value[idx] = (int32_t)value;
 
       if (value > 0 && (GPIOPortExpander_SLAVE.modulation_time[idx][0] != 0 || GPIOPortExpander_SLAVE.modulation_time[idx][1] != 0)) {
         // no write: GPIOPE_Output_Modulator() alone owns this pin's physical state from here
@@ -714,13 +714,13 @@ bool GPIOPE_Set_All_Portmap_Index_PWM(GPIOPortExpander &gpio_expander) {
   return ok;
 }
 
-bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, uint8_t value) {
+bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, int32_t value) {
   if (index >= (int8_t)gpio_expander.max_pins) {return false;}
-      clearI2CLinkOutputPacket(gpio_expander.i2cLink);
-      write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PORTMAP_VALUE);
-      write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
-      write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, value);
-      writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE, 0, gpio_expander.name);
+  clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PORTMAP_VALUE);
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
+  write_int32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, value);
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE, 0, gpio_expander.name);
   return true;
 }
 
