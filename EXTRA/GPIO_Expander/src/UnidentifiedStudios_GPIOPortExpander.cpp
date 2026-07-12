@@ -294,73 +294,100 @@ void GPIOPE_Output_Modulator() {
   }
 }
 
+bool bytesExpected(int n_bytes_received, int bytes_comparator, const char* tag) {
+  bool ok = false;
+  if (n_bytes_received == bytes_comparator) {
+    ok = true;
+  }
+  else {
+    #ifdef GPIO_GPIOE_DEBUG_WARN
+    Serial.println("[" + String(tag) + "] data must be " + String(bytes_comparator) + " bytes! received " + String(n_bytes_received));
+    #endif
+  }
+  return ok;
+}
+
+// while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
+
 void requestEventBus0Bin() {
 
-  #ifdef GPIO_GPIOE_DEBUG_1
+  #ifdef GPIO_GPIOE_DEBUG_REQUEST_RECEIVE
   Serial.println("[requestEventBus0Bin] " + String(GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID));
   #endif
 
   switch (GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID) {
 
     case GPIOPE_CMD_GET_INFO: {
-        // #ifdef GPIO_GPIOE_DEBUG_2
-        // Serial.println(
-        //   "[GPIOPE_CMD_GET_INFO]"
-        //   "  pin_min=" + String((int8_t)GPIOPortExpander_SLAVE.pin_min) +
-        //   "  pin_max=" + String((int8_t)GPIOPortExpander_SLAVE.pin_max) +
-        //   "  max_pins=" + String((int8_t)GPIOPortExpander_SLAVE.max_pins) +
-        //   "  num_analog_pins=" + String((int8_t)GPIOPortExpander_SLAVE.num_analog_pins) +
-        //   "  num_digital_pins=" + String((int8_t)GPIOPortExpander_SLAVE.num_digital_pins) +
-        //   "  max_input_values=" + String((int32_t)GPIOPortExpander_SLAVE.max_input_values) +
-        //   "  max_output_values=" + String((int32_t)GPIOPortExpander_SLAVE.max_output_values)
-        // );
-        // #endif
-        clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
-        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.pin_min);
-        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.pin_max);
-        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.max_pins);
-        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.num_analog_pins);
-        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.num_digital_pins);
-        write_int32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int32_t)GPIOPortExpander_SLAVE.max_input_values);
-        write_int32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int32_t)GPIOPortExpander_SLAVE.max_output_values);
-        writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
-        break;
-      }
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_INFO] REQ");
+      #endif
+      #ifdef GPIO_GPIOE_DEBUG_QUERY
+      Serial.println(
+        "[GPIOPE_CMD_GET_INFO]"
+        "  pin_min=" + String((int8_t)GPIOPortExpander_SLAVE.pin_min) +
+        "  pin_max=" + String((int8_t)GPIOPortExpander_SLAVE.pin_max) +
+        "  max_pins=" + String((int8_t)GPIOPortExpander_SLAVE.max_pins) +
+        "  num_analog_pins=" + String((int8_t)GPIOPortExpander_SLAVE.num_analog_pins) +
+        "  num_digital_pins=" + String((int8_t)GPIOPortExpander_SLAVE.num_digital_pins) +
+        "  max_input_values=" + String((int32_t)GPIOPortExpander_SLAVE.max_input_values) +
+        "  max_output_values=" + String((int32_t)GPIOPortExpander_SLAVE.max_output_values)
+      );
+      #endif
+      clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
+      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.pin_min);
+      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.pin_max);
+      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.max_pins);
+      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.num_analog_pins);
+      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int8_t)GPIOPortExpander_SLAVE.num_digital_pins);
+      write_int32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int32_t)GPIOPortExpander_SLAVE.max_input_values);
+      write_int32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (int32_t)GPIOPortExpander_SLAVE.max_output_values);
+      writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
+      break;
+    }
 
     case GPIOPE_CMD_GET_PINS: {
-        clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
-        if (GPIOPortExpander_SLAVE.query_cursor < GPIOPortExpander_SLAVE.num_analog_pins) {
-          // #ifdef GPIO_GPIOE_DEBUG_2
-          // Serial.println("get analog pin=" + String(GPIOPortExpander_SLAVE.analog_pins[GPIOPortExpander_SLAVE.query_cursor]));
-          // #endif
-          write_uint8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 1);
-          write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.analog_pins[GPIOPortExpander_SLAVE.query_cursor]);
-        } else {
-          // #ifdef GPIO_GPIOE_DEBUG_2
-          // Serial.println("get digital pin=" + String(GPIOPortExpander_SLAVE.digital_pins[GPIOPortExpander_SLAVE.query_cursor - GPIOPortExpander_SLAVE.num_analog_pins]));
-          // #endif
-          write_uint8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
-          write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.digital_pins[GPIOPortExpander_SLAVE.query_cursor - GPIOPortExpander_SLAVE.num_analog_pins]);
-        }
-        // #ifdef GPIO_GPIOE_DEBUG_2
-        // Serial.println("get portmap pin=" + String(GPIOPortExpander_SLAVE.digital_pins[GPIOPortExpander_SLAVE.query_cursor - GPIOPortExpander_SLAVE.num_analog_pins]));
-        // #endif
-        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.port_map[GPIOPortExpander_SLAVE.query_cursor]);
-        writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
-        if (++GPIOPortExpander_SLAVE.query_cursor >= GPIOPortExpander_SLAVE.num_analog_pins + GPIOPortExpander_SLAVE.num_digital_pins) {GPIOPortExpander_SLAVE.query_cursor = 0;}
-        break;
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_PINS] REQ");
+      #endif
+      clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
+      if (GPIOPortExpander_SLAVE.query_cursor < GPIOPortExpander_SLAVE.num_analog_pins) {
+        #ifdef GPIO_GPIOE_DEBUG_QUERY
+        Serial.println("get analog pin=" + String(GPIOPortExpander_SLAVE.analog_pins[GPIOPortExpander_SLAVE.query_cursor]));
+        #endif
+        write_uint8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 1);
+        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.analog_pins[GPIOPortExpander_SLAVE.query_cursor]);
+      } else {
+        #ifdef GPIO_GPIOE_DEBUG_QUERY
+        Serial.println("get digital pin=" + String(GPIOPortExpander_SLAVE.digital_pins[GPIOPortExpander_SLAVE.query_cursor - GPIOPortExpander_SLAVE.num_analog_pins]));
+        #endif
+        write_uint8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
+        write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.digital_pins[GPIOPortExpander_SLAVE.query_cursor - GPIOPortExpander_SLAVE.num_analog_pins]);
       }
+      #ifdef GPIO_GPIOE_DEBUG_QUERY
+      Serial.println("get portmap pin=" + String(GPIOPortExpander_SLAVE.digital_pins[GPIOPortExpander_SLAVE.query_cursor - GPIOPortExpander_SLAVE.num_analog_pins]));
+      #endif
+      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.port_map[GPIOPortExpander_SLAVE.query_cursor]);
+      writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
+      if (++GPIOPortExpander_SLAVE.query_cursor >= GPIOPortExpander_SLAVE.num_analog_pins + GPIOPortExpander_SLAVE.num_digital_pins) {GPIOPortExpander_SLAVE.query_cursor = 0;}
+      break;
+    }
 
     case GPIOPE_CMD_GET_PWM: {
-        clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
-        write_uint32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (uint32_t)GPIOPortExpander_SLAVE.modulation_time[GPIOPortExpander_SLAVE.query_cursor][0]);
-        write_uint32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (uint32_t)GPIOPortExpander_SLAVE.modulation_time[GPIOPortExpander_SLAVE.query_cursor][1]);
-        writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
-        if (++GPIOPortExpander_SLAVE.query_cursor >= GPIOPortExpander_SLAVE.max_pins) {GPIOPortExpander_SLAVE.query_cursor = 0;}
-        break;
-      }
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_PWM] REQ");
+      #endif
+      clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
+      write_uint32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (uint32_t)GPIOPortExpander_SLAVE.modulation_time[GPIOPortExpander_SLAVE.query_cursor][0]);
+      write_uint32_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, (uint32_t)GPIOPortExpander_SLAVE.modulation_time[GPIOPortExpander_SLAVE.query_cursor][1]);
+      writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
+      if (++GPIOPortExpander_SLAVE.query_cursor >= GPIOPortExpander_SLAVE.max_pins) {GPIOPortExpander_SLAVE.query_cursor = 0;}
+      break;
+    }
 
     case GPIOPE_CMD_GET_READ_PIN: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_READ_PIN] REQ");
+      #endif
       uint8_t value = readPin(GPIOPortExpander_SLAVE.current_pin);
       clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
       write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.current_pin);
@@ -371,8 +398,8 @@ void requestEventBus0Bin() {
 
     // Default: flush
     default: {
-        #ifdef GPIO_GPIOE_DEBUG_0
-        Serial.println("[requestEventBus0Bin] event id is not defined: " + String(GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID));
+        #ifdef GPIO_GPIOE_DEBUG_WARN
+        Serial.println("REQ0: unknown event id: " + String(GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID));
         #endif
         while (Wire.available()) {Wire.read();} // drain
         break;
@@ -382,151 +409,26 @@ void requestEventBus0Bin() {
 
 void receiveEventBus0Bin(int n_bytes_received) {
 
-  // unsigned long t0 = micros();
+  #ifdef GPIO_GPIOE_BENCH
+  unsigned long t0 = micros();
+  #endif
 
   if (n_bytes_received < 1) return;
 
   // Expects uint8 command byte!
   uint8_t cmd = GPIOPortExpander_SLAVE.wire.read();
-  #ifdef GPIO_GPIOE_DEBUG_1
+  #ifdef GPIO_GPIOE_DEBUG_REQUEST_RECEIVE
   Serial.println("[receiveEventBus0Bin] " + String(cmd) + " (" + String(n_bytes_received) + " bytes)");
   #endif
 
   switch (cmd) {
 
     // ------------------------------------------------------------------------------------------
-    // SET portmap entry as pin n
+    // receiveEventBus0Bin: SET defaults
     // ------------------------------------------------------------------------------------------
-    case GPIOPE_CMD_SET_PORTMAP_PIN: {
-      if (n_bytes_received != 3) {
-        while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
-        #ifdef GPIO_GPIOE_DEBUG_0
-        Serial.println("[SET_PIN_VALUE] packet must be 3 bytes!");
-        #endif
-        return;
-      }
-      uint8_t idx;
-      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      int8_t pin;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
-
-      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
-
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println("setpin"
-        " idx=" + String(idx) +
-        " pin=" + String(pin)
-      );
-      #endif
-
-      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
-
-      GPIOPortExpander_SLAVE.port_map[idx]       = (int8_t)pin;
-      
-      // Serial.println("T0 " + String(micros()-t0)); // 100uS
-      break;
-    }
-
-    // ------------------------------------------------------------------------------------------
-    // SET output value by portmap index
-    // ------------------------------------------------------------------------------------------
-    case GPIOPE_CMD_SET_PORTMAP_VALUE: {
-      // if (n_bytes_received != 3) {
-      //   while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();
-      //   #ifdef GPIO_GPIOE_DEBUG_0
-      //   Serial.println("[SET_PIN_VALUE] packet must be 3 bytes!");
-      //   #endif
-      //   return;
-      // }
-      uint8_t idx;
-      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      int32_t value;
-      read_int32_FromWire(GPIOPortExpander_SLAVE.wire, value);
-
-      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
-
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println("set"
-        " idx=" + String(idx) +
-        " (pin=" + String(GPIOPortExpander_SLAVE.port_map[idx]) + ")"
-        " value=" + String(value)
-      );
-      #endif
-
-      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
-
-      GPIOPortExpander_SLAVE.output_value[idx]       = (int32_t)value;
-
-      if (value > 0 && (GPIOPortExpander_SLAVE.modulation_time[idx][0] != 0 || GPIOPortExpander_SLAVE.modulation_time[idx][1] != 0)) {
-        // modulator() alone owns this pin's physical state from here -
-        // writing directly here would fight its on/off timing.
-        activateModulatedPin(idx);
-      } else {
-        deactivateModulatedPin(idx);
-        writedPortmapPin(idx);
-      }
-
-      // Serial.println("T0 " + String(micros()-t0)); // 100uS
-      break;
-    }
-
-    case GPIOPE_CMD_GET_READ_PIN: {
-      int8_t pin;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
-      GPIOPortExpander_SLAVE.query_cursor = pin;
-      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_READ_PIN;
-      break;
-    }
-
-    // ------------------------------------------------------------------------------------------
-    // SET pwm by portmap index
-    // ------------------------------------------------------------------------------------------
-    case GPIOPE_CMD_SET_PORTMAP_PWM: {
-      uint8_t idx;
-      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
-      uint32_t pwm0;
-      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm0);
-      uint32_t pwm1;
-      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm1);
-      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
-      GPIOPortExpander_SLAVE.modulation_time[idx][0] = (uint32_t)pwm0;
-      GPIOPortExpander_SLAVE.modulation_time[idx][1] = (uint32_t)pwm1;
-      break;
-    }
-
-    case GPIOPE_CMD_GET_INFO: {
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println("[GPIOPE_CMD_GET_INFO]");
-      #endif
-      GPIOPortExpander_SLAVE.query_cursor = 0;
-      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_INFO;
-      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
-      break;
-    }
-
-    case GPIOPE_CMD_GET_PINS: {
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println("[GPIOPE_CMD_GET_PINS]");
-      #endif
-      GPIOPortExpander_SLAVE.query_cursor = 0;
-      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_PINS;
-      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
-      break;
-    }
-
-    case GPIOPE_CMD_GET_PWM: {
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println("[GPIOPE_CMD_GET_PWM]");
-      #endif
-      GPIOPortExpander_SLAVE.query_cursor = 0;
-      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_PWM;
-      while (GPIOPortExpander_SLAVE.wire.available()) {GPIOPortExpander_SLAVE.wire.read();}
-      break;
-    }
-
     case GPIOPE_CMD_SET_DEFAULT: {
-      #ifdef GPIO_GPIOE_DEBUG_2
-      Serial.println("[GPIOPE_CMD_SET_DEFAULT]");
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_SET_DEFAULT] RCV");
       #endif
       for (int i = 0; i < GPIOPortExpander_SLAVE.max_pins; i++) {
         GPIOPortExpander_SLAVE.port_map[i] = -1;
@@ -539,6 +441,160 @@ void receiveEventBus0Bin(int n_bytes_received) {
       resetModulatedPinList();
       GPIOPortExpander_SLAVE.current_pin = 0;
       while (GPIOPortExpander_SLAVE.wire.available()) GPIOPortExpander_SLAVE.wire.read();  // flush
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_SET_DEFAULT " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // receiveEventBus0Bin: SET portmap entry as pin n
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PORTMAP_PIN: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_SET_PORTMAP_PIN] RCV");
+      #endif
+      if (bytesExpected(n_bytes_received, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PIN, "GPIOPE_CMD_SET_PORTMAP_PIN") == false) {
+        return;
+      }
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      int8_t pin;
+      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
+
+      #ifdef GPIO_GPIOE_DEBUG_CASE_DETAIL
+      Serial.println("setpin idx=" + String(idx) + " pin=" + String(pin));
+      #endif
+
+      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
+
+      GPIOPortExpander_SLAVE.port_map[idx] = (int8_t)pin;
+      
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_SET_PORTMAP_PIN " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // receiveEventBus0Bin: SET output value by portmap index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PORTMAP_VALUE: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_SET_PORTMAP_VALUE] RCV");
+      #endif
+      if (bytesExpected(n_bytes_received, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE, "GPIOPE_CMD_SET_PORTMAP_VALUE") == false) {
+        return;
+      }
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      uint8_t value;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, value);
+
+      #ifdef GPIO_GPIOE_DEBUG_CASE_DETAIL
+      Serial.println("set"
+        " idx=" + String(idx) +
+        " (pin=" + String(GPIOPortExpander_SLAVE.port_map[idx]) + ")"
+        " value=" + String(value)
+      );
+      #endif
+
+      if (idx >= GPIOPortExpander_SLAVE.max_pins) {return;}
+
+      GPIOPortExpander_SLAVE.output_value[idx] = (uint8_t)value;
+
+      if (value > 0 && (GPIOPortExpander_SLAVE.modulation_time[idx][0] != 0 || GPIOPortExpander_SLAVE.modulation_time[idx][1] != 0)) {
+        // no write: GPIOPE_Output_Modulator() alone owns this pin's physical state from here
+        activateModulatedPin(idx);
+      } else {
+        deactivateModulatedPin(idx);
+        writedPortmapPin(idx);
+      }
+
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_SET_PORTMAP_VALUE " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // receiveEventBus0Bin: SET PWM by portmap index
+    // ------------------------------------------------------------------------------------------
+    case GPIOPE_CMD_SET_PORTMAP_PWM: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_SET_PORTMAP_PWM] RCV");
+      #endif
+      if (bytesExpected(n_bytes_received, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PWM, "GPIOPE_CMD_SET_PORTMAP_PWM") == false) {
+        return;
+      }
+      uint8_t idx;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, idx);
+      uint32_t pwm0;
+      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm0);
+      uint32_t pwm1;
+      read_uint32_FromWire(GPIOPortExpander_SLAVE.wire, pwm1);
+      GPIOPortExpander_SLAVE.modulation_time[idx][0] = (uint32_t)pwm0;
+      GPIOPortExpander_SLAVE.modulation_time[idx][1] = (uint32_t)pwm1;
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_SET_PORTMAP_PWM " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // receiveEventBus0Bin: Get requests - Sets Request ID ready for sending data on request
+    // ------------------------------------------------------------------------------------------
+
+    case GPIOPE_CMD_GET_READ_PIN: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_READ_PIN] RCV");
+      #endif
+      if (bytesExpected(n_bytes_received, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, "GPIOPE_CMD_GET_READ_PIN") == false) {
+        return;
+      }
+      int8_t pin;
+      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
+      GPIOPortExpander_SLAVE.query_cursor = pin;
+      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_READ_PIN;
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_GET_READ_PIN " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    case GPIOPE_CMD_GET_INFO: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_INFO] RCV");
+      #endif
+      GPIOPortExpander_SLAVE.query_cursor = 0;
+      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_INFO;
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_GET_INFO " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    case GPIOPE_CMD_GET_PINS: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_PINS] RCV");
+      #endif
+      GPIOPortExpander_SLAVE.query_cursor = 0;
+      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_PINS;
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_GET_PINS " + String(micros()-t0));
+      #endif
+      break;
+    }
+
+    case GPIOPE_CMD_GET_PWM: {
+      #ifdef GPIO_GPIOE_DEBUG_CASE
+      Serial.println("[GPIOPE_CMD_GET_PWM] RCV");
+      #endif
+      GPIOPortExpander_SLAVE.query_cursor = 0;
+      GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_PWM;
+      #ifdef GPIO_GPIOE_BENCH
+      Serial.println("[T] GPIOPE_CMD_GET_PWM " + String(micros()-t0));
+      #endif
       break;
     }
 
@@ -615,7 +671,7 @@ void receiveEventBus0Bin(int n_bytes_received) {
 void GPIOPE_Set_Device_Default(GPIOPortExpander gpio_expander) {
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_DEFAULT);
-  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, "GPIOPE_Set_Device_Default");
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_SET_DEFAULT, 0, "GPIOPE_Set_Device_Default");
 }
 
 bool GPIOPE_Set_Portmap_Index_As_Pin(GPIOPortExpander &gpio_expander, uint8_t index, int8_t pin) {
@@ -624,7 +680,7 @@ bool GPIOPE_Set_Portmap_Index_As_Pin(GPIOPortExpander &gpio_expander, uint8_t in
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PORTMAP_PIN);
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
   write_int8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
-  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, gpio_expander.i2cLink.current_bytes, gpio_expander.name);
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PIN, 0, gpio_expander.name);
 
   return true;
 }
@@ -636,7 +692,7 @@ bool GPIOPE_Set_Portmap_Index_As_PWM(GPIOPortExpander &gpio_expander, uint8_t in
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
   write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, off_time);
   write_uint32_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, on_time);
-  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, gpio_expander.i2cLink.current_bytes, gpio_expander.name);
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PWM, 0, gpio_expander.name);
 
   return true;
 }
@@ -658,12 +714,22 @@ bool GPIOPE_Set_All_Portmap_Index_PWM(GPIOPortExpander &gpio_expander) {
   return ok;
 }
 
+bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, uint8_t value) {
+  if (index >= (int8_t)gpio_expander.max_pins) {return false;}
+      clearI2CLinkOutputPacket(gpio_expander.i2cLink);
+      write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_SET_PORTMAP_VALUE);
+      write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, index);
+      write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, value);
+      writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE, 0, gpio_expander.name);
+  return true;
+}
+
 bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin) {
   if (pin >= (uint8_t)gpio_expander.max_pins) {return false;}
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_GET_READ_PIN);
   write_int8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
-  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, gpio_expander.i2cLink.current_bytes, 0, "GPIOPE_Read_Pin");
+  writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, 0, "GPIOPE_Read_Pin");
 
   if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, 0, "GPIOPE_Read_Pin")) {
     return false;

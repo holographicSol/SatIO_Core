@@ -15,9 +15,11 @@
 // ------------------------------------------------------------
 // BUILD OPTIONS: Debug
 // ------------------------------------------------------------
-// #define GPIO_GPIOE_DEBUG_0
-// #define GPIO_GPIOE_DEBUG_1
-#define GPIO_GPIOE_DEBUG_2
+#define GPIO_GPIOE_DEBUG_WARN
+// #define GPIO_GPIOE_DEBUG_QUERY
+// #define GPIO_GPIOE_DEBUG_REQUEST_RECEIVE
+// #define GPIO_GPIOE_DEBUG_CASE
+// #define GPIO_GPIOE_DEBUG_CASE_DETAIL
 // #define GPIO_GPIOE_BENCH
 
 // ------------------------------------------------------------
@@ -191,7 +193,7 @@
 // #define GPIOPE_USE_OUTPUT_6
 // #define GPIOPE_USE_OUTPUT_7
 // #define GPIOPE_USE_OUTPUT_8
-#define GPIOPE_USE_OUTPUT_9
+// #define GPIOPE_USE_OUTPUT_9
 // #define GPIOPE_USE_OUTPUT_10
 // #define GPIOPE_USE_OUTPUT_11
 // #define GPIOPE_USE_OUTPUT_12
@@ -365,7 +367,6 @@ typedef struct GPIOPortExpander {
 
 #define GPIOPE_CMD_GET_READ_PIN      120 // read pin
 
-
 /**
  * Predefined expected packet sizes for certain commands.
  * 
@@ -388,7 +389,13 @@ typedef struct GPIOPortExpander {
 #define GPIOPE_EXPECTED_BYTES_GET_INFO 13
 #define GPIOPE_EXPECTED_BYTES_GET_PINS 3
 #define GPIOPE_EXPECTED_BYTES_GET_PWM  8
-#define GPIOPE_EXPECTED_BYTES_GET_READ_PIN  1
+
+#define GPIOPE_EXPECTED_BYTES_SET_DEFAULT       1
+#define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PIN   3
+#define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PWM   10
+#define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE 3
+
+#define GPIOPE_EXPECTED_BYTES_GET_READ_PIN  2
 
 // ------------------------------------------------------------
 // Slave-side
@@ -510,6 +517,8 @@ void GPIOPE_Set_Channel_Frequency(GPIOPortExpander &gpio_expander, uint8_t pin, 
  * @brief currently disabled during update.
  */
 bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin);
+
+bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, uint8_t value);
 
 // ------------------------------------------------------------
 // Spec: ATMEGA2560
