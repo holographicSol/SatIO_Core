@@ -324,8 +324,6 @@ matrix --startup-enable
 matrix --startup-disable
 matrix -s n                 Specify switch index n.
 matrix -f n                 Specify function index n.
-matrix -p n                 Set GPIOPE port slot for switch -s.
-matrix --gpiope n           Set GPIOPE I2C address for switch -s.
 matrix -fn n                Set function -f for switch -s. See available matrix functions.
 matrix -fx n                Set function -f value x for switch -s.
 matrix -fy n                Set function -f value y for switch -s.
@@ -342,6 +340,8 @@ matrix --oride n            Override switch -s output values.
 matrix --computer-assist n  Enable/disable computer assist for switch -s.
 matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
 matrix --map-slot n         Set switch -s output as map slot n value.
+matrix -p n                 Set GPIOPE port slot for switch -s.
+matrix --gpiope n           Set GPIOPE I2C address for switch -s.
 ```
 
 ---
@@ -389,14 +389,29 @@ gpiope -c 5 --enable --freq 1000000
 ## GPIO Port Expander: Output
 
 ```
-gpiope -d n -i n -p n               Set the port controller output for gpiope device n, pin index n, to port n.
-gpiope -d n -i n --pwm0 n --pwm1 n  Set pin index n uS time off period (pwm0) and time on period (pwm1).
+gpiope -a                           Specify address -a.
+gpiope -i                           Specify port map index -i.
+gpiope -p                           Specify pin number -p.
+gpiope -pwm0                        Specify PWM off time in microseconds.
+gpiope -pwm1                        Specify PWM on time in microseconds. 
 ```
 
-**Example:**
+**Example** — Set portmap slot 0 with a pin number 54 for address 9:
 
 ```
-gpiope -d 9 -i 0 -p 33
+gpiope -a 9 -i 0 -p 54
+```
+
+**Example** — Set portmap slot 0 PWM for address 9:
+
+```
+gpiope -a 9 -i 0 --pwm0 0 --pwm1 0
+```
+
+**Extra Example** — Point matrix switch 0 at GPIOPE address 9, slot 0:
+
+```
+matrix -s 0 --gpiope 9 -p 0
 ```
 
 ---
