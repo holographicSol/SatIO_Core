@@ -209,7 +209,7 @@ void writeI2CToSlaveChars(TwoWire &wire,
                           IICLink &iic_link,
                           int address,
                           long delayMs,
-                          const String &debugTag);
+                          const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Writes data to an I2C master device.
@@ -237,7 +237,7 @@ void requestFromSlaveChars(TwoWire &wire,
                            long request_id,
                            size_t len_expected,
                            long delayMs,
-                           const String &debugTag);
+                           const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Writes binary data to an I2C slave device.
@@ -252,7 +252,7 @@ void writeI2CToSlaveBin(TwoWire &wire,
                         int address,
                         size_t len_packet,
                         long delayMs,
-                        const String &debugTag);
+                        const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Writes binary data to an I2C master device.
@@ -283,7 +283,7 @@ void requestFromSlaveBin(TwoWire &wire,
                          long request_id,
                          size_t len_expected,
                          long delayMs,
-                         const String &debugTag);
+                         const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Requests binary data from an I2C slave device.
@@ -299,7 +299,7 @@ bool requestFromSlaveBinNoID(TwoWire &wire,
                          int address,
                          size_t len_expected,
                          long delayMs,
-                         const String &debugTag);
+                         const char *debugTag);
 
 /**
  * @brief Read uint8_t from I2C wire into specified value.

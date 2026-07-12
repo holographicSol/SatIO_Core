@@ -393,7 +393,7 @@ typedef struct GPIOPortExpander {
 #define GPIOPE_EXPECTED_BYTES_SET_DEFAULT       1
 #define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PIN   3
 #define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_PWM   10
-#define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE 3
+#define GPIOPE_EXPECTED_BYTES_SET_PORTMAP_VALUE 6
 
 #define GPIOPE_EXPECTED_BYTES_GET_READ_PIN  2
 
@@ -518,7 +518,7 @@ void GPIOPE_Set_Channel_Frequency(GPIOPortExpander &gpio_expander, uint8_t pin, 
  */
 bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin);
 
-bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, uint8_t value);
+bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, int32_t value);
 
 // ------------------------------------------------------------
 // Spec: ATMEGA2560

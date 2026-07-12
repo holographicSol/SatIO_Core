@@ -1035,11 +1035,9 @@ static void taskSwitches(void *pvParameters) {
       // ------------------------------------------------
       // Calculate.
       // ------------------------------------------------
-      unsigned long matrix_to = micros();
-      unsigned long matrix_t = 0;
+      unsigned long matrix_start_t = esp_timer_get_time();
       if (matrixSwitch()) {
         xSemaphoreGive(dataMutex);
-        matrix_t = micros()-matrix_to;
         esp_task_wdt_reset();
         
         // --------------------------------------------
@@ -1058,21 +1056,17 @@ static void taskSwitches(void *pvParameters) {
       // ------------------------------------------------
       // Mapping.
       // ------------------------------------------------
-      unsigned long map_t0 = micros();
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       map_values();
       xSemaphoreGive(dataMutex);
-      unsigned long map_t = micros()-map_t0;
       esp_task_wdt_reset();
 
       // ------------------------------------------------
       // Output Values.
       // ------------------------------------------------
-      unsigned long output_val_t0 = micros();
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       setOutputValues();
       xSemaphoreGive(dataMutex);
-      unsigned long output_val_t = micros()-output_val_t0;
       esp_task_wdt_reset();
       #endif
 
@@ -1089,8 +1083,6 @@ static void taskSwitches(void *pvParameters) {
       for (uint8_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
         if (matrixData.matrix_switch_write_required[0][Mi] == true) {
 
-          unsigned long iic_t0 = micros();
-
           // Clear the flag now that the value has been sent.
           matrixData.matrix_switch_write_required[0][Mi] = false;
 
@@ -1106,15 +1098,16 @@ static void taskSwitches(void *pvParameters) {
                               ? matrixData.output_value[0][Mi]
                               : matrixData.override_output_value[0][Mi];
             
-            GPIOPE_Write_Portmap_Pin(*gpiope, (uint8_t)matrixData.matrix_port_map[0][Mi], value_to_send);
+            uint8_t port_map_index = matrixData.matrix_port_map[0][Mi];
+            
+            // unsigned long write_gpiope_t0 = esp_timer_get_time();
+            
+            GPIOPE_Write_Portmap_Pin(*gpiope, port_map_index, value_to_send);
 
-            // monitor updated perf (<300uS from >1ms or 4ms)
-            // unsigned long iic_t = micros()-iic_t0;
-            // printf("matrix_t=%lduS  map_t=%lduS  output_val_t=%lduS  iic_t=%lduS  total=%lduS  (%lld bytes)\n",
-            //   matrix_t, map_t, output_val_t, iic_t,
-            //   (matrix_t + map_t + output_val_t + iic_t),
-            //   gpiope->i2cLink.current_bytes
-            // );
+            // unsigned long write_gpiope_t = esp_timer_get_time()-write_gpiope_t0;
+
+            // printf("matrix_switch_t=%lld\n", esp_timer_get_time()-matrix_start_t);
+
             count_write++;
           }
         }
