@@ -1120,6 +1120,21 @@ void dd_output_mode_event_cb(lv_event_t * e)
 
 /** -------------------------------------------------------------------------------------
  * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void dd_gpiope_address_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_VALUE_CHANGED) {
+        lv_obj_t * dd = (lv_obj_t *)lv_event_get_target(e);
+        uint32_t sel = lv_dropdown_get_selected(dd);
+        matrixData.gpiope_address[0][current_matrix_i] = (uint8_t)sel;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
  * 
  * @param e Pointer to the LVGL event structure.
  */
@@ -13450,6 +13465,8 @@ matrix_function_container_t create_matrix_function_container(
     int32_t obj_w_3 = 0;
     int32_t obj_w_4 = 0;
     int32_t obj_w_5 = 0;
+    int32_t obj_w_6 = 0;
+    int32_t obj_w_7 = 0;
     int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
 
     /* --- Row Index ------------------------------------------------------- */
@@ -14196,12 +14213,28 @@ matrix_function_container_t create_matrix_function_container(
     );
 
     // Set row object widths
-    obj_w_0 = 35; // label
-    obj_w_1 = (((sub_row_width/3) *1) - obj_w_0) - (sub_column_padding*2);
-    obj_w_2 = 30;
-    obj_w_3 = (((sub_row_width/3) *1) - obj_w_2) - (sub_column_padding*2);
-    obj_w_4 = 30;
-    obj_w_5 = (((sub_row_width/3) *1) - obj_w_2) - (sub_column_padding*2);
+    // Four columns now share this row (Map, Out, GPIOPE Address, GPIOPE Slot),
+    // so label widths are hand-fit to their (short) text and the two value/dropdown
+    // widths are derived from what's left, rather than splitting evenly.
+    // int32_t obj_w_6 = 0;
+    // int32_t obj_w_7 = 0;
+    // obj_w_0 = 35;  // Map label
+    // obj_w_1 = 48;  // Map slot dropdown ("0".."44")
+    // obj_w_2 = 30;  // Out label
+    // obj_w_3 = 62;  // Output mode dropdown ("Digi"/"Map")
+    // obj_w_6 = 42;  // GPIOPE Address label
+    // obj_w_7 = 58;  // GPIOPE Address dropdown ("0".."127")
+    // obj_w_4 = 100; // GPIOPE Slot label
+    // obj_w_5 = sub_row_width - (obj_w_0 + obj_w_1 + obj_w_2 + obj_w_3 + obj_w_6 + obj_w_7 + obj_w_4) - (sub_column_padding*8); // GPIOPE Slot value
+
+    obj_w_0 = ((sub_row_width/8) *1) - (sub_column_padding*2); // map
+    obj_w_1 = ((sub_row_width/8) *1) - (sub_column_padding*2);
+    obj_w_2 = ((sub_row_width/8) *1) - (sub_column_padding*2); // output mode
+    obj_w_3 = (((sub_row_width/8) *1) - (sub_column_padding*2)) * 2;
+    obj_w_4 = ((sub_row_width/8) *1) - (sub_column_padding*2); // address
+    obj_w_5 = ((sub_row_width/8) *1) - (sub_column_padding*2);
+    obj_w_6 = ((sub_row_width/8) *1) - (sub_column_padding*2); // portmap slot
+    obj_w_7 = ((sub_row_width/8) *1) - (sub_column_padding*2);
 
     // Label Map Slot
     result.label_map_slot = create_label(
@@ -14211,7 +14244,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "Map",                // initial text
+        "MP",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         &font_cobalt_alien_17,     // font
         false,                // transparent background
@@ -14252,7 +14285,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "Out",                // initial text
+        "OM",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         &font_cobalt_alien_17,     // font
         false,                // transparent background
@@ -14285,7 +14318,48 @@ matrix_function_container_t create_matrix_function_container(
     lv_dropdown_set_selected(result.dd_output_mode, 0);
     lv_obj_add_event_cb(result.dd_output_mode, dd_output_mode_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    // Label 
+    // Label
+    result.label_gpiope_address = create_label(
+        row_port,             // parent
+        obj_w_6,               // width
+        obj_height,           // height
+        LV_ALIGN_CENTER,      // parent alignment
+        0,                    // pos x
+        0,                    // pos y
+        "AD",               // initial text
+        LV_TEXT_ALIGN_CENTER, // font alignment
+        &font_cobalt_alien_17,     // font
+        false,                // transparent background
+        false,                // show scrollbar
+        false,                // enable scrolling
+        2,                    // outline width
+        general_radius,       // outline radius
+        1,
+        default_bg_hue,
+        default_subtitle_hue
+    );
+
+    // GPIOPE Address Value (7-bit I2C address: 0-127)
+    result.dd_gpiope_address = create_dropdown_menu(
+        row_port,
+        NULL,
+        0,
+        obj_w_7,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        font_sub
+    );
+    char dd_gpiope_address_name[MAX_GLOBAL_ELEMENT_SIZE];
+    for (int i = 0; i <= 127; i++) {
+        snprintf(dd_gpiope_address_name, sizeof(dd_gpiope_address_name), "%s", String(i).c_str());
+        lv_dropdown_add_option(result.dd_gpiope_address, dd_gpiope_address_name, LV_DROPDOWN_POS_LAST);
+    }
+    lv_dropdown_set_selected(result.dd_gpiope_address, 0);
+    lv_obj_add_event_cb(result.dd_gpiope_address, dd_gpiope_address_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    // Label
     result.label_port_map = create_label(
         row_port,             // parent
         obj_w_4,              // width
@@ -14293,7 +14367,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "Pin",                // initial text
+        "PM",        // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         &font_cobalt_alien_17,     // font
         false,                // transparent background
@@ -14336,6 +14410,9 @@ matrix_function_container_t create_matrix_function_container(
 
     lv_obj_set_size(result.label_output_mode, obj_w_2, obj_height);
     lv_obj_set_size(result.dd_output_mode, obj_w_3, obj_height);
+
+    lv_obj_set_size(result.label_gpiope_address, obj_w_6, obj_height);
+    lv_obj_set_size(result.dd_gpiope_address, obj_w_7, obj_height);
 
     lv_obj_set_size(result.label_port_map, obj_w_4, obj_height);
     lv_obj_set_size(result.val_port_map, obj_w_5, obj_height);
@@ -17034,7 +17111,6 @@ void update_display_lvgl()
                 // Inverted
                 dd_select(mfc.dd_inverted_logic, matrixData.matrix_switch_inverted_logic[0][current_matrix_i][current_matrix_function_i]);
                 
-                // Currently allow address to be user defined (will be replaced in coming updates).
                 uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
 
                 GPIOPortExpander* gpiope = isGPIOPE(address);
@@ -17060,6 +17136,9 @@ void update_display_lvgl()
 
                 // Output Mode
                 dd_select(mfc.dd_output_mode, matrixData.output_mode[0][current_matrix_i]);
+
+                // GPIOPE Address
+                dd_select(mfc.dd_gpiope_address, matrixData.gpiope_address[0][current_matrix_i]);
 
                 // Output Port Slot
                 { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.matrix_port_map[0][current_matrix_i]); lv_label_set_text(mfc.val_port_map, buf); }

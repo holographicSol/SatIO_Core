@@ -263,7 +263,11 @@ typedef struct {
     lv_obj_t * label_map_slot;
     lv_obj_t * dd_map_slot;
 
-    // Port
+    // GPIOPE Address
+    lv_obj_t * label_gpiope_address;
+    lv_obj_t * dd_gpiope_address;
+
+    // Port (GPIOPE Slot)
     lv_obj_t * label_port_map;
     lv_obj_t * val_port_map;
 
@@ -823,6 +827,7 @@ void dd_y_event_cb(lv_event_t * e);
 void dd_z_event_cb(lv_event_t * e);
 void dd_operator_event_cb(lv_event_t * e);
 void dd_output_mode_event_cb(lv_event_t * e);
+void dd_gpiope_address_event_cb(lv_event_t * e);
 void dd_matrix_file_slot_select_event_cb(lv_event_t * e);
 void dd_link_map_slot_event_cb(lv_event_t * e);
 void matrix_new_event_cb(lv_event_t * e);
