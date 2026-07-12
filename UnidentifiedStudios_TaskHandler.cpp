@@ -1100,23 +1100,13 @@ static void taskSwitches(void *pvParameters) {
           GPIOPortExpander* gpiope = isGPIOPE(address);
 
           if (gpiope) {
+
             // use output value or override the value.
             int32_t value_to_send = matrixData.computer_assist[0][Mi]
                               ? matrixData.output_value[0][Mi]
                               : matrixData.override_output_value[0][Mi];
-
-            // Build binary packet with human readable helper functions.
-            clearI2CLinkOutputPacket(gpiope->i2cLink);
-
-            // Command
-            write_uint8_ToPacket(gpiope->i2cLink.OUTPUT_PACKET, gpiope->i2cLink.current_bytes, GPIOPE_CMD_SET_PORTMAP_VALUE);
-            // Index
-            write_uint8_ToPacket(gpiope->i2cLink.OUTPUT_PACKET, gpiope->i2cLink.current_bytes, (uint8_t)matrixData.matrix_port_map[0][Mi]);
-            // Value
-            write_int32_ToPacket(gpiope->i2cLink.OUTPUT_PACKET, gpiope->i2cLink.current_bytes, (int32_t)value_to_send);
-
-            // Write to slave.
-            writeI2CToSlaveBin(gpiope->wire, gpiope->i2cLink, address, gpiope->i2cLink.current_bytes, 0, gpiope->name);
+            
+            GPIOPE_Write_Portmap_Pin(*gpiope, (uint8_t)matrixData.matrix_port_map[0][Mi], value_to_send);
 
             // monitor updated perf (<300uS from >1ms or 4ms)
             // unsigned long iic_t = micros()-iic_t0;
