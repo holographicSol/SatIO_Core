@@ -58,6 +58,22 @@ and the system values are set according to a values mode: GPS, Gyro, User. This 
 
 ---
 
+### GPIOPE
+
+**GPIO Port Expander** — Matrix switch output is on co-processors running GPIOPE.
+
+   **Matrix Output:** For a matrix switch to be able to output, GPIOPE must first be configured for any switch that requies output to a GPIOPE device. This allows for either all output to be on one GPIOPE device or multiple, so that each switch could be assigned its own output device or simply all use the same output device.
+   
+   **Port Map:** The matrix has a programmable list (matrix_port_map) which can be used to specify which GPIOPE port map slot to use, the GPIOPE port map slot
+   contains the actual pin number, which can be specified for that slot with GPIOPE.
+   
+   **I2C Address:** Each matrix switch can also be assigned a GPIOPE address, which should correspond to a configured GPIOPE device.
+   
+   **Summary:** GPIOPEs are now independant from the matrix, allowing each GPIOPE to have its own specific configuration, to be saved and loaded, while a matrix
+   switch can be pointed at a configured GPIOPE device if required. This generally makes input/ouptut expansion more flexible because complete, and potentially
+   unique portmaps and configurations are now stored per GPIOPE device, rather than storing a single port map and configuration in the matrix, which had some
+   limitations that have now been resolved by this seperation of matrix and port expansion devices.
+
 ## Matrix Switch Logic
 
 Logic may require or not require values X, Y, Z. All of the following values can be used in the matrix.
