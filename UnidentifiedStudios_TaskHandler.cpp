@@ -718,8 +718,8 @@ static void taskStorage(void *pvParameters) {
         Serial.printf("[log] setting write flag true\n");
         sdcardFlagData.write_log = true;
       }
-      xSemaphoreGive(dataMutex);
       sdcardFlagHandler();
+      xSemaphoreGive(dataMutex);
       esp_task_wdt_reset();
 
       // ------------------------------------------------
@@ -1037,7 +1037,6 @@ static void taskSwitches(void *pvParameters) {
       // ------------------------------------------------
       unsigned long matrix_start_t = esp_timer_get_time();
       if (matrixSwitch()) {
-        xSemaphoreGive(dataMutex);
         esp_task_wdt_reset();
         
         // --------------------------------------------
@@ -1046,9 +1045,7 @@ static void taskSwitches(void *pvParameters) {
         stepFFCounter(systemData.counters_mtx, 1);
         systemData.counters_mtx.flag_c = true;
         #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
-        xSemaphoreTake(dataMutex, portMAX_DELAY);
         outputSerialMatrix();
-        xSemaphoreGive(dataMutex);
         #endif
       }
       esp_task_wdt_reset();
@@ -1056,22 +1053,17 @@ static void taskSwitches(void *pvParameters) {
       // ------------------------------------------------
       // Mapping.
       // ------------------------------------------------
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
       map_values();
-      xSemaphoreGive(dataMutex);
       esp_task_wdt_reset();
 
       // ------------------------------------------------
       // Output Values.
       // ------------------------------------------------
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
       setOutputValues();
-      xSemaphoreGive(dataMutex);
       esp_task_wdt_reset();
       #endif
 
       #ifdef GPIOPE_USE_OUTPUT
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
       int32_t count_write = 0;
 
       // test re-query (almost ready to utilize up to i2caddr max gpiope's if defined)
@@ -1086,10 +1078,13 @@ static void taskSwitches(void *pvParameters) {
           // Clear the flag now that the value has been sent.
           matrixData.matrix_switch_write_required[0][Mi] = false;
 
-          // Currently allow address to be user defined (will be replaced in coming updates).
+          // Get user specified address
           uint8_t address = matrixData.gpiope_address[0][Mi];
 
+          // Check if device defined
           GPIOPortExpander* gpiope = isGPIOPE(address);
+
+          // printf("address=%d\n", address);
 
           if (gpiope) {
 
@@ -1099,16 +1094,22 @@ static void taskSwitches(void *pvParameters) {
                               : matrixData.override_output_value[0][Mi];
             
             uint8_t port_map_index = matrixData.matrix_port_map[0][Mi];
+
+            // printf("port_map_index=%d\n", port_map_index);
             
             // unsigned long write_gpiope_t0 = esp_timer_get_time();
-            
+            // reduce time to write:
+            // send command byte once using: GPIOPE_Write_Portmap_Pin_NoID() (requires request ID set once elsewhere)
+            // send: uint8 index & a uint8 value (for pins we only need a uint8 currently) 
             GPIOPE_Write_Portmap_Pin(*gpiope, port_map_index, value_to_send);
 
-            // unsigned long write_gpiope_t = esp_timer_get_time()-write_gpiope_t0;
-
+            // printf("write_gpiope_t=%lld\n", esp_timer_get_time()-write_gpiope_t0);
             // printf("matrix_switch_t=%lld\n", esp_timer_get_time()-matrix_start_t);
 
             count_write++;
+          }
+          else {
+            printf("specified unknown gpiope device! address=%d\n", address);
           }
         }
       }
@@ -1118,7 +1119,6 @@ static void taskSwitches(void *pvParameters) {
       // --------------------------------------------
       stepFFCounter(systemData.counters_pco, count_write);
       systemData.counters_pco.flag_c = true;
-      xSemaphoreGive(dataMutex);
       #endif
 
     }
@@ -1126,7 +1126,6 @@ static void taskSwitches(void *pvParameters) {
     // --------------------------------------------
     // Task frequency counter
     // --------------------------------------------
-    xSemaphoreTake(dataMutex, portMAX_DELAY);
     stepFCounter(systemData.counters_mtx, 1);
     xSemaphoreGive(dataMutex);
   }
@@ -1253,13 +1252,13 @@ static void taskUniverse(void *pvParameters) {
 
     // Delay Task
     if (taskFrequencyUniverse() == true) {
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
       esp_task_wdt_reset();
       
       // ------------------------------------------------
       // Set Sidereal Data for Planet/Object Tracking.
       // ------------------------------------------------
       // TODO: throttle track plans seperately so that star nav can rip if required
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
       setSiderealData(
         SatIOData.system_degrees_latitude,
         SatIOData.system_degrees_longitude,

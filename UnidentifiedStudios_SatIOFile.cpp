@@ -1523,7 +1523,7 @@ bool deleteMappingFile(const char *filepath) {
  */
 
 typedef enum {
-    SWITCH_OPCA,
+    SWITCH_GPIOPE_ADDRESS,
     SWITCH_FUNCTION,
     FUNCTION_X,
     FUNCTION_Y,
@@ -1545,7 +1545,7 @@ typedef enum {
    Rule 8.7: internal linkage; only used within this file. */
 static const char * getMatrixTag(int t) {
     switch (t) {
-        case SWITCH_OPCA:        return "SWITCH_OPCA";
+        case SWITCH_GPIOPE_ADDRESS:      return "SWITCH_GPIOPE_ADDRESS";
         case SWITCH_FUNCTION:    return "SWITCH_FUNCTION";
         case FUNCTION_X:         return "FUNCTION_X";
         case FUNCTION_Y:         return "FUNCTION_Y";
@@ -1571,7 +1571,7 @@ bool saveMatrixFile() {
     if (f == NULL) {printf("[saveMatrixFile] Failed to open matrix file.\n"); return false;}
     
     char lineBuf[256];
-    const char *tag_opca        = getMatrixTag(SWITCH_OPCA);
+    const char *tag_gpiope_address  = getMatrixTag(SWITCH_GPIOPE_ADDRESS);
     const char *tag_switch_func = getMatrixTag(SWITCH_FUNCTION);
     const char *tag_func_x      = getMatrixTag(FUNCTION_X);
     const char *tag_func_y      = getMatrixTag(FUNCTION_Y);
@@ -1689,6 +1689,12 @@ bool saveMatrixFile() {
         printLine(f, lineBuf);
     }
 
+    // GPIOPE_ADDRESS
+    for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {
+        snprintf(lineBuf, sizeof(lineBuf), "%s,%d,%d", tag_gpiope_address, i_switch, (int)matrixData.gpiope_address[0][i_switch]);
+        printLine(f, lineBuf);
+    }
+
     fclose(f);
     printf("[saveMatrixFile] done.\n");
     return true;
@@ -1724,7 +1730,7 @@ bool loadMatrixFile() {
         token = strtok(NULL, ","); // remove tag
         while (token != NULL) {if (tokenCount==0) {data_0=token;} else if (tokenCount==1) {data_1=token;} else if (tokenCount==2) {data_2=token;} token = strtok(NULL, ","); tokenCount++;}
 
-        if (tag_index==SWITCH_OPCA) {if (str_is_int8(data_0.c_str()) && str_is_uint8(data_1.c_str())) {matrixData.gpiope_address[0][atoi(data_0.c_str())]=(uint8_t)atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+        if (tag_index==SWITCH_GPIOPE_ADDRESS) {if (str_is_int8(data_0.c_str()) && str_is_uint8(data_1.c_str())) {matrixData.gpiope_address[0][atoi(data_0.c_str())]=(uint8_t)atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==SWITCH_FUNCTION) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_int8(data_2.c_str())) {matrixData.matrix_function[0][atoi(data_0.c_str())][atoi(data_1.c_str())]=atoi(data_2.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==FUNCTION_X) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_double(data_2.c_str())) {matrixData.matrix_function_xyz[0][atoi(data_0.c_str())][atoi(data_1.c_str())][INDEX_MATRIX_FUNTION_X]=strtod(data_2.c_str(), NULL);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==FUNCTION_Y) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_double(data_2.c_str())) {matrixData.matrix_function_xyz[0][atoi(data_0.c_str())][atoi(data_1.c_str())][INDEX_MATRIX_FUNTION_Y]=strtod(data_2.c_str(), NULL);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}

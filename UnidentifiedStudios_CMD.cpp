@@ -238,8 +238,6 @@ static void PrintHelp(void) {
       matrix --startup-disable
       matrix -s n                 Specify switch index n.
       matrix -f n                 Specify function index n.
-      matrix -p n                 Set port slot for switch -s (Pins in slots are defined by gpiope command).  
-      matrix --gpiope n           Set GPIOPE I2C address for switch -s.
       matrix -fn n                Set function -f for switch -s. Primary Comparitors:
                                   [0] NONE
                                   [1] ON
@@ -385,6 +383,8 @@ static void PrintHelp(void) {
       matrix --computer-assist n  Enable/disable computer assist for switch -s.
       matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
       matrix --map-slot n         Set switch -s output as map slot n value.
+      matrix -p n                 Set port slot for switch -s (Pins in slots are defined by gpiope command).  
+      matrix --gpiope n           Set GPIOPE I2C address for switch -s.
 
       example set matrix logic 0 function 0 to detect sdcard mounted:
       matrix -s 0 -f 0 -p 33 -fn 85 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
@@ -473,10 +473,20 @@ static void PrintHelp(void) {
 
   [ Port Expander Output ]
 
-      gpiope -d n -i n -p n               Set port for GPIOPE device. -d device_address -i slot_index -p pin_num. (matrix -p can be pointed at a gpiope slot). 
-      gpiope -d n -i n --pwm0 n --pwm1 n  Set pin index uS off period (pwm0) and uS on period (pwm1).
+      gpiope -a                           Specify address -a.
+      gpiope -i                           Specify port map index -i.
+      gpiope -p                           Specify pin number -p.
+      gpiope -pwm0                        Specify PWM off time in microseconds.
+      gpiope -pwm1                        Specify PWM on time in microseconds.
 
-      example: gpiope -d 9 -i 0 -p 0
+      Example set portmap slot 0 with a pin number 54 for address 9:
+      gpiope -a 9 -i 0 -p 54
+
+      Example set portmap slot 0 PWM for address 9:
+      gpiope -a 9 -i 0 --pwm0 0 --pwm1 0
+
+      Extra example point matrix switch 0 at GPIOPE address 9, slot 0:
+      matrix -s 0 --gpiope 9 -p 0
 
   [ INS ]
 
@@ -1246,52 +1256,70 @@ void CmdProcess(void) {
             }
           }
         }
+
         // gpiope
         else if (strcmp(pos[0], "gpiope")==0) {
-          bool has_d = argparser_has_flag(&parser, "d") == true;
-          bool has_i = argparser_has_flag(&parser, "i") == true;
-          int8_t d = argparser_get_int8(&parser, "d", -1); // device
-          int8_t i = argparser_get_int8(&parser, "i", -1); // index
-          // set port by index
-          if (has_d && has_i && argparser_has_flag(&parser, "p") == true) {
-            int8_t p = argparser_get_int8(&parser, "p", -1); // new port
-            switch (d) {
-              
-              #ifdef GPIOPE_USE_OUTPUT_9
-              case I2C_ADDR_9: {
-                GPIOPE_Set_Portmap_Index_As_Pin(GPIOPE_OUTPUT_9, i, p);
-                GPIOPE_QueryDevice(GPIOPE_OUTPUT_9, I2C_ADDR_9);
-                break;
-              }
-              #endif
 
-              default: {
-                printf("gpiope unchanged. specified unknown gpiope device!");
-                break;
+          bool has_a = argparser_has_flag(&parser, "a") == true;
+          bool has_i = argparser_has_flag(&parser, "i") == true;
+          int8_t address = argparser_get_int8(&parser, "a", -1); // address
+          int8_t portmap_index = argparser_get_int8(&parser, "i", -1); // index
+
+          // Check if device defined for specified address
+          GPIOPortExpander* gpiope = isGPIOPE(address);
+          if (gpiope) {
+            // --------------------------------------------------------------------------------------------------------
+            // Output
+            // --------------------------------------------------------------------------------------------------------
+
+            // set port by index
+            if (has_a && has_i && argparser_has_flag(&parser, "p") == true) {
+              int8_t new_port = argparser_get_int8(&parser, "p", -1); // new port
+                GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, portmap_index, new_port);
+                GPIOPE_QueryDevice(*gpiope, I2C_ADDR_9);
+            }
+
+            // set pwm by index
+            if (has_a && has_i && argparser_has_flag(&parser, "pwm0") && argparser_has_flag(&parser, "pwm1") == true) {
+              uint32_t pwm0 = argparser_get_uint32(&parser, "pwm0", 0);
+              uint32_t pwm1 = argparser_get_uint32(&parser, "pwm1", 0);
+                GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, portmap_index, pwm0, pwm1);
+                GPIOPE_QueryDevice(*gpiope, I2C_ADDR_9);
+            }
+            // --------------------------------------------------------------------------------------------------------
+            // Input
+            // --------------------------------------------------------------------------------------------------------
+
+            // all channels
+            if (argparser_has_flag(&parser, "all") == true) {
+              // enable/disable all channels
+              if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
+                  argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
+                for (uint8_t p=0; p<(uint8_t)gpiope->max_pins; p++) {GPIOPE_Set_Channel_Enabled(*gpiope, p, enable);}
+              }
+              // set all channels frequency
+              if (argparser_has_flag(&parser, "freq") == true) {
+                uint64_t gpioe_freq_all = argparser_get_uint64(&parser, "freq", 0);
+                for (uint8_t p=0; p<(uint8_t)gpiope->max_pins; p++) {GPIOPE_Set_Channel_Frequency(*gpiope, p, gpioe_freq_all);}
               }
             }
-          }
-          // set pwm by index
-          if (has_d && has_i && argparser_has_flag(&parser, "pwm0") && argparser_has_flag(&parser, "pwm1") == true) {
-            uint32_t pwm0 = argparser_get_uint32(&parser, "pwm0", 0);
-            uint32_t pwm1 = argparser_get_uint32(&parser, "pwm1", 0);
-            switch (d) {
-
-              #ifdef GPIOPE_USE_OUTPUT_9
-              case I2C_ADDR_9: {
-                GPIOPE_Set_Portmap_Index_As_PWM(GPIOPE_OUTPUT_9, i, pwm0, pwm1);
-                GPIOPE_QueryDevice(GPIOPE_OUTPUT_9, I2C_ADDR_9);
-                break;
+            // specific channel
+            else if (argparser_has_flag(&parser, "c") == true) {
+              uint8_t gpioe_c = argparser_get_uint8(&parser, "c", 0);
+              // enable/disable specified channel
+              if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
+                  argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
+                GPIOPE_Set_Channel_Enabled(*gpiope, gpioe_c, enable);
               }
-              #endif
-
-              default: {
-                printf("gpiope unchanged. specified unknown gpiope device!");
-                break;
-              }
+              // set frequency for specified channel
+              if (argparser_has_flag(&parser, "freq") == true) {GPIOPE_Set_Channel_Frequency(*gpiope, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
+            }
+            else {
+              printf("gpiope unchanged. specified unknown gpiope device!");
             }
           }
         }
+
         // matrix
         else if (strcmp(pos[0], "matrix")==0) {
           if (argparser_has_flag(&parser, "startup-enable") == true) {matrixData.load_matrix_on_startup=true;}
@@ -1312,8 +1340,8 @@ void CmdProcess(void) {
 
           // now sets an index number for accessing gpiope portmap list
           if (has_s && argparser_has_flag(&parser, "p") == true) {setMatrixGPIOPEPortSlot(s, argparser_get_int8(&parser, "p", 0));}
+          if (has_s && argparser_has_flag(&parser, "gpiope") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "gpiope", 0));}
 
-          if (has_s && argparser_has_flag(&parser, "opca") == true) {setOutputPortControllerAddress(s, argparser_get_uint8(&parser, "opca", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fn") == true) {setMatrixFunction(s, f, argparser_get_int8(&parser, "fn", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fx") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_X, argparser_get_double(&parser, "fx", 0));}
           if (has_s && has_f && argparser_has_flag(&parser, "fy") == true) {setMatrixXYZ(s, f, INDEX_MATRIX_FUNTION_Y, argparser_get_double(&parser, "fy", 0));}
@@ -1433,31 +1461,6 @@ void CmdProcess(void) {
             if (argparser_has_flag(&parser, "freq") == true) {setADMultiplexerChannelFreq(ad_mux_1, admplex1_c, argparser_get_uint64(&parser, "freq", 0));}
           }
         }
-        // gpiope (input port controller)
-        #ifdef GPIOPE_USE_INPUT_0
-        else if (strcmp(pos[0], "gpiope")==0) {
-          // gpiope --all --freq X : set every pin's freq in one call
-          // gpiope --all --enable/--disable : set every pin's enabled state in one call
-          if (argparser_has_flag(&parser, "all") == true) {
-            if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
-                argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {GPIOPE_Set_Channel_Enabled(GPIOPE_INPUT_11, p, enable);}
-            }
-            if (argparser_has_flag(&parser, "freq") == true) {
-              uint64_t gpioe_freq_all = argparser_get_uint64(&parser, "freq", 0);
-              for (uint8_t p=0; p<(uint8_t)GPIOPE_INPUT_11.max_pins; p++) {GPIOPE_Set_Channel_Frequency(GPIOPE_INPUT_11, p, gpioe_freq_all);}
-            }
-          }
-          else if (argparser_has_flag(&parser, "c") == true) {
-            uint8_t gpioe_c = argparser_get_uint8(&parser, "c", 0);
-            if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
-                argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-              GPIOPE_Set_Channel_Enabled(GPIOPE_INPUT_11, gpioe_c, enable);
-            }
-            if (argparser_has_flag(&parser, "freq") == true) {GPIOPE_Set_Channel_Frequency(GPIOPE_INPUT_11, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
-          }
-        }
-        #endif // GPIOPE_USE_INPUT
 
         // else if (strcmp(pos[0], "sdcard")==0) {
         //   if (argparser_has_flag(&parser, "mount")) {mountSDCard();}
