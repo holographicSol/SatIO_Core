@@ -416,7 +416,8 @@ double SiderealPlanets::inRange90(double degrees) {
 // point rounding (e.g. exactly at zenith, where cosAlt should be 0 but isn't
 // bit-exact), not a genuine out-of-range input that would indicate a real
 // bug elsewhere and should surface as NaN rather than be silently masked.
-// Reduce/increase epsilon as requied.
+// Reduce/increase epsilon as requied but remember that increasing/decreasing
+// the epsilon will increase/decrease the blindspot (GIBMLELOCK / Zenith Hole / etc).
 double SiderealPlanets::clampUnit(double d) {
   const double epsilon = 1e-9;
   if (d > 1.0 && d <= 1.0 + epsilon) {
