@@ -411,6 +411,22 @@ double SiderealPlanets::inRange90(double degrees) {
   return degrees;
 }
 
+// Nudges a sine/cosine value back into [-1,1] for asin()/acos(), but only
+// when it's overshot the domain by no more than epsilon -- i.e. floating-
+// point rounding (e.g. exactly at zenith, where cosAlt should be 0 but isn't
+// bit-exact), not a genuine out-of-range input that would indicate a real
+// bug elsewhere and should surface as NaN rather than be silently masked.
+// Reduce/increase epsilon as requied.
+double SiderealPlanets::clampUnit(double d) {
+  const double epsilon = 1e-9;
+  if (d > 1.0 && d <= 1.0 + epsilon) {
+      d = 1.0;
+  } else if (d < -1.0 && d >= -1.0 - epsilon) {
+      d = -1.0;
+  }
+  return d;
+}
+
 /**
  * @brief Quaternion (w,x,y,z), Hamilton convention.
  */
@@ -643,12 +659,12 @@ boolean SiderealPlanets::doRAdec2AltAz(void) {
   double cosHA = cos(HArad);
   double sinHA = sin(HArad);
   sinAlt = (sinDec * sinLat) + (cosDec * cosLat * cosHA);
-  AltRad = asin(sinAlt);
+  AltRad = asin(clampUnit(sinAlt));
   cosAlt = cos(AltRad);
   double b = cosLat * cosAlt;
   if (b < 1e-10) b = 1e-10;
   cosAz = (sinDec - (sinLat * sinAlt)) / b;
-  AzRad = acos(cosAz);
+  AzRad = acos(clampUnit(cosAz));
   if (sinHA > 0) AzRad = F2PI - AzRad;
   sinAz = sin(AzRad);
   return true;
@@ -656,12 +672,12 @@ boolean SiderealPlanets::doRAdec2AltAz(void) {
 
 boolean SiderealPlanets::doAltAz2RAdec(void) {
   sinDec = (sinAlt * sinLat) + (cosAlt * cosLat * cosAz);
-  DeclinationRad = asin(sinDec);
+  DeclinationRad = asin(clampUnit(sinDec));
   cosDec = cos(DeclinationRad);
   double b = cosLat * cosDec;
   if (b < 1e-10) b = 1e-10;
   double cosHA = (sinAlt - (sinLat * sinDec)) / b;
-  double HArad = acos(cosHA);
+  double HArad = acos(clampUnit(cosHA));
   if (sinAz > 0) HArad = F2PI - HArad;
   double HAdec = rad2deg(HArad) / 15.04107;
   double RAdec = inRange24(getLocalSiderealTime() - HAdec);

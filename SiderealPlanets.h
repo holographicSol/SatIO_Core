@@ -212,6 +212,7 @@ class SiderealPlanets {
 	double inRange24(double d);
 	double inRange360(double d);
 	double inRange2PI(double d);
+	double clampUnit(double d);
 	double deg2rad(double n);
 	double rad2deg(double n);
 	boolean doPrecessArray(void);
