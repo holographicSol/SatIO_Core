@@ -989,17 +989,17 @@ void setGroundHeading(double heading) {
 void setRaDec(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s) {
   if (ra_h>=0 && ra_h<24 && ra_m>=0 && ra_m<60 && ra_s>=0.0f && ra_s<60.0f &&
       dec_d>=-90 && dec_d<=90 && dec_m>=0 && dec_m<60 && dec_s>=0.0f && dec_s<60.0f) {
-    SatIOData.user_ra_dec.ra_h = ra_h;
-    SatIOData.user_ra_dec.ra_m = ra_m;
-    SatIOData.user_ra_dec.ra_s = ra_s;
-    SatIOData.user_ra_dec.dec_d = dec_d;
-    SatIOData.user_ra_dec.dec_m = dec_m;
-    SatIOData.user_ra_dec.dec_s = dec_s;
+    SatIOData.user_sidereal_attitude.ra_h = ra_h;
+    SatIOData.user_sidereal_attitude.ra_m = ra_m;
+    SatIOData.user_sidereal_attitude.ra_s = ra_s;
+    SatIOData.user_sidereal_attitude.dec_d = dec_d;
+    SatIOData.user_sidereal_attitude.dec_m = dec_m;
+    SatIOData.user_sidereal_attitude.dec_s = dec_s;
 
-    snprintf(SatIOData.user_ra_dec.formatted_ra_str,  sizeof(SatIOData.user_ra_dec.formatted_ra_str),  "%02d:%02d:%02.2f",  ra_h,  ra_m,  ra_s);
-    snprintf(SatIOData.user_ra_dec.formatted_dec_str, sizeof(SatIOData.user_ra_dec.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
-    snprintf(SatIOData.user_ra_dec.padded_ra_str,     sizeof(SatIOData.user_ra_dec.padded_ra_str),     "%02d%02d%02.2f",    ra_h,  ra_m,  ra_s);
-    snprintf(SatIOData.user_ra_dec.padded_dec_str,    sizeof(SatIOData.user_ra_dec.padded_dec_str),    "%+02d%02d%02.2f",   dec_d, dec_m, dec_s);
+    snprintf(SatIOData.user_sidereal_attitude.formatted_ra_str,  sizeof(SatIOData.user_sidereal_attitude.formatted_ra_str),  "%02d:%02d:%02.2f",  ra_h,  ra_m,  ra_s);
+    snprintf(SatIOData.user_sidereal_attitude.formatted_dec_str, sizeof(SatIOData.user_sidereal_attitude.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
+    snprintf(SatIOData.user_sidereal_attitude.padded_ra_str,     sizeof(SatIOData.user_sidereal_attitude.padded_ra_str),     "%02d%02d%02.2f",    ra_h,  ra_m,  ra_s);
+    snprintf(SatIOData.user_sidereal_attitude.padded_dec_str,    sizeof(SatIOData.user_sidereal_attitude.padded_dec_str),    "%+02d%02d%02.2f",   dec_d, dec_m, dec_s);
   }
 }
 
@@ -1415,8 +1415,8 @@ void CmdProcess(void) {
                      argparser_get_int8(&parser, "dec-m", -1),
                      argparser_get_float(&parser, "dec-s", -1.0f));
           }
-          if (argparser_has_flag(&parser, "ra-dec-value-mode-gyro") == true) {SatIOData.ra_dec_value_mode=SATIO_MODE_GYRO;}
-          if (argparser_has_flag(&parser, "ra-dec-value-mode-user") == true) {SatIOData.ra_dec_value_mode=SATIO_MODE_USER;}
+          if (argparser_has_flag(&parser, "ra-dec-value-mode-gyro") == true) {SatIOData.sidereal_attitude_value_mode=SATIO_MODE_GYRO;}
+          if (argparser_has_flag(&parser, "ra-dec-value-mode-user") == true) {SatIOData.sidereal_attitude_value_mode=SATIO_MODE_USER;}
         }
         // gyro
         else if (strcmp(pos[0], "gyro")==0) {
@@ -1739,12 +1739,12 @@ void outputSerialSatIO(void) {
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(SatIOData.localMeanSolarTime.sync_padded_time_HHMMSS) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(SatIOData.localMeanSolarTime.sync_padded_date_DDMMYYYY) + ",").c_str());
 
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealExtraData.local_sidereal_time) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.local_sidereal_time) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.local_sidereal_attitude.padded_ra_str) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.local_sidereal_attitude.padded_dec_str) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.gyro_0_sidereal_attitude.padded_ra_str) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.gyro_0_sidereal_attitude.padded_dec_str) + ",").c_str());
 
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealExtraData.local_zenith_ra_dec.padded_ra_str) + ",").c_str());
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealExtraData.local_zenith_ra_dec.padded_dec_str) + ",").c_str());
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealExtraData.gyro_0_ra_dec.padded_ra_str) + ",").c_str());
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealExtraData.gyro_0_ra_dec.padded_dec_str) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(insData.ins_latitude, 7) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(insData.ins_longitude, 7) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(insData.ins_altitude) + ",").c_str());
@@ -3733,12 +3733,12 @@ void outputStat(void) {
      * Observe if level, upright gyro RA Dec are accurate to absolute local zenith RA Dec.
      */
     {
-        struct StatRaDecSource { const char* label; const char* ra; const char* dec; };
+        struct StatRaDecSource { const char* label; const char* ra; const char* dec; double az; double alt; };
         const StatRaDecSource sources[] = {
-            {"Zenith", siderealExtraData.local_zenith_ra_dec.formatted_ra_str, siderealExtraData.local_zenith_ra_dec.formatted_dec_str},
-            {"Gyro",   siderealExtraData.gyro_0_ra_dec.formatted_ra_str,       siderealExtraData.gyro_0_ra_dec.formatted_dec_str},
-            {"User",   SatIOData.user_ra_dec.formatted_ra_str,                 SatIOData.user_ra_dec.formatted_dec_str},
-            {"System", SatIOData.system_ra_dec.formatted_ra_str,               SatIOData.system_ra_dec.formatted_dec_str},
+            {"Zenith", siderealPlanetData.local_sidereal_attitude.formatted_ra_str,  siderealPlanetData.local_sidereal_attitude.formatted_dec_str,  siderealPlanetData.local_sidereal_attitude.az,  siderealPlanetData.local_sidereal_attitude.alt},
+            {"Gyro",   siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str, siderealPlanetData.gyro_0_sidereal_attitude.az, siderealPlanetData.gyro_0_sidereal_attitude.alt},
+            {"User",   SatIOData.user_sidereal_attitude.formatted_ra_str,            SatIOData.user_sidereal_attitude.formatted_dec_str,            SatIOData.user_sidereal_attitude.az,            SatIOData.user_sidereal_attitude.alt},
+            {"System", SatIOData.system_sidereal_attitude.formatted_ra_str,          SatIOData.system_sidereal_attitude.formatted_dec_str,          SatIOData.system_sidereal_attitude.az,          SatIOData.system_sidereal_attitude.alt},
         };
         const int numSources = sizeof(sources) / sizeof(sources[0]);
 
@@ -3752,6 +3752,12 @@ void outputStat(void) {
         printf("\n");
         printf(STAT_LABEL_FMT, "Dec");
         for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_S, sources[i].dec);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Az");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_F, sources[i].az);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Alt");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_F, sources[i].alt);}
         printf("\n");
     }
 

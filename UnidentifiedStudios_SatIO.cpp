@@ -118,31 +118,35 @@ struct SatIOStruct SatIOData = {
     // ------------------------------------------------------------------------------------
     // RA/DEC TARGET SETTINGS
     // ------------------------------------------------------------------------------------
-    .user_ra_dec = {
+    .user_sidereal_attitude = {
       .ra_h = 0,
       .ra_m = 0,
       .ra_s = 0,
       .dec_d = 0,
       .dec_m = 0,
       .dec_s = 0,
+      .az = 0.0,
+      .alt = 0.0,
       .formatted_ra_str = "00:00:00",
       .formatted_dec_str = "00:00:00",
       .padded_ra_str = "000000",
       .padded_dec_str = "000000",
     },
-    .system_ra_dec = {
+    .system_sidereal_attitude = {
       .ra_h = 0,
       .ra_m = 0,
       .ra_s = 0,
       .dec_d = 0,
       .dec_m = 0,
       .dec_s = 0,
+      .az = 0.0,
+      .alt = 0.0,
       .formatted_ra_str = "00:00:00",
       .formatted_dec_str = "00:00:00",
       .padded_ra_str = "000000",
       .padded_dec_str = "000000",
     },
-    .ra_dec_value_mode = SATIO_MODE_GYRO,
+    .sidereal_attitude_value_mode = SATIO_MODE_GYRO,
     // ------------------------------------------------------------------------------------
     // MILEAGE
     // ------------------------------------------------------------------------------------
@@ -224,15 +228,15 @@ void setSatIOGroundHeading(void) {
 /**
  * Set SatIO RA/Dec target according to update mode. Unlike the other
  * SatIO_MODE_GPS-backed fields above, RA/Dec has no GPS reading -- its
- * live source is the gyro-derived zenith offset (siderealExtraData.gyro_0_ra_dec),
+ * live source is the gyro-derived zenith offset (siderealPlanetData.gyro_0_sidereal_attitude),
  * so the two modes here are SATIO_MODE_GYRO and SATIO_MODE_USER.
  */
 void setSatIORaDec(void) {
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (SatIOData.ra_dec_value_mode==SATIO_MODE_GYRO) {SatIOData.system_ra_dec = siderealExtraData.gyro_0_ra_dec;}
-  else if (SatIOData.ra_dec_value_mode==SATIO_MODE_USER) {SatIOData.system_ra_dec = SatIOData.user_ra_dec;}
+  if      (SatIOData.sidereal_attitude_value_mode==SATIO_MODE_GYRO) {SatIOData.system_sidereal_attitude = siderealPlanetData.gyro_0_sidereal_attitude;}
+  else if (SatIOData.sidereal_attitude_value_mode==SATIO_MODE_USER) {SatIOData.system_sidereal_attitude = SatIOData.user_sidereal_attitude;}
 }
 
 // ----------------------------------------------------------------------------------------
@@ -555,7 +559,7 @@ void storeLMST(void) {
 // ----------------------------------------------------------------------------------------
 /**
  * Fills SatIOData.localSiderealTime from a decimal-hours LST reading
- * (siderealExtraData.local_sidereal_time). Sidereal time has no calendar of
+ * (siderealPlanetData.local_sidereal_time). Sidereal time has no calendar of
  * its own, so the year/month/mday/yday/wday fields mirror systemTime -- the
  * UTC instant the reading was taken for -- and unixtime_uS is left at 0,
  * the same convention storeLMST() uses above.
@@ -764,7 +768,7 @@ void applyPendingDateTimeStore(void) {
   storeSystemTime();
   storeLocalTime();
   storeLMST();
-  // storeLST(siderealExtraData.local_sidereal_time);
+  // storeLST(siderealPlanetData.local_sidereal_time);
 }
 
 /* */
@@ -884,7 +888,7 @@ void initSystemTime(void) {
   storeSystemTime();
   storeLocalTime();
   storeLMST();
-  // storeLST(siderealExtraData.local_sidereal_time);
+  // storeLST(siderealPlanetData.local_sidereal_time);
   Serial.println("[SYNC] system datetime: " +
                  String(SatIOData.systemTime.padded_time_HHMMSS) + " " +
                  String(SatIOData.systemTime.padded_date_DDMMYYYY) +

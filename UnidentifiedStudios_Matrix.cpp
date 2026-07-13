@@ -3024,29 +3024,29 @@ bool matrixSwitch(void) {
 
         #ifdef SatIO_USE_UNIVERSE
         case INDEX_MATRIX_SWITCH_FUNCTION_LST:
-          tmp_x = siderealExtraData.local_sidereal_time;
+          tmp_x = siderealPlanetData.local_sidereal_time;
           handle_digit = true;
           break;
 
         case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_ZENITH_RA:
-          tmp_x = (double)atol(siderealExtraData.local_zenith_ra_dec.padded_ra_str);
+          tmp_x = (double)atol(siderealPlanetData.local_sidereal_attitude.padded_ra_str);
           handle_digit = true;
           break;
 
         case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_ZENITH_DEC:
-          tmp_x = (double)atol(siderealExtraData.local_zenith_ra_dec.padded_dec_str);
+          tmp_x = (double)atol(siderealPlanetData.local_sidereal_attitude.padded_dec_str);
           handle_digit = true;
           break;
         #endif // SatIO_USE_UNIVERSE
 
         #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
         case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_RA:
-          tmp_x = (double)atol(siderealExtraData.gyro_0_ra_dec.padded_ra_str);
+          tmp_x = (double)atol(siderealPlanetData.gyro_0_sidereal_attitude.padded_ra_str);
           handle_digit = true;
           break;
 
         case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_DEC:
-          tmp_x = (double)atol(siderealExtraData.gyro_0_ra_dec.padded_dec_str);
+          tmp_x = (double)atol(siderealPlanetData.gyro_0_sidereal_attitude.padded_dec_str);
           handle_digit = true;
           break;
         #endif // SatIO_USE_UNIVERSE && SatIO_USE_GYRO_0

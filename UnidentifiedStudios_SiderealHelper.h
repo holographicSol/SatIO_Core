@@ -150,6 +150,10 @@ struct SiderealPlantetsStruct {
     double neptune_ecliptic_lat;
     double neptune_ecliptic_long;
     char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
+
+    double local_sidereal_time;
+    SiderealAttitudeData local_sidereal_attitude;
+    SiderealAttitudeData gyro_0_sidereal_attitude;
 };
 extern struct SiderealPlantetsStruct siderealPlanetData;
 
@@ -176,13 +180,6 @@ struct SiderealObjectStruct {
     double object_dist;
 };
 extern struct SiderealObjectStruct siderealObjectData;
-
-struct SiderealExtraData {
-    double local_sidereal_time;    // LST
-    RaDecData local_zenith_ra_dec; // local zenith RA Dec
-    RaDecData gyro_0_ra_dec;       // gyro 0 zenith RA Dec
-};
-extern struct SiderealExtraData siderealExtraData;
 
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
@@ -233,7 +230,7 @@ void trackPlanets(void);
  * @param gyro_yaw_deg Yaw delta in degrees, applied to RA
  * @param gyro_pitch_deg Pitch delta in degrees, applied to Dec
  */
-RaDecData gyroOffsetZenithRADec(double gyro_yaw_deg, double gyro_pitch_deg);
+SiderealAttitudeData gyroOffsetZenithRADec(double gyro_yaw_deg, double gyro_pitch_deg);
 
 /** Tracks the Sun: RA/Dec, Alt/Az, ecliptic position, sunrise/sunset. */
 void trackSun(void);

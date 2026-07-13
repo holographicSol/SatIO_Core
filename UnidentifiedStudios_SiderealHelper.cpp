@@ -147,7 +147,37 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .neptune_distance = NAN,
     .neptune_ecliptic_lat = NAN,
     .neptune_ecliptic_long = NAN,
-    .sentence = {0}
+    .sentence = {0},
+
+    .local_sidereal_time = 0.0,
+    .local_sidereal_attitude = {
+        0,   // ra_h
+        0,   // ra_m
+        0.0, // ra_s
+        0,   // dec_d
+        0,   // dec_m
+        0.0, // dec_s
+        0.0, // az
+        0.0, // alt
+        {0}, // formatted_ra_str
+        {0}, // formatted_dec_str
+        {0}, // padded_ra_str
+        {0}  // padded_dec_str
+    },
+    .gyro_0_sidereal_attitude = {
+        0,   // ra_h
+        0,   // ra_m
+        0.0, // ra_s
+        0,   // dec_d
+        0,   // dec_m
+        0.0, // dec_s
+        0.0, // az
+        0.0, // alt
+        {0}, // formatted_ra_str
+        {0}, // formatted_dec_str
+        {0}, // padded_ra_str
+        {0}  // padded_dec_str
+    }
 };
 struct SiderealObjectStruct siderealObjectData = {
     .object_name = {0},
@@ -176,154 +206,6 @@ struct SiderealObjectStruct siderealObjectData = {
     .object_desc = {0},
     .object_dist = NAN,
 };
-
-struct SiderealExtraData siderealExtraData = {
-    .local_sidereal_time = 0.0,
-    .local_zenith_ra_dec = {
-        0,   // ra_h
-        0,   // ra_m
-        0.0, // ra_s
-        0,   // dec_d
-        0,   // dec_m
-        0.0, // dec_s
-        {0}, // formatted_ra_str
-        {0}, // formatted_dec_str
-        {0}, // padded_ra_str
-        {0}  // padded_dec_str
-    },
-    .gyro_0_ra_dec = {
-        0,   // ra_h
-        0,   // ra_m
-        0.0, // ra_s
-        0,   // dec_d
-        0,   // dec_m
-        0.0, // dec_s
-        {0}, // formatted_ra_str
-        {0}, // formatted_dec_str
-        {0}, // padded_ra_str
-        {0}  // padded_dec_str
-    },
-};
-
-static inline double radec_to_ra_deg(const RaDecData *r)
-{
-    double sign = (r->ra_h < 0) ? -1.0 : 1.0; /* RA hours shouldn't be negative, but guard anyway */
-    double hours = fabs((double)r->ra_h) + (double)r->ra_m / 60.0 + (double)r->ra_s / 3600.0;
-    return sign * hours * 15.0; /* 15 deg per hour */
-}
-
-static inline double radec_to_dec_deg(const RaDecData *r)
-{
-    double sign = (r->dec_d < 0) ? -1.0 : 1.0;
-    double deg = fabs((double)r->dec_d) + (double)r->dec_m / 60.0 + (double)r->dec_s / 3600.0;
-    return sign * deg;
-}
-
-/*
- * gyro_yaw_deg   -> applied to RA  (ang_z)
- * gyro_pitch_deg -> applied to Dec (ang_y)
- */
-RaDecData gyroOffsetZenithRADec(double gyro_yaw_deg, double gyro_pitch_deg)
-{
-    RaDecData radecData = {
-        0,   // ra_h
-        0,   // ra_m
-        0.0, // ra_s
-        0,   // dec_d
-        0,   // dec_m
-        0.0, // dec_s
-        {0}, // formatted_ra_str
-        {0}, // formatted_dec_str
-        {0}, // padded_ra_str
-        {0}  // padded_dec_str
-    };
-
-    /* Convert RA and Dec to degrees to make the following conversions easier. */
-    double ra_deg = radec_to_ra_deg(&siderealExtraData.local_zenith_ra_dec);
-    double dec_deg = radec_to_dec_deg(&siderealExtraData.local_zenith_ra_dec);
-
-    /* Dec offset is a direct angular offset. */
-    double new_dec = dec_deg + gyro_pitch_deg;
-
-    /* RA offset scales with 1/cos(dec) (degrees of RA shrink toward the poles). */
-    double cos_dec = cos(dec_deg * M_PI / 180.0);
-    double ra_scale = (fabs(cos_dec) > 1e-6) ? (1.0 / cos_dec) : 1.0; /* guard near pole */
-    double new_ra = ra_deg + (gyro_yaw_deg * ra_scale);
-
-    /* Handle Dec pole-crossing: reflect back into [-90,90] and flip RA 180 degrees. */
-    if (new_dec > 90.0)
-    {
-        new_dec = 180.0 - new_dec;
-        new_ra += 180.0;
-    }
-    else if (new_dec < -90.0)
-    {
-        new_dec = -180.0 - new_dec;
-        new_ra += 180.0;
-    }
-    else
-    {
-        /* no pole crossing */
-    }
-
-    new_ra = fmod(new_ra, 360.0);
-    if (new_ra < 0.0)
-    {
-        new_ra += 360.0;
-    }
-
-    double ra_hours = new_ra / 15.0;
-    int ra_h = (int)ra_hours;
-    double ra_rem_min = (ra_hours - ra_h) * 60.0;
-    int ra_m = (int)ra_rem_min;
-    double ra_s = (ra_rem_min - ra_m) * 60.0;
-
-    if (ra_s >= 59.9995)
-    {
-        ra_s = 0.0;
-        ra_m++;
-        if (ra_m >= 60)
-        {
-            ra_m = 0;
-            ra_h++;
-            if (ra_h >= 24)
-            {
-                ra_h = 0;
-            }
-        }
-    }
-
-    double adeg = fabs(new_dec);
-    int dec_d = (int)adeg;
-    double dec_rem_min = (adeg - dec_d) * 60.0;
-    int dec_m = (int)dec_rem_min;
-    double dec_s = (dec_rem_min - dec_m) * 60.0;
-
-    if (dec_s >= 59.995)
-    {
-        dec_s = 0.0;
-        dec_m++;
-        if (dec_m >= 60)
-        {
-            dec_m = 0;
-            dec_d++;
-        }
-    }
-
-    radecData.ra_h = ra_h;
-    radecData.ra_m = ra_m;
-    radecData.ra_s = ra_s;
-    radecData.dec_d = dec_d;
-    radecData.dec_m = dec_m;
-    radecData.dec_s = dec_s;
-
-    snprintf(radecData.formatted_ra_str, sizeof(radecData.formatted_ra_str), "%02d:%02d:%02.2f", ra_h, ra_m, ra_s);
-    snprintf(radecData.formatted_dec_str, sizeof(radecData.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
-    snprintf(radecData.padded_ra_str, sizeof(radecData.padded_ra_str), "%02d%02d%02.2f", ra_h, ra_m, ra_s);
-    snprintf(radecData.padded_dec_str, sizeof(radecData.padded_dec_str), "%+02d%02d%02.2f", dec_d, dec_m, dec_s);
-
-    return radecData; /* Rule 15.5: single point of exit */
-}
 
 /*
  * Object identity fields (name/type/constellation) share one shape: look
@@ -1016,13 +898,13 @@ void setSiderealData(double latitude, double longitude,
     // ----------------------------------------------------------------------------------
     // Elevation (experimental).
     // ----------------------------------------------------------------------------------
-    // myAstro.setElevationM(altitude);
-    // myAstro.spData.DegreesAltitudeOffsetByElevationM = myAstro.inRange90(myAstro.getDegreesAltitudeOffsetByElevationM(altitude));
+    myAstro.setElevationM(altitude);
+    myAstro.spData.DegreesAltitudeOffsetByElevationM = myAstro.inRange90(myAstro.getDegreesAltitudeOffsetByElevationM(altitude));
 
     // -------------------------------------------------------
     // Get Sidereal Time Data.
     // -------------------------------------------------------
-    siderealExtraData.local_sidereal_time = myAstro.getLocalSiderealTime();
+    siderealPlanetData.local_sidereal_time = myAstro.getLocalSiderealTime();
 }
 
 void myAstroBegin(void)

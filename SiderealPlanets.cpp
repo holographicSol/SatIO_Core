@@ -412,42 +412,99 @@ double SiderealPlanets::inRange90(double degrees) {
 }
 
 /**
- * @brief Calculate RA & DEC at zenith for given LST (Local Sidereal Time) and coordinates.
- * 
- * @param lst Local Sidereal Time in hours
- * @param lat Latitude in degrees
- * @return RaDecData RA/DEC data structure
+ * @brief Quaternion (w,x,y,z), Hamilton convention.
  */
-RaDecData SiderealPlanets::getRADecFromLSTLat(double lst, double latitude_degrees) {
+struct Quaternion {
+    double w;
+    double x;
+    double y;
+    double z;
+};
 
-    RaDecData radecData = {
+/**
+ * @brief Builds a quaternion from roll/pitch/yaw (radians), using the
+ * aerospace ZYX intrinsic (yaw-pitch-roll) convention: R = Rz(yaw)*Ry(pitch)*Rx(roll).
+ */
+static Quaternion quaternionFromEuler(double roll_rad, double pitch_rad, double yaw_rad) {
+    double cr = cos(roll_rad * 0.5),  sr = sin(roll_rad * 0.5);
+    double cp = cos(pitch_rad * 0.5), sp = sin(pitch_rad * 0.5);
+    double cy = cos(yaw_rad * 0.5),   sy = sin(yaw_rad * 0.5);
+
+    Quaternion q;
+    q.w = (cy * cp * cr) + (sy * sp * sr);
+    q.x = (cy * cp * sr) - (sy * sp * cr);
+    q.y = (cy * sp * cr) + (sy * cp * sr);
+    q.z = (sy * cp * cr) - (cy * sp * sr);
+    return q;
+}
+
+/**
+ * @brief Rotates vector (vx,vy,vz) by quaternion q: v' = q * v * conjugate(q).
+ */
+static void quaternionRotateVector(const Quaternion &q, double vx, double vy, double vz,
+                                    double *out_x, double *out_y, double *out_z) {
+    double tx = 2.0 * ((q.y * vz) - (q.z * vy));
+    double ty = 2.0 * ((q.z * vx) - (q.x * vz));
+    double tz = 2.0 * ((q.x * vy) - (q.y * vx));
+
+    *out_x = vx + (q.w * tx) + ((q.y * tz) - (q.z * ty));
+    *out_y = vy + (q.w * ty) + ((q.z * tx) - (q.x * tz));
+    *out_z = vz + (q.w * tz) + ((q.x * ty) - (q.y * tx));
+}
+
+/**
+ * @brief Calculate RA & Dec, azimuth and altitude for a given roll/pitch/yaw attitude.
+ * @param roll  Rotation about the boresight's forward axis, degrees.
+ * @param pitch Rotation about the lateral axis (nose up/down from level), degrees.
+ * @param yaw   Rotation about the vertical axis (heading from North), degrees.
+ * @return SiderealAttitudeData SiderealAttitudeData data structure
+ * @note Relies on latitude/longitude and GMT date/time already having been
+ * set (via setLatLong()/setGMTdate()/setGMTtime()) by the caller.
+ */
+SiderealAttitudeData SiderealPlanets::getSiderealAttitude(float roll, float pitch, float yaw) {
+
+    SiderealAttitudeData radecData = {
         0,   // ra_h
         0,   // ra_m
         0.0, // ra_s
         0,   // dec_d
         0,   // dec_m
         0.0, // dec_s
+        0.0,  // az
+        0.0,  // alt
         {0},  // formatted_ra_str
         {0},  // formatted_dec_str
         {0},  // padded_ra_str
         {0}   // padded_dec_str
     };
 
-    double zenith_ra = lst;               // RA of zenith = current LST
-    double zenith_dec = latitude_degrees; // Dec of zenith = observer latitude
+    // Rotate the body boresight -- (0,0,1), i.e. local zenith when level -- by
+    // roll/pitch/yaw to get a pointing vector in the local North/East/Up frame.
+    Quaternion attitude = quaternionFromEuler(deg2rad(roll), deg2rad(pitch), deg2rad(yaw));
+    double north, east, up;
+    quaternionRotateVector(attitude, 0.0, 0.0, 1.0, &north, &east, &up);
+
+    double az_deg = rad2deg(atan2(east, north));
+    if (az_deg < 0.0) {
+        az_deg += 360.0;
+    }
+    double alt_deg = rad2deg(asin(up));
+
+    setAltAz(alt_deg, az_deg);
+    doAltAz2RAdec();
+
+    double new_ra_hours = getRAdec();
+    double new_dec_deg = getDeclinationDec();
 
     // Output in HH:MM:SS.S format
-    signed int ra_h = (int)zenith_ra;
-    signed int ra_m = (int)((zenith_ra - ra_h) * 60.0);
-    float ra_s = (float)(((zenith_ra - ra_h) * 60.0 - ra_m) * 60.0);
+    signed int ra_h = (int)new_ra_hours;
+    signed int ra_m = (int)((new_ra_hours - ra_h) * 60.0);
+    float ra_s = (float)(((new_ra_hours - ra_h) * 60.0 - ra_m) * 60.0);
 
     // Output in DD:MM:SS.S format
-    signed int dec_d = (int)zenith_dec;
-    signed int dec_m = (int)((zenith_dec - dec_d) * 60.0);
-    float dec_s = (float)(((zenith_dec - dec_d) * 60.0 - dec_m) * 60.0);
-
-    // printf("[getRADecFromLSTLat] Zenith RA:  %02d:%02d:%05.2f\n", ra_h, ra_m, ra_s);
-    // printf("[getRADecFromLSTLat] Zenith Dec: %+03d:%02d:%05.2f\n", dec_d, dec_m, dec_s);
+    signed int dec_d = (int)new_dec_deg;
+    signed int dec_m = (int)((new_dec_deg - dec_d) * 60.0);
+    float dec_s = (float)(((new_dec_deg - dec_d) * 60.0 - dec_m) * 60.0);
 
     radecData.ra_h = ra_h;
     radecData.ra_m = ra_m;
@@ -455,24 +512,24 @@ RaDecData SiderealPlanets::getRADecFromLSTLat(double lst, double latitude_degree
     radecData.dec_d = dec_d;
     radecData.dec_m = dec_m;
     radecData.dec_s = dec_s;
+    radecData.az = az_deg;
+    radecData.alt = alt_deg + spData.DegreesAltitudeOffsetByElevationM;
 
     // Format RA
     memset(radecData.formatted_ra_str, 0, sizeof(radecData.formatted_ra_str));
     snprintf(radecData.formatted_ra_str, sizeof(radecData.formatted_ra_str), "%02d:%02d:%02.2f", ra_h, ra_m, ra_s);
-    // printf("[getRADecFromLSTLat] formatted ra:  %s\n", radecData.formatted_ra_str);
+
     // Format Dec
     memset(radecData.formatted_dec_str, 0, sizeof(radecData.formatted_dec_str));
     snprintf(radecData.formatted_dec_str, sizeof(radecData.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
-    // printf("[getRADecFromLSTLat] formatted dec: %s\n", radecData.formatted_dec_str);
 
     // Format padded RA
     memset(radecData.padded_ra_str, 0, sizeof(radecData.padded_ra_str));
     snprintf(radecData.padded_ra_str, sizeof(radecData.padded_ra_str), "%02d%02d%02.2f", ra_h, ra_m, ra_s);
-    // printf("[getRADecFromLSTLat] padded ra:  %s\n", radecData.padded_ra_str);
+
     // Format padded Dec
     memset(radecData.padded_dec_str, 0, sizeof(radecData.padded_dec_str));
     snprintf(radecData.padded_dec_str, sizeof(radecData.padded_dec_str), "%+02d%02d%02.2f", dec_d, dec_m, dec_s);
-    // printf("[getRADecFromLSTLat] padded dec: %s\n", radecData.padded_dec_str);
 
     return radecData;
 }

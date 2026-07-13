@@ -239,9 +239,9 @@ struct SatIOStruct {
     // ------------------------------------------------------------------------------------
     // RA/DEC TARGET SETTINGS
     // ------------------------------------------------------------------------------------
-    RaDecData user_ra_dec;   // User specified RA/Dec target
-    RaDecData system_ra_dec; // System RA/Dec (Gyro0 / User)
-    int ra_dec_value_mode;   // Gyro / User
+    SiderealAttitudeData user_sidereal_attitude;   // User specified RA/Dec target
+    SiderealAttitudeData system_sidereal_attitude; // System RA/Dec (Gyro0 / User)
+    int sidereal_attitude_value_mode;              // Gyro / User
     // ------------------------------------------------------------------------------------
     // MILEAGE
     // ------------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ struct SatIOStruct {
     SatIOTimeData systemTime;
     SatIOTimeData localTime;
     SatIOTimeData localMeanSolarTime;
-    SatIOTimeData localSiderealTime; // hour/minute/second decoded from siderealExtraData.local_sidereal_time; date/day fields mirror systemTime (the UTC instant the reading was taken for)
+    SatIOTimeData localSiderealTime; // hour/minute/second decoded from siderealPlanetData.local_sidereal_time; date/day fields mirror systemTime (the UTC instant the reading was taken for)
 };
 extern struct SatIOStruct SatIOData;
 

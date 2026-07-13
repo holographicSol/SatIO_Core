@@ -1272,7 +1272,10 @@ static void taskUniverse(void *pvParameters) {
         SatIOData.localTime.minute,
         SatIOData.localTime.second,
         SatIOData.system_altitude);
-      storeLST(siderealExtraData.local_sidereal_time);
+      
+      // edit
+      storeLST(siderealPlanetData.local_sidereal_time);
+
       esp_task_wdt_reset();
 
       // ------------------------------------------------
@@ -1286,16 +1289,19 @@ static void taskUniverse(void *pvParameters) {
       // ------------------------------------------------
       // Set RA & Dec for system zenith. (add to matrix)
       // ------------------------------------------------
-      siderealExtraData.local_zenith_ra_dec = myAstro.getRADecFromLSTLat(
-        siderealExtraData.local_sidereal_time,
-        SatIOData.system_degrees_latitude);
+      siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(0, 0, 0);
         esp_task_wdt_reset();
 
       #ifdef SatIO_USE_GYRO_0
       // ------------------------------------------------
       // Set RA & Dec for system zenith +- Gyro. (add to matrix)
       // ------------------------------------------------
-      siderealExtraData.gyro_0_ra_dec = gyroOffsetZenithRADec(gyroData.gyro_0_ang_z, gyroData.gyro_0_ang_y);
+
+      siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
+        gyroData.gyro_0_ang_x,  // roll
+        gyroData.gyro_0_ang_y,  // pitch
+        gyroData.gyro_0_ang_z   // yaw
+      );
       esp_task_wdt_reset();
       #endif
 
@@ -1303,12 +1309,12 @@ static void taskUniverse(void *pvParameters) {
       // StarNav Dynamic Test Zenith Every Interval
       // ------------------------------------------------
       setStarNav(
-        siderealExtraData.local_zenith_ra_dec.ra_h,
-        siderealExtraData.local_zenith_ra_dec.ra_m,
-        siderealExtraData.local_zenith_ra_dec.ra_s,
-        siderealExtraData.local_zenith_ra_dec.dec_d,
-        siderealExtraData.local_zenith_ra_dec.dec_m,
-        siderealExtraData.local_zenith_ra_dec.dec_s
+        siderealPlanetData.local_sidereal_attitude.ra_h,
+        siderealPlanetData.local_sidereal_attitude.ra_m,
+        siderealPlanetData.local_sidereal_attitude.ra_s,
+        siderealPlanetData.local_sidereal_attitude.dec_d,
+        siderealPlanetData.local_sidereal_attitude.dec_m,
+        siderealPlanetData.local_sidereal_attitude.dec_s
       );
       esp_task_wdt_reset();
       // printf("---------------------------------------------\n");
@@ -1329,12 +1335,12 @@ static void taskUniverse(void *pvParameters) {
       // StarNav Dynamic Test Zenith+-Gyro Offset
       // ------------------------------------------------
       setStarNav(
-        siderealExtraData.gyro_0_ra_dec.ra_h,
-        siderealExtraData.gyro_0_ra_dec.ra_m,
-        siderealExtraData.gyro_0_ra_dec.ra_s,
-        siderealExtraData.gyro_0_ra_dec.dec_d,
-        siderealExtraData.gyro_0_ra_dec.dec_m,
-        siderealExtraData.gyro_0_ra_dec.dec_s
+        siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
+        siderealPlanetData.gyro_0_sidereal_attitude.ra_m,
+        siderealPlanetData.gyro_0_sidereal_attitude.ra_s,
+        siderealPlanetData.gyro_0_sidereal_attitude.dec_d,
+        siderealPlanetData.gyro_0_sidereal_attitude.dec_m,
+        siderealPlanetData.gyro_0_sidereal_attitude.dec_s
       );
       esp_task_wdt_reset();
       // printf("---------------------------------------------\n");
