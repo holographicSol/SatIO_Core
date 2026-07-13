@@ -247,14 +247,7 @@ typedef struct {
     // Output mode (dropdown)
     lv_obj_t * label_output_mode;
     lv_obj_t * dd_output_mode;
-    
-    // PWM values (textareas for input)
-    lv_obj_t * label_output_pwm_0;
-    lv_obj_t * val_pwm_0;
 
-    lv_obj_t * label_output_pwm_1;
-    lv_obj_t * val_pwm_1;
-    
     // Invert Function Logic
     lv_obj_t * label_inverted_logic;
     lv_obj_t * dd_inverted_logic;
@@ -320,7 +313,63 @@ typedef struct {
     button_t switch_overview_panel;
     button_t switch_matrix_panel;
     button_t switch_mapping_panel;
+    button_t switch_gpiope_panel;
 } matrix_switch_container_t;
+
+/** ---------------------------------------------------------------------------------------
+ * @brief GPIOPE Inspector Container Struct
+ *
+ * Read/write view of a single GPIOPortExpander device: static device info, plus the
+ * per-port-index fields (modulation_time, input_value, port_map, enabled, chan_freq_uS)
+ * for whichever port index is currently selected on the device currently selected by address.
+ */
+typedef struct {
+    lv_obj_t * panel;
+
+    // Device address select (0-127)
+    lv_obj_t * label_address;
+    lv_obj_t * dd_address;
+
+    // Static device info (read-only)
+    lv_obj_t * label_name;
+    lv_obj_t * val_name;
+    lv_obj_t * label_current_pin;
+    lv_obj_t * val_current_pin;
+    lv_obj_t * label_pin_min;
+    lv_obj_t * val_pin_min;
+    lv_obj_t * label_pin_max;
+    lv_obj_t * val_pin_max;
+    lv_obj_t * label_max_pins;
+    lv_obj_t * val_max_pins;
+    lv_obj_t * label_num_analog_pins;
+    lv_obj_t * val_num_analog_pins;
+    lv_obj_t * label_num_digital_pins;
+    lv_obj_t * val_num_digital_pins;
+    lv_obj_t * label_max_input_values;
+    lv_obj_t * val_max_input_values;
+    lv_obj_t * label_max_output_values;
+    lv_obj_t * val_max_output_values;
+    lv_obj_t * label_query_cursor;
+    lv_obj_t * val_query_cursor;
+
+    // Port index select (rebuilt/capped to the selected device's max_pins)
+    lv_obj_t * label_port_i;
+    lv_obj_t * dd_port_i;
+
+    // Per-port-index fields
+    lv_obj_t * label_pwm_off;
+    lv_obj_t * val_pwm_off;
+    lv_obj_t * label_pwm_on;
+    lv_obj_t * val_pwm_on;
+    lv_obj_t * label_input_value;
+    lv_obj_t * val_input_value;
+    lv_obj_t * label_port_map;
+    lv_obj_t * val_port_map;
+    lv_obj_t * label_enabled;
+    lv_obj_t * sw_enabled;
+    lv_obj_t * label_chan_freq;
+    lv_obj_t * val_chan_freq;
+} gpiope_container_t;
 
 /** ---------------------------------------------------------------------------------------
  * @brief GPS Switch Panel Container Struct
@@ -836,7 +885,11 @@ void matrix_load_event_cb(lv_event_t * e);
 void matrix_delete_event_cb(lv_event_t * e);
 void current_matrix_computer_assist_event_cb(lv_event_t * e);
 void switch_matrix_mapping_panel_event_cb(lv_event_t * e);
+void switch_matrix_gpiope_panel_event_cb(lv_event_t * e);
 void current_matrix_override_off_event_cb(lv_event_t * e);
+void dd_gpiope_screen_address_event_cb(lv_event_t * e);
+void dd_gpiope_port_i_event_cb(lv_event_t * e);
+void sw_gpiope_enabled_event_cb(lv_event_t * e);
 
 /** -------------------------------------------------------------------------------------
  * @brief Create System Tray.
@@ -1244,6 +1297,52 @@ matrix_function_container_t create_matrix_function_container(
  * @return mapping_config_container_t structure.
  */
 mapping_config_container_t create_mapping_config_container(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    int32_t radius,
+    int32_t outer_pad_all,
+    int32_t inner_pad_all,
+    int32_t outline_padding,
+    int32_t main_row_padding,
+    int32_t main_column_padding,
+    int32_t sub_row_padding,
+    int32_t sub_column_padding,
+    int32_t row_height,
+    bool show_scrollbar,
+    bool enable_scrolling,
+    const lv_font_t * font_title,
+    const lv_font_t * font_sub
+);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create GPIOPE Inspector Container.
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param radius Corner radius.
+ * @param outer_pad_all Outer padding.
+ * @param inner_pad_all Inner uniform padding.
+ * @param outline_padding Padding for outline.
+ * @param main_row_padding Main row padding.
+ * @param main_column_padding Main column padding.
+ * @param sub_row_padding Sub-row padding.
+ * @param sub_column_padding Sub-column padding.
+ * @param row_height Height of each row.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @param font_title Title font.
+ * @param font_sub Subtitle/font for smaller text.
+ * @return gpiope_container_t structure.
+ */
+gpiope_container_t create_gpiope_container(
     lv_obj_t * parent,
     int32_t width_px,
     int32_t height_px,

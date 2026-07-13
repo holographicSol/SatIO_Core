@@ -136,10 +136,11 @@ title_bar_t main_title_bar;
 // ---------------------------
 // Matrix
 // ---------------------------
-#define MAX_MATRIX_PANEL_VIEWS 3
+#define MAX_MATRIX_PANEL_VIEWS 4
 #define MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW 0
 #define MATRIX_SWITCH_PANEL_NUMBER_MATRIX   1
 #define MATRIX_SWITCH_PANEL_NUMBER_MAPPING  2
+#define MATRIX_SWITCH_PANEL_NUMBER_GPIOPE   3
 int current_matrix_panel_view=0;
 int current_matrix_i = 0;
 int current_mapping_i = 0;
@@ -147,6 +148,9 @@ int current_matrix_function_i = 0;
 lv_obj_t * matrix_overview_grid_1;
 matrix_function_container_t mfc;
 mapping_config_container_t mcc;
+gpiope_container_t gpc;
+uint8_t current_gpiope_address = 0; // device address (0-127) currently selected in the GPIOPE inspector panel
+int current_gpiope_port_i = 0;      // port index currently selected within that device
 button_t matrix_new;
 button_t matrix_save;
 button_t matrix_load;
@@ -316,8 +320,6 @@ typedef enum {
     KB_MATRIX_VALUE_X,
     KB_MATRIX_VALUE_Y,
     KB_MATRIX_VALUE_Z,
-    KB_MATRIX_OUTPUT_PWM_0,
-    KB_MATRIX_OUTPUT_PWM_1,
     KB_MATRIX_PORT_MAP,
     KB_MAPPING_C1,
     KB_MAPPING_C2,
@@ -332,6 +334,10 @@ typedef enum {
     KB_UTC_OFFSET_SECONDS,
     KB_ADMPLEX0_CH_FREQ,
     KB_ADMPLEX1_CH_FREQ,
+    KB_GPIOPE_PWM_OFF,
+    KB_GPIOPE_PWM_ON,
+    KB_GPIOPE_PORT_MAP,
+    KB_GPIOPE_CHAN_FREQ,
     /* ... add other objects as required (does not have to be a lv_textarea) */
 } kb_target_t;
 
@@ -362,8 +368,6 @@ typedef struct {
 static kb_ctx_t matrix_value_x_ctx = { .target = KB_MATRIX_VALUE_X, .strval_type = STRVAL_DOUBLE };
 static kb_ctx_t matrix_value_y_ctx = { .target = KB_MATRIX_VALUE_Y, .strval_type = STRVAL_DOUBLE };
 static kb_ctx_t matrix_value_z_ctx = { .target = KB_MATRIX_VALUE_Z, .strval_type = STRVAL_DOUBLE };
-static kb_ctx_t matrix_output_pwm_0_ctx = { .target = KB_MATRIX_OUTPUT_PWM_0, .strval_type = STRVAL_UINT32 };
-static kb_ctx_t matrix_output_pwm_1_ctx = { .target = KB_MATRIX_OUTPUT_PWM_1, .strval_type = STRVAL_UINT32 };
 static kb_ctx_t matrix_port_map_ctx = { .target = KB_MATRIX_PORT_MAP, .strval_type = STRVAL_UINT8 };
 
 static kb_ctx_t mapping_c1_ctx = { .target = KB_MAPPING_C1, .strval_type = STRVAL_INT32 };
@@ -383,6 +387,13 @@ static kb_ctx_t user_utc_offset_seconds_ctx = { .target = KB_UTC_OFFSET_SECONDS,
    create_admplex0_panel() creates each channel's freq label. */
 static kb_ctx_t admplex0_ch_freq_ctx[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
 static kb_ctx_t admplex1_ch_freq_ctx[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
+
+/* GPIOPE inspector panel: single shared label per field (not one per port index),
+   so the port index is looked up dynamically via current_gpiope_port_i at commit time. */
+static kb_ctx_t gpiope_pwm_off_ctx = { .target = KB_GPIOPE_PWM_OFF, .strval_type = STRVAL_UINT32 };
+static kb_ctx_t gpiope_pwm_on_ctx = { .target = KB_GPIOPE_PWM_ON, .strval_type = STRVAL_UINT32 };
+static kb_ctx_t gpiope_port_map_ctx = { .target = KB_GPIOPE_PORT_MAP, .strval_type = STRVAL_INT8 };
+static kb_ctx_t gpiope_chan_freq_ctx = { .target = KB_GPIOPE_CHAN_FREQ, .strval_type = STRVAL_UINT64 };
 
 /* ... add other contexts as required (does not have to be a lv_textarea) */
 
@@ -411,8 +422,6 @@ void set_keyboard_context_cb(lv_event_t * e)
         case KB_MATRIX_VALUE_X: kb = &kb_numdec; break;
         case KB_MATRIX_VALUE_Y: kb = &kb_numdec; break;
         case KB_MATRIX_VALUE_Z: kb = &kb_numdec; break;
-        case KB_MATRIX_OUTPUT_PWM_0: kb = &kb_numdec; break;
-        case KB_MATRIX_OUTPUT_PWM_1: kb = &kb_numdec; break;
         case KB_MATRIX_PORT_MAP: kb = &kb_numdec; break;
 
         case KB_MAPPING_C1: kb = &kb_numdec; break;
@@ -430,6 +439,11 @@ void set_keyboard_context_cb(lv_event_t * e)
 
         case KB_ADMPLEX0_CH_FREQ: kb = &kb_numdec; break;
         case KB_ADMPLEX1_CH_FREQ: kb = &kb_numdec; break;
+
+        case KB_GPIOPE_PWM_OFF: kb = &kb_numdec; break;
+        case KB_GPIOPE_PWM_ON: kb = &kb_numdec; break;
+        case KB_GPIOPE_PORT_MAP: kb = &kb_numdec; break;
+        case KB_GPIOPE_CHAN_FREQ: kb = &kb_numdec; break;
 
         /* ... add other cases as required */
         default: return;
@@ -521,42 +535,6 @@ void keyboard_event_cb(lv_event_t * e)
                 matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
             }
             else {
-            }
-            break;
-        
-        case KB_MATRIX_OUTPUT_PWM_0:
-            if (strval_validate(ctx->strval_type, input)) {
-                uint32_t val = strtoul(input, NULL, 10);
-                uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
-                GPIOPortExpander* gpiope = isGPIOPE(address);
-                if (gpiope) {
-                    gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
-                    // change to single not all ->
-                    GPIOPE_Set_All_Portmap_Index_PWM(*gpiope);
-                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
-                    matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
-                }
-            }
-            else {
-                /* ensure statement terminated */
-            }
-            break;
-        
-        case KB_MATRIX_OUTPUT_PWM_1:
-            if (strval_validate(ctx->strval_type, input)) {
-                uint32_t val = strtoul(input, NULL, 10);
-                uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
-                GPIOPortExpander* gpiope = isGPIOPE(address);
-                if (gpiope) {
-                    gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_ON] = val;
-                    // change to single not all ->
-                    GPIOPE_Set_All_Portmap_Index_PWM(*gpiope);
-                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
-                    matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
-                }
-            }
-            else {
-                /* ensure statement terminated */
             }
             break;
         
@@ -684,6 +662,52 @@ void keyboard_event_cb(lv_event_t * e)
                 setADMultiplexerChannelFreq(ad_mux_1, (uint8_t)ctx->index, val);
             }
             else {
+            }
+            break;
+
+        case KB_GPIOPE_PWM_OFF:
+            if (strval_validate(ctx->strval_type, input)) {
+                uint32_t val = strtoul(input, NULL, 10);
+                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                if (gpiope) {
+                    gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
+                    GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
+                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
+                }
+            }
+            break;
+
+        case KB_GPIOPE_PWM_ON:
+            if (strval_validate(ctx->strval_type, input)) {
+                uint32_t val = strtoul(input, NULL, 10);
+                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                if (gpiope) {
+                    gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON] = val;
+                    GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
+                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
+                }
+            }
+            break;
+
+        case KB_GPIOPE_PORT_MAP:
+            if (strval_validate(ctx->strval_type, input)) {
+                int8_t val = (int8_t)atoi(input);
+                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                if (gpiope) {
+                    gpiope->port_map[current_gpiope_port_i] = val;
+                    GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, current_gpiope_port_i, val);
+                    GPIOPE_QueryDevice(*gpiope, gpiope->address);
+                }
+            }
+            break;
+
+        case KB_GPIOPE_CHAN_FREQ:
+            if (strval_validate(ctx->strval_type, input)) {
+                uint64_t val = strtoull(input, NULL, 10);
+                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                if (gpiope) {
+                    GPIOPE_Set_Channel_Frequency(*gpiope, current_gpiope_port_i, val);
+                }
             }
             break;
 
@@ -1134,6 +1158,73 @@ void dd_gpiope_address_event_cb(lv_event_t * e)
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief Event callback. Selects which GPIOPE device (by I2C address) the GPIOPE
+ * inspector panel is showing, and rebuilds the port-index dropdown to match that
+ * device's max_pins (or a single "0" placeholder if no device answers at that address).
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void dd_gpiope_screen_address_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_VALUE_CHANGED) {
+        lv_obj_t * dd = (lv_obj_t *)lv_event_get_target(e);
+        uint32_t sel = lv_dropdown_get_selected(dd);
+        current_gpiope_address = (uint8_t)sel;
+
+        GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+        int8_t max_pins = 1;
+        if (gpiope != nullptr) {
+            if (gpiope->max_pins > 0) {
+                max_pins = gpiope->max_pins;
+            }
+        }
+
+        lv_dropdown_clear_options(gpc.dd_port_i);
+        char dd_port_i_name[MAX_GLOBAL_ELEMENT_SIZE];
+        for (int i = 0; i < max_pins; i++) {
+            snprintf(dd_port_i_name, sizeof(dd_port_i_name), "%s", String(i).c_str());
+            lv_dropdown_add_option(gpc.dd_port_i, dd_port_i_name, LV_DROPDOWN_POS_LAST);
+        }
+        lv_dropdown_set_selected(gpc.dd_port_i, 0);
+        current_gpiope_port_i = 0;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void dd_gpiope_port_i_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_VALUE_CHANGED) {
+        lv_obj_t * dd = (lv_obj_t *)lv_event_get_target(e);
+        uint32_t sel = lv_dropdown_get_selected(dd);
+        current_gpiope_port_i = (int)sel;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void sw_gpiope_enabled_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_VALUE_CHANGED) {
+        lv_obj_t * sw = (lv_obj_t *)lv_event_get_target(e);
+        GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+        if (gpiope != nullptr) {
+            bool checked = lv_obj_has_state(sw, LV_STATE_CHECKED);
+            GPIOPE_Set_Channel_Enabled(*gpiope, current_gpiope_port_i, checked);
+        }
+    }
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Event callback.
  * 
  * @param e Pointer to the LVGL event structure.
@@ -1289,6 +1380,20 @@ void switch_matrix_mapping_panel_event_cb(lv_event_t * e)
 
     if(code == LV_EVENT_CLICKED) {
         current_matrix_panel_view=MATRIX_SWITCH_PANEL_NUMBER_MAPPING;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_matrix_gpiope_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_matrix_panel_view=MATRIX_SWITCH_PANEL_NUMBER_GPIOPE;
     }
 }
 
@@ -3538,9 +3643,9 @@ matrix_switch_container_t create_matrix_switch_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/3) *1)) - (sub_column_padding*1);
+    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
 
-    // SatIO Panel View
+    // OVERVIEW Panel View
     result.switch_overview_panel = create_button(
         row_0,
         obj_w_0,
@@ -3558,7 +3663,7 @@ matrix_switch_container_t create_matrix_switch_panel(
     );
     lv_obj_add_event_cb(result.switch_overview_panel.button, switch_matrix_overview_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
-    // GNGGA Panel View
+    // MATRIX Panel View
     result.switch_matrix_panel = create_button(
         row_0,
         obj_w_0,
@@ -3576,7 +3681,7 @@ matrix_switch_container_t create_matrix_switch_panel(
     );
     lv_obj_add_event_cb(result.switch_matrix_panel.button, switch_matrix_matrix_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
-    // GNRMC Panel View
+    // MAPPING Panel View
     result.switch_mapping_panel = create_button(
         row_0,
         obj_w_0,
@@ -3594,9 +3699,28 @@ matrix_switch_container_t create_matrix_switch_panel(
     );
     lv_obj_add_event_cb(result.switch_mapping_panel.button, switch_matrix_mapping_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
+    // GPIOPE Panel View
+    result.switch_gpiope_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "GPIOPE",
+        LV_TEXT_ALIGN_CENTER,
+        false,
+        false,
+        &font_cobalt_alien_17,
+        radius_rounded,
+        default_btn_bg,
+        default_btn_off_value_hue
+    );
+    lv_obj_add_event_cb(result.switch_gpiope_panel.button, switch_matrix_gpiope_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
     lv_obj_set_size(result.switch_overview_panel.panel, obj_w_0, obj_height);
     lv_obj_set_size(result.switch_matrix_panel.panel, obj_w_0, obj_height);
     lv_obj_set_size(result.switch_mapping_panel.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.switch_gpiope_panel.panel, obj_w_0, obj_height);
 
     return result;
 }
@@ -14084,9 +14208,9 @@ matrix_function_container_t create_matrix_function_container(
     lv_obj_set_size(result.label_inverted_logic, obj_w_2, obj_height);
     lv_obj_set_size(result.dd_inverted_logic, obj_w_3, obj_height);
     
-    /* --- Output PWM ---------------------------------------------------------- */
-    
-    lv_obj_t * row_pwm0 = create_row(
+    /* Map Slot & Output Mode ------------------------------------------ */
+
+    lv_obj_t * row_map_output = create_row(
         result.panel,
         sub_row_width,
         sub_row_height,
@@ -14103,148 +14227,15 @@ matrix_function_container_t create_matrix_function_container(
     obj_w_2 = 55;
     obj_w_3 = (((sub_row_width/2) *1) - obj_w_2) - (sub_column_padding*2);
 
-    // Label PWM0
-    result.label_output_pwm_0 = create_label(
-        row_pwm0,             // parent
-        obj_w_0,              // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "PWM0",               // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
-        1,
-        default_bg_hue,
-        default_subtitle_hue
-    );
-
-    // Label PWM0
-    result.val_pwm_0 = create_label(
-        row_pwm0,             // parent
-        obj_w_0,              // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "",                   // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
-        1,
-        default_bg_hue,
-        default_subtitle_hue
-    );
-    lv_obj_add_flag(result.val_pwm_0, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(result.val_pwm_0, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_set_user_data(result.val_pwm_0, &matrix_output_pwm_0_ctx);
-
-    // Label PWM1
-    result.label_output_pwm_1 = create_label(
-        row_pwm0,             // parent
-        obj_w_2,              // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "PWM1",               // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
-        1,
-        default_bg_hue,
-        default_subtitle_hue
-    );
-
-    // Value PWM1
-    result.val_pwm_1 = create_label(
-        row_pwm0,             // parent
-        obj_w_0,              // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "",                   // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
-        1,
-        default_bg_hue,
-        default_subtitle_hue
-    );
-    lv_obj_add_flag(result.val_pwm_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(result.val_pwm_1, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_set_user_data(result.val_pwm_1, &matrix_output_pwm_1_ctx);
-
-    // Critical for alignment
-    lv_obj_set_size(result.label_output_pwm_0, obj_w_0, obj_height);
-    lv_obj_set_size(result.val_pwm_0, obj_w_1, obj_height);
-    lv_obj_set_size(result.label_output_pwm_1, obj_w_2, obj_height);
-    lv_obj_set_size(result.val_pwm_1, obj_w_3, obj_height);
-
-    /* --- Index Map Slot ------------------------------------------------ */
-    
-    lv_obj_t * row_port = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
-
-    // Set row object widths
-    // Four columns now share this row (Map, Out, GPIOPE Address, GPIOPE Slot),
-    // so label widths are hand-fit to their (short) text and the two value/dropdown
-    // widths are derived from what's left, rather than splitting evenly.
-    // int32_t obj_w_6 = 0;
-    // int32_t obj_w_7 = 0;
-    // obj_w_0 = 35;  // Map label
-    // obj_w_1 = 48;  // Map slot dropdown ("0".."44")
-    // obj_w_2 = 30;  // Out label
-    // obj_w_3 = 62;  // Output mode dropdown ("Digi"/"Map")
-    // obj_w_6 = 42;  // GPIOPE Address label
-    // obj_w_7 = 58;  // GPIOPE Address dropdown ("0".."127")
-    // obj_w_4 = 100; // GPIOPE Slot label
-    // obj_w_5 = sub_row_width - (obj_w_0 + obj_w_1 + obj_w_2 + obj_w_3 + obj_w_6 + obj_w_7 + obj_w_4) - (sub_column_padding*8); // GPIOPE Slot value
-
-    obj_w_0 = ((sub_row_width/8) *1) - (sub_column_padding*2); // map
-    obj_w_1 = ((sub_row_width/8) *1) - (sub_column_padding*2);
-    obj_w_2 = ((sub_row_width/8) *1) - (sub_column_padding*2); // output mode
-    obj_w_3 = (((sub_row_width/8) *1) - (sub_column_padding*2)) * 2;
-    obj_w_4 = ((sub_row_width/8) *1) - (sub_column_padding*2); // address
-    obj_w_5 = ((sub_row_width/8) *1) - (sub_column_padding*2);
-    obj_w_6 = ((sub_row_width/8) *1) - (sub_column_padding*2); // portmap slot
-    obj_w_7 = ((sub_row_width/8) *1) - (sub_column_padding*2);
-
     // Label Map Slot
     result.label_map_slot = create_label(
-        row_port,             // parent
+        row_map_output,       // parent
         obj_w_0,              // width
         obj_height,           // height
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "MP",                // initial text
+        "Map",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         &font_cobalt_alien_17,     // font
         false,                // transparent background
@@ -14256,10 +14247,10 @@ matrix_function_container_t create_matrix_function_container(
         default_bg_hue,
         default_subtitle_hue
     );
-    
+
     // Map Slot Value
     result.dd_map_slot = create_dropdown_menu(
-        row_port,
+        row_map_output,
         NULL,
         0,
         obj_w_1,
@@ -14277,15 +14268,15 @@ matrix_function_container_t create_matrix_function_container(
     lv_dropdown_set_selected(result.dd_map_slot, 0);
     lv_obj_add_event_cb(result.dd_map_slot, dd_link_map_slot_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    // Label 
+    // Label Output Mode
     result.label_output_mode = create_label(
-        row_port,             // parent
+        row_map_output,       // parent
         obj_w_2,              // width
         obj_height,           // height
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "OM",                // initial text
+        "Out",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         &font_cobalt_alien_17,     // font
         false,                // transparent background
@@ -14298,9 +14289,9 @@ matrix_function_container_t create_matrix_function_container(
         default_subtitle_hue
     );
 
-    // Output Value
+    // Output Mode Value
     result.dd_output_mode = create_dropdown_menu(
-        row_port,
+        row_map_output,
         NULL,
         0,
         obj_w_3,
@@ -14318,22 +14309,49 @@ matrix_function_container_t create_matrix_function_container(
     lv_dropdown_set_selected(result.dd_output_mode, 0);
     lv_obj_add_event_cb(result.dd_output_mode, dd_output_mode_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    // Label
+    // Critical for alignment
+    lv_obj_set_size(result.label_map_slot, obj_w_0, obj_height);
+    lv_obj_set_size(result.dd_map_slot, obj_w_1, obj_height);
+    lv_obj_set_size(result.label_output_mode, obj_w_2, obj_height);
+    lv_obj_set_size(result.dd_output_mode, obj_w_3, obj_height);
+
+    /* --- GPIOPE Address / GPIOPE Port Map ---------------------------------------
+           (Map Slot and Output Mode moved out to the row above, so this row now
+           only needs to fit two fields and can spread them out.) --------------- */
+
+    lv_obj_t * row_gpiope = create_row(
+        result.panel,
+        sub_row_width,
+        sub_row_height,
+        inner_pad_all,
+        sub_row_padding,
+        sub_column_padding,
+        false,
+        false
+    );
+
+    // Set row object widths
+    obj_w_0 = 140; // GPIOPE Address label
+    obj_w_1 = 220 - obj_w_0 - (sub_column_padding*2); // GPIOPE Address dropdown
+    obj_w_2 = 100; // GPIOPE PM label
+    obj_w_3 = (sub_row_width - 220) - obj_w_2 - (sub_column_padding*2); // GPIOPE PM value
+
+    // Label GPIOPE Address
     result.label_gpiope_address = create_label(
-        row_port,             // parent
-        obj_w_6,               // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "AD",               // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
+        row_gpiope,            // parent
+        obj_w_0,               // width
+        obj_height,            // height
+        LV_ALIGN_CENTER,       // parent alignment
+        0,                     // pos x
+        0,                     // pos y
+        "GPIOPE Address",      // initial text
+        LV_TEXT_ALIGN_CENTER,  // font alignment
         &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        false,                 // transparent background
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        2,                     // outline width
+        general_radius,        // outline radius
         1,
         default_bg_hue,
         default_subtitle_hue
@@ -14341,10 +14359,10 @@ matrix_function_container_t create_matrix_function_container(
 
     // GPIOPE Address Value (7-bit I2C address: 0-127)
     result.dd_gpiope_address = create_dropdown_menu(
-        row_port,
+        row_gpiope,
         NULL,
         0,
-        obj_w_7,
+        obj_w_1,
         obj_height,
         LV_ALIGN_CENTER,
         0,
@@ -14359,43 +14377,43 @@ matrix_function_container_t create_matrix_function_container(
     lv_dropdown_set_selected(result.dd_gpiope_address, 0);
     lv_obj_add_event_cb(result.dd_gpiope_address, dd_gpiope_address_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    // Label
+    // Label GPIOPE Port Map
     result.label_port_map = create_label(
-        row_port,             // parent
-        obj_w_4,              // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "PM",        // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
+        row_gpiope,            // parent
+        obj_w_2,               // width
+        obj_height,            // height
+        LV_ALIGN_CENTER,       // parent alignment
+        0,                     // pos x
+        0,                     // pos y
+        "GPIOPE PM",           // initial text
+        LV_TEXT_ALIGN_CENTER,  // font alignment
         &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        false,                 // transparent background
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        2,                     // outline width
+        general_radius,        // outline radius
         1,
         default_bg_hue,
         default_subtitle_hue
     );
-    
-    // Port Value
+
+    // GPIOPE Port Map Value
     result.val_port_map = create_label(
-        row_port,             // parent
-        obj_w_4,              // width
-        obj_height,           // height
-        LV_ALIGN_CENTER,      // parent alignment
-        0,                    // pos x
-        0,                    // pos y
-        "",                // initial text
-        LV_TEXT_ALIGN_CENTER, // font alignment
+        row_gpiope,            // parent
+        obj_w_3,               // width
+        obj_height,            // height
+        LV_ALIGN_CENTER,       // parent alignment
+        0,                     // pos x
+        0,                     // pos y
+        "",                    // initial text
+        LV_TEXT_ALIGN_CENTER,  // font alignment
         &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        false,                 // transparent background
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        2,                     // outline width
+        general_radius,        // outline radius
         1,
         default_bg_hue,
         default_subtitle_hue
@@ -14405,17 +14423,10 @@ matrix_function_container_t create_matrix_function_container(
     lv_obj_set_user_data(result.val_port_map, &matrix_port_map_ctx);
 
     // Critical for alignment
-    lv_obj_set_size(result.label_map_slot, obj_w_0, obj_height);
-    lv_obj_set_size(result.dd_map_slot, obj_w_1, obj_height);
-
-    lv_obj_set_size(result.label_output_mode, obj_w_2, obj_height);
-    lv_obj_set_size(result.dd_output_mode, obj_w_3, obj_height);
-
-    lv_obj_set_size(result.label_gpiope_address, obj_w_6, obj_height);
-    lv_obj_set_size(result.dd_gpiope_address, obj_w_7, obj_height);
-
-    lv_obj_set_size(result.label_port_map, obj_w_4, obj_height);
-    lv_obj_set_size(result.val_port_map, obj_w_5, obj_height);
+    lv_obj_set_size(result.label_gpiope_address, obj_w_0, obj_height);
+    lv_obj_set_size(result.dd_gpiope_address, obj_w_1, obj_height);
+    lv_obj_set_size(result.label_port_map, obj_w_2, obj_height);
+    lv_obj_set_size(result.val_port_map, obj_w_3, obj_height);
 
     /* ------------- Intent  ------------------------------- */
 
@@ -15368,6 +15379,524 @@ mapping_config_container_t create_mapping_config_container(
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief Create GPIOPE Inspector Container.
+ *
+ * @return gpiope_container_t structure.
+ */
+gpiope_container_t create_gpiope_container(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    int32_t radius,
+    int32_t outer_pad_all,
+    int32_t inner_pad_all,
+    int32_t outline_padding,
+    int32_t main_row_padding,
+    int32_t main_column_padding,
+    int32_t sub_row_padding,
+    int32_t sub_column_padding,
+    int32_t row_height,
+    bool show_scrollbar,
+    bool enable_scrolling,
+    const lv_font_t * font_title,
+    const lv_font_t * font_sub
+    )
+{
+    gpiope_container_t result = {};
+
+    /* --- MAIN PANEL ------------------------------------------------------------------ */
+    result.panel = lv_obj_create(parent);
+
+    // Show scrollbar
+    if (show_scrollbar) {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_AUTO);
+    } else {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_OFF);}
+
+    // Enable scrolling
+    if (enable_scrolling) {lv_obj_set_scroll_dir(result.panel, LV_DIR_ALL);
+    } else {lv_obj_set_scroll_dir(result.panel, LV_DIR_NONE);}
+
+    // Size & Position
+    lv_obj_set_size(result.panel, width_px, height_px);
+    lv_obj_align(result.panel, alignment, pos_x, pos_y);
+    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+
+    // Main Padding
+    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+
+    // Outline
+    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    // Row sizes
+    int32_t sub_row_width = width_px - (outer_pad_all*2);
+    int32_t sub_row_height = row_height-(outline_padding*2);
+
+    // Row Object sizes
+    int32_t obj_w_0 = 0;
+    int32_t obj_w_1 = 0;
+    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+
+    /* --- Address ------------------------------------------------------- */
+
+    lv_obj_t * row_address = create_row(
+        result.panel,
+        sub_row_width,
+        sub_row_height,
+        inner_pad_all,
+        sub_row_padding,
+        sub_column_padding,
+        false,
+        false
+    );
+
+    // Set row object widths
+    obj_w_0 = 250; // label
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+
+    result.label_address = create_label(
+        row_address,          // parent
+        obj_w_0,               // width
+        obj_height,            // height
+        LV_ALIGN_CENTER,       // parent alignment
+        0,                     // pos x
+        0,                     // pos y
+        "GPIOPE Address",      // initial text
+        LV_TEXT_ALIGN_CENTER,  // font alignment
+        &font_cobalt_alien_17,      // font
+        false,                 // transparent background
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        2,                     // outline width
+        general_radius,        // outline radius
+        1,
+        default_bg_hue,
+        default_subtitle_hue
+    );
+
+    // Select Address (0-127)
+    result.dd_address = create_dropdown_menu(
+        row_address,
+        NULL,
+        0,
+        obj_w_1,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        font_sub
+    );
+    char dd_gpiope_screen_address_name[MAX_GLOBAL_ELEMENT_SIZE];
+    for (int i = 0; i <= 127; i++) {
+        snprintf(dd_gpiope_screen_address_name, sizeof(dd_gpiope_screen_address_name), "%s", String(i).c_str());
+        lv_dropdown_add_option(result.dd_address, dd_gpiope_screen_address_name, LV_DROPDOWN_POS_LAST);
+    }
+    lv_dropdown_set_selected(result.dd_address, 0);
+    lv_obj_add_event_cb(result.dd_address, dd_gpiope_screen_address_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    // Critical for alignment
+    lv_obj_set_size(result.label_address, obj_w_0, obj_height);
+    lv_obj_set_size(result.dd_address, obj_w_1, obj_height);
+
+    /* --- Name ------------------------------------------------------- */
+
+    lv_obj_t * row_name = create_row(
+        result.panel,
+        sub_row_width,
+        sub_row_height,
+        inner_pad_all,
+        sub_row_padding,
+        sub_column_padding,
+        false,
+        false
+    );
+
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+
+    result.label_name = create_label(
+        row_name, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Name", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_name = create_label(
+        row_name, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_name, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_name, obj_w_1, obj_height);
+
+    /* --- Current Pin ------------------------------------------------------- */
+
+    lv_obj_t * row_current_pin = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_current_pin = create_label(
+        row_current_pin, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Current Pin", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_current_pin = create_label(
+        row_current_pin, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_current_pin, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_current_pin, obj_w_1, obj_height);
+
+    /* --- Pin Min ------------------------------------------------------- */
+
+    lv_obj_t * row_pin_min = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_pin_min = create_label(
+        row_pin_min, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Pin Min", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_pin_min = create_label(
+        row_pin_min, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_pin_min, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_pin_min, obj_w_1, obj_height);
+
+    /* --- Pin Max ------------------------------------------------------- */
+
+    lv_obj_t * row_pin_max = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_pin_max = create_label(
+        row_pin_max, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Pin Max", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_pin_max = create_label(
+        row_pin_max, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_pin_max, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_pin_max, obj_w_1, obj_height);
+
+    /* --- Max Pins ------------------------------------------------------- */
+
+    lv_obj_t * row_max_pins = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_max_pins = create_label(
+        row_max_pins, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Max Pins", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_max_pins = create_label(
+        row_max_pins, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_max_pins, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_max_pins, obj_w_1, obj_height);
+
+    /* --- Num Analog Pins ------------------------------------------------------- */
+
+    lv_obj_t * row_num_analog_pins = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_num_analog_pins = create_label(
+        row_num_analog_pins, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Num Analog Pins", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_num_analog_pins = create_label(
+        row_num_analog_pins, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_num_analog_pins, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_num_analog_pins, obj_w_1, obj_height);
+
+    /* --- Num Digital Pins ------------------------------------------------------- */
+
+    lv_obj_t * row_num_digital_pins = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_num_digital_pins = create_label(
+        row_num_digital_pins, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Num Digital Pins", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_num_digital_pins = create_label(
+        row_num_digital_pins, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_num_digital_pins, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_num_digital_pins, obj_w_1, obj_height);
+
+    /* --- Max Input Values ------------------------------------------------------- */
+
+    lv_obj_t * row_max_input_values = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_max_input_values = create_label(
+        row_max_input_values, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Max Input Values", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_max_input_values = create_label(
+        row_max_input_values, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_max_input_values, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_max_input_values, obj_w_1, obj_height);
+
+    /* --- Max Output Values ------------------------------------------------------- */
+
+    lv_obj_t * row_max_output_values = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_max_output_values = create_label(
+        row_max_output_values, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Max Output Values", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_max_output_values = create_label(
+        row_max_output_values, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_max_output_values, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_max_output_values, obj_w_1, obj_height);
+
+    /* --- Query Cursor ------------------------------------------------------- */
+
+    lv_obj_t * row_query_cursor = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_query_cursor = create_label(
+        row_query_cursor, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Query Cursor", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_query_cursor = create_label(
+        row_query_cursor, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_query_cursor, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_query_cursor, obj_w_1, obj_height);
+
+    /* --- Port Index (capped to selected device's max_pins) ------------------------------------------------------- */
+
+    lv_obj_t * row_port_i = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_port_i = create_label(
+        row_port_i, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Port Index", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.dd_port_i = create_dropdown_menu(
+        row_port_i, NULL, 0, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0, font_sub
+    );
+    // Populated for real once a device is selected (dd_gpiope_screen_address_event_cb rebuilds
+    // this to match the selected device's max_pins); start with a single placeholder entry.
+    lv_dropdown_add_option(result.dd_port_i, "0", LV_DROPDOWN_POS_LAST);
+    lv_dropdown_set_selected(result.dd_port_i, 0);
+    lv_obj_add_event_cb(result.dd_port_i, dd_gpiope_port_i_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_set_size(result.label_port_i, obj_w_0, obj_height);
+    lv_obj_set_size(result.dd_port_i, obj_w_1, obj_height);
+
+    /* --- PWM Off (modulation_time[i][0]) ------------------------------------------------------- */
+
+    lv_obj_t * row_pwm_off = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_pwm_off = create_label(
+        row_pwm_off, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "PWM Off (uS)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_pwm_off = create_label(
+        row_pwm_off, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_add_flag(result.val_pwm_off, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(result.val_pwm_off, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_user_data(result.val_pwm_off, &gpiope_pwm_off_ctx);
+    lv_obj_set_size(result.label_pwm_off, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_pwm_off, obj_w_1, obj_height);
+
+    /* --- PWM On (modulation_time[i][1]) ------------------------------------------------------- */
+
+    lv_obj_t * row_pwm_on = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_pwm_on = create_label(
+        row_pwm_on, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "PWM On (uS)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_pwm_on = create_label(
+        row_pwm_on, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_add_flag(result.val_pwm_on, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(result.val_pwm_on, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_user_data(result.val_pwm_on, &gpiope_pwm_on_ctx);
+    lv_obj_set_size(result.label_pwm_on, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_pwm_on, obj_w_1, obj_height);
+
+    /* --- Input Value (read-only) ------------------------------------------------------- */
+
+    lv_obj_t * row_input_value = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_input_value = create_label(
+        row_input_value, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Input Value", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_input_value = create_label(
+        row_input_value, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_set_size(result.label_input_value, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_input_value, obj_w_1, obj_height);
+
+    /* --- Port Map (physical pin) ------------------------------------------------------- */
+
+    lv_obj_t * row_port_map = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_port_map = create_label(
+        row_port_map, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Port Map (Pin)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_port_map = create_label(
+        row_port_map, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_add_flag(result.val_port_map, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(result.val_port_map, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_user_data(result.val_port_map, &gpiope_port_map_ctx);
+    lv_obj_set_size(result.label_port_map, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_port_map, obj_w_1, obj_height);
+
+    /* --- Enabled ------------------------------------------------------- */
+
+    lv_obj_t * row_enabled = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_enabled = create_label(
+        row_enabled, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Enabled", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.sw_enabled = create_switch(
+        row_enabled, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0
+    );
+    lv_obj_add_event_cb(result.sw_enabled, sw_gpiope_enabled_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_set_size(result.label_enabled, obj_w_0, obj_height);
+    lv_obj_set_size(result.sw_enabled, obj_w_1, obj_height);
+
+    /* --- Channel Frequency (uS) ------------------------------------------------------- */
+
+    lv_obj_t * row_chan_freq = create_row(
+        result.panel, sub_row_width, sub_row_height, inner_pad_all,
+        sub_row_padding, sub_column_padding, false, false
+    );
+    obj_w_0 = 250;
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    result.label_chan_freq = create_label(
+        row_chan_freq, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Chan Freq (uS)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+    );
+    result.val_chan_freq = create_label(
+        row_chan_freq, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
+        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+    );
+    lv_obj_add_flag(result.val_chan_freq, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(result.val_chan_freq, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_user_data(result.val_chan_freq, &gpiope_chan_freq_ctx);
+    lv_obj_set_size(result.label_chan_freq, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_chan_freq, obj_w_1, obj_height);
+
+    return result;
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Create UAP.
  * 
  * @param parent Specify parent object.
@@ -16254,11 +16783,37 @@ void display_matrix_screen()
     );
     lv_obj_add_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN);
 
+    // Create GPIOPE Inspector Panel
+    gpc = create_gpiope_container(
+        matrix_screen,    // parent
+        520,              // width px
+        410,              // height
+        LV_ALIGN_CENTER,  // alignment
+        0,                // pos x
+        35,               // pos y
+        radius_rounded,   // radius
+        0,                // outer_pad_all
+        4,                // inner_pad_all
+        0,                // outline_padding
+        1,                // main_row_padding
+        4,                // main_column_padding
+        2,                // sub_row_padding
+        8,                // sub_column_padding
+        40,               // row height
+        true,             // show scrollbar
+        true,             // enable scrolling
+        &font_cobalt_alien_25, // font for titles,
+        &font_cobalt_alien_17  // font for text,
+    );
+    lv_obj_add_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN);
+    current_gpiope_address = 0;
+    current_gpiope_port_i = 0;
+
     // Switch Panel View
     matrix_switch_panel = create_matrix_switch_panel(
         matrix_screen,    // parent
         520,              // width px
-        42,         // height px
+        42,               // height px
         LV_ALIGN_CENTER,  // alignment
         0,                // pos x
         -200,             // pos y
@@ -17000,12 +17555,15 @@ void update_display_lvgl()
             lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_off_bg, LV_PART_MAIN);
             lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
             lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
             // Matrix Overview Grid 1
             if (matrix_overview_grid_1) {
                 lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, false);
                 lv_obj_set_flag(mfc.panel, LV_OBJ_FLAG_HIDDEN, true);
                 lv_obj_set_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN, true);
+                lv_obj_set_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN, true);
 
                 uint32_t grid_child_cnt = lv_obj_get_child_cnt(matrix_overview_grid_1);
                 for(uint32_t i = 0; i < grid_child_cnt; i++) {
@@ -17042,11 +17600,14 @@ void update_display_lvgl()
             lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_on_bg, LV_PART_MAIN);
             lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
             lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
             if (mfc.panel) {
                 lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, true);
                 lv_obj_set_flag(mfc.panel, LV_OBJ_FLAG_HIDDEN, false);
                 lv_obj_set_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN, true);
+                lv_obj_set_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN, true);
 
                 // Current Switch
                 dd_select(mfc.dd_switch_index_select, current_matrix_i);
@@ -17110,26 +17671,6 @@ void update_display_lvgl()
 
                 // Inverted
                 dd_select(mfc.dd_inverted_logic, matrixData.matrix_switch_inverted_logic[0][current_matrix_i][current_matrix_function_i]);
-                
-                uint8_t address = matrixData.gpiope_address[0][current_matrix_i];
-
-                GPIOPortExpander* gpiope = isGPIOPE(address);
-
-                if (gpiope) {
-                    { 
-                        // PWM Off
-                        char buf[MAX_GLOBAL_ELEMENT_SIZE];
-                        snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_OFF] );
-                        lv_label_set_text(mfc.val_pwm_0, buf);
-                    }
-    
-                    {
-                        // PWM On
-                        char buf[MAX_GLOBAL_ELEMENT_SIZE];
-                        snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[matrixData.matrix_port_map[0][current_matrix_i]][INDEX_MATRIX_SWITCH_PWM_ON] );
-                        lv_label_set_text(mfc.val_pwm_1, buf);
-                    }
-                }
 
                 // Connected Map Slot
                 dd_select(mfc.dd_map_slot, matrixData.index_mapped_value[0][current_matrix_i]);
@@ -17250,11 +17791,14 @@ void update_display_lvgl()
             lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_off_bg, LV_PART_MAIN);
             lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
             lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
             if (mcc.panel) {
                 lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, true);
                 lv_obj_set_flag(mfc.panel, LV_OBJ_FLAG_HIDDEN, true);
                 lv_obj_set_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN, false);
+                lv_obj_set_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN, true);
 
                 // Map Slot
                 dd_select(mcc.dd_slot, current_mapping_i);
@@ -17276,6 +17820,79 @@ void update_display_lvgl()
                 { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", get_mapping_input_value(current_mapping_i)); lv_label_set_text(mcc.value_input, buf); }
 
                 { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapped_value[0][current_mapping_i]); lv_label_set_text(mcc.value_map_result, buf); }
+            }
+        }
+
+        // GPIOPE Inspector Panel
+        else if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_GPIOPE) {
+
+            // Switch Panel
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_overview_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_overview_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_matrix_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+
+            if (gpc.panel) {
+                lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, true);
+                lv_obj_set_flag(mfc.panel, LV_OBJ_FLAG_HIDDEN, true);
+                lv_obj_set_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN, true);
+                lv_obj_set_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN, false);
+
+                // Device Address
+                dd_select(gpc.dd_address, current_gpiope_address);
+
+                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                if (gpiope != nullptr) {
+
+                    // Static device info
+                    lv_label_set_text(gpc.val_name, gpiope->name);
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->current_pin); lv_label_set_text(gpc.val_current_pin, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->pin_min); lv_label_set_text(gpc.val_pin_min, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->pin_max); lv_label_set_text(gpc.val_pin_max, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->max_pins); lv_label_set_text(gpc.val_max_pins, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->num_analog_pins); lv_label_set_text(gpc.val_num_analog_pins, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->num_digital_pins); lv_label_set_text(gpc.val_num_digital_pins, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->max_input_values); lv_label_set_text(gpc.val_max_input_values, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->max_output_values); lv_label_set_text(gpc.val_max_output_values, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->query_cursor); lv_label_set_text(gpc.val_query_cursor, buf); }
+
+                    // Port index may be stale if the device's max_pins shrank since the
+                    // dropdown was last rebuilt (dd_gpiope_screen_address_event_cb).
+                    if (current_gpiope_port_i >= gpiope->max_pins) {
+                        current_gpiope_port_i = 0;
+                    }
+                    dd_select(gpc.dd_port_i, current_gpiope_port_i);
+
+                    // Per-port-index fields
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF]); lv_label_set_text(gpc.val_pwm_off, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON]); lv_label_set_text(gpc.val_pwm_on, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->input_value[current_gpiope_port_i]); lv_label_set_text(gpc.val_input_value, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->port_map[current_gpiope_port_i]); lv_label_set_text(gpc.val_port_map, buf); }
+                    sync_switch_state(gpc.sw_enabled, gpiope->enabled[current_gpiope_port_i]);
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%llu", (unsigned long long)gpiope->chan_freq_uS[current_gpiope_port_i]); lv_label_set_text(gpc.val_chan_freq, buf); }
+                }
+                else {
+                    // No device configured/answering at this address - show placeholders.
+                    lv_label_set_text(gpc.val_name, "-");
+                    lv_label_set_text(gpc.val_current_pin, "-");
+                    lv_label_set_text(gpc.val_pin_min, "-");
+                    lv_label_set_text(gpc.val_pin_max, "-");
+                    lv_label_set_text(gpc.val_max_pins, "-");
+                    lv_label_set_text(gpc.val_num_analog_pins, "-");
+                    lv_label_set_text(gpc.val_num_digital_pins, "-");
+                    lv_label_set_text(gpc.val_max_input_values, "-");
+                    lv_label_set_text(gpc.val_max_output_values, "-");
+                    lv_label_set_text(gpc.val_query_cursor, "-");
+                    lv_label_set_text(gpc.val_pwm_off, "-");
+                    lv_label_set_text(gpc.val_pwm_on, "-");
+                    lv_label_set_text(gpc.val_input_value, "-");
+                    lv_label_set_text(gpc.val_port_map, "-");
+                    lv_label_set_text(gpc.val_chan_freq, "-");
+                }
             }
         }
     }
