@@ -303,7 +303,7 @@ gyro --calmag-end    End calibrating the magnetometer.
 
 ## SDCard
 
-*(currently disabled)*
+*(currently disabled via CLI while being used internally)*
 
 ```
 sdcard --mount
@@ -339,7 +339,7 @@ powercfg --setdelay --admplex0 1000 --gyro0 200 --gps 10
 
 ## StarNav
 
-*(currently disabled)*
+*(currently disabled via CLI while being used internally with a gyro)*
 
 ```
 starnav RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
