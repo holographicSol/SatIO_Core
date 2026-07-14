@@ -549,10 +549,19 @@ starnav 6 45 8.9 -16 42 58.0
 
 ## Stat
 
+Stat can be useful for providing real time, real world data to other systems, devices, microcontrollers and LLM's. Stat is also setup for diagnositics.
+
 ```
 stat -e     Enable print.
 stat -d     Disable print.
 stat -t     Enables/disables serial print stats and counters (includes partition table, RAM, and SD card info). Takes arguments -e, -d.
+stat -t --datetime          Toggles the datetime table. Takes arguments -e, -d.
+stat -t --taskrates         Toggles the task rates (Hz) table. Takes arguments -e, -d.
+stat -t --position          Toggles the position/target and RA/Dec tables. Takes arguments -e, -d.
+stat -t --gyro              Toggles the orientation/sensors (gyro) table. Takes arguments -e, -d.
+stat -t --admplex           Toggles the ADMPlex per-channel Hz table(s). Takes arguments -e, -d.
+stat -t --gpiope            Toggles the GPIOPE input per-channel table(s). Takes arguments -e, -d.
+stat -t --matrix            Toggles the Computer Assist / matrix table. Takes arguments -e, -d.
 stat --system               Print system configuration.
 stat --matrix n             Print matrix switch n configuration.
 stat --matrix -A            Print configuration of all matrix switches.
