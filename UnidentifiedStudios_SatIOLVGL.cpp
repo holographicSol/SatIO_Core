@@ -668,7 +668,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_PWM_OFF:
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
-                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
                 if (gpiope) {
                     gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
                     GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
@@ -680,7 +680,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_PWM_ON:
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
-                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
                 if (gpiope) {
                     gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON] = val;
                     GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
@@ -692,7 +692,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_PORT_MAP:
             if (strval_validate(ctx->strval_type, input)) {
                 int8_t val = (int8_t)atoi(input);
-                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
                 if (gpiope) {
                     gpiope->port_map[current_gpiope_port_i] = val;
                     GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, current_gpiope_port_i, val);
@@ -704,7 +704,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_CHAN_FREQ:
             if (strval_validate(ctx->strval_type, input)) {
                 uint64_t val = strtoull(input, NULL, 10);
-                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
                 if (gpiope) {
                     GPIOPE_Set_Channel_Frequency(*gpiope, current_gpiope_port_i, val);
                 }
@@ -1172,7 +1172,7 @@ void dd_gpiope_screen_address_event_cb(lv_event_t * e)
         uint32_t sel = lv_dropdown_get_selected(dd);
         current_gpiope_address = (uint8_t)sel;
 
-        GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+        GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
         int8_t max_pins = 1;
         if (gpiope != nullptr) {
             if (gpiope->max_pins > 0) {
@@ -1216,7 +1216,7 @@ void sw_gpiope_enabled_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
     if(code == LV_EVENT_VALUE_CHANGED) {
         lv_obj_t * sw = (lv_obj_t *)lv_event_get_target(e);
-        GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+        GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
         if (gpiope != nullptr) {
             bool checked = lv_obj_has_state(sw, LV_STATE_CHECKED);
             GPIOPE_Set_Channel_Enabled(*gpiope, current_gpiope_port_i, checked);
@@ -17845,7 +17845,7 @@ void update_display_lvgl()
                 // Device Address
                 dd_select(gpc.dd_address, current_gpiope_address);
 
-                GPIOPortExpander* gpiope = isGPIOPE(current_gpiope_address);
+                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
                 if (gpiope != nullptr) {
 
                     // Static device info

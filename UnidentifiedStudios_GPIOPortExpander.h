@@ -43,7 +43,7 @@
 // ------------------------------------------------------------
 // MASTER Build Option: Global GPIOPE Device Switch
 // ------------------------------------------------------------
-// #define GPIOPE_USE_INPUT
+#define GPIOPE_USE_INPUT
 #define GPIOPE_USE_OUTPUT
 
 // ------------------------------------------------------------
@@ -64,7 +64,7 @@
 // #define GPIOPE_USE_INPUT_6
 // #define GPIOPE_USE_INPUT_7
 // #define GPIOPE_USE_INPUT_8
-// #define GPIOPE_USE_INPUT_9
+#define GPIOPE_USE_INPUT_9
 // #define GPIOPE_USE_INPUT_10
 // #define GPIOPE_USE_INPUT_11
 // #define GPIOPE_USE_INPUT_12
@@ -448,9 +448,12 @@ void GPIOPE_Output_Modulator();
  * 
  * This is useful for building generally however if you know exactly how many GPIOPE's
  * are built and do not need to address any number of them variably, then you could just call it
- * by its name, for example; GPIOPE_OUTPUT_##N.
+ * by its name, for example; GPIOPE_OUTPUT_##N / GPIOPE_INPUT_##N.
  */
-GPIOPortExpander* isGPIOPE(uint8_t address);
+GPIOPortExpander* isGPIOPE_INPUT(uint8_t address);
+
+GPIOPortExpander* isGPIOPE_OUTPUT(uint8_t address);
+
 
 /**
  * @brief Setup all defined slave devices and confirm setups by querying the slave(s).
@@ -516,7 +519,7 @@ void GPIOPE_Set_Channel_Frequency(GPIOPortExpander &gpio_expander, uint8_t pin, 
 /**
  * @brief currently disabled during update.
  */
-bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin);
+bool GPIOPE_Read_Pin(GPIOPortExpander &gpio_expander, uint8_t pin);
 
 bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, int32_t value);
 

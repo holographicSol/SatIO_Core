@@ -1265,57 +1265,67 @@ void CmdProcess(void) {
           int8_t address = argparser_get_int8(&parser, "a", -1); // address
           int8_t portmap_index = argparser_get_int8(&parser, "i", -1); // index
 
-          // Check if device defined for specified address
-          GPIOPortExpander* gpiope = isGPIOPE(address);
-          if (gpiope) {
-            // --------------------------------------------------------------------------------------------------------
-            // Output
-            // --------------------------------------------------------------------------------------------------------
+          // --------------------------------------------------------------------------------------------------------
+          // Output
+          // --------------------------------------------------------------------------------------------------------
+          if (argparser_has_flag(&parser, "output") == true) {
 
-            // set port by index
-            if (has_a && has_i && argparser_has_flag(&parser, "p") == true) {
-              int8_t new_port = argparser_get_int8(&parser, "p", -1); // new port
-                GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, portmap_index, new_port);
-                GPIOPE_QueryDevice(*gpiope, I2C_ADDR_9);
-            }
+            // Check if device defined for specified address
+            GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(address);
+            if (gpiope) {
 
-            // set pwm by index
-            if (has_a && has_i && argparser_has_flag(&parser, "pwm0") && argparser_has_flag(&parser, "pwm1") == true) {
-              uint32_t pwm0 = argparser_get_uint32(&parser, "pwm0", 0);
-              uint32_t pwm1 = argparser_get_uint32(&parser, "pwm1", 0);
-                GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, portmap_index, pwm0, pwm1);
-                GPIOPE_QueryDevice(*gpiope, I2C_ADDR_9);
-            }
-            // --------------------------------------------------------------------------------------------------------
-            // Input
-            // --------------------------------------------------------------------------------------------------------
-
-            // all channels
-            if (argparser_has_flag(&parser, "all") == true) {
-              // enable/disable all channels
-              if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
-                  argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-                for (uint8_t p=0; p<(uint8_t)gpiope->max_pins; p++) {GPIOPE_Set_Channel_Enabled(*gpiope, p, enable);}
+              // set port by index
+              if (has_a && has_i && argparser_has_flag(&parser, "p") == true) {
+                int8_t new_port = argparser_get_int8(&parser, "p", -1); // new port
+                  GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, portmap_index, new_port);
+                  GPIOPE_QueryDevice(*gpiope, I2C_ADDR_9);
               }
-              // set all channels frequency
-              if (argparser_has_flag(&parser, "freq") == true) {
-                uint64_t gpioe_freq_all = argparser_get_uint64(&parser, "freq", 0);
-                for (uint8_t p=0; p<(uint8_t)gpiope->max_pins; p++) {GPIOPE_Set_Channel_Frequency(*gpiope, p, gpioe_freq_all);}
+
+              // set pwm by index
+              if (has_a && has_i && argparser_has_flag(&parser, "pwm0") && argparser_has_flag(&parser, "pwm1") == true) {
+                uint32_t pwm0 = argparser_get_uint32(&parser, "pwm0", 0);
+                uint32_t pwm1 = argparser_get_uint32(&parser, "pwm1", 0);
+                  GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, portmap_index, pwm0, pwm1);
+                  GPIOPE_QueryDevice(*gpiope, I2C_ADDR_9);
               }
             }
-            // specific channel
-            else if (argparser_has_flag(&parser, "c") == true) {
-              uint8_t gpioe_c = argparser_get_uint8(&parser, "c", 0);
-              // enable/disable specified channel
-              if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
-                  argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
-                GPIOPE_Set_Channel_Enabled(*gpiope, gpioe_c, enable);
+          }
+          // --------------------------------------------------------------------------------------------------------
+          // Input
+          // --------------------------------------------------------------------------------------------------------
+          else if (argparser_has_flag(&parser, "input") == true) {
+
+              // Check if device defined for specified address
+              GPIOPortExpander* gpiope = isGPIOPE_INPUT(address);
+              if (gpiope) {
+
+              // all channels
+              if (argparser_has_flag(&parser, "all") == true) {
+                // enable/disable all channels
+                if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
+                    argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
+                  for (uint8_t p=0; p<(uint8_t)gpiope->max_pins; p++) {GPIOPE_Set_Channel_Enabled(*gpiope, p, enable);}
+                }
+                // set all channels frequency
+                if (argparser_has_flag(&parser, "freq") == true) {
+                  uint64_t gpioe_freq_all = argparser_get_uint64(&parser, "freq", 0);
+                  for (uint8_t p=0; p<(uint8_t)gpiope->max_pins; p++) {GPIOPE_Set_Channel_Frequency(*gpiope, p, gpioe_freq_all);}
+                }
               }
-              // set frequency for specified channel
-              if (argparser_has_flag(&parser, "freq") == true) {GPIOPE_Set_Channel_Frequency(*gpiope, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
-            }
-            else {
-              printf("gpiope unchanged. specified unknown gpiope device!");
+              // specific channel
+              else if (argparser_has_flag(&parser, "c") == true) {
+                uint8_t gpioe_c = argparser_get_uint8(&parser, "c", 0);
+                // enable/disable specified channel
+                if (argparser_has_flag(&parser, "enable") == true || argparser_has_flag(&parser, "e") == true ||
+                    argparser_has_flag(&parser, "disable") == true || argparser_has_flag(&parser, "d") == true) {
+                  GPIOPE_Set_Channel_Enabled(*gpiope, gpioe_c, enable);
+                }
+                // set frequency for specified channel
+                if (argparser_has_flag(&parser, "freq") == true) {GPIOPE_Set_Channel_Frequency(*gpiope, gpioe_c, argparser_get_uint64(&parser, "freq", 0));}
+              }
+              else {
+                printf("gpiope unchanged. specified unknown gpiope device!");
+              }
             }
           }
         }
@@ -3628,10 +3638,12 @@ static void printStatChannelHzTable(const char* label, const SystemConuters* cou
 }
 
 void outputStat(void) {
+  // return;
   // if (systemData.output_stat==true) { // forced on for dev
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                              PRINT CLOCKS
     // ----------------------------------------------------------------------------------------------------------------------------
+    printStatSeparator();
     printf(STAT_LABEL_FMT "%llu\n", "Timestamp (unix uS)",  SatIOData.systemTime.unixtime_uS);
     {
         struct StatTimeDomain { const char* label; const SatIOTimeData* t; };
@@ -3804,7 +3816,51 @@ void outputStat(void) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
-    // printStatChannelHzTable("GPIOPE In Channel Hz", systemData.counters_gpioe_chan, GPIOPE_MAX_SIZE);
+    {
+      struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
+      StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
+      for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
+          channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
+      }
+      // Same address scan TaskHandler uses to find the active input device(s);
+      // channel index is shared across whichever device(s) answer, matching
+      // how counters_gpioe_chan itself is populated.
+      int found_address = -1;
+      for (int address = 0; address < 128; address++) {
+        GPIOPortExpander* gpiope = isGPIOPE_INPUT((uint8_t)address);
+        if (gpiope) {
+
+          struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
+          StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
+          for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
+              channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
+          }
+          found_address = address;
+          for (int i = 0; i < (int)gpiope->max_input_values && i < GPIOPE_MAX_SIZE; i++) {
+              channels[i].enabled = gpiope->enabled[i];
+              channels[i].input_value = gpiope->input_value[i];
+          }
+
+          printStatSeparator();
+          printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", found_address);
+
+          for (int page_start = 0; page_start < GPIOPE_MAX_SIZE; page_start += STAT_SWITCHES_PER_PAGE) {
+              int page_end = page_start + STAT_SWITCHES_PER_PAGE;
+              if (page_end > GPIOPE_MAX_SIZE) {page_end = GPIOPE_MAX_SIZE;}
+              printStatPageHeader(page_start, page_end);
+              printf(STAT_LABEL_FMT, "Input Ch Hz");
+              for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, channels[i].hz);}
+              printf("\n");
+              printf(STAT_LABEL_FMT, "Enabled");
+              for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_D, (int)channels[i].enabled);}
+              printf("\n");
+              printf(STAT_LABEL_FMT, "Input Value");
+              for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)channels[i].input_value);}
+              printf("\n");
+          }
+        }
+      }
+    }
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT COMPUTER ASSIST
     // ----------------------------------------------------------------------------------------------------------------------------

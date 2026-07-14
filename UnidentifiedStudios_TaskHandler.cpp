@@ -1082,7 +1082,7 @@ static void taskSwitches(void *pvParameters) {
           uint8_t address = matrixData.gpiope_address[0][Mi];
 
           // Check if device defined
-          GPIOPortExpander* gpiope = isGPIOPE(address);
+          GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(address);
 
           // printf("address=%d\n", address);
 
@@ -1171,38 +1171,51 @@ static void taskInputPortController(void *pvParameters) {
 
       // todo: read all defined gpiope's
 
-      #ifdef GPIOPE_USE_INPUT_11
       static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_SIZE] = {0};
       bool gpioe_chan_was_enabled[GPIOPE_MAX_SIZE] = {false};
       bool gpioe_chan_did_read[GPIOPE_MAX_SIZE] = {false};
-      uint8_t gpioe_max_values = (uint8_t)GPIOPE_INPUT_11.max_input_values;
-      for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
-        if (GPIOPE_INPUT_11.enabled[i_chan] == true) {
-          gpioe_chan_was_enabled[i_chan] = true;
-          if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)GPIOPE_INPUT_11.chan_freq_uS[i_chan]) {
-            if (GPIOPE_Read_Pin(GPIOPE_INPUT_11, i_chan)) {
-              gpioe_chan_last_read_uS[i_chan] = esp_timer_get_time();
-              gpioe_chan_did_read[i_chan] = true;
-            } else {
-              printf("ERROR: readInputPortControllerReadPins (pin_index=%d)\n", i_chan);
+
+      // Iterate through address range (unlike for output).
+      // Replace with more efficient implementation.
+      for (int address = 0; address < 128; address++) {
+
+        // Check if device defined
+        GPIOPortExpander* gpiope = isGPIOPE_INPUT(address); // <- requires config
+
+        if (gpiope) {
+
+          uint8_t gpioe_max_values = (uint8_t)gpiope->max_input_values;
+          for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
+            if (gpiope->enabled[i_chan] == true) {
+              gpioe_chan_was_enabled[i_chan] = true;
+              if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)gpiope->chan_freq_uS[i_chan]) {
+                if (GPIOPE_Read_Pin(*gpiope, i_chan)) {
+                  gpioe_chan_last_read_uS[i_chan] = esp_timer_get_time();
+                  gpioe_chan_did_read[i_chan] = true;
+                } else {
+                  printf("ERROR: readInputPortControllerReadPins (pin_index=%d)\n", i_chan);
+                }
+              }
+            }
+          }
+
+          esp_task_wdt_reset();
+          // --------------------------------------------
+          // Task frequency counter
+          // --------------------------------------------
+          for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
+            if (gpioe_chan_was_enabled[i_chan] == true) {
+              if (gpioe_chan_did_read[i_chan] == true) {
+                systemData.counters_gpiope0.flag_c = true;
+                stepFFCounter(systemData.counters_gpioe_chan[i_chan], 1);
+              }
             }
           }
         }
-      }
-
-      esp_task_wdt_reset();
-      // --------------------------------------------
-      // Task frequency counter
-      // --------------------------------------------
-      for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
-        if (gpioe_chan_was_enabled[i_chan] == true) {
-          if (gpioe_chan_did_read[i_chan] == true) {
-            systemData.counters_gpiope0.flag_c = true;
-            stepFFCounter(systemData.counters_gpioe_chan[i_chan], 1);
-          }
+        else {
+          /* terminate statement */
         }
       }
-      #endif
 
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK

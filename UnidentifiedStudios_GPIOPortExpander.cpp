@@ -388,11 +388,14 @@ void requestEventBus0Bin() {
       #ifdef GPIO_GPIOE_DEBUG_CASE
       Serial.println("[GPIOPE_CMD_GET_READ_PIN] REQ");
       #endif
-      uint8_t value = readPin(GPIOPortExpander_SLAVE.current_pin);
+      uint8_t value = readPin(GPIOPortExpander_SLAVE.query_cursor);
       clearI2CLinkOutputPacket(GPIOPortExpander_SLAVE.i2cLink);
-      write_int8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.current_pin);
+      write_uint8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, GPIOPortExpander_SLAVE.query_cursor);
       write_uint8_ToPacket(GPIOPortExpander_SLAVE.i2cLink.OUTPUT_PACKET, GPIOPortExpander_SLAVE.i2cLink.current_bytes, value);
-      writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPortExpander_SLAVE.i2cLink.current_bytes, 0);
+      writeI2CToMasterBin(Wire, GPIOPortExpander_SLAVE.i2cLink, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, 0);
+      #ifdef GPIO_GPIOE_DEBUG_CASE_DETAIL
+      Serial.println("pin=" + String(GPIOPortExpander_SLAVE.query_cursor) + "  val=" + String(value));
+      #endif
       break;
     }
 
@@ -552,8 +555,8 @@ void receiveEventBus0Bin(int n_bytes_received) {
       if (bytesExpected(n_bytes_received, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, "GPIOPE_CMD_GET_READ_PIN") == false) {
         return;
       }
-      int8_t pin;
-      read_int8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
+      uint8_t pin;
+      read_uint8_FromWire(GPIOPortExpander_SLAVE.wire, pin);
       GPIOPortExpander_SLAVE.query_cursor = pin;
       GPIOPortExpander_SLAVE.i2cLink.REQUEST_ID = GPIOPE_CMD_GET_READ_PIN;
       #ifdef GPIO_GPIOE_BENCH
@@ -724,19 +727,23 @@ bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, in
   return true;
 }
 
-bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin) {
+bool GPIOPE_Read_Pin(GPIOPortExpander &gpio_expander, uint8_t pin) {
   if (pin >= (uint8_t)gpio_expander.max_pins) {return false;}
   clearI2CLinkOutputPacket(gpio_expander.i2cLink);
   write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, GPIOPE_CMD_GET_READ_PIN);
-  write_int8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
+  write_uint8_ToPacket(gpio_expander.i2cLink.OUTPUT_PACKET, gpio_expander.i2cLink.current_bytes, pin);
   writeI2CToSlaveBin(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, 0, "GPIOPE_Read_Pin");
 
   if (!requestFromSlaveBinNoID(gpio_expander.wire, gpio_expander.i2cLink, gpio_expander.address, GPIOPE_EXPECTED_BYTES_GET_READ_PIN, 0, "GPIOPE_Read_Pin")) {
     return false;
   }
+  uint8_t pin_rcv;
   uint8_t value;
+  read_uint8_FromWire(gpio_expander.wire, pin_rcv);
   read_uint8_FromWire(gpio_expander.wire, value);
-  gpio_expander.input_value[pin] = (uint32_t)value;
+  gpio_expander.input_value[pin_rcv] = (int32_t)value;
+  // printf("pin=%d  val=%d\n", pin_rcv, value);
+  // printf("idx=%d  input_value=%ld\n", pin_rcv, gpio_expander.input_value[pin_rcv]);
   return true;
 }
 
@@ -851,7 +858,918 @@ bool GPIOPE_QueryDevice(GPIOPortExpander &gpio_expander, int8_t address) {
   return true;
 }
 
-GPIOPortExpander* isGPIOPE(uint8_t address) {
+GPIOPortExpander* isGPIOPE_INPUT(uint8_t address) {
+
+  GPIOPortExpander *gpiope = nullptr;
+
+  switch (address) {
+
+    #ifdef GPIOPE_USE_INPUT_0
+    case I2C_ADDR_0: {
+      gpiope = &GPIOPE_INPUT_0;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_1
+    case I2C_ADDR_1: {
+      gpiope = &GPIOPE_INPUT_1;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_2
+    case I2C_ADDR_2: {
+      gpiope = &GPIOPE_INPUT_2;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_3
+    case I2C_ADDR_3: {
+      gpiope = &GPIOPE_INPUT_3;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_4
+    case I2C_ADDR_4: {
+      gpiope = &GPIOPE_INPUT_4;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_5
+    case I2C_ADDR_5: {
+      gpiope = &GPIOPE_INPUT_5;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_6
+    case I2C_ADDR_6: {
+      gpiope = &GPIOPE_INPUT_6;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_7
+    case I2C_ADDR_7: {
+      gpiope = &GPIOPE_INPUT_7;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_8
+    case I2C_ADDR_8: {
+      gpiope = &GPIOPE_INPUT_8;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_9
+    case I2C_ADDR_9: {
+      gpiope = &GPIOPE_INPUT_9;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_10
+    case I2C_ADDR_10: {
+      gpiope = &GPIOPE_INPUT_10;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_11
+    case I2C_ADDR_11: {
+      gpiope = &GPIOPE_INPUT_11;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_12
+    case I2C_ADDR_12: {
+      gpiope = &GPIOPE_INPUT_12;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_13
+    case I2C_ADDR_13: {
+      gpiope = &GPIOPE_INPUT_13;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_14
+    case I2C_ADDR_14: {
+      gpiope = &GPIOPE_INPUT_14;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_15
+    case I2C_ADDR_15: {
+      gpiope = &GPIOPE_INPUT_15;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_16
+    case I2C_ADDR_16: {
+      gpiope = &GPIOPE_INPUT_16;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_17
+    case I2C_ADDR_17: {
+      gpiope = &GPIOPE_INPUT_17;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_18
+    case I2C_ADDR_18: {
+      gpiope = &GPIOPE_INPUT_18;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_19
+    case I2C_ADDR_19: {
+      gpiope = &GPIOPE_INPUT_19;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_20
+    case I2C_ADDR_20: {
+      gpiope = &GPIOPE_INPUT_20;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_21
+    case I2C_ADDR_21: {
+      gpiope = &GPIOPE_INPUT_21;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_22
+    case I2C_ADDR_22: {
+      gpiope = &GPIOPE_INPUT_22;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_23
+    case I2C_ADDR_23: {
+      gpiope = &GPIOPE_INPUT_23;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_24
+    case I2C_ADDR_24: {
+      gpiope = &GPIOPE_INPUT_24;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_25
+    case I2C_ADDR_25: {
+      gpiope = &GPIOPE_INPUT_25;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_26
+    case I2C_ADDR_26: {
+      gpiope = &GPIOPE_INPUT_26;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_27
+    case I2C_ADDR_27: {
+      gpiope = &GPIOPE_INPUT_27;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_28
+    case I2C_ADDR_28: {
+      gpiope = &GPIOPE_INPUT_28;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_29
+    case I2C_ADDR_29: {
+      gpiope = &GPIOPE_INPUT_29;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_30
+    case I2C_ADDR_30: {
+      gpiope = &GPIOPE_INPUT_30;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_31
+    case I2C_ADDR_31: {
+      gpiope = &GPIOPE_INPUT_31;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_32
+    case I2C_ADDR_32: {
+      gpiope = &GPIOPE_INPUT_32;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_33
+    case I2C_ADDR_33: {
+      gpiope = &GPIOPE_INPUT_33;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_34
+    case I2C_ADDR_34: {
+      gpiope = &GPIOPE_INPUT_34;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_35
+    case I2C_ADDR_35: {
+      gpiope = &GPIOPE_INPUT_35;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_36
+    case I2C_ADDR_36: {
+      gpiope = &GPIOPE_INPUT_36;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_37
+    case I2C_ADDR_37: {
+      gpiope = &GPIOPE_INPUT_37;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_38
+    case I2C_ADDR_38: {
+      gpiope = &GPIOPE_INPUT_38;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_39
+    case I2C_ADDR_39: {
+      gpiope = &GPIOPE_INPUT_39;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_40
+    case I2C_ADDR_40: {
+      gpiope = &GPIOPE_INPUT_40;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_41
+    case I2C_ADDR_41: {
+      gpiope = &GPIOPE_INPUT_41;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_42
+    case I2C_ADDR_42: {
+      gpiope = &GPIOPE_INPUT_42;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_43
+    case I2C_ADDR_43: {
+      gpiope = &GPIOPE_INPUT_43;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_44
+    case I2C_ADDR_44: {
+      gpiope = &GPIOPE_INPUT_44;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_45
+    case I2C_ADDR_45: {
+      gpiope = &GPIOPE_INPUT_45;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_46
+    case I2C_ADDR_46: {
+      gpiope = &GPIOPE_INPUT_46;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_47
+    case I2C_ADDR_47: {
+      gpiope = &GPIOPE_INPUT_47;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_48
+    case I2C_ADDR_48: {
+      gpiope = &GPIOPE_INPUT_48;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_49
+    case I2C_ADDR_49: {
+      gpiope = &GPIOPE_INPUT_49;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_50
+    case I2C_ADDR_50: {
+      gpiope = &GPIOPE_INPUT_50;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_51
+    case I2C_ADDR_51: {
+      gpiope = &GPIOPE_INPUT_51;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_52
+    case I2C_ADDR_52: {
+      gpiope = &GPIOPE_INPUT_52;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_53
+    case I2C_ADDR_53: {
+      gpiope = &GPIOPE_INPUT_53;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_54
+    case I2C_ADDR_54: {
+      gpiope = &GPIOPE_INPUT_54;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_55
+    case I2C_ADDR_55: {
+      gpiope = &GPIOPE_INPUT_55;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_56
+    case I2C_ADDR_56: {
+      gpiope = &GPIOPE_INPUT_56;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_57
+    case I2C_ADDR_57: {
+      gpiope = &GPIOPE_INPUT_57;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_58
+    case I2C_ADDR_58: {
+      gpiope = &GPIOPE_INPUT_58;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_59
+    case I2C_ADDR_59: {
+      gpiope = &GPIOPE_INPUT_59;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_60
+    case I2C_ADDR_60: {
+      gpiope = &GPIOPE_INPUT_60;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_61
+    case I2C_ADDR_61: {
+      gpiope = &GPIOPE_INPUT_61;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_62
+    case I2C_ADDR_62: {
+      gpiope = &GPIOPE_INPUT_62;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_63
+    case I2C_ADDR_63: {
+      gpiope = &GPIOPE_INPUT_63;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_64
+    case I2C_ADDR_64: {
+      gpiope = &GPIOPE_INPUT_64;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_65
+    case I2C_ADDR_65: {
+      gpiope = &GPIOPE_INPUT_65;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_66
+    case I2C_ADDR_66: {
+      gpiope = &GPIOPE_INPUT_66;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_67
+    case I2C_ADDR_67: {
+      gpiope = &GPIOPE_INPUT_67;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_68
+    case I2C_ADDR_68: {
+      gpiope = &GPIOPE_INPUT_68;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_69
+    case I2C_ADDR_69: {
+      gpiope = &GPIOPE_INPUT_69;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_70
+    case I2C_ADDR_70: {
+      gpiope = &GPIOPE_INPUT_70;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_71
+    case I2C_ADDR_71: {
+      gpiope = &GPIOPE_INPUT_71;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_72
+    case I2C_ADDR_72: {
+      gpiope = &GPIOPE_INPUT_72;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_73
+    case I2C_ADDR_73: {
+      gpiope = &GPIOPE_INPUT_73;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_74
+    case I2C_ADDR_74: {
+      gpiope = &GPIOPE_INPUT_74;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_75
+    case I2C_ADDR_75: {
+      gpiope = &GPIOPE_INPUT_75;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_76
+    case I2C_ADDR_76: {
+      gpiope = &GPIOPE_INPUT_76;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_77
+    case I2C_ADDR_77: {
+      gpiope = &GPIOPE_INPUT_77;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_78
+    case I2C_ADDR_78: {
+      gpiope = &GPIOPE_INPUT_78;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_79
+    case I2C_ADDR_79: {
+      gpiope = &GPIOPE_INPUT_79;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_80
+    case I2C_ADDR_80: {
+      gpiope = &GPIOPE_INPUT_80;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_81
+    case I2C_ADDR_81: {
+      gpiope = &GPIOPE_INPUT_81;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_82
+    case I2C_ADDR_82: {
+      gpiope = &GPIOPE_INPUT_82;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_83
+    case I2C_ADDR_83: {
+      gpiope = &GPIOPE_INPUT_83;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_84
+    case I2C_ADDR_84: {
+      gpiope = &GPIOPE_INPUT_84;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_85
+    case I2C_ADDR_85: {
+      gpiope = &GPIOPE_INPUT_85;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_86
+    case I2C_ADDR_86: {
+      gpiope = &GPIOPE_INPUT_86;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_87
+    case I2C_ADDR_87: {
+      gpiope = &GPIOPE_INPUT_87;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_88
+    case I2C_ADDR_88: {
+      gpiope = &GPIOPE_INPUT_88;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_89
+    case I2C_ADDR_89: {
+      gpiope = &GPIOPE_INPUT_89;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_90
+    case I2C_ADDR_90: {
+      gpiope = &GPIOPE_INPUT_90;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_91
+    case I2C_ADDR_91: {
+      gpiope = &GPIOPE_INPUT_91;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_92
+    case I2C_ADDR_92: {
+      gpiope = &GPIOPE_INPUT_92;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_93
+    case I2C_ADDR_93: {
+      gpiope = &GPIOPE_INPUT_93;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_94
+    case I2C_ADDR_94: {
+      gpiope = &GPIOPE_INPUT_94;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_95
+    case I2C_ADDR_95: {
+      gpiope = &GPIOPE_INPUT_95;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_96
+    case I2C_ADDR_96: {
+      gpiope = &GPIOPE_INPUT_96;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_97
+    case I2C_ADDR_97: {
+      gpiope = &GPIOPE_INPUT_97;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_98
+    case I2C_ADDR_98: {
+      gpiope = &GPIOPE_INPUT_98;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_99
+    case I2C_ADDR_99: {
+      gpiope = &GPIOPE_INPUT_99;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_100
+    case I2C_ADDR_100: {
+      gpiope = &GPIOPE_INPUT_100;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_101
+    case I2C_ADDR_101: {
+      gpiope = &GPIOPE_INPUT_101;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_102
+    case I2C_ADDR_102: {
+      gpiope = &GPIOPE_INPUT_102;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_103
+    case I2C_ADDR_103: {
+      gpiope = &GPIOPE_INPUT_103;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_104
+    case I2C_ADDR_104: {
+      gpiope = &GPIOPE_INPUT_104;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_105
+    case I2C_ADDR_105: {
+      gpiope = &GPIOPE_INPUT_105;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_106
+    case I2C_ADDR_106: {
+      gpiope = &GPIOPE_INPUT_106;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_107
+    case I2C_ADDR_107: {
+      gpiope = &GPIOPE_INPUT_107;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_108
+    case I2C_ADDR_108: {
+      gpiope = &GPIOPE_INPUT_108;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_109
+    case I2C_ADDR_109: {
+      gpiope = &GPIOPE_INPUT_109;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_110
+    case I2C_ADDR_110: {
+      gpiope = &GPIOPE_INPUT_110;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_111
+    case I2C_ADDR_111: {
+      gpiope = &GPIOPE_INPUT_111;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_112
+    case I2C_ADDR_112: {
+      gpiope = &GPIOPE_INPUT_112;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_113
+    case I2C_ADDR_113: {
+      gpiope = &GPIOPE_INPUT_113;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_114
+    case I2C_ADDR_114: {
+      gpiope = &GPIOPE_INPUT_114;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_115
+    case I2C_ADDR_115: {
+      gpiope = &GPIOPE_INPUT_115;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_116
+    case I2C_ADDR_116: {
+      gpiope = &GPIOPE_INPUT_116;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_117
+    case I2C_ADDR_117: {
+      gpiope = &GPIOPE_INPUT_117;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_118
+    case I2C_ADDR_118: {
+      gpiope = &GPIOPE_INPUT_118;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_119
+    case I2C_ADDR_119: {
+      gpiope = &GPIOPE_INPUT_119;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_120
+    case I2C_ADDR_120: {
+      gpiope = &GPIOPE_INPUT_120;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_121
+    case I2C_ADDR_121: {
+      gpiope = &GPIOPE_INPUT_121;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_122
+    case I2C_ADDR_122: {
+      gpiope = &GPIOPE_INPUT_122;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_123
+    case I2C_ADDR_123: {
+      gpiope = &GPIOPE_INPUT_123;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_124
+    case I2C_ADDR_124: {
+      gpiope = &GPIOPE_INPUT_124;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_125
+    case I2C_ADDR_125: {
+      gpiope = &GPIOPE_INPUT_125;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_126
+    case I2C_ADDR_126: {
+      gpiope = &GPIOPE_INPUT_126;
+      break;
+    }
+    #endif
+
+    #ifdef GPIOPE_USE_INPUT_127
+    case I2C_ADDR_127: {
+      gpiope = &GPIOPE_INPUT_127;
+      break;
+    }
+    #endif
+
+    default: {
+      // printf("warning: no gpiope device found for I2C address=%d\n", address);
+      break;
+    }
+  }
+
+  return gpiope;
+}
+
+GPIOPortExpander* isGPIOPE_OUTPUT(uint8_t address) {
 
   GPIOPortExpander *gpiope = nullptr;
 
