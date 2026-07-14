@@ -4,7 +4,7 @@
 
 *Written by Benjamin Jack Cullen — project may be renamed to SatIO.*
 
-SatIO is a Value Hive & Programmable Switch, for building devices with and or on top of.
+SatIO is a realtime data hive & programmable switch, for building devices with and or on top of.
 
 ---
 ## Philosophy & Design
