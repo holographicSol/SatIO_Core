@@ -20,37 +20,37 @@
 // #define GPIO_GPIOE_DEBUG_REQUEST_RECEIVE
 // #define GPIO_GPIOE_DEBUG_CASE
 // #define GPIO_GPIOE_DEBUG_CASE_DETAIL
-#define GPIO_GPIOE_BENCH
+// #define GPIO_GPIOE_BENCH
 
 // ------------------------------------------------------------
 // BUILD OPTIONS: MASTER/SLAVE MODE
 // ------------------------------------------------------------
-#define GPIOPE_MASTER_MODE
-// #define GPIOPE_SLAVE_MODE
+// #define GPIOPE_MASTER_MODE
+#define GPIOPE_SLAVE_MODE
 
 // ------------------------------------------------------------
 // SLAVE Build Option OPTIONS: READ/WRITE MODE
 // ------------------------------------------------------------
 // #define GPIOPE_READ_MODE
-// #define GPIOPE_WRITE_MODE
+#define GPIOPE_WRITE_MODE
 
 // ------------------------------------------------------------
 // SLAVE Build Option: Select Slave Device
 // ------------------------------------------------------------
-// #define GPIOPE_SLAVE_ATMEGA2560
+#define GPIOPE_SLAVE_ATMEGA2560
 // #define GPIOPE_SLAVE_ESP32P4
 
 // ------------------------------------------------------------
 // MASTER Build Option: Global GPIOPE Device Switch
 // ------------------------------------------------------------
-#define GPIOPE_USE_INPUT
-#define GPIOPE_USE_OUTPUT
+// #define GPIOPE_USE_INPUT
+// #define GPIOPE_USE_OUTPUT
 
 // ------------------------------------------------------------
 // MASTER Build Option: I2C Bus specification (same/different).
 // ------------------------------------------------------------
 #define GPIOPE_INPUT_I2C_BUS  iic_0
-#define GPIOPE_OUTPUT_I2C_BUS iic_2
+// #define GPIOPE_OUTPUT_I2C_BUS iic_2
 
 // ------------------------------------------------------------
 // MASTER Build Option: Build with/without GPIOPE Device
@@ -64,7 +64,7 @@
 // #define GPIOPE_USE_INPUT_6
 // #define GPIOPE_USE_INPUT_7
 // #define GPIOPE_USE_INPUT_8
-#define GPIOPE_USE_INPUT_9
+// #define GPIOPE_USE_INPUT_9
 // #define GPIOPE_USE_INPUT_10
 // #define GPIOPE_USE_INPUT_11
 // #define GPIOPE_USE_INPUT_12
@@ -193,7 +193,7 @@
 // #define GPIOPE_USE_OUTPUT_6
 // #define GPIOPE_USE_OUTPUT_7
 // #define GPIOPE_USE_OUTPUT_8
-#define GPIOPE_USE_OUTPUT_9
+// #define GPIOPE_USE_OUTPUT_9
 // #define GPIOPE_USE_OUTPUT_10
 // #define GPIOPE_USE_OUTPUT_11
 // #define GPIOPE_USE_OUTPUT_12
@@ -401,6 +401,8 @@ typedef struct GPIOPortExpander {
 // Slave-side
 // ------------------------------------------------------------
 
+void setAllPinMode();
+
 /**
  * @brief Receive binary event handler for an I2C Bus
  *
@@ -442,18 +444,15 @@ void GPIOPE_Output_Modulator();
  * @brief Can be used to return a valid GPIOPE for a given address handle.
  * Any GPIOPE built should, should also be valid and retrievable by it's coresponding address.
  * 
- * It is reccommended to call isGPIOPE to obtain a GPIOPE instance, rather than directly calling an
+ * It is reccommended to call isGPIOPE_OUTPUT to obtain a GPIOPE instance, rather than directly calling an
  * an instance that may or may not have been built. Then Check for nullptr before actually
  * using it.
  * 
  * This is useful for building generally however if you know exactly how many GPIOPE's
  * are built and do not need to address any number of them variably, then you could just call it
- * by its name, for example; GPIOPE_OUTPUT_##N / GPIOPE_INPUT_##N.
+ * by its name, for example; GPIOPE_OUTPUT_##N.
  */
-GPIOPortExpander* isGPIOPE_INPUT(uint8_t address);
-
 GPIOPortExpander* isGPIOPE_OUTPUT(uint8_t address);
-
 
 /**
  * @brief Setup all defined slave devices and confirm setups by querying the slave(s).

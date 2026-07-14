@@ -24,8 +24,8 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <cstring>
-#include <cstdio>
+// #include <cstring>
+// #include <cstdio>
 #include "UnidentifiedStudios_I2C.h"
 
 // AVR (ATmega2560) has exactly one hardware I2C peripheral, already
@@ -33,14 +33,14 @@
 // ESP32's TwoWire, this platform's TwoWire has no bus-number constructor, so
 // this is a separate AVR-specific initiator: a reference alias for Wire,
 // not a second distinct instance.
-// TwoWire &iic_0 = Wire;
+TwoWire &iic_0 = Wire;
 // TwoWire iic_0(0);
 // TwoWire iic_1(1);
 // TwoWire iic_2(2);
 
-TwoWire iic_0(0);
-TwoWire iic_1(1);
-TwoWire iic_2(2);
+// TwoWire iic_0(0);
+// TwoWire iic_1(1);
+// TwoWire iic_2(2);
 
 IICLink I2CLinkBus0;
 IICLink I2CLinkBus1;
@@ -57,47 +57,47 @@ IICLink I2CLinkBus2;
  * @param code The return value from Wire.endTransmission().
  * @param debugTag Tag to identify the source of the error.
  */
-static void printI2CError(uint8_t code, const char *debugTag) {
-    switch (code) {
-        case IIC_STATUS_SUCCESS:
-            break;
+static void printI2CError(uint8_t code, const String &debugTag) {
+    // switch (code) {
+    //     case IIC_STATUS_SUCCESS:
+    //         break;
 
-        case IIC_STATUS_DATA_TOO_LONG:
-            Serial.printf("[I2C] Code %u: Data too long to fit in transmit buffer. Function: %s\n",
-                          code,
-                          debugTag);
-            break;
+    //     case IIC_STATUS_DATA_TOO_LONG:
+    //         Serial.printf("[I2C] Code %u: Data too long to fit in transmit buffer. Function: %s\n",
+    //                       code,
+    //                       debugTag.c_str());
+    //         break;
 
-        case IIC_STATUS_NACK_ADDRESS:
-            Serial.printf("[I2C] Code %u: Received NACK (device not found/not responding). Function: %s\n",
-                          code,
-                          debugTag);
-            break;
+    //     case IIC_STATUS_NACK_ADDRESS:
+    //         Serial.printf("[I2C] Code %u: Received NACK (device not found/not responding). Function: %s\n",
+    //                       code,
+    //                       debugTag.c_str());
+    //         break;
 
-        case IIC_STATUS_NACK_DATA:
-            Serial.printf("[I2C] Code %u: Received NACK on data. Function: %s\n",
-                          code,
-                          debugTag);
-            break;
+    //     case IIC_STATUS_NACK_DATA:
+    //         Serial.printf("[I2C] Code %u: Received NACK on data. Function: %s\n",
+    //                       code,
+    //                       debugTag.c_str());
+    //         break;
 
-        case IIC_STATUS_OTHER_ERROR:
-            Serial.printf("[I2C] Code %u: Other/TWI error (e.g. lost arbitration, timeout, etc.). Function: %s\n",
-                          code,
-                          debugTag);
-            break;
+    //     case IIC_STATUS_OTHER_ERROR:
+    //         Serial.printf("[I2C] Code %u: Other/TWI error (e.g. lost arbitration, timeout, etc.). Function: %s\n",
+    //                       code,
+    //                       debugTag.c_str());
+    //         break;
 
-        case IIC_STATUS_TIMEOUT:
-            Serial.printf("[I2C] Code %u: Timeout (ESP32/ESP8266). Function: %s\n",
-                          code,
-                          debugTag);
-            break;
+    //     case IIC_STATUS_TIMEOUT:
+    //         Serial.printf("[I2C] Code %u: Timeout (ESP32/ESP8266). Function: %s\n",
+    //                       code,
+    //                       debugTag.c_str());
+    //         break;
 
-        default:
-            Serial.printf("[I2C] Code %u: Unknown error code. Function: %s\n",
-                          code,
-                          debugTag);
-            break;
-    }
+    //     default:
+    //         Serial.printf("[I2C] Code %u: Unknown error code. Function: %s\n",
+    //                       code,
+    //                       debugTag.c_str());
+    //         break;
+    // }
 }
 
 /** ----------------------------------------------------------------------------
@@ -178,7 +178,7 @@ void writeI2CToSlaveChars(TwoWire &wire,
                           IICLink &iic_link,
                           int address,
                           long delayMs,
-                          const char *debugTag) {
+                          const String &debugTag) {
   clearI2CLinkOutputBytes(iic_link);
   size_t len = strlen(iic_link.OUTPUT_BUFFER_CHARS);
   for (size_t i = 0; i < len; i++) {
@@ -232,7 +232,7 @@ void requestFromSlaveChars(TwoWire &wire,
                            long request_id,
                            size_t len_expected,
                            long delayMs,
-                           const char *debugTag) {
+                           const String &debugTag) {
   // Send request ID
   clearI2CLinkOutputChars(iic_link);
   snprintf(iic_link.OUTPUT_BUFFER_CHARS, sizeof(iic_link.OUTPUT_BUFFER_CHARS), "%ld", request_id);
@@ -248,17 +248,17 @@ void requestFromSlaveChars(TwoWire &wire,
   clearI2CLinkInputChars(iic_link);
   (void)wire.requestFrom(address, len_expected);
   size_t len_read = wire.readBytes((char *)iic_link.INPUT_BUFFER, len_expected);
-  Serial.printf("[requestFromSlave] %s (%zu bytes / %zu bytes). Function: %s\n",
-                iic_link.INPUT_BUFFER,
-                len_read,
-                len_expected,
-                debugTag);
+  // Serial.printf("[requestFromSlave] %s (%zu bytes / %zu bytes). Function: %s\n",
+  //               iic_link.INPUT_BUFFER,
+  //               len_read,
+  //               len_expected,
+  //               debugTag.c_str());
   if (len_read < 1U) {return;}
   if (len_read != len_expected) {
-    Serial.printf("[I2C] Warning: Expected %zu bytes but received %zu bytes from slave. Function: %s\n",
-                  len_expected,
-                  len_read,
-                  debugTag);
+    // Serial.printf("[I2C] Warning: Expected %zu bytes but received %zu bytes from slave. Function: %s\n",
+    //               len_expected,
+    //               len_read,
+    //               debugTag.c_str());
     return;
   }
   // Clear all tokens
@@ -290,7 +290,7 @@ void writeI2CToSlaveBin(TwoWire &wire,
                         int address,
                         size_t len_packet,
                         long delayMs,
-                        const char *debugTag) {
+                        const String &debugTag) {
   wire.beginTransmission(address);
   wire.write(iic_link.OUTPUT_PACKET, len_packet);
   printI2CError(wire.endTransmission(), debugTag);
@@ -337,7 +337,7 @@ void requestFromSlaveBin(TwoWire &wire,
                          long request_id,
                          size_t len_expected,
                          long delayMs,
-                         const char *debugTag) {
+                         const String &debugTag) {
   (void)len_packet;
   // Send request ID
   memset(iic_link.OUTPUT_PACKET, 0, sizeof(iic_link.OUTPUT_PACKET));
@@ -353,9 +353,9 @@ void requestFromSlaveBin(TwoWire &wire,
 
   // Check response length
   if (len_req != len_expected) {
-    Serial.printf("[requestFromSlaveBin] Warning: Expected %zu bytes. Function: %s\n",
-                  len_expected,
-                  debugTag);
+    // Serial.printf("[requestFromSlaveBin] Warning: Expected %zu bytes. Function: %s\n",
+    //               len_expected,
+    //               debugTag.c_str());
     return;
   }
 
@@ -382,15 +382,15 @@ bool requestFromSlaveBinNoID(TwoWire &wire,
                          int address,
                          size_t len_expected,
                          long delayMs,
-                         const char *debugTag) {
+                         const String &debugTag) {
   // Send request
   size_t len_req = wire.requestFrom(address, len_expected);
 
   // Check response length
   if (len_req != len_expected) {
-    Serial.printf("[requestFromSlaveBin] Warning: Expected %zu bytes. Function: %s\n",
-                  len_expected,
-                  debugTag);
+    // Serial.printf("[requestFromSlaveBin] Warning: Expected %zu bytes. Function: %s\n",
+    //               len_expected,
+    //               debugTag.c_str());
     return false;
   }
   delay((unsigned long)delayMs);
