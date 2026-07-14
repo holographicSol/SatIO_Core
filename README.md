@@ -615,6 +615,3 @@ help
 - [ ] PCB fabrication.
 
 ---
-
-**Zip:** [drive.google.com/.../SatIO](https://drive.google.com/drive/folders/13yynSxkKL-zxb7iLSkg0v0VXkSLgmtW-?usp=drive_link)
-
