@@ -203,22 +203,22 @@ const int8_t *modulatedPinIndices(int8_t *out_count) {
   return modulated_pin_list;
 }
 
-inline void setAllPinMode() {
+void setAllPinMode() {
   #ifdef GPIOPE_READ_MODE
   for (int i=0; i < GPIOPortExpander_SLAVE.num_analog_pins; i++) {
-    pinMode(GPIOPortExpander_SLAVE.port_map[i], INPUT);
+    pinMode(GPIOPortExpander_SLAVE.analog_pins[i], INPUT);
   }
   for (int i=0; i < GPIOPortExpander_SLAVE.num_digital_pins; i++) {
-    pinMode(GPIOPortExpander_SLAVE.port_map[i], INPUT);
+    pinMode(GPIOPortExpander_SLAVE.digital_pins[i], INPUT);
   }
   #endif
 
   #ifdef GPIOPE_WRITE_MODE
   for (int i=0; i < GPIOPortExpander_SLAVE.num_analog_pins; i++) {
-    pinMode(GPIOPortExpander_SLAVE.port_map[i], OUTPUT);
+    pinMode(GPIOPortExpander_SLAVE.analog_pins[i], OUTPUT);
   }
   for (int i=0; i < GPIOPortExpander_SLAVE.num_digital_pins; i++) {
-    pinMode(GPIOPortExpander_SLAVE.port_map[i], OUTPUT);
+    pinMode(GPIOPortExpander_SLAVE.digital_pins[i], OUTPUT);
   }
   #endif
 }
@@ -229,6 +229,7 @@ void GPIOPE_Output_Modulator() {
   // - Modulate output only if a switch state is already true.
   // - Modulator values: time high, time low.
   // ------------------------------------------------------------
+  if (!pin_kind_lookup_built) {buildPinKindLookup();}
   const unsigned long now = micros();
   int8_t count;
   const int8_t *active = modulatedPinIndices(&count);
@@ -239,6 +240,8 @@ void GPIOPE_Output_Modulator() {
   for (int8_t k=count-1; k>=0; k--) {
     const int8_t i = active[k];
     const int16_t pin = GPIOPortExpander_SLAVE.port_map[i];
+    if (pin < 0 || pin >= GPIOPortExpander_SLAVE.max_pins) {continue;}
+    const int8_t kind = pin_kind_lookup[pin];
     const int32_t out_val = GPIOPortExpander_SLAVE.output_value[i];
     // cache this pin's row instead of re-indexing modulation_time[i]
     uint32_t *mt = GPIOPortExpander_SLAVE.modulation_time[i];
@@ -252,8 +255,14 @@ void GPIOPE_Output_Modulator() {
       // ----------------------------------
       if ((now - mt[2]) >= mt[0]) {
         // Serial.println("on");
-        if (pin<54) {digitalWrite(pin, HIGH);}
-        else {analogWrite(pin, out_val);}
+        switch (kind) {
+          case PIN_KIND_ANALOG:
+            analogWrite((uint8_t)pin, (uint8_t)out_val);
+            break;
+          case PIN_KIND_DIGITAL:
+            digitalWrite((uint8_t)pin, (uint8_t)out_val);
+            break;
+        }
         mt[2]=now;
         GPIOPortExpander_SLAVE.switch_state[i]=true;
       }
@@ -268,8 +277,14 @@ void GPIOPE_Output_Modulator() {
       if (mt[1]==0) {
         if ((now - mt[2]) >= mt[0]) {
           // Serial.println("rem off");
-          if (pin<54) {digitalWrite(pin, LOW);}
-          else {analogWrite(pin, 0);}
+          switch (kind) {
+            case PIN_KIND_ANALOG:
+              analogWrite((uint8_t)pin, 0);
+              break;
+            case PIN_KIND_DIGITAL:
+              digitalWrite((uint8_t)pin, LOW);
+              break;
+          }
           mt[2]=now;
           GPIOPortExpander_SLAVE.switch_state[i]=false;
           // change parent state off
@@ -285,8 +300,14 @@ void GPIOPE_Output_Modulator() {
       else {
         if ((now - mt[2]) >= mt[1]) {
           // Serial.println("off");
-          if (pin<54) {digitalWrite(pin, LOW);}
-          else {analogWrite(pin, 0);}
+          switch (kind) {
+            case PIN_KIND_ANALOG:
+              analogWrite((uint8_t)pin, 0);
+              break;
+            case PIN_KIND_DIGITAL:
+              digitalWrite((uint8_t)pin, LOW);
+              break;
+          }
           mt[2]=now;
           GPIOPortExpander_SLAVE.switch_state[i]=false;
         }

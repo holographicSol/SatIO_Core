@@ -42,6 +42,9 @@ void setup() {
   Serial.setTimeout(50); // ensure this is set before begin()
   Serial.begin(115200);  while(!Serial);
 
+  
+  setAllPinMode();
+
   // ------------------------------------------------------------
   // I2C
   // ------------------------------------------------------------

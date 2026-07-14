@@ -31,8 +31,8 @@
 // ------------------------------------------------------------
 // SLAVE Build Option OPTIONS: READ/WRITE MODE
 // ------------------------------------------------------------
-#define GPIOPE_READ_MODE
-// #define GPIOPE_WRITE_MODE
+// #define GPIOPE_READ_MODE
+#define GPIOPE_WRITE_MODE
 
 // ------------------------------------------------------------
 // SLAVE Build Option: Select Slave Device
@@ -401,6 +401,8 @@ typedef struct GPIOPortExpander {
 // Slave-side
 // ------------------------------------------------------------
 
+void setAllPinMode();
+
 /**
  * @brief Receive binary event handler for an I2C Bus
  *
@@ -442,14 +444,16 @@ void GPIOPE_Output_Modulator();
  * @brief Can be used to return a valid GPIOPE for a given address handle.
  * Any GPIOPE built should, should also be valid and retrievable by it's coresponding address.
  * 
- * It is reccommended to call isGPIOPE_OUTPUT to obtain a GPIOPE instance, rather than directly calling an
+ * It is reccommended to call isGPIOPE to obtain a GPIOPE instance, rather than directly calling an
  * an instance that may or may not have been built. Then Check for nullptr before actually
  * using it.
  * 
  * This is useful for building generally however if you know exactly how many GPIOPE's
  * are built and do not need to address any number of them variably, then you could just call it
- * by its name, for example; GPIOPE_OUTPUT_##N.
+ * by its name, for example; GPIOPE_OUTPUT_##N / GPIOPE_INPUT_##N.
  */
+GPIOPortExpander* isGPIOPE_INPUT(uint8_t address);
+
 GPIOPortExpander* isGPIOPE_OUTPUT(uint8_t address);
 
 /**
