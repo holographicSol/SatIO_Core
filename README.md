@@ -52,6 +52,9 @@ and the system values are set according to a values mode: GPS, Gyro, User. This 
 2. **Compound** — Allow stacking compounds of (1), so that multiple things can be calculated to result in a single true/false.
 3. **I/O** — Each available/required output pin can have it's own (2) Compound logic.
 4. **XYZ** — A lot can be calculated with 3 comparitors, x, y and z. Currently, the only reason to use y is for ranging, and z is used as an index number to access a comparitor in an array. This is ultimately the simplicity of the matrix, whereby anything being claculated is a programmable primary comparitor x, being compared to a programmable secondary comparitor x, optionally in range of y, with z sometimes being used to populate the primary comparitor x with a value from a specified array at index z. Together with elemental and compound logic, this helps fascilitate general, high potential for calculations, without any special functions for any given, potential calculation.
+**X** Secondary Comparitor.
+**Y** Range.
+**Z** Index Primary Compraitor Array.
 
 **Why:** This means that many 'special functions' do not need to be created in order to calculate something, because the answer may already exist, via some combination of available logic in the Matrix.
 
