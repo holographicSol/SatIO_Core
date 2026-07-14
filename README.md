@@ -51,6 +51,8 @@ and the system values are set according to a values mode: GPS, Gyro, User. This 
 1. **Elemental** — Allow comparing any value from the Hive to any other value from the Hive and or to a user defined value.
 2. **Compound** — Allow stacking compounds of (1), so that multiple things can be calculated to result in a single true/false.
 3. **I/O** — Each available/required output pin can have it's own (2) Compound logic.
+4. **XYZ** — A lot can be calculated with 3 comparitors, x, y and z. Currently, the only reason to use z is to access a comparitor in an index and or for ranging. This is ultimately the simplicity of the matrix, whereby anything being claculated is ultimately a programmable primary comparitor x, being compared to a programmable secondary comparitor x, with z sometimes being used to populate
+the secondary comparitor x with a value from an array index z. Together with elemental and compound logic, this helps fascilitate general, high potential for calculations, without any special functions for any given, potential calculation.
 
 **Why:** This means that many 'special functions' do not need to be created in order to calculate something, because the answer may already exist, via some combination of available logic in the Matrix.
 
@@ -520,7 +522,7 @@ powercfg --setdelay --universe   Specify max task frequency in uS.
 powercfg --setdelay --gps        Specify max task frequency in uS.
 powercfg --setdelay --switch     Specify max task frequency in uS.
 powercfg --setdelay --storage    Specify max task frequency in uS.
-powercfg --setdelay --gpiope0    Specify max task frequency in uS.
+powercfg --setdelay --gpiope    Specify max task frequency in uS.
 ```
 
 **Example:**
