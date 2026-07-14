@@ -461,6 +461,7 @@ static void PrintHelp(void) {
 
   [ Port Expander Input ]
 
+      gpiope --input            Point GPIOPE at input devices.
       gpiope -c n --enable       Enable pin n on the input port expander (read every task cycle, subject to --freq).
       gpiope -c n --disable      Disable pin n on the input port expander (data reports 0 while disabled).
       gpiope -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
@@ -472,7 +473,7 @@ static void PrintHelp(void) {
       gpiope -c 5 --enable --freq 1000000
 
   [ Port Expander Output ]
-
+      gpiope --output                     Point GPIOPE at ouptut devices.
       gpiope -a                           Specify address -a.
       gpiope -i                           Specify port map index -i.
       gpiope -p                           Specify pin number -p.
