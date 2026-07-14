@@ -34,7 +34,10 @@
 // ## BEGIN PERIPHERAL SLAVE ADDRESSES (N PER BUS)
 // #####################################################################################################################
 
-#define I2C_ADDR_CONTROL_PAD 9
+#define I2C_ADDR_CONTROL_PAD 8
+
+// I2C_ADDR_N / I2C_ADDR_N now live in
+// UnidentifiedStudios_Config.h, alongside every GPIOPE_USE_INPUT_N/OUTPUT_N.
 
 // #####################################################################################################################
 // ## BEGIN I2C BUS PINS
@@ -59,7 +62,7 @@
 // ## BEGIN I2C BUS CLOCK SPEEDS
 // #####################################################################################################################
 
-#define I2C_CLOCK_Hz_BUS0 200000 // 200kHz
+#define I2C_CLOCK_Hz_BUS0 400000 // 400kHz
 #define I2C_CLOCK_Hz_BUS1 800000 // 800kHz
 #define I2C_CLOCK_Hz_BUS2 400000 // 400kHz
 
@@ -74,9 +77,9 @@
 // ## BEGIN DEFAULT TWOWIRE INSTANCES
 // #####################################################################################################################
 
-extern TwoWire &iic_0; // Wire instance bound to I2C bus 0.
-// extern TwoWire iic_1; // Wire instance bound to I2C bus 1.
-// extern TwoWire iic_2; // Wire instance bound to I2C bus 2.
+extern TwoWire iic_0; // Wire instance bound to I2C bus 0.
+extern TwoWire iic_1; // Wire instance bound to I2C bus 1.
+extern TwoWire iic_2; // Wire instance bound to I2C bus 2.
 
 // #####################################################################################################################
 // ## BEGIN I2C TRANSMISSION STATUS CODES
@@ -206,7 +209,7 @@ void writeI2CToSlaveChars(TwoWire &wire,
                           IICLink &iic_link,
                           int address,
                           long delayMs,
-                          const String &debugTag);
+                          const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Writes data to an I2C master device.
@@ -234,7 +237,7 @@ void requestFromSlaveChars(TwoWire &wire,
                            long request_id,
                            size_t len_expected,
                            long delayMs,
-                           const String &debugTag);
+                           const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Writes binary data to an I2C slave device.
@@ -249,7 +252,7 @@ void writeI2CToSlaveBin(TwoWire &wire,
                         int address,
                         size_t len_packet,
                         long delayMs,
-                        const String &debugTag);
+                        const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Writes binary data to an I2C master device.
@@ -280,7 +283,7 @@ void requestFromSlaveBin(TwoWire &wire,
                          long request_id,
                          size_t len_expected,
                          long delayMs,
-                         const String &debugTag);
+                         const char *debugTag);
 
 /** ----------------------------------------------------------------------------
  * @brief Requests binary data from an I2C slave device.
@@ -296,7 +299,7 @@ bool requestFromSlaveBinNoID(TwoWire &wire,
                          int address,
                          size_t len_expected,
                          long delayMs,
-                         const String &debugTag);
+                         const char *debugTag);
 
 /**
  * @brief Read uint8_t from I2C wire into specified value.
@@ -548,6 +551,9 @@ void write_byte_ToPacket(uint8_t *buffer, int64_t &current_bytes, byte value);
  */
 void write_nbytes_ToPacket(uint8_t *buffer, int64_t &current_bytes, const uint8_t *value, size_t n_bytes);
 
+// ------------------------------------------------------------
+// I2C Addresses
+// ------------------------------------------------------------
 #define I2C_ADDR_0  0
 #define I2C_ADDR_1  1
 #define I2C_ADDR_2  2
