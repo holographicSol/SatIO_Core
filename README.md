@@ -114,7 +114,7 @@ map -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range
 map -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
 map -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
 map -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected fluctuation at center)
-
+```
 ---
 
 ## Matrix
