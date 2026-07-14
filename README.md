@@ -2,7 +2,7 @@
 
 ![plot](./SDCARD/UnidentifiedStudios.png)
 
-*Written by Benjamin Jack Cullen — project may be renamed to SatIO.*
+*SatIO - Written by Benjamin Jack Cullen*
 
 SatIO is a realtime data hive & programmable switch, for building devices with and or on top of.
 
