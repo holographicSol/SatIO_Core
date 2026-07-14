@@ -99,7 +99,7 @@ system -log                 Automatically log data to disk (See performance for 
 
 ## Mapping
 
-Many values can be mapped and then used in the matrix and or sent directly to the port controller.
+Many values can be mapped and then used in the matrix and or sent directly to the port controller. Supports standard mapping and mapping from center (Dual/Split Axis).
 
 ```
 map --new      Clears all mapping in memory.
@@ -114,19 +114,6 @@ map -c2 n      Configuration map slot -s. (mode 0 : in_max)  (mode 1 : Neg_range
 map -c3 n      Configuration map slot -s. (mode 0 : out_min) (mode 1 : Pos_range : ADC max - neg range)
 map -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
 map -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected fluctuation at center)
-```
-
-**Example** — map analog stick axis x0 on admplex0 channel 0 into map slot 0:
-
-```
-map -s 0 -m 1 -c0 16 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
-```
-
-**Example** — map analog stick axis x1 on admplex0 channel 1 into map slot 1:
-
-```
-map -s 1 -m 2 -c0 17 -c1 1974 -c2 1974 -c3 1894 -c4 255 -c5 50
-```
 
 ---
 
