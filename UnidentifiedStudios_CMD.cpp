@@ -571,6 +571,13 @@ static void PrintHelp(void) {
       stat -e     Enable print.
       stat -d     Disable print.
       stat -t     Enables/disables serial print stats and counters (includes partition table, RAM, and SD card info). Takes arguments -e, -d.
+      stat -t --datetime          Toggles the datetime table. Takes arguments -e, -d.
+      stat -t --taskrates         Toggles the task rates (Hz) table. Takes arguments -e, -d.
+      stat -t --position          Toggles the position/target and RA/Dec tables. Takes arguments -e, -d.
+      stat -t --gyro              Toggles the orientation/sensors (gyro) table. Takes arguments -e, -d.
+      stat -t --admplex           Toggles the ADMPlex per-channel Hz table(s). Takes arguments -e, -d.
+      stat -t --gpiope            Toggles the GPIOPE input per-channel table(s). Takes arguments -e, -d.
+      stat -t --matrix            Toggles the Computer Assist / matrix table. Takes arguments -e, -d.
       stat --system               Print system configuration.
       stat --matrix n             Print matrix switch n configuration.
       stat --matrix -A            Print configuration of all matrix switches.
@@ -1167,8 +1174,13 @@ void CmdProcess(void) {
       else if (strcmp(pos[0], "stat")==0) {
 
         if (argparser_has_flag(&parser, "t") == true) {
-          if (enable == true) {systemData.output_stat=enable; systemData.output_stat_v=verbose; systemData.output_stat_vv=verbose_1;}
-          else {systemData.output_stat=false; systemData.output_stat_v=false; systemData.output_stat_vv=false;}
+          if (argparser_has_flag(&parser, "datetime") == true) {systemData.output_stat_datetime=enable; printf("setting stat datetime output enabled: %d\n", systemData.output_stat_datetime);}
+          if (argparser_has_flag(&parser, "taskrates") == true) {systemData.output_stat_task_rates=enable; printf("setting stat task rates output enabled: %d\n", systemData.output_stat_task_rates);}
+          if (argparser_has_flag(&parser, "position") == true) {systemData.output_stat_position=enable; printf("setting stat position output enabled: %d\n", systemData.output_stat_position);}
+          if (argparser_has_flag(&parser, "gyro") == true) {systemData.output_stat_gyro=enable; printf("setting stat gyro output enabled: %d\n", systemData.output_stat_gyro);}
+          if (argparser_has_flag(&parser, "admplex") == true) {systemData.output_stat_admplex=enable; printf("setting stat admplex output enabled: %d\n", systemData.output_stat_admplex);}
+          if (argparser_has_flag(&parser, "gpiope") == true) {systemData.output_stat_gpiope=enable; printf("setting stat gpiope output enabled: %d\n", systemData.output_stat_gpiope);}
+          if (argparser_has_flag(&parser, "matrix") == true) {systemData.output_stat_matrix=enable; printf("setting stat matrix output enabled: %d\n", systemData.output_stat_matrix);}
         }
 
         if (strcmp(serial0Data.BUFFER_RX, "stat --system")==0) {PrintSystemData();}
@@ -3640,8 +3652,8 @@ static void printStatChannelHzTable(const char* label, const SystemConuters* cou
 }
 
 void outputStat(void) {
-  // return;
-  // if (systemData.output_stat==true) { // forced on for dev
+
+  if (systemData.output_stat_datetime == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                              PRINT CLOCKS
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -3673,8 +3685,12 @@ void outputStat(void) {
         for (int i = 0; i < numDomains; i++) {printf(STAT_WIDE_COL_FORMAT_S, domains[i].t->sync_padded_time_HHMMSS);}
         printf("\n");
     }
+  }
+
+  if (systemData.output_stat_task_rates == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                         PRINT TASK RATES (Hz)
+    printStatSeparator();
     printf(STAT_LABEL_FMT "%s\n", "PowerConfig", pwrConfigCurrent.name);
     {
         struct StatRatePair { const char* label; long ffreq; long freq; };
@@ -3706,7 +3722,9 @@ void outputStat(void) {
         for (int i = 0; i < numRates; i++) {printf(STAT_WIDE_COL_FORMAT_LD, rates[i].freq);}
         printf("\n");
     }
+  }
 
+  if (systemData.output_stat_position == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                    PRINT POSITION / TARGET
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -3773,7 +3791,11 @@ void outputStat(void) {
         for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_F, sources[i].alt);}
         printf("\n");
     }
+    #endif
+  }
 
+  #ifdef SatIO_USE_GYRO_0
+  if (systemData.output_stat_gyro == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                 PRINT ORIENTATION / SENSORS
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -3802,7 +3824,10 @@ void outputStat(void) {
             printf("\n");
         }
     }
-    #endif
+  }
+  #endif
+
+  if (systemData.output_stat_admplex == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                             PRINT PER-CHANNEL MULTIPLEXER Hz
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -3812,59 +3837,63 @@ void outputStat(void) {
     #ifdef SatIO_CD74HC4067_OPTION_USE_1
     printStatChannelHzTable("ADMPlex1 Ch Hz", systemData.counters_mplex1_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
     #endif
+  }
+
+  #ifdef GPIOPE_USE_INPUT
+  if (systemData.output_stat_gpiope == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
-    #ifdef GPIOPE_USE_INPUT
-    {
-      struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
-      // Same address scan TaskHandler uses to find the active input device(s).
-      // Hz counters (counters_gpioe_chan) are still shared per channel index
-      // across whichever device(s) answer -- see TaskHandler.cpp -- but
-      // Enabled/Input Value are read straight off each device found, so
-      // multiple simultaneously-active input devices each get their own
-      // titled table instead of clobbering one shared array.
-      bool found_any = false;
-      for (int address = 0; address < 128; address++) {
-        GPIOPortExpander* gpiope = isGPIOPE_INPUT((uint8_t)address);
-        if (!gpiope) {continue;}
-        found_any = true;
+    struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
+    // Same address scan TaskHandler uses to find the active input device(s).
+    // Hz counters (counters_gpioe_chan) are still shared per channel index
+    // across whichever device(s) answer -- see TaskHandler.cpp -- but
+    // Enabled/Input Value are read straight off each device found, so
+    // multiple simultaneously-active input devices each get their own
+    // titled table instead of clobbering one shared array.
+    bool found_any = false;
+    for (int address = 0; address < 128; address++) {
+      GPIOPortExpander* gpiope = isGPIOPE_INPUT((uint8_t)address);
+      if (!gpiope) {continue;}
+      found_any = true;
 
-        StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
-        for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
-            channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
-        }
-        for (int i = 0; i < (int)gpiope->max_input_values && i < GPIOPE_MAX_SIZE; i++) {
-            channels[i].enabled = gpiope->enabled[i];
-            channels[i].input_value = gpiope->input_value[i];
-        }
-
-        printStatSeparator();
-        printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", address);
-
-        int channel_count = (int)gpiope->max_pins;
-        if (channel_count > GPIOPE_MAX_SIZE) {channel_count = GPIOPE_MAX_SIZE;}
-        for (int page_start = 0; page_start < channel_count; page_start += STAT_SWITCHES_PER_PAGE) {
-            int page_end = page_start + STAT_SWITCHES_PER_PAGE;
-            if (page_end > channel_count) {page_end = channel_count;}
-            printStatPageHeader(page_start, page_end);
-            printf(STAT_LABEL_FMT, "Input Ch Hz");
-            for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, channels[i].hz);}
-            printf("\n");
-            printf(STAT_LABEL_FMT, "Enabled");
-            for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_D, (int)channels[i].enabled);}
-            printf("\n");
-            printf(STAT_LABEL_FMT, "Input Value");
-            for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)channels[i].input_value);}
-            printf("\n");
-        }
+      StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
+      for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
+          channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
       }
-      if (!found_any) {
-          printStatSeparator();
-          printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", -1);
+      for (int i = 0; i < (int)gpiope->max_input_values && i < GPIOPE_MAX_SIZE; i++) {
+          channels[i].enabled = gpiope->enabled[i];
+          channels[i].input_value = gpiope->input_value[i];
+      }
+
+      printStatSeparator();
+      printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", address);
+
+      int channel_count = (int)gpiope->max_pins;
+      if (channel_count > GPIOPE_MAX_SIZE) {channel_count = GPIOPE_MAX_SIZE;}
+      for (int page_start = 0; page_start < channel_count; page_start += STAT_SWITCHES_PER_PAGE) {
+          int page_end = page_start + STAT_SWITCHES_PER_PAGE;
+          if (page_end > channel_count) {page_end = channel_count;}
+          printStatPageHeader(page_start, page_end);
+          printf(STAT_LABEL_FMT, "Input Ch Hz");
+          for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, channels[i].hz);}
+          printf("\n");
+          printf(STAT_LABEL_FMT, "Enabled");
+          for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_D, (int)channels[i].enabled);}
+          printf("\n");
+          printf(STAT_LABEL_FMT, "Input Value");
+          for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)channels[i].input_value);}
+          printf("\n");
       }
     }
-    #endif
+    if (!found_any) {
+        printStatSeparator();
+        printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", -1);
+    }
+  }
+  #endif
+
+  if (systemData.output_stat_matrix == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT COMPUTER ASSIST
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -3874,22 +3903,21 @@ void outputStat(void) {
      * MAX_MATRIX_SWITCHES, so the last (partial) page never reads past the
      * end of matrixData's arrays.
      */
-    if (systemData.output_stat_v==true) {
-        for (int page_start = 0; page_start < MAX_MATRIX_SWITCHES; page_start += STAT_SWITCHES_PER_PAGE) {
-            int page_end = page_start + STAT_SWITCHES_PER_PAGE;
-            if (page_end > MAX_MATRIX_SWITCHES) {page_end = MAX_MATRIX_SWITCHES;}
-            printStatPageHeader(page_start, page_end);
-            printf(STAT_LABEL_FMT, "Computer Assist");
-            for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.computer_assist[0][i]);}
-            printf("\n");
-            printf(STAT_LABEL_FMT, "Switch Intention");
-            for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.switch_intention[0][i]);}
-            printf("\n");
-            printf(STAT_LABEL_FMT, "Computer Intention");
-            for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.computer_intention[0][i]);}
-            printf("\n");
-            printf(STAT_LABEL_FMT, "Output Value");
-            printArray(matrixData.output_value[0], page_start, page_end);
-        }
+    for (int page_start = 0; page_start < MAX_MATRIX_SWITCHES; page_start += STAT_SWITCHES_PER_PAGE) {
+        int page_end = page_start + STAT_SWITCHES_PER_PAGE;
+        if (page_end > MAX_MATRIX_SWITCHES) {page_end = MAX_MATRIX_SWITCHES;}
+        printStatPageHeader(page_start, page_end);
+        printf(STAT_LABEL_FMT, "Computer Assist");
+        for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.computer_assist[0][i]);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Switch Intention");
+        for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.switch_intention[0][i]);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Computer Intention");
+        for (int i=page_start;i<page_end;i++) {printf(STAT_COL_FORMAT_D, matrixData.computer_intention[0][i]);}
+        printf("\n");
+        printf(STAT_LABEL_FMT, "Output Value");
+        printArray(matrixData.output_value[0], page_start, page_end);
     }
+  }
 }
