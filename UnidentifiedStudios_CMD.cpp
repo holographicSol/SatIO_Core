@@ -3589,10 +3589,10 @@ void outputSerialGPIOPEnput(void) {
 #define STAT_LABEL_WIDTH 22 // width of labels such as "Computer Assist    :  "
 #define STAT_LABEL_FMT "%-22s:  " // keep field width in sync with STAT_LABEL_WIDTH
 #define STAT_LABEL_BLANK_FMT "%-25s" // header/blank-label version of STAT_LABEL_FMT (same total width, no colon)
-#define STAT_WIDE_COL_WIDTH 16 // wide enough for the longest column label ("System Timing")
-#define STAT_WIDE_COL_FORMAT_S  "%-16s"
-#define STAT_WIDE_COL_FORMAT_LD "%-16ld"
-#define STAT_WIDE_COL_FORMAT_F  "%-16.7f"
+#define STAT_WIDE_COL_WIDTH 20 // wide enough for the longest column label ("System Timing")
+#define STAT_WIDE_COL_FORMAT_S  "%-20s"
+#define STAT_WIDE_COL_FORMAT_LD "%-20ld"
+#define STAT_WIDE_COL_FORMAT_F  "%-20.7f"
 #define STAT_GYRO_COL_WIDTH 30 // wide enough for the longest header ("Angle (XZ=+/-180 Y=+/-90deg)")
 #define STAT_GYRO_COL_FORMAT_S  "%-30s"
 #define STAT_GYRO_COL_FORMAT_F  "%-30.2f"
@@ -3790,7 +3790,31 @@ void outputStat(void) {
         printf(STAT_LABEL_FMT, "Alt");
         for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_F, sources[i].alt);}
         printf("\n");
-    }
+      }
+      // StarNav
+      {
+          const char* columns[] = {"Table Index", "Table", "Number", "Name", "Type", "Constellation", "Distance", "Azimuth", "Altitude", "Rise", "Set"};
+          const int numColumns = sizeof(columns) / sizeof(columns[0]);
+
+          printStatSeparator();
+          printf(STAT_LABEL_BLANK_FMT, "");
+          for (int i = 0; i < numColumns; i++) {printf(STAT_WIDE_COL_FORMAT_S, columns[i]);}
+          printf("\n");
+          printStatSeparator();
+          printf(STAT_LABEL_FMT, "StarNav");
+          printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectData.object_table_i);
+          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_table_name);
+          printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectData.object_number);
+          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_name);
+          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_type);
+          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_con);
+          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_dist);
+          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_az);
+          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_alt);
+          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_r);
+          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_s);
+          printf("\n");
+      }
     #endif
   }
 

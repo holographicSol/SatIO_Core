@@ -1304,17 +1304,17 @@ static void taskUniverse(void *pvParameters) {
       #endif
 
       // ------------------------------------------------
-      // StarNav Dynamic Test Zenith Every Interval
+      // StarNav Test Zenith
       // ------------------------------------------------
-      setStarNav(
-        siderealPlanetData.local_sidereal_attitude.ra_h,
-        siderealPlanetData.local_sidereal_attitude.ra_m,
-        siderealPlanetData.local_sidereal_attitude.ra_s,
-        siderealPlanetData.local_sidereal_attitude.dec_d,
-        siderealPlanetData.local_sidereal_attitude.dec_m,
-        siderealPlanetData.local_sidereal_attitude.dec_s
-      );
-      esp_task_wdt_reset();
+      // setStarNav(
+      //   siderealPlanetData.local_sidereal_attitude.ra_h,
+      //   siderealPlanetData.local_sidereal_attitude.ra_m,
+      //   siderealPlanetData.local_sidereal_attitude.ra_s,
+      //   siderealPlanetData.local_sidereal_attitude.dec_d,
+      //   siderealPlanetData.local_sidereal_attitude.dec_m,
+      //   siderealPlanetData.local_sidereal_attitude.dec_s
+      // );
+      // esp_task_wdt_reset();
       // printf("---------------------------------------------\n");
       // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
       // printf("Table:         %s\n", siderealObjectData.object_table_name);
@@ -1330,7 +1330,7 @@ static void taskUniverse(void *pvParameters) {
       // printf("---------------------------------------------\n");
 
       // ------------------------------------------------
-      // StarNav Dynamic Test Zenith+-Gyro Offset
+      // StarNav Gyroscopic Star Navigation.
       // ------------------------------------------------
       setStarNav(
         siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
