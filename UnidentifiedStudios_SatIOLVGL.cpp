@@ -1661,8 +1661,8 @@ void sw_output_event_cb(lv_event_t * e)
         bool is_enabled = lv_obj_has_state(sw, LV_STATE_CHECKED);
 
         if (sw == serial_c.sw_output_all) {
-            systemData.output_SatIO_all = is_enabled;
-            systemData.output_SatIO_enabled=is_enabled;
+            systemData.output_satio_all = is_enabled;
+            systemData.output_satio_enabled=is_enabled;
             systemData.output_gngga_enabled=is_enabled;
             systemData.output_gnrmc_enabled=is_enabled;
             systemData.output_gpatt_enabled=is_enabled;
@@ -1685,7 +1685,7 @@ void sw_output_event_cb(lv_event_t * e)
             }
 
         else if (sw == serial_c.sw_output_SatIO) {
-            systemData.output_SatIO_enabled = is_enabled;
+            systemData.output_satio_enabled = is_enabled;
             }
 
         else if (sw == serial_c.sw_output_gngga) {
@@ -18608,8 +18608,8 @@ void update_display_lvgl()
     // ---------------------
     else if (current_screen_number == SERIAL_SCREEN) {
         if (serial_c.panel) {
-            sync_switch_state(serial_c.sw_output_all, systemData.output_SatIO_all);
-            sync_switch_state(serial_c.sw_output_SatIO, systemData.output_SatIO_enabled);
+            sync_switch_state(serial_c.sw_output_all, systemData.output_satio_all);
+            sync_switch_state(serial_c.sw_output_SatIO, systemData.output_satio_enabled);
             sync_switch_state(serial_c.sw_output_gngga, systemData.output_gngga_enabled);
             sync_switch_state(serial_c.sw_output_gnrmc, systemData.output_gnrmc_enabled);
             sync_switch_state(serial_c.sw_output_gpatt, systemData.output_gpatt_enabled);

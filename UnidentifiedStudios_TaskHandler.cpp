@@ -354,12 +354,12 @@ static void intervalBreach1Second(void) {
   #endif
 
   #ifdef GPIOPE_USE_INPUT
-  totalCounters(systemData.counters_gpiope0);
-  for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {totalCounters(systemData.counters_gpioe_chan[i_chan]);}
+  totalCounters(systemData.counters_gpiope_in);
+  for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {totalCounters(systemData.counters_gpiope_in_chan[i_chan]);}
   #endif
 
   #ifdef GPIOPE_USE_OUTPUT
-  totalCounters(systemData.counters_pco);
+  totalCounters(systemData.counters_gpiope_out);
   #endif
 
   #ifdef SatIO_USE_UNIVERSE
@@ -388,11 +388,8 @@ static void intervalBreach1Second(void) {
     printf("[reset uptime_seconds] %ld\n", systemData.uptime_seconds);
   }
 
-  outputStat(); // uncomment for full stat
-  // ESP_LOGI("GPIOPE_INPUT_0", "max_pins=%d num_analog_pins=%d num_digital_pins=%d",
-  //         GPIOPE_INPUT_0.max_pins,
-  //         GPIOPE_INPUT_0.num_analog_pins,
-  //         GPIOPE_INPUT_0.num_digital_pins);
+  // diag
+  outputStat();
 
   clearCounters(systemData.counters_st);
 
@@ -423,12 +420,12 @@ static void intervalBreach1Second(void) {
   #endif
 
   #ifdef GPIOPE_USE_INPUT
-  clearCounters(systemData.counters_gpiope0);
-  for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {clearCounters(systemData.counters_gpioe_chan[i_chan]);}
+  clearCounters(systemData.counters_gpiope_in);
+  for (int i_chan=0; i_chan<GPIOPE_MAX_SIZE; i_chan++) {clearCounters(systemData.counters_gpiope_in_chan[i_chan]);}
   #endif
 
   #ifdef GPIOPE_USE_OUTPUT
-  clearCounters(systemData.counters_pco);
+  clearCounters(systemData.counters_gpiope_out);
   #endif
 
   #ifdef SatIO_USE_UNIVERSE
@@ -1117,8 +1114,8 @@ static void taskSwitches(void *pvParameters) {
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------
-      stepFFCounter(systemData.counters_pco, count_write);
-      systemData.counters_pco.flag_c = true;
+      stepFFCounter(systemData.counters_gpiope_out, count_write);
+      systemData.counters_gpiope_out.flag_c = true;
       #endif
 
     }
@@ -1161,6 +1158,8 @@ static void taskInputPortController(void *pvParameters) {
     // Delay Task
     if (taskFrequencyInputPortController() == true) {
 
+      xSemaphoreTake(dataMutex, portMAX_DELAY);
+
       // ------------------------------------------------
       // Read GPIOPE Input
       // ------------------------------------------------
@@ -1173,62 +1172,48 @@ static void taskInputPortController(void *pvParameters) {
 
       static int64_t gpioe_chan_last_read_uS[GPIOPE_MAX_SIZE] = {0};
       bool gpioe_chan_was_enabled[GPIOPE_MAX_SIZE] = {false};
-      bool gpioe_chan_did_read[GPIOPE_MAX_SIZE] = {false};
 
       // Iterate through address range (unlike for output).
       // Replace with more efficient implementation.
       for (int address = 0; address < 128; address++) {
 
         // Check if device defined
-        GPIOPortExpander* gpiope = isGPIOPE_INPUT(address); // <- requires config
+        GPIOPortExpander* gpiope = isGPIOPE_INPUT(address);
 
         if (gpiope) {
-
-          uint8_t gpioe_max_values = (uint8_t)gpiope->max_input_values;
+          
           for (uint8_t i_chan = 0; i_chan < gpiope->max_pins; i_chan++) {
             if (gpiope->enabled[i_chan] == true) {
               gpioe_chan_was_enabled[i_chan] = true;
               if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)gpiope->chan_freq_uS[i_chan]) {
                 if (GPIOPE_Read_Pin(*gpiope, i_chan)) {
                   gpioe_chan_last_read_uS[i_chan] = esp_timer_get_time();
-                  gpioe_chan_did_read[i_chan] = true;
+                  stepFFCounter(systemData.counters_gpiope_in_chan[i_chan], 1);
                 } else {
                   printf("ERROR: readInputPortControllerReadPins (pin_index=%d)\n", i_chan);
                 }
               }
             }
           }
-
           esp_task_wdt_reset();
-          // --------------------------------------------
-          // Task frequency counter
-          // --------------------------------------------
-          for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
-            if (gpioe_chan_was_enabled[i_chan] == true) {
-              if (gpioe_chan_did_read[i_chan] == true) {
-                systemData.counters_gpiope0.flag_c = true;
-                stepFFCounter(systemData.counters_gpioe_chan[i_chan], 1);
-              }
-            }
-          }
         }
         else {
           /* terminate statement */
         }
       }
-
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
+      // --------------------------------------------
+      // Function frequency counter
+      // --------------------------------------------
+      stepFFCounter(systemData.counters_gpiope_in, 1);
+      systemData.counters_gpiope_in.flag_c = true;
       #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
       outputSerialGPIOPEnput();
       #endif
-      xSemaphoreGive(dataMutex);
     }
-
     // --------------------------------------------
     // Task frequency counter
     // --------------------------------------------
-    xSemaphoreTake(dataMutex, portMAX_DELAY);
-    stepFCounter(systemData.counters_gpiope0, 1);
+    stepFCounter(systemData.counters_gpiope_in, 1);
     xSemaphoreGive(dataMutex);
   }
 }

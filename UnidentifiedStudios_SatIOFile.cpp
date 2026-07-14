@@ -3469,8 +3469,8 @@ bool saveSystemFile(const char *filepath) {
     WRITE_INT_TAG(SYSTEM_FILE_LOGGING, systemData.logging_enabled);
  
     WRITE_INT_TAG(SYSTEM_FILE_SERIAL_COMMAND, systemData.serial_command);
-    WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_ALL, systemData.output_SatIO_all);
-    WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_SatIO, systemData.output_SatIO_enabled);
+    WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_ALL, systemData.output_satio_all);
+    WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_SatIO, systemData.output_satio_enabled);
     WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_INS, systemData.output_ins_enabled);
     WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_GNGGA, systemData.output_gngga_enabled);
     WRITE_INT_TAG(SYSTEM_FILE_OUTPUT_GNRMC, systemData.output_gnrmc_enabled);
@@ -17706,8 +17706,8 @@ bool loadSystemFile(const char *filepath) {
         READ_BOOL_TAG(SYSTEM_FILE_LOGGING, systemData.logging_enabled);
 
         READ_BOOL_TAG(SYSTEM_FILE_SERIAL_COMMAND, systemData.serial_command);
-        READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_ALL, systemData.output_SatIO_all);
-        READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_SatIO, systemData.output_SatIO_enabled);
+        READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_ALL, systemData.output_satio_all);
+        READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_SatIO, systemData.output_satio_enabled);
         READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_INS, systemData.output_ins_enabled);
         READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_GNGGA, systemData.output_gngga_enabled);
         READ_BOOL_TAG(SYSTEM_FILE_OUTPUT_GNRMC, systemData.output_gnrmc_enabled);

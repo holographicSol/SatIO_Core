@@ -31,15 +31,20 @@
 struct systemStruct systemData = {
   // Diagnostics and command processing.
   .debug = false,
-  .output_stat = false,
-  .output_stat_v = false,
-  .output_stat_vv = false,
   .serial_command = true,
   .logging_enabled=false,
 
+  .output_stat_datetime = true,
+  .output_stat_task_rates = true,
+  .output_stat_position = true,
+  .output_stat_gyro = true,
+  .output_stat_admplex = true,
+  .output_stat_gpiope = false,
+  .output_stat_matrix = false,
+
   // Per-sentence/per-subsystem output-enable flags.
-  .output_SatIO_all = false,
-  .output_SatIO_enabled = false,
+  .output_satio_all = false,
+  .output_satio_enabled = false,
   .output_gngga_enabled = false,
   .output_gnrmc_enabled = false,
   .output_gpatt_enabled = false,
@@ -70,12 +75,20 @@ struct systemStruct systemData = {
   .counters_gps = {},
   .counters_gyr0 = {},
   .counters_ins = {},
+
   .counters_mplex0 = {},
+  .counters_mplex0_chan = {},
+
   .counters_mplex1 = {},
-  .counters_gpiope0 = {},
+  .counters_mplex1_chan = {},
+
+  .counters_gpiope_in = {},
+  .counters_gpiope_in_chan = {},
+
+  .counters_gpiope_out = {},
+  
   .counters_uni = {},
   .counters_mtx = {},
-  .counters_pco = {},
   .counters_track_planets = {},
   .counters_dsp = {},
   .counters_stg = {},
@@ -86,8 +99,8 @@ struct systemStruct systemData = {
 void restore_system_defaults(void) {
   // Clear the debug flag and every per-sentence/per-subsystem output flag.
   systemData.debug = false;
-  systemData.output_SatIO_all = false;
-  systemData.output_SatIO_enabled = false; 
+  systemData.output_satio_all = false;
+  systemData.output_satio_enabled = false; 
   systemData.output_gngga_enabled = false;
   systemData.output_gnrmc_enabled = false;
   systemData.output_gpatt_enabled = false;

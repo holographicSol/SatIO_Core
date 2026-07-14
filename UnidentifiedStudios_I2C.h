@@ -62,7 +62,7 @@
 // ## BEGIN I2C BUS CLOCK SPEEDS
 // #####################################################################################################################
 
-#define I2C_CLOCK_Hz_BUS0 200000 // 200kHz
+#define I2C_CLOCK_Hz_BUS0 400000 // 400kHz
 #define I2C_CLOCK_Hz_BUS1 800000 // 800kHz
 #define I2C_CLOCK_Hz_BUS2 400000 // 400kHz
 

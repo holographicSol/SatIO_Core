@@ -73,18 +73,23 @@ struct systemStruct {
   // Diagnostics and command processing.
   // ------------------------------------------------------------------------
   bool debug;            // Diagnostic-output toggle.
-  bool output_stat;       // Enables periodic system-statistics output.
-  bool output_stat_v;      // Adds the first level of statistics detail.
-  bool output_stat_vv;     // Adds the second level of statistics detail.
   bool serial_command;     // Enables processing of incoming serial commands.
   bool logging_enabled;    // Enables writing log entries to storage.
+
+  bool output_stat_datetime;    // Prints the datetime table in outputStat().
+  bool output_stat_task_rates;  // Prints the task rates (Hz) table in outputStat().
+  bool output_stat_position;    // Prints the position/target and RA/Dec tables in outputStat().
+  bool output_stat_gyro;        // Prints the orientation/sensors (gyro) table in outputStat().
+  bool output_stat_admplex;     // Prints the ADMPlex per-channel Hz table(s) in outputStat().
+  bool output_stat_gpiope;      // Prints the GPIOPE input per-channel table(s) in outputStat().
+  bool output_stat_matrix;      // Prints the Computer Assist / matrix table in outputStat().
 
   // ------------------------------------------------------------------------
   // Per-sentence/per-subsystem output-enable flags: each true value
   // permits its corresponding output to be sent this loop iteration.
   // ------------------------------------------------------------------------
-  bool output_SatIO_all;   // Mirrors the most recent "enable all" bulk toggle.
-  bool output_SatIO_enabled;
+  bool output_satio_all;   // Mirrors the most recent "enable all" bulk toggle.
+  bool output_satio_enabled;
   bool output_gngga_enabled;
   bool output_gnrmc_enabled;
   bool output_gpatt_enabled;
@@ -121,23 +126,20 @@ struct systemStruct {
   SystemConuters counters_gps;
   SystemConuters counters_gyr0;
   SystemConuters counters_ins;
+
   SystemConuters counters_mplex0;
-  SystemConuters counters_mplex1;
-  // Per-channel read-rate counters, indexed by channel number: task_ffreq_t
-  // is the channel's achieved reads/sec, gated by its own chan_freq_uS
-  // (see setADMultiplexerChannelFreq()); task_freq_t is how often the
-  // channel was checked (bounded by TASK_MAX_FREQ_ADMPLEX0/1).
   SystemConuters counters_mplex0_chan[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
+
+  SystemConuters counters_mplex1;
   SystemConuters counters_mplex1_chan[MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS];
-  SystemConuters counters_gpiope0;
-  // Per-pin read-rate counters, indexed by pin number: task_ffreq_t is the
-  // pin's achieved accepted-read rate, gated by its own chan_freq_uS (see
-  // GPIOPE_Set_Channel_Frequency()); task_freq_t is how often the pin was
-  // checked (bounded by TASK_MAX_FREQ_GPIOE_INPUT).
-  SystemConuters counters_gpioe_chan[GPIOPE_MAX_SIZE];
+
+  SystemConuters counters_gpiope_in;
+  SystemConuters counters_gpiope_in_chan[GPIOPE_MAX_SIZE];
+
+  SystemConuters counters_gpiope_out;
+  
   SystemConuters counters_uni;
   SystemConuters counters_mtx;
-  SystemConuters counters_pco;
   SystemConuters counters_track_planets;
   SystemConuters counters_dsp;
   SystemConuters counters_stg;

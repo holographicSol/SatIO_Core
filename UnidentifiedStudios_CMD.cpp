@@ -2025,8 +2025,8 @@ void outputSerialMatrix(void) {
 }
 
 void outputSerialGPIOPEnput(void) {
-  if (systemData.counters_gpiope0.flag_c == true) {
-    systemData.counters_gpiope0.flag_c = false;
+  if (systemData.counters_gpiope_in.flag_c == true) {
+    systemData.counters_gpiope_in.flag_c = false;
 
     if (systemData.output_input_portcontroller == true) {
       char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
@@ -3702,9 +3702,9 @@ void outputStat(void) {
             {"Mplex0",         systemData.counters_mplex0.task_ffreq_t,          systemData.counters_mplex0.task_freq_t},
             {"Mplex1",         systemData.counters_mplex1.task_ffreq_t,          systemData.counters_mplex1.task_freq_t},
             {"Universe",       systemData.counters_uni.task_ffreq_t,             systemData.counters_uni.task_freq_t},
-            {"GPIOPE In",      systemData.counters_gpiope0.task_ffreq_t,         systemData.counters_gpiope0.task_freq_t},
+            {"GPIOPE In",      systemData.counters_gpiope_in.task_ffreq_t,         systemData.counters_gpiope_in.task_freq_t},
             {"Matrix",         systemData.counters_mtx.task_ffreq_t,             systemData.counters_mtx.task_freq_t},
-            {"GPIOPE Out",     systemData.counters_pco.task_ffreq_t,             systemData.counters_mtx.task_freq_t}, // PCO runs inside the Matrix task
+            {"GPIOPE Out",     systemData.counters_gpiope_out.task_ffreq_t,             systemData.counters_mtx.task_freq_t}, // PCO runs inside the Matrix task
             {"Display",        systemData.counters_dsp.task_ffreq_t,             systemData.counters_dsp.task_freq_t},
             {"SatIO Tx",       systemData.counters_SatIO_serial_tx.task_ffreq_t, systemData.counters_SatIO_serial_tx.task_freq_t},
         };
@@ -3846,7 +3846,7 @@ void outputStat(void) {
     // ----------------------------------------------------------------------------------------------------------------------------
     struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
     // Same address scan TaskHandler uses to find the active input device(s).
-    // Hz counters (counters_gpioe_chan) are still shared per channel index
+    // Hz counters (counters_gpiope_in_chan) are still shared per channel index
     // across whichever device(s) answer -- see TaskHandler.cpp -- but
     // Enabled/Input Value are read straight off each device found, so
     // multiple simultaneously-active input devices each get their own
@@ -3859,7 +3859,7 @@ void outputStat(void) {
 
       StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
       for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
-          channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
+          channels[i] = {(long)systemData.counters_gpiope_in_chan[i].task_ffreq_t, false, 0};
       }
       for (int i = 0; i < (int)gpiope->max_input_values && i < GPIOPE_MAX_SIZE; i++) {
           channels[i].enabled = gpiope->enabled[i];
