@@ -437,50 +437,50 @@ ins --reset-forced    Reset INS remains on after conditions met.
 ### Time
 
 ```
-SatIO --utc-offset n             Set +-seconds offset time.
-SatIO --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
-SatIO --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
-SatIO --set-datetime --year n --month n --mday n --hour n --minute n --second n  (expects UTC +- 0).
+satio --utc-offset n             Set +-seconds offset time.
+satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (expects UTC +- 0).
 ```
 
 ### Location
 
 ```
-SatIO --coord-value-mode-gps      Use GPS coordinates.
-SatIO --coord-value-mode-user     Use user defined coordinates.
-SatIO --set-coord -lat n -lon n   Set degrees latitude and longitude.
+satio --coord-value-mode-gps      Use GPS coordinates.
+satio --coord-value-mode-user     Use user defined coordinates.
+satio --set-coord -lat n -lon n   Set degrees latitude and longitude.
 ```
 
 ### Speed
 
 ```
-SatIO --speed-value-mode-gps   Use GPS speed.
-SatIO --speed-value-mode-user  Use user defined speed.
-SatIO --set-speed n            Set speed in meters per second.
+satio --speed-value-mode-gps   Use GPS speed.
+satio --speed-value-mode-user  Use user defined speed.
+satio --set-speed n            Set speed in meters per second.
 ```
 
 ### Altitude
 
 ```
-SatIO --altitude-value-mode-gps   Use GPS altitude values.
-SatIO --altitude-value-mode-user  Use user defined altitude.
-SatIO --set-altitude n            Set altitude in meters.
+satio --altitude-value-mode-gps   Use GPS altitude values.
+satio --altitude-value-mode-user  Use user defined altitude.
+satio --set-altitude n            Set altitude in meters.
 ```
 
 ### Ground Heading
 
 ```
-SatIO --ground-heading-value-mode-gps   Use GPS ground heading values.
-SatIO --ground-heading-value-mode-user  Use user defined ground heading.
-SatIO --set-ground-heading n            Set ground heading in degrees.
+satio --ground-heading-value-mode-gps   Use GPS ground heading values.
+satio --ground-heading-value-mode-user  Use user defined ground heading.
+satio --set-ground-heading n            Set ground heading in degrees.
 ```
 
 ### RA/Dec
 
 ```
-SatIO --ra-dec-value-mode-gyro  Use gyro-derived RA/Dec.
-SatIO --ra-dec-value-mode-user  Use user defined RA/Dec target.
-SatIO --set-ra-dec --ra-h n --ra-m n --ra-s n --dec-d n --dec-m n --dec-s n  Set user RA/Dec target (ra-h 0-23, dec-d -90 to 90).
+satio --ra-dec-value-mode-gyro  Use gyro-derived RA/Dec.
+satio --ra-dec-value-mode-user  Use user defined RA/Dec target.
+satio --set-ra-dec --ra-h n --ra-m n --ra-s n --dec-d n --dec-m n --dec-s n  Set user RA/Dec target (ra-h 0-23, dec-d -90 to 90).
 ```
 
 ---
@@ -556,9 +556,9 @@ For integrity, Stat sentences are checksummed, so that weather using them over U
 Stat is also setup for diagnositics.
 
 ```
-stat -e     Enable print.
-stat -d     Disable print.
-stat -t     Enables/disables serial print stats and counters (includes partition table, RAM, and SD card info). Takes arguments -e, -d.
+stat -e                     Enable print.
+stat -d                     Disable print.
+stat -t                     Enables/disables serial print stats and counters (includes partition table, RAM, and SD card info). Takes arguments -e, -d.
 stat -t --datetime          Toggles the datetime table. Takes arguments -e, -d.
 stat -t --taskrates         Toggles the task rates (Hz) table. Takes arguments -e, -d.
 stat -t --position          Toggles the position/target and RA/Dec tables. Takes arguments -e, -d.
@@ -572,7 +572,7 @@ stat --matrix -A            Print configuration of all matrix switches.
 stat -map n                 Print map slot n data.
 stat -map -A                Print all map slot data.
 stat --sentence -A          Print all sentences. Takes arguments -e, -d.
-stat --sentence --SatIO     Takes arguments -e, -d.
+stat --sentence --satio     Takes arguments -e, -d.
 stat --sentence --gngga     Takes arguments -e, -d.
 stat --sentence --gnrmc     Takes arguments -e, -d.
 stat --sentence --gpatt     Takes arguments -e, -d.
