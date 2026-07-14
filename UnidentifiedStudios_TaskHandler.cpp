@@ -1185,7 +1185,7 @@ static void taskInputPortController(void *pvParameters) {
         if (gpiope) {
 
           uint8_t gpioe_max_values = (uint8_t)gpiope->max_input_values;
-          for (uint8_t i_chan = 0; i_chan < gpioe_max_values; i_chan++) {
+          for (uint8_t i_chan = 0; i_chan < gpiope->max_pins; i_chan++) {
             if (gpiope->enabled[i_chan] == true) {
               gpioe_chan_was_enabled[i_chan] = true;
               if ((esp_timer_get_time() - gpioe_chan_last_read_uS[i_chan]) >= (int64_t)gpiope->chan_freq_uS[i_chan]) {

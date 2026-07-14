@@ -461,7 +461,7 @@ static void PrintHelp(void) {
 
   [ Port Expander Input ]
 
-      gpiope --input            Point GPIOPE at input devices.
+      gpiope --input             Point GPIOPE at input devices.
       gpiope -c n --enable       Enable pin n on the input port expander (read every task cycle, subject to --freq).
       gpiope -c n --disable      Disable pin n on the input port expander (data reports 0 while disabled).
       gpiope -c n --freq uS      Minimum microseconds between reads of pin n (0 = read every task cycle).
@@ -473,6 +473,7 @@ static void PrintHelp(void) {
       gpiope -c 5 --enable --freq 1000000
 
   [ Port Expander Output ]
+
       gpiope --output                     Point GPIOPE at ouptut devices.
       gpiope -a                           Specify address -a.
       gpiope -i                           Specify port map index -i.
@@ -3710,9 +3711,7 @@ void outputStat(void) {
     //                                                                                                    PRINT POSITION / TARGET
     // ----------------------------------------------------------------------------------------------------------------------------
     printStatSeparator();
-    // satellites, precision factor,
     printf(STAT_LABEL_FMT "%s\n", "Satellites", gnggaData.satellite_count);
-    
     // location
     {
         struct StatPosSource { const char* label; double lat; double lon; double heading; double altitude; double speed; };
@@ -3740,6 +3739,7 @@ void outputStat(void) {
             printf("\n");
         }
     }
+    #ifdef SatIO_USE_GYRO_0
     /**
      * Clestial Sphere Attitude.
      * Observe if absolute local zenith RA Dec must always be correct.
@@ -3802,66 +3802,69 @@ void outputStat(void) {
             printf("\n");
         }
     }
-    // }
+    #endif
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                             PRINT PER-CHANNEL MULTIPLEXER Hz
     // ----------------------------------------------------------------------------------------------------------------------------
-    // if (systemData.output_stat_v==true) {
-        #ifdef SatIO_CD74HC4067_OPTION_USE_0
-        printStatChannelHzTable("ADMPlex0 Ch Hz", systemData.counters_mplex0_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        #endif
-        #ifdef SatIO_CD74HC4067_OPTION_USE_1
-        printStatChannelHzTable("ADMPlex1 Ch Hz", systemData.counters_mplex1_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
-        #endif
-    // }
+    #ifdef SatIO_CD74HC4067_OPTION_USE_0
+    printStatChannelHzTable("ADMPlex0 Ch Hz", systemData.counters_mplex0_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
+    #endif
+    #ifdef SatIO_CD74HC4067_OPTION_USE_1
+    printStatChannelHzTable("ADMPlex1 Ch Hz", systemData.counters_mplex1_chan, MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS);
+    #endif
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT PER-PIN GPIOPE Hz
     // ----------------------------------------------------------------------------------------------------------------------------
+    #ifdef GPIOPE_USE_INPUT
     {
       struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
-      StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
-      for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
-          channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
-      }
-      // Same address scan TaskHandler uses to find the active input device(s);
-      // channel index is shared across whichever device(s) answer, matching
-      // how counters_gpioe_chan itself is populated.
-      int found_address = -1;
+      // Same address scan TaskHandler uses to find the active input device(s).
+      // Hz counters (counters_gpioe_chan) are still shared per channel index
+      // across whichever device(s) answer -- see TaskHandler.cpp -- but
+      // Enabled/Input Value are read straight off each device found, so
+      // multiple simultaneously-active input devices each get their own
+      // titled table instead of clobbering one shared array.
+      bool found_any = false;
       for (int address = 0; address < 128; address++) {
         GPIOPortExpander* gpiope = isGPIOPE_INPUT((uint8_t)address);
-        if (gpiope) {
+        if (!gpiope) {continue;}
+        found_any = true;
 
-          struct StatGPIOPEChannel { long hz; bool enabled; int32_t input_value; };
-          StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
-          for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
-              channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
-          }
-          found_address = address;
-          for (int i = 0; i < (int)gpiope->max_input_values && i < GPIOPE_MAX_SIZE; i++) {
-              channels[i].enabled = gpiope->enabled[i];
-              channels[i].input_value = gpiope->input_value[i];
-          }
+        StatGPIOPEChannel channels[GPIOPE_MAX_SIZE];
+        for (int i = 0; i < GPIOPE_MAX_SIZE; i++) {
+            channels[i] = {(long)systemData.counters_gpioe_chan[i].task_ffreq_t, false, 0};
+        }
+        for (int i = 0; i < (int)gpiope->max_input_values && i < GPIOPE_MAX_SIZE; i++) {
+            channels[i].enabled = gpiope->enabled[i];
+            channels[i].input_value = gpiope->input_value[i];
+        }
 
-          printStatSeparator();
-          printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", found_address);
+        printStatSeparator();
+        printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", address);
 
-          for (int page_start = 0; page_start < GPIOPE_MAX_SIZE; page_start += STAT_SWITCHES_PER_PAGE) {
-              int page_end = page_start + STAT_SWITCHES_PER_PAGE;
-              if (page_end > GPIOPE_MAX_SIZE) {page_end = GPIOPE_MAX_SIZE;}
-              printStatPageHeader(page_start, page_end);
-              printf(STAT_LABEL_FMT, "Input Ch Hz");
-              for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, channels[i].hz);}
-              printf("\n");
-              printf(STAT_LABEL_FMT, "Enabled");
-              for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_D, (int)channels[i].enabled);}
-              printf("\n");
-              printf(STAT_LABEL_FMT, "Input Value");
-              for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)channels[i].input_value);}
-              printf("\n");
-          }
+        int channel_count = (int)gpiope->max_pins;
+        if (channel_count > GPIOPE_MAX_SIZE) {channel_count = GPIOPE_MAX_SIZE;}
+        for (int page_start = 0; page_start < channel_count; page_start += STAT_SWITCHES_PER_PAGE) {
+            int page_end = page_start + STAT_SWITCHES_PER_PAGE;
+            if (page_end > channel_count) {page_end = channel_count;}
+            printStatPageHeader(page_start, page_end);
+            printf(STAT_LABEL_FMT, "Input Ch Hz");
+            for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, channels[i].hz);}
+            printf("\n");
+            printf(STAT_LABEL_FMT, "Enabled");
+            for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_D, (int)channels[i].enabled);}
+            printf("\n");
+            printf(STAT_LABEL_FMT, "Input Value");
+            for (int i = page_start; i < page_end; i++) {printf(STAT_COL_FORMAT_LD, (long)channels[i].input_value);}
+            printf("\n");
         }
       }
+      if (!found_any) {
+          printStatSeparator();
+          printf(STAT_LABEL_FMT "%d\n", "GPIOPE Address", -1);
+      }
     }
+    #endif
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT COMPUTER ASSIST
     // ----------------------------------------------------------------------------------------------------------------------------
