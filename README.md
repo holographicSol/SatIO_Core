@@ -116,43 +116,6 @@ map -c4 n      Configuration map slot -s. (mode 0 : out_max) (mode 1 : out_max)
 map -c5 n      Configuration map slot -s. (mode 1 only : DEADZONE : expected fluctuation at center)
 ```
 
-### Available Map Values
-
-```
-[0]  Digital
-[1]  YawGPATT
-[2]  RollGPATT
-[3]  PitchGPATT
-[4]  Gyro0AccX
-[5]  Gyro0AccY
-[6]  Gyro0AccZ
-[7]  Gyro0AngX
-[8]  Gyro0AngY
-[9]  Gyro0AngZ
-[10] Gyro0MagX
-[11] Gyro0MagY
-[12] Gyro0MagZ
-[13] Gyro0GyroX
-[14] Gyro0GyroY
-[15] Gyro0GyroZ
-[16] ADMPlex0_0
-[17] ADMPlex0_1
-[18] ADMPlex0_2
-[19] ADMPlex0_3
-[20] ADMPlex0_4
-[21] ADMPlex0_5
-[22] ADMPlex0_6
-[23] ADMPlex0_7
-[24] ADMPlex0_8
-[25] ADMPlex0_9
-[26] ADMPlex0_10
-[27] ADMPlex0_11
-[28] ADMPlex0_12
-[29] ADMPlex0_13
-[30] ADMPlex0_14
-[31] ADMPlex0_15
-```
-
 **Example** — map analog stick axis x0 on admplex0 channel 0 into map slot 0:
 
 ```
