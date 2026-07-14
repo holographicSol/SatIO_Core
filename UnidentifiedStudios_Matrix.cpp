@@ -1480,7 +1480,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_0: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_0.input_value[input_pin];
           }
           handle_digit = true;
@@ -1492,7 +1492,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_1: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_1.input_value[input_pin];
           }
           handle_digit = true;
@@ -1504,7 +1504,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_2: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_2.input_value[input_pin];
           }
           handle_digit = true;
@@ -1516,7 +1516,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_3: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_3.input_value[input_pin];
           }
           handle_digit = true;
@@ -1528,7 +1528,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_4: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_4.input_value[input_pin];
           }
           handle_digit = true;
@@ -1540,7 +1540,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_5: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_5.input_value[input_pin];
           }
           handle_digit = true;
@@ -1552,7 +1552,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_6: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_6.input_value[input_pin];
           }
           handle_digit = true;
@@ -1564,7 +1564,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_7: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_7.input_value[input_pin];
           }
           handle_digit = true;
@@ -1576,7 +1576,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_8: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_8.input_value[input_pin];
           }
           handle_digit = true;
@@ -1588,7 +1588,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_9: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_9.input_value[input_pin];
           }
           handle_digit = true;
@@ -1600,7 +1600,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_10: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_10.input_value[input_pin];
           }
           handle_digit = true;
@@ -1612,7 +1612,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_11: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_11.input_value[input_pin];
           }
           handle_digit = true;
@@ -1624,7 +1624,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_12: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_12.input_value[input_pin];
           }
           handle_digit = true;
@@ -1636,7 +1636,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_13: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_13.input_value[input_pin];
           }
           handle_digit = true;
@@ -1648,7 +1648,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_14: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_14.input_value[input_pin];
           }
           handle_digit = true;
@@ -1660,7 +1660,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_15: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_15.input_value[input_pin];
           }
           handle_digit = true;
@@ -1672,7 +1672,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_16: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_16.input_value[input_pin];
           }
           handle_digit = true;
@@ -1684,7 +1684,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_17: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_17.input_value[input_pin];
           }
           handle_digit = true;
@@ -1696,7 +1696,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_18: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_18.input_value[input_pin];
           }
           handle_digit = true;
@@ -1708,7 +1708,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_19: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_19.input_value[input_pin];
           }
           handle_digit = true;
@@ -1720,7 +1720,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_20: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_20.input_value[input_pin];
           }
           handle_digit = true;
@@ -1732,7 +1732,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_21: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_21.input_value[input_pin];
           }
           handle_digit = true;
@@ -1744,7 +1744,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_22: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_22.input_value[input_pin];
           }
           handle_digit = true;
@@ -1756,7 +1756,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_23: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_23.input_value[input_pin];
           }
           handle_digit = true;
@@ -1768,7 +1768,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_24: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_24.input_value[input_pin];
           }
           handle_digit = true;
@@ -1780,7 +1780,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_25: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_25.input_value[input_pin];
           }
           handle_digit = true;
@@ -1792,7 +1792,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_26: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_26.input_value[input_pin];
           }
           handle_digit = true;
@@ -1804,7 +1804,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_27: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_27.input_value[input_pin];
           }
           handle_digit = true;
@@ -1816,7 +1816,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_28: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_28.input_value[input_pin];
           }
           handle_digit = true;
@@ -1828,7 +1828,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_29: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_29.input_value[input_pin];
           }
           handle_digit = true;
@@ -1840,7 +1840,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_30: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_30.input_value[input_pin];
           }
           handle_digit = true;
@@ -1852,7 +1852,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_31: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_31.input_value[input_pin];
           }
           handle_digit = true;
@@ -1864,7 +1864,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_32: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_32.input_value[input_pin];
           }
           handle_digit = true;
@@ -1876,7 +1876,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_33: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_33.input_value[input_pin];
           }
           handle_digit = true;
@@ -1888,7 +1888,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_34: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_34.input_value[input_pin];
           }
           handle_digit = true;
@@ -1900,7 +1900,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_35: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_35.input_value[input_pin];
           }
           handle_digit = true;
@@ -1912,7 +1912,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_36: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_36.input_value[input_pin];
           }
           handle_digit = true;
@@ -1924,7 +1924,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_37: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_37.input_value[input_pin];
           }
           handle_digit = true;
@@ -1936,7 +1936,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_38: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_38.input_value[input_pin];
           }
           handle_digit = true;
@@ -1948,7 +1948,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_39: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_39.input_value[input_pin];
           }
           handle_digit = true;
@@ -1960,7 +1960,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_40: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_40.input_value[input_pin];
           }
           handle_digit = true;
@@ -1972,7 +1972,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_41: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_41.input_value[input_pin];
           }
           handle_digit = true;
@@ -1984,7 +1984,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_42: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_42.input_value[input_pin];
           }
           handle_digit = true;
@@ -1996,7 +1996,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_43: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_43.input_value[input_pin];
           }
           handle_digit = true;
@@ -2008,7 +2008,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_44: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_44.input_value[input_pin];
           }
           handle_digit = true;
@@ -2020,7 +2020,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_45: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_45.input_value[input_pin];
           }
           handle_digit = true;
@@ -2032,7 +2032,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_46: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_46.input_value[input_pin];
           }
           handle_digit = true;
@@ -2044,7 +2044,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_47: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_47.input_value[input_pin];
           }
           handle_digit = true;
@@ -2056,7 +2056,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_48: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_48.input_value[input_pin];
           }
           handle_digit = true;
@@ -2068,7 +2068,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_49: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_49.input_value[input_pin];
           }
           handle_digit = true;
@@ -2080,7 +2080,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_50: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_50.input_value[input_pin];
           }
           handle_digit = true;
@@ -2092,7 +2092,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_51: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_51.input_value[input_pin];
           }
           handle_digit = true;
@@ -2104,7 +2104,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_52: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_52.input_value[input_pin];
           }
           handle_digit = true;
@@ -2116,7 +2116,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_53: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_53.input_value[input_pin];
           }
           handle_digit = true;
@@ -2128,7 +2128,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_54: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_54.input_value[input_pin];
           }
           handle_digit = true;
@@ -2140,7 +2140,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_55: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_55.input_value[input_pin];
           }
           handle_digit = true;
@@ -2152,7 +2152,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_56: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_56.input_value[input_pin];
           }
           handle_digit = true;
@@ -2164,7 +2164,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_57: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_57.input_value[input_pin];
           }
           handle_digit = true;
@@ -2176,7 +2176,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_58: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_58.input_value[input_pin];
           }
           handle_digit = true;
@@ -2188,7 +2188,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_59: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_59.input_value[input_pin];
           }
           handle_digit = true;
@@ -2200,7 +2200,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_60: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_60.input_value[input_pin];
           }
           handle_digit = true;
@@ -2212,7 +2212,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_61: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_61.input_value[input_pin];
           }
           handle_digit = true;
@@ -2224,7 +2224,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_62: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_62.input_value[input_pin];
           }
           handle_digit = true;
@@ -2236,7 +2236,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_63: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_63.input_value[input_pin];
           }
           handle_digit = true;
@@ -2248,7 +2248,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_64: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_64.input_value[input_pin];
           }
           handle_digit = true;
@@ -2260,7 +2260,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_65: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_65.input_value[input_pin];
           }
           handle_digit = true;
@@ -2272,7 +2272,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_66: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_66.input_value[input_pin];
           }
           handle_digit = true;
@@ -2284,7 +2284,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_67: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_67.input_value[input_pin];
           }
           handle_digit = true;
@@ -2296,7 +2296,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_68: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_68.input_value[input_pin];
           }
           handle_digit = true;
@@ -2308,7 +2308,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_69: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_69.input_value[input_pin];
           }
           handle_digit = true;
@@ -2320,7 +2320,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_70: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_70.input_value[input_pin];
           }
           handle_digit = true;
@@ -2332,7 +2332,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_71: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_71.input_value[input_pin];
           }
           handle_digit = true;
@@ -2344,7 +2344,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_72: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_72.input_value[input_pin];
           }
           handle_digit = true;
@@ -2356,7 +2356,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_73: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_73.input_value[input_pin];
           }
           handle_digit = true;
@@ -2368,7 +2368,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_74: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_74.input_value[input_pin];
           }
           handle_digit = true;
@@ -2380,7 +2380,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_75: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_75.input_value[input_pin];
           }
           handle_digit = true;
@@ -2392,7 +2392,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_76: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_76.input_value[input_pin];
           }
           handle_digit = true;
@@ -2404,7 +2404,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_77: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_77.input_value[input_pin];
           }
           handle_digit = true;
@@ -2416,7 +2416,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_78: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_78.input_value[input_pin];
           }
           handle_digit = true;
@@ -2428,7 +2428,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_79: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_79.input_value[input_pin];
           }
           handle_digit = true;
@@ -2440,7 +2440,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_80: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_80.input_value[input_pin];
           }
           handle_digit = true;
@@ -2452,7 +2452,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_81: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_81.input_value[input_pin];
           }
           handle_digit = true;
@@ -2464,7 +2464,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_82: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_82.input_value[input_pin];
           }
           handle_digit = true;
@@ -2476,7 +2476,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_83: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_83.input_value[input_pin];
           }
           handle_digit = true;
@@ -2488,7 +2488,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_84: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_84.input_value[input_pin];
           }
           handle_digit = true;
@@ -2500,7 +2500,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_85: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_85.input_value[input_pin];
           }
           handle_digit = true;
@@ -2512,7 +2512,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_86: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_86.input_value[input_pin];
           }
           handle_digit = true;
@@ -2524,7 +2524,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_87: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_87.input_value[input_pin];
           }
           handle_digit = true;
@@ -2536,7 +2536,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_88: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_88.input_value[input_pin];
           }
           handle_digit = true;
@@ -2548,7 +2548,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_89: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_89.input_value[input_pin];
           }
           handle_digit = true;
@@ -2560,7 +2560,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_90: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_90.input_value[input_pin];
           }
           handle_digit = true;
@@ -2572,7 +2572,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_91: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_91.input_value[input_pin];
           }
           handle_digit = true;
@@ -2584,7 +2584,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_92: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_92.input_value[input_pin];
           }
           handle_digit = true;
@@ -2596,7 +2596,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_93: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_93.input_value[input_pin];
           }
           handle_digit = true;
@@ -2608,7 +2608,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_94: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_94.input_value[input_pin];
           }
           handle_digit = true;
@@ -2620,7 +2620,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_95: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_95.input_value[input_pin];
           }
           handle_digit = true;
@@ -2632,7 +2632,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_96: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_96.input_value[input_pin];
           }
           handle_digit = true;
@@ -2644,7 +2644,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_97: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_97.input_value[input_pin];
           }
           handle_digit = true;
@@ -2656,7 +2656,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_98: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_98.input_value[input_pin];
           }
           handle_digit = true;
@@ -2668,7 +2668,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_99: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_99.input_value[input_pin];
           }
           handle_digit = true;
@@ -2680,7 +2680,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_100: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_100.input_value[input_pin];
           }
           handle_digit = true;
@@ -2692,7 +2692,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_101: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_101.input_value[input_pin];
           }
           handle_digit = true;
@@ -2704,7 +2704,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_102: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_102.input_value[input_pin];
           }
           handle_digit = true;
@@ -2716,7 +2716,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_103: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_103.input_value[input_pin];
           }
           handle_digit = true;
@@ -2728,7 +2728,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_104: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_104.input_value[input_pin];
           }
           handle_digit = true;
@@ -2740,7 +2740,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_105: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_105.input_value[input_pin];
           }
           handle_digit = true;
@@ -2752,7 +2752,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_106: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_106.input_value[input_pin];
           }
           handle_digit = true;
@@ -2764,7 +2764,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_107: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_107.input_value[input_pin];
           }
           handle_digit = true;
@@ -2776,7 +2776,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_108: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_108.input_value[input_pin];
           }
           handle_digit = true;
@@ -2788,7 +2788,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_109: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_109.input_value[input_pin];
           }
           handle_digit = true;
@@ -2800,7 +2800,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_110: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_110.input_value[input_pin];
           }
           handle_digit = true;
@@ -2812,7 +2812,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_111: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_111.input_value[input_pin];
           }
           handle_digit = true;
@@ -2824,7 +2824,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_112: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_112.input_value[input_pin];
           }
           handle_digit = true;
@@ -2836,7 +2836,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_113: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_113.input_value[input_pin];
           }
           handle_digit = true;
@@ -2848,7 +2848,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_114: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_114.input_value[input_pin];
           }
           handle_digit = true;
@@ -2860,7 +2860,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_115: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_115.input_value[input_pin];
           }
           handle_digit = true;
@@ -2872,7 +2872,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_116: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_116.input_value[input_pin];
           }
           handle_digit = true;
@@ -2884,7 +2884,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_117: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_117.input_value[input_pin];
           }
           handle_digit = true;
@@ -2896,7 +2896,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_118: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_118.input_value[input_pin];
           }
           handle_digit = true;
@@ -2908,7 +2908,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_119: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_119.input_value[input_pin];
           }
           handle_digit = true;
@@ -2920,7 +2920,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_120: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_120.input_value[input_pin];
           }
           handle_digit = true;
@@ -2932,7 +2932,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_121: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_121.input_value[input_pin];
           }
           handle_digit = true;
@@ -2944,7 +2944,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_122: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_122.input_value[input_pin];
           }
           handle_digit = true;
@@ -2956,7 +2956,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_123: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_123.input_value[input_pin];
           }
           handle_digit = true;
@@ -2968,7 +2968,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_124: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_124.input_value[input_pin];
           }
           handle_digit = true;
@@ -2980,7 +2980,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_125: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_125.input_value[input_pin];
           }
           handle_digit = true;
@@ -2992,7 +2992,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_126: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_126.input_value[input_pin];
           }
           handle_digit = true;
@@ -3004,7 +3004,7 @@ bool matrixSwitch(void) {
         case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_127: {
           int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][Mi][Fi][INDEX_MATRIX_FUNTION_Z];
           tmp_x = 0.0;
-          if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+          if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
             tmp_x = GPIOPE_INPUT_127.input_value[input_pin];
           }
           handle_digit = true;
@@ -3689,7 +3689,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_0: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_0.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3701,7 +3701,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_1: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_1.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3713,7 +3713,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_2: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_2.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3725,7 +3725,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_3: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_3.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3737,7 +3737,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_4: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_4.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3749,7 +3749,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_5: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_5.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3761,7 +3761,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_6: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_6.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3773,7 +3773,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_7: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_7.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3785,7 +3785,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_8: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_8.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3797,7 +3797,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_9: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_9.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3809,7 +3809,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_10: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_10.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3821,7 +3821,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_11: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_11.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3833,7 +3833,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_12: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_12.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3845,7 +3845,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_13: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_13.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3857,7 +3857,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_14: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_14.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3869,7 +3869,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_15: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_15.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3881,7 +3881,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_16: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_16.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3893,7 +3893,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_17: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_17.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3905,7 +3905,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_18: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_18.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3917,7 +3917,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_19: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_19.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3929,7 +3929,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_20: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_20.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3941,7 +3941,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_21: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_21.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3953,7 +3953,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_22: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_22.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3965,7 +3965,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_23: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_23.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3977,7 +3977,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_24: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_24.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -3989,7 +3989,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_25: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_25.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4001,7 +4001,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_26: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_26.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4013,7 +4013,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_27: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_27.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4025,7 +4025,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_28: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_28.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4037,7 +4037,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_29: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_29.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4049,7 +4049,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_30: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_30.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4061,7 +4061,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_31: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_31.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4073,7 +4073,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_32: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_32.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4085,7 +4085,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_33: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_33.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4097,7 +4097,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_34: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_34.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4109,7 +4109,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_35: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_35.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4121,7 +4121,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_36: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_36.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4133,7 +4133,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_37: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_37.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4145,7 +4145,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_38: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_38.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4157,7 +4157,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_39: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_39.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4169,7 +4169,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_40: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_40.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4181,7 +4181,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_41: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_41.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4193,7 +4193,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_42: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_42.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4205,7 +4205,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_43: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_43.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4217,7 +4217,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_44: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_44.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4229,7 +4229,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_45: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_45.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4241,7 +4241,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_46: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_46.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4253,7 +4253,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_47: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_47.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4265,7 +4265,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_48: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_48.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4277,7 +4277,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_49: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_49.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4289,7 +4289,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_50: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_50.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4301,7 +4301,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_51: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_51.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4313,7 +4313,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_52: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_52.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4325,7 +4325,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_53: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_53.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4337,7 +4337,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_54: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_54.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4349,7 +4349,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_55: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_55.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4361,7 +4361,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_56: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_56.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4373,7 +4373,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_57: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_57.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4385,7 +4385,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_58: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_58.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4397,7 +4397,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_59: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_59.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4409,7 +4409,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_60: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_60.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4421,7 +4421,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_61: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_61.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4433,7 +4433,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_62: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_62.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4445,7 +4445,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_63: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_63.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4457,7 +4457,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_64: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_64.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4469,7 +4469,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_65: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_65.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4481,7 +4481,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_66: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_66.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4493,7 +4493,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_67: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_67.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4505,7 +4505,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_68: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_68.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4517,7 +4517,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_69: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_69.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4529,7 +4529,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_70: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_70.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4541,7 +4541,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_71: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_71.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4553,7 +4553,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_72: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_72.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4565,7 +4565,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_73: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_73.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4577,7 +4577,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_74: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_74.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4589,7 +4589,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_75: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_75.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4601,7 +4601,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_76: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_76.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4613,7 +4613,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_77: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_77.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4625,7 +4625,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_78: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_78.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4637,7 +4637,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_79: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_79.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4649,7 +4649,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_80: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_80.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4661,7 +4661,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_81: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_81.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4673,7 +4673,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_82: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_82.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4685,7 +4685,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_83: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_83.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4697,7 +4697,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_84: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_84.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4709,7 +4709,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_85: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_85.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4721,7 +4721,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_86: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_86.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4733,7 +4733,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_87: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_87.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4745,7 +4745,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_88: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_88.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4757,7 +4757,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_89: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_89.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4769,7 +4769,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_90: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_90.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4781,7 +4781,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_91: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_91.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4793,7 +4793,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_92: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_92.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4805,7 +4805,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_93: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_93.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4817,7 +4817,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_94: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_94.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4829,7 +4829,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_95: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_95.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4841,7 +4841,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_96: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_96.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4853,7 +4853,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_97: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_97.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4865,7 +4865,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_98: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_98.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4877,7 +4877,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_99: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_99.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4889,7 +4889,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_100: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_100.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4901,7 +4901,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_101: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_101.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4913,7 +4913,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_102: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_102.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4925,7 +4925,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_103: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_103.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4937,7 +4937,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_104: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_104.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4949,7 +4949,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_105: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_105.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4961,7 +4961,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_106: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_106.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4973,7 +4973,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_107: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_107.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4985,7 +4985,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_108: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_108.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -4997,7 +4997,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_109: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_109.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5009,7 +5009,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_110: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_110.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5021,7 +5021,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_111: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_111.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5033,7 +5033,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_112: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_112.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5045,7 +5045,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_113: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_113.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5057,7 +5057,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_114: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_114.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5069,7 +5069,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_115: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_115.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5081,7 +5081,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_116: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_116.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5093,7 +5093,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_117: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_117.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5105,7 +5105,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_118: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_118.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5117,7 +5117,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_119: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_119.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5129,7 +5129,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_120: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_120.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5141,7 +5141,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_121: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_121.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5153,7 +5153,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_122: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_122.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5165,7 +5165,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_123: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_123.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5177,7 +5177,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_124: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_124.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5189,7 +5189,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_125: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_125.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5201,7 +5201,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_126: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_126.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
@@ -5213,7 +5213,7 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPIOPE_INPUT_127: {
       int32_t input_pin = (int32_t)matrixData.matrix_function_xyz[0][index_matrix_value_comparitor][0][INDEX_MATRIX_FUNTION_Z];
       double input_pin_value = 0.0;
-      if ((input_pin >= 0) && (input_pin < MAX_MATRIX_SWITCHES)) {
+      if ((input_pin >= 0) && (input_pin < GPIOPE_MAX_SIZE)) {
         input_pin_value = GPIOPE_INPUT_127.input_value[input_pin];
       }
       snprintf(out, out_size, "%.10g", input_pin_value);
