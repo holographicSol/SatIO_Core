@@ -7,54 +7,60 @@
 SatIO is a Value Hive & Programmable Switch, for building devices with and or on top of.
 
 ---
+## Philosophy & Design
 
-## Philosophy & Architecture
+1. **Value Creation** — Safety, Stability, Accuracy. As SatIO develops, so should value creation, leading to safer, more accurate values over time. This can create a desirable improvement curve where in contrast, building a system from scratch every new project, has the potential to reintroduce bugs and 're-solve' the same problems. As SatIO develops, so does any system built on top of SatIO. Value creation should ideally be both read and write to values.
 
-**The Hive** — SatIO creates and stores sensory data and extrapolated sensor data, that can be used by SatIO to switch I/O via programmable compounds of logic, and or can be simply passed out over serial for another device to read.
+2. **Value Utilization**  — 
 
-**The Matrix** — This is a scalable, programmable switch that utilizes values from across the Hive, to perform calculations that result in either true or false. High/Low output is determined by the result. Devices built on top of SatIO can be distinguished by their matrix configurations, being different devices for different applications, and similar in that each of them is running on and or with SatIO.
-The switches can be used for, digital output, analog output, mapped output. For driving a peripheral, providing a peripheral with event triggers, or simply lighting up a led. With an ATMEGA2560 as the output controller, there are up to +-60 programmable matrix switches available, that's +-60 pins for SatIO to drive, through the programmable matrix logic.
-
-### Philosophy
-
-1. **Value Creation** — Safety, Stability, Accuracy. As SatIO develops, so should value creation, leading to safer, more accurate values in the hive over time. This can create a desirable improvement curve where in contrast, building a system from scratch every new project, has the potential to reintroduce bugs and 're-solve' the same problems. As SatIO develops, so does any system built on top of SatIO. Value creation should ideally be both read and write to and from the Hive.
-2. **Value Utilization** —
-- **The Matrix** utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
+- **The Matrix** — utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
    logic whereby any value in the system can be compared to any other value in the system and or comapred to a user defined
    value. The comaprisons use some basic operators, <>==, and in range. Every value in the matrix is treated as a double
    and there are around 120 system values that can be used in the matrix as 'matrix functions'. Each matrix function accepts function values as X,Y,Z, that are also stored in a matrix (See usage below for more matrix programmability options). This means that the Matrix combinational potential is considerably high, and all possible combinations and all possible reasonings for any given combination may be impossible for one person to ever know or comprehend (see below for Inference via Bayesian Reasoning). The matrix is the core of SatIO and SatIO's potential, it makes SatIO a computer, however it does not make SatIO Turing Complete.
    Each Matrix Switch can hold more than one Matrix Function, all of which must result in true, in order to switch, and locic can run in an inverted mode, that inverts
    Matrix Function return boolean. Switches can be linked to other switches by using a special Matrix Function called Switch Link, which allows logic to be stacked
    accross switches and again inverted and or further gated, using the same or different output port. All Matrix Switches have programmable output ports and are -1 by default. Logic can be modulated up to int64_max, for PWM on N co-processor(s) that strictly handle I/O and modulation.
--  **Computer Assist Bool** is automation, and takes control over a specified output port according to how the matrix switch for that port is configured. Note
+   **Possible Matrix Use Cases** include triggers for interrupting peripheral microcontrollers, throughput of analog signals and digital output, allowing for directly driving a sensor and or being used as an event manager for peripheral devices.
+
+   **Elemental** — Allow comparing any value from the system to any other value from the system and or to a user defined value.
+
+   **Compound** — Allow stacking compounds of (1), so that multiple things can be calculated to result in a single true/false.
+
+   **I/O** — Each available/required output pin can have it's own (2) Compound logic.
+
+   **XYZ** — A lot can be calculated with 3 comparitors, x, y and z. Currently, the only reason to use y is for ranging, and z is used as an index number to access a comparitor in an array. This is ultimately the simplicity of the matrix, whereby anything being claculated is a programmable primary comparitor x, being compared to a programmable secondary comparitor x, optionally in range of y, with z sometimes being used to populate the primary comparitor x with a value from a specified array at index z. Together with elemental and compound logic, this helps fascilitate general, high potential for calculations, without any special functions for any given, potential calculation.
+   **X** Secondary Comparitor.   
+   **Y** Range.
+   **Z** Index Primary Compraitor Array.
+
+   **Computer Assist Bool** is automation, and takes control over a specified output port according to how the matrix switch for that port is configured. Note
    that a switch is rendered fully automatic by Computer Assist being enabled for the same the same switch, meaning the computer will decide when to
    switch, how to modulate the switch, and why, all determined from the users programmable logic in the Matrix.
--  **Computer Intention Bool** provides insight into what the computer has calculated. Weather or not Computer Assist is enabled, Computer Intention is
+
+   **Computer Intention Bool** provides insight into what the computer has calculated. Weather or not Computer Assist is enabled, Computer Intention is
    visible for every switch, allowing a user or other system to see what the computer wants to do, with and or without actually doing it. Computer Assist
    can be enabled at any point for any switch, before and or during Computer Intent true/false. This 'layer' also fascilitates optional design choices being made, like the potential for semi-automatic functionality on a switch by switch basis, whereby Computer intention can be used as an indicator and the user
    can ultimately decide weather or not to switch, by flipping Computer Assist on/off.
--  **Switch Intention Bool** is set according to Computer Intention, providing Computer Assist is enabled, for the same switch. Computer intention is
+
+   **Switch Intention Bool** is set according to Computer Intention, providing Computer Assist is enabled, for the same switch. Computer intention is
    always set, Switch Intention is only ever set if Computer Assist is enabled for the same switch.
+
    **Output Values** can be digital (directly derived from switch intention), or analog from a mapped value in the system. Varoius output modes determine
    what values will be output if and when a Switch Intention true.
+
    **Mapped Values** supports user defined mapping from a selection of values in the system. Mapped values can be used in two ways, [1] with the intention
-   of using the mapped value in a Matrix Switch Function as a comparitor, and or [2] with the intention to use the mapped value as an Output Value. Map slots are not aligned with Matrix Switch slots, so that multiple Matrix Switches and or Output values can utilize any map slot, simultaniously, without needing to map anything twice or more, unecessarily. This means that a map slot index was required for Matrix Switches, whereby the map slot index values ARE aligned with Matrix Switches, and the values within the Index, point to user defined Map Slots.
-3. **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
+   of using the mapped value in a Matrix Switch Function as a comparitor, and or [2] with the intention to use the mapped value as an Output Value. Map slots are not aligned with Matrix Switch slots, so that multiple Matrix Switches and or Output values can utilize any map slot, simultaniously, without needing to map anything twice or more, unecessarily. This means that a map slot index was required for Matrix Switches, whereby the map slot index values ARE aligned with Matrix Switches, and the values within 
+   the Index, point to user defined Map Slots.
+
+- **Data Sharing** — Values from across the system such as sensor data and data extrapolated from sensor data, can be output for other systems, devices, micrcontrollers to read.
+   This allows for using SatIO with LLM's, as a module for another project, etc, increasing the flexibility and use cases for including SatIO in a project.
+
+- **Dynamic/Static/Simulation** — System values like time, location, altitude, speed, etc can be set
 from real (dynamic) sensor data and or can be individually specified by the user (static). This allows
 for various options and scenarios like running as a station, simulation, and or where dynamically updating
 the system values is not an option, like for example if there is no GPS. The system always uses system values,
 and the system values are set according to a values mode: GPS, Gyro, User. This means that calculations
 (like many calculations in the Universe task for example) that depend on certain values, can still function correctly, if the correct values are input manually and or automated input from another system.
-
-### Matrix Philosophy
-
-1. **Elemental** — Allow comparing any value from the Hive to any other value from the Hive and or to a user defined value.
-2. **Compound** — Allow stacking compounds of (1), so that multiple things can be calculated to result in a single true/false.
-3. **I/O** — Each available/required output pin can have it's own (2) Compound logic.
-4. **XYZ** — A lot can be calculated with 3 comparitors, x, y and z. Currently, the only reason to use y is for ranging, and z is used as an index number to access a comparitor in an array. This is ultimately the simplicity of the matrix, whereby anything being claculated is a programmable primary comparitor x, being compared to a programmable secondary comparitor x, optionally in range of y, with z sometimes being used to populate the primary comparitor x with a value from a specified array at index z. Together with elemental and compound logic, this helps fascilitate general, high potential for calculations, without any special functions for any given, potential calculation.
-**X** Secondary Comparitor.
-**Y** Range.
-**Z** Index Primary Compraitor Array.
 
 **Why:** This means that many 'special functions' do not need to be created in order to calculate something, because the answer may already exist, via some combination of available logic in the Matrix.
 
