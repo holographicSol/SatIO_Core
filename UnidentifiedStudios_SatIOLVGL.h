@@ -240,10 +240,10 @@ typedef struct {
     lv_obj_t * label_operator;
     lv_obj_t * dd_operator;
     
-    // Flux (textarea for input)
-    // lv_obj_t * label_flux;
-    // lv_obj_t * ta_flux;
-    
+    // Flux (fluctuation threshold before a write is issued)
+    lv_obj_t * label_flux;
+    lv_obj_t * val_flux;
+
     // Output mode (dropdown)
     lv_obj_t * label_output_mode;
     lv_obj_t * dd_output_mode;
@@ -255,6 +255,10 @@ typedef struct {
     // Map Slot
     lv_obj_t * label_map_slot;
     lv_obj_t * dd_map_slot;
+
+    // User Output Value
+    lv_obj_t * label_user_output_value;
+    lv_obj_t * val_user_output_value;
 
     // GPIOPE Address
     lv_obj_t * label_gpiope_address;

@@ -321,6 +321,8 @@ typedef enum {
     KB_MATRIX_VALUE_Y,
     KB_MATRIX_VALUE_Z,
     KB_MATRIX_PORT_MAP,
+    KB_MATRIX_FLUX,
+    KB_MATRIX_USER_OUTPUT_VALUE,
     KB_MAPPING_C1,
     KB_MAPPING_C2,
     KB_MAPPING_C3,
@@ -369,6 +371,8 @@ static kb_ctx_t matrix_value_x_ctx = { .target = KB_MATRIX_VALUE_X, .strval_type
 static kb_ctx_t matrix_value_y_ctx = { .target = KB_MATRIX_VALUE_Y, .strval_type = STRVAL_DOUBLE };
 static kb_ctx_t matrix_value_z_ctx = { .target = KB_MATRIX_VALUE_Z, .strval_type = STRVAL_DOUBLE };
 static kb_ctx_t matrix_port_map_ctx = { .target = KB_MATRIX_PORT_MAP, .strval_type = STRVAL_UINT8 };
+static kb_ctx_t matrix_flux_ctx = { .target = KB_MATRIX_FLUX, .strval_type = STRVAL_UINT32 };
+static kb_ctx_t matrix_user_output_value_ctx = { .target = KB_MATRIX_USER_OUTPUT_VALUE, .strval_type = STRVAL_INT32 };
 
 static kb_ctx_t mapping_c1_ctx = { .target = KB_MAPPING_C1, .strval_type = STRVAL_INT32 };
 static kb_ctx_t mapping_c2_ctx = { .target = KB_MAPPING_C2, .strval_type = STRVAL_INT32 };
@@ -423,6 +427,8 @@ void set_keyboard_context_cb(lv_event_t * e)
         case KB_MATRIX_VALUE_Y: kb = &kb_numdec; break;
         case KB_MATRIX_VALUE_Z: kb = &kb_numdec; break;
         case KB_MATRIX_PORT_MAP: kb = &kb_numdec; break;
+        case KB_MATRIX_FLUX: kb = &kb_numdec; break;
+        case KB_MATRIX_USER_OUTPUT_VALUE: kb = &kb_numdec; break;
 
         case KB_MAPPING_C1: kb = &kb_numdec; break;
         case KB_MAPPING_C2: kb = &kb_numdec; break;
@@ -547,7 +553,26 @@ void keyboard_event_cb(lv_event_t * e)
             else {
             }
             break;
-        
+
+        case KB_MATRIX_FLUX:
+            if (strval_validate(ctx->strval_type, input)) {
+                uint32_t val = strtoul(input, NULL, 10);
+                matrixData.flux_value[0][current_matrix_i] = val;
+            }
+            else {
+            }
+            break;
+
+        case KB_MATRIX_USER_OUTPUT_VALUE:
+            if (strval_validate(ctx->strval_type, input)) {
+                int32_t val = strtol(input, NULL, 10);
+                matrixData.user_output_value[0][current_matrix_i] = val;
+                matrixData.matrix_switch_write_required[0][current_matrix_i]=true;
+            }
+            else {
+            }
+            break;
+
         case KB_MAPPING_C1:
             if (strval_validate(ctx->strval_type, input)) {
                 int32_t val = strtol(input, NULL, 10);
@@ -669,7 +694,7 @@ void keyboard_event_cb(lv_event_t * e)
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
                 GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
-                if (gpiope) {
+                if (gpiope != nullptr) {
                     gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
                     GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
                     GPIOPE_QueryDevice(*gpiope, gpiope->address);
@@ -681,7 +706,7 @@ void keyboard_event_cb(lv_event_t * e)
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
                 GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
-                if (gpiope) {
+                if (gpiope != nullptr) {
                     gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON] = val;
                     GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
                     GPIOPE_QueryDevice(*gpiope, gpiope->address);
@@ -693,7 +718,7 @@ void keyboard_event_cb(lv_event_t * e)
             if (strval_validate(ctx->strval_type, input)) {
                 int8_t val = (int8_t)atoi(input);
                 GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
-                if (gpiope) {
+                if (gpiope != nullptr) {
                     gpiope->port_map[current_gpiope_port_i] = val;
                     GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, current_gpiope_port_i, val);
                     GPIOPE_QueryDevice(*gpiope, gpiope->address);
@@ -705,7 +730,7 @@ void keyboard_event_cb(lv_event_t * e)
             if (strval_validate(ctx->strval_type, input)) {
                 uint64_t val = strtoull(input, NULL, 10);
                 GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
-                if (gpiope) {
+                if (gpiope != nullptr) {
                     GPIOPE_Set_Channel_Frequency(*gpiope, current_gpiope_port_i, val);
                 }
             }
@@ -14221,11 +14246,13 @@ matrix_function_container_t create_matrix_function_container(
         false
     );
 
-    // Set row object widths
-    obj_w_0 = 55; // label
-    obj_w_1 = (((sub_row_width/2) *1) - obj_w_0) - (sub_column_padding*2);
-    obj_w_2 = 55;
-    obj_w_3 = (((sub_row_width/2) *1) - obj_w_2) - (sub_column_padding*2);
+    // Set row object widths (three pairs: Map | Flux | Output)
+    obj_w_0 = 40; // Map label
+    obj_w_1 = (((sub_row_width/3) *1) - obj_w_0) - (sub_column_padding*2); // Map value
+    obj_w_4 = 40; // Flux label
+    obj_w_5 = (((sub_row_width/3) *1) - obj_w_4) - (sub_column_padding*2); // Flux value
+    obj_w_2 = 40; // Output label
+    obj_w_3 = (((sub_row_width/3) *1) - obj_w_2) - (sub_column_padding*2); // Output value
 
     // Label Map Slot
     result.label_map_slot = create_label(
@@ -14267,6 +14294,51 @@ matrix_function_container_t create_matrix_function_container(
     }
     lv_dropdown_set_selected(result.dd_map_slot, 0);
     lv_obj_add_event_cb(result.dd_map_slot, dd_link_map_slot_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    // Label Flux
+    result.label_flux = create_label(
+        row_map_output,       // parent
+        obj_w_4,               // width
+        obj_height,           // height
+        LV_ALIGN_CENTER,      // parent alignment
+        0,                    // pos x
+        0,                    // pos y
+        "Flux",               // initial text
+        LV_TEXT_ALIGN_CENTER, // font alignment
+        &font_cobalt_alien_17,     // font
+        false,                // transparent background
+        false,                // show scrollbar
+        false,                // enable scrolling
+        2,                    // outline width
+        general_radius,       // outline radius
+        1,
+        default_bg_hue,
+        default_subtitle_hue
+    );
+
+    // Flux Value (fluctuation threshold before a write is issued, see setOutputValues())
+    result.val_flux = create_label(
+        row_map_output,       // parent
+        obj_w_5,               // width
+        obj_height,           // height
+        LV_ALIGN_CENTER,      // parent alignment
+        0,                    // pos x
+        0,                    // pos y
+        "0",                  // initial text
+        LV_TEXT_ALIGN_CENTER, // font alignment
+        &font_cobalt_alien_17,     // font
+        false,                // transparent background
+        false,                // show scrollbar
+        false,                // enable scrolling
+        2,                    // outline width
+        general_radius,       // outline radius
+        1,
+        default_bg_hue,
+        default_subtitle_hue
+    );
+    lv_obj_add_flag(result.val_flux, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(result.val_flux, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_user_data(result.val_flux, &matrix_flux_ctx);
 
     // Label Output Mode
     result.label_output_mode = create_label(
@@ -14312,12 +14384,14 @@ matrix_function_container_t create_matrix_function_container(
     // Critical for alignment
     lv_obj_set_size(result.label_map_slot, obj_w_0, obj_height);
     lv_obj_set_size(result.dd_map_slot, obj_w_1, obj_height);
+    lv_obj_set_size(result.label_flux, obj_w_4, obj_height);
+    lv_obj_set_size(result.val_flux, obj_w_5, obj_height);
     lv_obj_set_size(result.label_output_mode, obj_w_2, obj_height);
     lv_obj_set_size(result.dd_output_mode, obj_w_3, obj_height);
 
-    /* --- GPIOPE Address / GPIOPE Port Map ---------------------------------------
-           (Map Slot and Output Mode moved out to the row above, so this row now
-           only needs to fit two fields and can spread them out.) --------------- */
+    /* --- User Value / GPIOPE Address / GPIOPE Port Map --------------------------
+           (Map Slot and Output Mode moved out to the row above; this row now
+           fits three fields: User Value (leftmost), GPIOPE Address, GPIOPE PM.) - */
 
     lv_obj_t * row_gpiope = create_row(
         result.panel,
@@ -14330,11 +14404,58 @@ matrix_function_container_t create_matrix_function_container(
         false
     );
 
-    // Set row object widths
-    obj_w_0 = 140; // GPIOPE Address label
-    obj_w_1 = 220 - obj_w_0 - (sub_column_padding*2); // GPIOPE Address dropdown
-    obj_w_2 = 100; // GPIOPE PM label
-    obj_w_3 = (sub_row_width - 220) - obj_w_2 - (sub_column_padding*2); // GPIOPE PM value
+    // Set row object widths (three equal-width pairs: User Value | GPIOPE Address | GPIOPE PM)
+    obj_w_4 = 70; // User Value label
+    obj_w_5 = (((sub_row_width/3) *1) - obj_w_4) - (sub_column_padding*2); // User Value value
+    obj_w_0 = 70; // GPIOPE Address label
+    obj_w_1 = (((sub_row_width/3) *1) - obj_w_0) - (sub_column_padding*2); // GPIOPE Address dropdown
+    obj_w_2 = 70; // GPIOPE PM label
+    obj_w_3 = (((sub_row_width/3) *1) - obj_w_2) - (sub_column_padding*2); // GPIOPE PM value
+
+    // Label User Value
+    result.label_user_output_value = create_label(
+        row_gpiope,            // parent
+        obj_w_4,                // width
+        obj_height,            // height
+        LV_ALIGN_CENTER,       // parent alignment
+        0,                     // pos x
+        0,                     // pos y
+        "User",                // initial text
+        LV_TEXT_ALIGN_CENTER,  // font alignment
+        &font_cobalt_alien_17,     // font
+        false,                 // transparent background
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        2,                     // outline width
+        general_radius,        // outline radius
+        1,
+        default_bg_hue,
+        default_subtitle_hue
+    );
+
+    // User Value Value (matrixData.user_output_value, used when output mode is "User")
+    result.val_user_output_value = create_label(
+        row_gpiope,            // parent
+        obj_w_5,                // width
+        obj_height,            // height
+        LV_ALIGN_CENTER,       // parent alignment
+        0,                     // pos x
+        0,                     // pos y
+        "0",                   // initial text
+        LV_TEXT_ALIGN_CENTER,  // font alignment
+        &font_cobalt_alien_17,     // font
+        false,                 // transparent background
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        2,                     // outline width
+        general_radius,        // outline radius
+        1,
+        default_bg_hue,
+        default_subtitle_hue
+    );
+    lv_obj_add_flag(result.val_user_output_value, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(result.val_user_output_value, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_set_user_data(result.val_user_output_value, &matrix_user_output_value_ctx);
 
     // Label GPIOPE Address
     result.label_gpiope_address = create_label(
@@ -14344,7 +14465,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,       // parent alignment
         0,                     // pos x
         0,                     // pos y
-        "GPIOPE Address",      // initial text
+        "GPIOPE AD",           // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
         &font_cobalt_alien_17,     // font
         false,                 // transparent background
@@ -14423,6 +14544,8 @@ matrix_function_container_t create_matrix_function_container(
     lv_obj_set_user_data(result.val_port_map, &matrix_port_map_ctx);
 
     // Critical for alignment
+    lv_obj_set_size(result.label_user_output_value, obj_w_4, obj_height);
+    lv_obj_set_size(result.val_user_output_value, obj_w_5, obj_height);
     lv_obj_set_size(result.label_gpiope_address, obj_w_0, obj_height);
     lv_obj_set_size(result.dd_gpiope_address, obj_w_1, obj_height);
     lv_obj_set_size(result.label_port_map, obj_w_2, obj_height);
@@ -17675,8 +17798,14 @@ void update_display_lvgl()
                 // Connected Map Slot
                 dd_select(mfc.dd_map_slot, matrixData.index_mapped_value[0][current_matrix_i]);
 
+                // Flux (fluctuation threshold)
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)matrixData.flux_value[0][current_matrix_i]); lv_label_set_text(mfc.val_flux, buf); }
+
                 // Output Mode
                 dd_select(mfc.dd_output_mode, matrixData.output_mode[0][current_matrix_i]);
+
+                // User Value
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", matrixData.user_output_value[0][current_matrix_i]); lv_label_set_text(mfc.val_user_output_value, buf); }
 
                 // GPIOPE Address
                 dd_select(mfc.dd_gpiope_address, matrixData.gpiope_address[0][current_matrix_i]);

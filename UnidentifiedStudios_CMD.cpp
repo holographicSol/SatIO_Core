@@ -376,15 +376,14 @@ static void PrintHelp(void) {
                                   [2] Over
                                   [3] Under
                                   [4] Range
-      matrix --pwm0 n             Set switch -s uS time off period (0uS = remain on)
-      matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off after on)
       matrix --flux n             Set switch -s output fluctuation threshold.
       matrix --oride n            Override switch -s output values.
-      matrix --computer-assist n  Enable/disable computer assist for switch -s.
-      matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
+      matrix --uvalue n           Set switch -s user output value.
       matrix --map-slot n         Set switch -s output as map slot n value.
+      matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
       matrix -p n                 Set port slot for switch -s (Pins in slots are defined by gpiope command).  
       matrix --gpiope n           Set GPIOPE I2C address for switch -s.
+      matrix --computer-assist n  Enable/disable computer assist for switch -s.
 
       example set matrix logic 0 function 0 to detect sdcard mounted:
       matrix -s 0 -f 0 -p 33 -fn 85 -fx 1 -fo 1 --pwm0 1000000 --pwm1 15000 --computer-assist 1
@@ -679,6 +678,7 @@ static void PrintMatrixNData(int matrix_index) {
     printf("[matrix switch] %d\n", matrix_index);
     printf("[computer assist] %d\n", matrixData.computer_assist[0][matrix_index]);
     printf("[output mode] %d\n", (int)matrixData.output_mode[0][matrix_index]);
+    printf("[user output value] %ld\n", matrixData.user_output_value[0][matrix_index]);
     printf("[flux] %lu\n", matrixData.flux_value[0][matrix_index]);
     // printf("[pwm] 0: %lu 1: %lu\n",
       // matrixData.output_pwm[0][matrix_index][0],
@@ -786,6 +786,13 @@ void setMatrixInverted(int switch_idx, int func_idx, int func_i) {
 void setMatrixOperator(int switch_idx, int func_idx, int func_o) {
   if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && func_idx>=0 && func_idx<MAX_MATRIX_SWITCH_FUNCTIONS && func_o>=0 && func_o<MAX_MATRIX_OPERATORS) {
     matrixData.matrix_switch_operator_index[0][switch_idx][func_idx]=func_o;
+    matrixData.matrix_switch_write_required[0][switch_idx]=true;
+  }
+}
+
+void setUserOutputValue(int switch_idx, int32_t user_value) {
+  if (switch_idx>=0 && switch_idx<MAX_MATRIX_SWITCHES && user_value>=INT32_MIN && user_value<=INT32_MAX) {
+    matrixData.user_output_value[0][switch_idx]=user_value;
     matrixData.matrix_switch_write_required[0][switch_idx]=true;
   }
 }
@@ -1286,7 +1293,7 @@ void CmdProcess(void) {
 
             // Check if device defined for specified address
             GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(address);
-            if (gpiope) {
+            if (gpiope != nullptr) {
 
               // set port by index
               if (has_a && has_i && argparser_has_flag(&parser, "p") == true) {
@@ -1311,7 +1318,7 @@ void CmdProcess(void) {
 
               // Check if device defined for specified address
               GPIOPortExpander* gpiope = isGPIOPE_INPUT(address);
-              if (gpiope) {
+              if (gpiope != nullptr) {
 
               // all channels
               if (argparser_has_flag(&parser, "all") == true) {
@@ -1374,6 +1381,7 @@ void CmdProcess(void) {
           if (has_s && has_f && argparser_has_flag(&parser, "fo") == true) {setMatrixOperator(s, f, argparser_get_int8(&parser, "fo", 0));}
           
           
+          if (has_s && argparser_has_flag(&parser, "uvalue") == true) {setUserOutputValue(s, argparser_get_int32(&parser, "uvalue", -1));}
           if (has_s && argparser_has_flag(&parser, "flux") == true) {setFlux(s, argparser_get_uint32(&parser, "flux", -1));}
           if (has_s && argparser_has_flag(&parser, "oride") == true) {setOverrideOutputValue(s, argparser_get_int32(&parser, "oride", -1));}
           if (has_s && argparser_has_flag(&parser, "computer-assist") == true) {setComputerAssist(s, argparser_get_int8(&parser, "computer-assist", -1));}
@@ -3757,17 +3765,29 @@ void outputStat(void) {
             printf("\n");
         }
     }
-    #ifdef SatIO_USE_GYRO_0
+    #ifdef SatIO_USE_UNIVERSE
     /**
      * Clestial Sphere Attitude.
      * Observe if absolute local zenith RA Dec must always be correct.
      * Observe if level, upright gyro RA Dec are accurate to absolute local zenith RA Dec.
+     *
+     * Guarded by SatIO_USE_UNIVERSE (not SatIO_USE_GYRO_0): local_sidereal_attitude
+     * (Zenith) and the StarNav table below are only ever populated by taskUniverse()
+     * (see UnidentifiedStudios_TaskHandler.cpp), which does not exist unless
+     * SatIO_USE_UNIVERSE is defined -- these two build options are independently
+     * toggleable (see UnidentifiedStudios_Config.h), so a build with only
+     * SatIO_USE_GYRO_0 defined must not attempt this block. Only the "Gyro" row
+     * additionally needs SatIO_USE_GYRO_0, matching the
+     * INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_RA/DEC guard convention in
+     * UnidentifiedStudios_Matrix.h.
      */
     {
         struct StatRaDecSource { const char* label; const char* ra; const char* dec; double az; double alt; };
         const StatRaDecSource sources[] = {
             {"Zenith", siderealPlanetData.local_sidereal_attitude.formatted_ra_str,  siderealPlanetData.local_sidereal_attitude.formatted_dec_str,  siderealPlanetData.local_sidereal_attitude.az,  siderealPlanetData.local_sidereal_attitude.alt},
+            #ifdef SatIO_USE_GYRO_0
             {"Gyro",   siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str, siderealPlanetData.gyro_0_sidereal_attitude.az, siderealPlanetData.gyro_0_sidereal_attitude.alt},
+            #endif
             {"User",   SatIOData.user_sidereal_attitude.formatted_ra_str,            SatIOData.user_sidereal_attitude.formatted_dec_str,            SatIOData.user_sidereal_attitude.az,            SatIOData.user_sidereal_attitude.alt},
             {"System", SatIOData.system_sidereal_attitude.formatted_ra_str,          SatIOData.system_sidereal_attitude.formatted_dec_str,          SatIOData.system_sidereal_attitude.az,          SatIOData.system_sidereal_attitude.alt},
         };
@@ -3815,7 +3835,7 @@ void outputStat(void) {
           printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_s);
           printf("\n");
       }
-    #endif
+    #endif // SatIO_USE_UNIVERSE
   }
 
   #ifdef SatIO_USE_GYRO_0
@@ -3917,6 +3937,7 @@ void outputStat(void) {
   }
   #endif
 
+  #ifdef SatIO_USE_MATRIX
   if (systemData.output_stat_matrix == true) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                        PRINT COMPUTER ASSIST
@@ -3944,4 +3965,5 @@ void outputStat(void) {
         printArray(matrixData.output_value[0], page_start, page_end);
     }
   }
+  #endif // SatIO_USE_MATRIX
 }

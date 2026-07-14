@@ -70,6 +70,7 @@ struct MatrixStruct matrixData = {
   .computer_intention={ {false} },
   .output_value={ {0} },
   .prev_output_value={ {0} },
+  .user_output_value={ {0} },
   .flux_value={ {0} },
   .override_output_value={ {0} },
   .override_prev_output_value={ {0} },
@@ -77,7 +78,8 @@ struct MatrixStruct matrixData = {
   .output_mode_names=
   {
     "Digital", // 0
-    "Mapped"   // 1
+    "Mapped",  // 1
+    "User"     // 2
   },
   .index_mapped_value={ {0} },
   .matrix_switch_write_required={ {false} },
@@ -5358,32 +5360,42 @@ void setOutputValues(void) {
 
     int32_t oval = 0;
 
+    // Set Zero for function None (could be more complex in the future)
     if (matrixData.matrix_function[0][Mi][0] == INDEX_MATRIX_SWITCH_FUNCTION_NONE) {
       oval = 0;
-    } else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_0) {
-      // Matrix logic (digital): output value is the switch's intention.
+    }
+    // Matrix logic (digital): output value is the switch's intention.
+    else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_0) {
       oval = matrixData.switch_intention[0][Mi];
-    } else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_1) {
-      // Mapped value: output value is the mapped value at this switch's
-      // configured map slot.
+    }
+    // Mapped value (analog/digital): output value is the mapped value at this switch's configured map slot.
+    else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_1) {
       oval = mappingData.mapped_value[0][matrixData.index_mapped_value[0][Mi]];
     }
+    // User value (analog/digital): output value is set directly by the user (command/UI)
+    else if (matrixData.output_mode[0][Mi] == INDEX_MATRIX_OUTPUT_MODE_2) {
+      oval = matrixData.user_output_value[0][Mi];
+    }
+    else { /* terminate statement */ }
 
+  
+  
     // Override according to switch intention.
     if (matrixData.switch_intention[0][Mi] == true) {
       matrixData.output_value[0][Mi] = oval;
-    } else {
+    }
+    // Set Zero for switch intention false (could be more complex in the future)
+    else {
       matrixData.output_value[0][Mi] = 0;
     }
-
-    // Flag a write whenever the output value has moved beyond the
-    // configured fluctuation threshold since the last write.
+    // Flag a write whenever the output value has moved beyond the configured fluctuation threshold since the last write.
     bool above_threshold = matrixData.output_value[0][Mi] > (matrixData.prev_output_value[0][Mi] + (int32_t)matrixData.flux_value[0][Mi]);
     bool below_threshold = matrixData.output_value[0][Mi] < (matrixData.prev_output_value[0][Mi] - (int32_t)matrixData.flux_value[0][Mi]);
     if (above_threshold || below_threshold) {
       matrixData.prev_output_value[0][Mi] = matrixData.output_value[0][Mi];
       matrixData.matrix_switch_write_required[0][Mi] = true;
     }
+    else { /* terminate statement */ }
   }
 }
 #endif // SatIO_USE_MATRIX

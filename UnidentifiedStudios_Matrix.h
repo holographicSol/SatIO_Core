@@ -45,7 +45,7 @@
 
 // Max Matrix Features
 #define MAX_MATRIX_OPERATORS 5
-#define MAX_MATRIX_OUTPUT_MODES 2
+#define MAX_MATRIX_OUTPUT_MODES 3
 #define MAX_MATRIX_OVERRIDE_TIME 1000000
 #define MAX_MATRIX_FUNCTION_XYZ_MODES 2
 #define MAX_MATRIX_FUNCTION_INVERTED_LOGIC_MODES 2
@@ -63,8 +63,9 @@
 #define INDEX_MATRIX_SWITCH_PWM_ON 1
 #define INDEX_MATRIX_FUNCTION_XYZ_MODE_USER 0
 #define INDEX_MATRIX_FUNCTION_XYZ_MODE_SYSTEM 1
-#define INDEX_MATRIX_OUTPUT_MODE_0 0
-#define INDEX_MATRIX_OUTPUT_MODE_1 1
+#define INDEX_MATRIX_OUTPUT_MODE_0 0 // digital
+#define INDEX_MATRIX_OUTPUT_MODE_1 1 // mapped (digital/analog)
+#define INDEX_MATRIX_OUTPUT_MODE_2 2 // user (digital/analog)
 
 // Index Matrix Functions
 //
@@ -823,6 +824,9 @@ struct MatrixStruct {
   // (digital/mapped).
   int32_t output_value[1][MAX_MATRIX_SWITCHES];
   int32_t prev_output_value[1][MAX_MATRIX_SWITCHES];
+
+  // User output value
+  int32_t user_output_value[1][MAX_MATRIX_SWITCHES];
 
   // Fluctuation threshold per switch. No output write unless the new
   // output value differs from prev_output_value by more than this amount.
