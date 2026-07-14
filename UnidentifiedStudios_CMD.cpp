@@ -502,35 +502,35 @@ static void PrintHelp(void) {
   [ SatIO ]
 
       [ Time ]
-      SatIO --utc-offset n             Set +-seconds offset time.
-      SatIO --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
-      SatIO --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
-      SatIO --set-datetime --year n --month n --mday n --hour n --minute n --second n  (expects UTC +- 0).
+      satio --utc-offset n             Set +-seconds offset time.
+      satio --auto-datetime-on         Enable set datetime automatically  (--auto-datetime-on overrides any datetime -set).
+      satio --auto-datetime-off        Disable set datetime automatically (ensure --auto-datetime-off before using -set time).
+      satio --set-datetime --year n --month n --mday n --hour n --minute n --second n  (expects UTC +- 0).
 
       [ Location ]
-      SatIO --coord-value-mode-gps             Use GPS coordinates.
-      SatIO --coord-value-mode-user            User user defined coordinates.
-      SatIO --set-coord -lat n -lon n          Set degrees latitude and longitude.
+      satio --coord-value-mode-gps             Use GPS coordinates.
+      satio --coord-value-mode-user            User user defined coordinates.
+      satio --set-coord -lat n -lon n          Set degrees latitude and longitude.
 
       [ Speed ]
-      SatIO --speed-value-mode-gps             Use GPS speed.
-      SatIO --speed-value-mode-user            User user defined speed.
-      SatIO --set-speed n                      Set speed in meters per second.
+      satio --speed-value-mode-gps             Use GPS speed.
+      satio --speed-value-mode-user            User user defined speed.
+      satio --set-speed n                      Set speed in meters per second.
 
       [ Altitude ]
-      SatIO --altitude-value-mode-gps          Use GPS altitude values.
-      SatIO --altitude-value-mode-user         User user defined altitude.
-      SatIO --set-altitude n                   Set altitude in meters.
+      satio --altitude-value-mode-gps          Use GPS altitude values.
+      satio --altitude-value-mode-user         User user defined altitude.
+      satio --set-altitude n                   Set altitude in meters.
       
       [ Ground Heading ]
-      SatIO --ground-heading-value-mode-gps    Use GPS ground heading values.
-      SatIO --ground-heading-value-mode-user   User user defined ground heading.
-      SatIO --set-ground-heading               Set ground heading in degrees.
+      satio --ground-heading-value-mode-gps    Use GPS ground heading values.
+      satio --ground-heading-value-mode-user   User user defined ground heading.
+      satio --set-ground-heading               Set ground heading in degrees.
 
       [ RA/Dec ]
-      SatIO --ra-dec-value-mode-gyro           Use gyro-derived RA/Dec.
-      SatIO --ra-dec-value-mode-user           Use user defined RA/Dec target.
-      SatIO --set-ra-dec --ra-h n --ra-m n --ra-s n --dec-d n --dec-m n --dec-s n  Set user RA/Dec target (ra-h 0-23, dec-d -90 to 90).
+      satio --ra-dec-value-mode-gyro           Use gyro-derived RA/Dec.
+      satio --ra-dec-value-mode-user           Use user defined RA/Dec target.
+      satio --set-ra-dec --ra-h n --ra-m n --ra-s n --dec-d n --dec-m n --dec-s n  Set user RA/Dec target (ra-h 0-23, dec-d -90 to 90).
 
   [ Gyro ]
 
@@ -584,7 +584,7 @@ static void PrintHelp(void) {
       stat -map n                 Print map slot n data.
       stat -map -A                Print all map slot data.
       stat --sentence -A          Print all sentences. Takes arguments -e, -d.
-      stat --sentence --SatIO     Takes arguments -e, -d.
+      stat --sentence --satio     Takes arguments -e, -d.
       stat --sentence --gngga     Takes arguments -e, -d.
       stat --sentence --gnrmc     Takes arguments -e, -d.
       stat --sentence --gpatt     Takes arguments -e, -d.
@@ -621,8 +621,8 @@ static void PrintSystemData(void) {
     printf("-----------------------------------------------------\n");
     printf("[System] \n");
     printf("[serial_command] %d\n", systemData.serial_command);
-    printf("[output_SatIO_all] %d\n", systemData.output_SatIO_all);
-    printf("[output_SatIO_enabled] %d\n", systemData.output_SatIO_enabled);
+    printf("[output_satio_all] %d\n", systemData.output_satio_all);
+    printf("[output_satio_enabled] %d\n", systemData.output_satio_enabled);
     printf("[output_gngga_enabled] %d\n", systemData.output_gngga_enabled);
     printf("[output_gnrmc_enabled] %d\n", systemData.output_gnrmc_enabled);
     printf("[output_gpatt_enabled] %d\n", systemData.output_gpatt_enabled);
@@ -710,8 +710,8 @@ static void PrintMatrixData(void) {
 }
 
 void setAllSentenceOutput(bool enable) {
-  systemData.output_SatIO_all = enable;
-  systemData.output_SatIO_enabled=enable;
+  systemData.output_satio_all = enable;
+  systemData.output_satio_enabled=enable;
   systemData.output_gngga_enabled=enable;
   systemData.output_gnrmc_enabled=enable;
   systemData.output_gpatt_enabled=enable;
@@ -1196,8 +1196,8 @@ void CmdProcess(void) {
         }
 
         else if (argparser_has_flag(&parser, "sentence") == true) {
-          if (argparser_has_flag(&parser, "A") == true) {systemData.output_SatIO_all=enable; setAllSentenceOutput(enable);}
-          if (argparser_has_flag(&parser, "SatIO") == true) {systemData.output_SatIO_enabled=enable; printf("setting SatIO output enabled: %d\n", systemData.output_SatIO_enabled);}
+          if (argparser_has_flag(&parser, "A") == true) {systemData.output_satio_all=enable; setAllSentenceOutput(enable);}
+          if (argparser_has_flag(&parser, "satio") == true) {systemData.output_satio_enabled=enable; printf("setting satio output enabled: %d\n", systemData.output_satio_enabled);}
           if (argparser_has_flag(&parser, "gngga") == true) {systemData.output_gngga_enabled=enable; printf("setting gngga output enabled: %d\n", systemData.output_gngga_enabled);}
           if (argparser_has_flag(&parser, "gnrmc") == true) {systemData.output_gnrmc_enabled=enable; printf("setting gnrmc output enabled: %d\n", systemData.output_gnrmc_enabled);}
           if (argparser_has_flag(&parser, "gpatt") == true) {systemData.output_gpatt_enabled=enable; printf("setting gpatt output enabled: %d\n", systemData.output_gpatt_enabled);}
@@ -1394,7 +1394,7 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "reset-forced") == true) {insData.INS_FORCED_ON_FLAG=false;}
         }
         // SatIO
-        else if (strcmp(pos[0], "SatIO")==0) {
+        else if (strcmp(pos[0], "satio")==0) {
           // time
           if (argparser_has_flag(&parser, "utc-offset") == true) {setUTCSecondOffset(argparser_get_int64(&parser, "utc-offset", 0));}
           if (argparser_has_flag(&parser, "auto-datetime-on") == true) {datetimeSetDTAuto(true);}
@@ -1741,7 +1741,7 @@ void outputSerialGPS(void) {
 }
 
 void outputSerialSatIO(void) {
-  if (systemData.output_SatIO_enabled == true) {
+  if (systemData.output_satio_enabled == true) {
     char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
     memset(TXBUF_GPS, 0, sizeof(TXBUF_GPS));
