@@ -17,9 +17,9 @@
 // ------------------------------------------------------------
 #define GPIO_GPIOE_DEBUG_WARN
 // #define GPIO_GPIOE_DEBUG_QUERY
-#define GPIO_GPIOE_DEBUG_REQUEST_RECEIVE
+// #define GPIO_GPIOE_DEBUG_REQUEST_RECEIVE
 // #define GPIO_GPIOE_DEBUG_CASE
-#define GPIO_GPIOE_DEBUG_CASE_DETAIL
+// #define GPIO_GPIOE_DEBUG_CASE_DETAIL
 // #define GPIO_GPIOE_BENCH
 
 // ------------------------------------------------------------
@@ -31,8 +31,8 @@
 // ------------------------------------------------------------
 // SLAVE Build Option OPTIONS: READ/WRITE MODE
 // ------------------------------------------------------------
-// #define GPIOPE_READ_MODE
-#define GPIOPE_WRITE_MODE
+#define GPIOPE_READ_MODE
+// #define GPIOPE_WRITE_MODE
 
 // ------------------------------------------------------------
 // SLAVE Build Option: Select Slave Device
@@ -442,7 +442,7 @@ void GPIOPE_Output_Modulator();
  * @brief Can be used to return a valid GPIOPE for a given address handle.
  * Any GPIOPE built should, should also be valid and retrievable by it's coresponding address.
  * 
- * It is reccommended to call isGPIOPE to obtain a GPIOPE instance, rather than directly calling an
+ * It is reccommended to call isGPIOPE_OUTPUT to obtain a GPIOPE instance, rather than directly calling an
  * an instance that may or may not have been built. Then Check for nullptr before actually
  * using it.
  * 
@@ -450,7 +450,7 @@ void GPIOPE_Output_Modulator();
  * are built and do not need to address any number of them variably, then you could just call it
  * by its name, for example; GPIOPE_OUTPUT_##N.
  */
-GPIOPortExpander* isGPIOPE(uint8_t address);
+GPIOPortExpander* isGPIOPE_OUTPUT(uint8_t address);
 
 /**
  * @brief Setup all defined slave devices and confirm setups by querying the slave(s).
@@ -516,7 +516,7 @@ void GPIOPE_Set_Channel_Frequency(GPIOPortExpander &gpio_expander, uint8_t pin, 
 /**
  * @brief currently disabled during update.
  */
-bool GPIOPE_Read_Pin(GPIOPortExpander gpio_expander, uint8_t pin);
+bool GPIOPE_Read_Pin(GPIOPortExpander &gpio_expander, uint8_t pin);
 
 bool GPIOPE_Write_Portmap_Pin(GPIOPortExpander &gpio_expander, uint8_t index, int32_t value);
 
