@@ -60,7 +60,7 @@ from real (dynamic) sensor data and or can be individually specified by the user
 for various options and scenarios like running as a station, simulation, and or where dynamically updating
 the system values is not an option, like for example if there is no GPS. The system always uses system values,
 and the system values are set according to a values mode: GPS, Gyro, User. This means that calculations
-(like many calculations in the Universe task for example) that depend on certain values, can still function correctly, if the correct values are input manually and or automated input from another system.
+(like many calculations in the Universe task for example) that depend on certain values, can still function correctly, if the correct user values are set.
 
 **Why:** This means that many 'special functions' do not need to be created in order to calculate something, because the answer may already exist, via some combination of available logic in the Matrix.
 
