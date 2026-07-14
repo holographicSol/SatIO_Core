@@ -1538,6 +1538,7 @@ typedef enum {
     XYZ_MODE_Y,
     XYZ_MODE_Z,
     GPIOPE_PORTMAP_SLOT,
+    SWITCH_USER_OUTPUT_VALUE,
 } matrix_tag_t;
 
 /* Rule 7.4: a string literal's type is "array of const char", so the
@@ -1560,6 +1561,7 @@ static const char * getMatrixTag(int t) {
         case XYZ_MODE_Y:         return "XYZ_MODE_Y";
         case XYZ_MODE_Z:         return "XYZ_MODE_Z";
         case GPIOPE_PORTMAP_SLOT: return "GPIOPE_PORTMAP_SLOT";
+        case SWITCH_USER_OUTPUT_VALUE: return "SWITCH_USER_OUTPUT_VALUE";
         default:                 return "?";
     }
 }
@@ -1579,6 +1581,7 @@ bool saveMatrixFile() {
     const char *tag_func_op     = getMatrixTag(FUNCTION_OPERATOR);
     const char *tag_func_inv    = getMatrixTag(FUNCTION_INVERT);
     const char *tag_out_mode    = getMatrixTag(SWITCH_OUTPUT_MODE);
+    const char *tag_user_output_value = getMatrixTag(SWITCH_USER_OUTPUT_VALUE);
     const char *tag_flux        = getMatrixTag(SWITCH_FLUX);
     const char *tag_comp_assist = getMatrixTag(COMPUTER_ASSIST);
     const char *tag_map_slot    = getMatrixTag(MAP_SLOT);
@@ -1641,6 +1644,12 @@ bool saveMatrixFile() {
         printLine(f, lineBuf);
     }
     
+    // SWITCH_USER_OUTPUT_VALUE
+    for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {
+        snprintf(lineBuf, sizeof(lineBuf), "%s,%d,%ld", tag_user_output_value, i_switch, (long)matrixData.user_output_value[0][i_switch]);
+        printLine(f, lineBuf);
+    }
+
     // SWITCH_FLUX
     for (int i_switch=0; i_switch<MAX_MATRIX_SWITCHES; i_switch++) {
         snprintf(lineBuf, sizeof(lineBuf), "%s,%d,%ld", tag_flux, i_switch, (long)matrixData.flux_value[0][i_switch]);
@@ -1738,6 +1747,7 @@ bool loadMatrixFile() {
         else if (tag_index==FUNCTION_OPERATOR) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_int8(data_2.c_str())) {matrixData.matrix_switch_operator_index[0][atoi(data_0.c_str())][atoi(data_1.c_str())]=atoi(data_2.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==FUNCTION_INVERT) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str()) && str_is_int8(data_2.c_str())) {matrixData.matrix_switch_inverted_logic[0][atoi(data_0.c_str())][atoi(data_1.c_str())]=atoi(data_2.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==SWITCH_OUTPUT_MODE) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str())) {matrixData.output_mode[0][atoi(data_0.c_str())]=atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
+        else if (tag_index==SWITCH_USER_OUTPUT_VALUE) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {matrixData.user_output_value[0][atoi(data_0.c_str())]=strtol(data_1.c_str(), NULL, 10);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==SWITCH_FLUX) {if (str_is_int8(data_0.c_str()) && str_is_long(data_1.c_str())) {matrixData.flux_value[0][atoi(data_0.c_str())]=strtol(data_1.c_str(), NULL, 10);} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==COMPUTER_ASSIST) {if (str_is_int8(data_0.c_str()) && str_is_bool(data_1.c_str())) {matrixData.computer_assist[0][atoi(data_0.c_str())]=atoi(data_1.c_str());} matrixData.matrix_switch_write_required[0][atoi(data_0.c_str())]=true;}
         else if (tag_index==MAP_SLOT) {if (str_is_int8(data_0.c_str()) && str_is_int8(data_1.c_str())) {matrixData.index_mapped_value[0][atoi(data_0.c_str())]=atoi(data_1.c_str());}}

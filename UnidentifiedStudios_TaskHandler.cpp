@@ -1063,11 +1063,6 @@ static void taskSwitches(void *pvParameters) {
       #ifdef GPIOPE_USE_OUTPUT
       int32_t count_write = 0;
 
-      // test re-query (almost ready to utilize up to i2caddr max gpiope's if defined)
-      // GPIOPE_QueryDevice(GPIOPE_OUTPUT_9, I2C_ADDR_9);
-
-      // todo: write all defined gpiope's (replace address set with gpiope output device select)
-
       // Clamp to MAX_MATRIX_SWITCHES
       for (uint8_t Mi = 0; Mi < MAX_MATRIX_SWITCHES; Mi++) {
         if (matrixData.matrix_switch_write_required[0][Mi] == true) {
@@ -1083,7 +1078,7 @@ static void taskSwitches(void *pvParameters) {
 
           // printf("address=%d\n", address);
 
-          if (gpiope) {
+          if (gpiope != nullptr) {
 
             // use output value or override the value.
             int32_t value_to_send = matrixData.computer_assist[0][Mi]
@@ -1174,13 +1169,12 @@ static void taskInputPortController(void *pvParameters) {
       bool gpioe_chan_was_enabled[GPIOPE_MAX_SIZE] = {false};
 
       // Iterate through address range (unlike for output).
-      // Replace with more efficient implementation.
       for (int address = 0; address < 128; address++) {
 
         // Check if device defined
         GPIOPortExpander* gpiope = isGPIOPE_INPUT(address);
 
-        if (gpiope) {
+        if (gpiope != nullptr) {
           
           for (uint8_t i_chan = 0; i_chan < gpiope->max_pins; i_chan++) {
             if (gpiope->enabled[i_chan] == true) {
