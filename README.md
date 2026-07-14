@@ -549,7 +549,11 @@ starnav 6 45 8.9 -16 42 58.0
 
 ## Stat
 
-Stat can be useful for providing real time, real world data to other systems, devices, microcontrollers and LLM's. Stat is also setup for diagnositics.
+Stat can be useful for providing real time, real world data to other systems, devices, microcontrollers and LLM's.
+
+For integrity, Stat sentences are checksummed, so that weather using them over UART or over a radio, data integrity can be checked and verified.
+
+Stat is also setup for diagnositics.
 
 ```
 stat -e     Enable print.
