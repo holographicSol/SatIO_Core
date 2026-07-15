@@ -197,6 +197,7 @@ SiderealObjectSingle siderealObjectSingle = {
 };
 
 SiderealObjectSweep siderealObjectSweep = {
+    .objects_found = 0,
     .object_number = {},
     .object_table_i = {},
     .object_type = {},
@@ -883,6 +884,7 @@ static void decimalToSexagesimal(double decimal, int *whole, int *minutes, float
 // ----------------------------------------------------------------------------------------
 static void clearStarNavObjects(SiderealObjectSweep *data)
 {
+    data->objects_found = 0;
     for (int i = 0; i < MAX_STARNAV_OBJECTS; i++)
     {
         data->object_number[i] = -1;
@@ -912,6 +914,8 @@ void starNavSweep() {
     // Zero-initialized (not copied from siderealObjectSweep): every field is
     // overwritten by clearStarNavObjects() below, so there is nothing left
     // in the global worth seeding from.
+    // int64_t full_time_t0 = esp_timer_get_time();
+
     static SiderealObjectSweep sweep_data{};
     clearStarNavObjects(&sweep_data);
 
@@ -974,14 +978,17 @@ void starNavSweep() {
             {
                 continue;
             }
-
+            
             trackObject(&sweep_data, count, sweep_data.object_table_i[count], sweep_data.object_number[count]);
-
+            sweep_data.objects_found++;
             count++;
         }
     }
 
     siderealObjectSweep = sweep_data;
+
+    // int64_t full_time_t1 = esp_timer_get_time();
+    // printf("\n[starsweep] time=%lld  found=%d\n", full_time_t1-full_time_t0, sweep_data.objects_found);
 }
 
 // ----------------------------------------------------------------------------------------

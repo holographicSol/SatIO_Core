@@ -16934,44 +16934,44 @@ void display_home_screen()
 
     /* UNCOMMENT TO USE CELESTIAL SPHERE (IN EARLY DEVELOPMENT) */
 
-    // // Initialize celestial sphere on main screen
-    // celestial_sphere_begin(
-    //     home_screen,
-    //     550,                         // outline width (total available width)
-    //     550,                         // outline height (total available height)
-    //     550,                         // sphere width (span X of total available width)
-    //     550,                         // sphere height (span Y of total available height)
-    //     LV_ALIGN_CENTER,             // alignment
-    //     0,                           // pos x
-    //     0,                           // pos y
-    //     CELESTIAL_SPHERE_MODE_GYRO   // initial mode
-    // );
+    // Initialize celestial sphere on main screen
+    celestial_sphere_begin(
+        home_screen,
+        550,                         // outline width (total available width)
+        550,                         // outline height (total available height)
+        550,                         // sphere width (span X of total available width)
+        550,                         // sphere height (span Y of total available height)
+        LV_ALIGN_CENTER,             // alignment
+        0,                           // pos x
+        0,                           // pos y
+        CELESTIAL_SPHERE_MODE_GYRO   // initial mode
+    );
 
-    // // Fresh screen instance: celestial_sphere_begin() always starts hidden,
-    // // so make sure the toggle button's tracked state agrees with that.
-    // celestial_sphere_overlay_visible = false;
+    // Fresh screen instance: celestial_sphere_begin() always starts hidden,
+    // so make sure the toggle button's tracked state agrees with that.
+    celestial_sphere_overlay_visible = false;
 
-    // // -------------------------------- Celestial Sphere Toggle ----------------------------------- //
+    // -------------------------------- Celestial Sphere Toggle ----------------------------------- //
 
-    // // TODO: toggle celestial_sphere_begin/end on show/hide
-    // button_t celestial_sphere_toggle_btn = create_button(
-    //     home_screen,
-    //     140,                   // width px
-    //     40,                    // height px
-    //     LV_ALIGN_BOTTOM_MID,   // alignment
-    //     10,                    // pos x
-    //     -20,                   // pos y
-    //     "Sphere: OFF",
-    //     LV_TEXT_ALIGN_CENTER,
-    //     false,                 // show scrollbar
-    //     false,                 // enable scrolling
-    //     &font_cobalt_alien_17,
-    //     radius_rounded,
-    //     default_btn_bg,
-    //     default_btn_off_value_hue
-    // );
-    // lv_obj_add_event_cb(celestial_sphere_toggle_btn.button, celestial_sphere_toggle_btn_event_cb,
-    //                      LV_EVENT_CLICKED, celestial_sphere_toggle_btn.label);
+    // TODO: toggle celestial_sphere_begin/end on show/hide
+    button_t celestial_sphere_toggle_btn = create_button(
+        home_screen,
+        140,                   // width px
+        40,                    // height px
+        LV_ALIGN_BOTTOM_MID,   // alignment
+        10,                    // pos x
+        -20,                   // pos y
+        "Sphere: OFF",
+        LV_TEXT_ALIGN_CENTER,
+        false,                 // show scrollbar
+        false,                 // enable scrolling
+        &font_cobalt_alien_17,
+        radius_rounded,
+        default_btn_bg,
+        default_btn_off_value_hue
+    );
+    lv_obj_add_event_cb(celestial_sphere_toggle_btn.button, celestial_sphere_toggle_btn_event_cb,
+                         LV_EVENT_CLICKED, celestial_sphere_toggle_btn.label);
 }
 
 /** -------------------------------------------------------------------------------------

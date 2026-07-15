@@ -1532,6 +1532,19 @@ void CmdProcess(void) {
               #ifdef SatIO_USE_UNIVERSE
               if (argparser_has_flag(&parser, "universe"))
                 {setDelay(TaskUniverse, argparser_get_uint32(&parser, "universe", pwrConfigCurrent.TASK_MAX_FREQ_UNIVERSE), &pwrConfigCurrent.TASK_MAX_FREQ_UNIVERSE);}
+
+              if (argparser_has_flag(&parser, "track-planets")) {
+                uint32_t t = argparser_get_uint32(&parser, "track-planets", pwrConfigCurrent.TASK_MAX_FREQ_TRACKPLANETS);
+                pwrConfigCurrent.TASK_MAX_FREQ_TRACKPLANETS = t;
+              }
+              if (argparser_has_flag(&parser, "starnav")) {
+                uint32_t t = argparser_get_uint32(&parser, "starnav", pwrConfigCurrent.TASK_MAX_FREQ_STARNAV);
+                pwrConfigCurrent.TASK_MAX_FREQ_STARNAV = t;
+              }
+              if (argparser_has_flag(&parser, "meteors")) {
+                uint32_t t = argparser_get_uint32(&parser, "meteors", pwrConfigCurrent.TASK_MAX_FREQ_METEORS);
+                pwrConfigCurrent.TASK_MAX_FREQ_METEORS = t;
+              }
               #endif
 
               #ifdef SatIO_USE_GPS_0
@@ -3721,9 +3734,12 @@ void outputStat(void) {
             {"Mplex0",         systemData.counters_mplex0.task_ffreq_t,          systemData.counters_mplex0.task_freq_t},
             {"Mplex1",         systemData.counters_mplex1.task_ffreq_t,          systemData.counters_mplex1.task_freq_t},
             {"Universe",       systemData.counters_uni.task_ffreq_t,             systemData.counters_uni.task_freq_t},
-            {"GPIOPE In",      systemData.counters_gpiope_in.task_ffreq_t,         systemData.counters_gpiope_in.task_freq_t},
+            {"Planets",        systemData.counters_track_planets.task_ffreq_t,   systemData.counters_track_planets.task_freq_t},
+            {"StarNav",        systemData.counters_starnav.task_ffreq_t,         systemData.counters_starnav.task_freq_t},
+            {"Meteors",        systemData.counters_meteors.task_ffreq_t,         systemData.counters_meteors.task_freq_t},
+            {"GPIOPE In",      systemData.counters_gpiope_in.task_ffreq_t,       systemData.counters_gpiope_in.task_freq_t},
             {"Matrix",         systemData.counters_mtx.task_ffreq_t,             systemData.counters_mtx.task_freq_t},
-            {"GPIOPE Out",     systemData.counters_gpiope_out.task_ffreq_t,             systemData.counters_mtx.task_freq_t}, // PCO runs inside the Matrix task
+            {"GPIOPE Out",     systemData.counters_gpiope_out.task_ffreq_t,      systemData.counters_mtx.task_freq_t}, // PCO runs inside the Matrix task
             {"Display",        systemData.counters_dsp.task_ffreq_t,             systemData.counters_dsp.task_freq_t},
             {"SatIO Tx",       systemData.counters_SatIO_serial_tx.task_ffreq_t, systemData.counters_SatIO_serial_tx.task_freq_t},
         };

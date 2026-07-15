@@ -31,6 +31,10 @@ Distributed as-is; no warranty is given.
 // include this library's description file
 #include "SiderealObjects.h"
 
+#if !defined(__AVR_ATmega2560__)
+#include <algorithm>
+#endif
+
 // Need the following define for SAMD processors
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
   #define Serial SERIAL_PORT_USBVIRTUAL
@@ -521,26 +525,125 @@ boolean SiderealObjects::selectOtherObjectsTable(int n) {
 //   int index;
 //   uint16_t tempobjnum;
 //   alttablenum = 0;
+
+#if !defined(__AVR_ATmega2560__)
+// Raw RA/Dec are packed as big-endian uint16_t pairs at a per-table byte
+// offset (see the per-table calls in identifyObject() below for each
+// table's layout).
+static inline uint16_t readCatalogRawRA(const uint8_t *table, int byteIndex, int raOffset) {
+  return (static_cast<uint16_t>(table[byteIndex + raOffset]) << 8) | table[byteIndex + raOffset + 1];
+}
+static inline int16_t readCatalogRawDec(const uint8_t *table, int byteIndex, int decOffset) {
+  return static_cast<int16_t>((static_cast<uint16_t>(table[byteIndex + decOffset]) << 8) | table[byteIndex + decOffset + 1]);
+}
+
+// Nearest-neighbor search over one RA-sorted catalog. `order` holds each
+// record's byte offset into `table`, sorted ascending by raw RA. Moving
+// away from the RA insertion point only ever increases radiff^2, and
+// totaldiff = radiff^2 + decdiff^2 can never be smaller than radiff^2
+// alone, so once a direction's next candidate reaches/exceeds the running
+// best on radiff^2 alone, every remaining candidate that way is provably
+// worse and can be skipped. That makes this an exact stand-in for scanning
+// every entry (same minimum found), just far fewer comparisons -- the
+// original per-table brute-force loops averaged NSTARS+NGCNUM+ICNUM+
+// OTHERNUM (~14,400) comparisons per identifyObject() call; this is
+// O(log n) plus a small bounded window.
+static bool searchRASortedCatalog(
+    const uint16_t *order, int count,
+    const uint8_t *table, int raOffset, int decOffset,
+    uint16_t targetRA, int16_t targetDec,
+    uint64_t &bestDiff, uint16_t &bestByteIndex)
+{
+  int lo = 0;
+  int hi = count;
+  while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (readCatalogRawRA(table, order[mid], raOffset) < targetRA) { lo = mid + 1; } else { hi = mid; }
+  }
+
+  bool improved = false;
+  int left = lo - 1;
+  int right = lo;
+
+  while ((left >= 0) || (right < count)) {
+    if (left >= 0) {
+      int64_t radiff = static_cast<int64_t>(readCatalogRawRA(table, order[left], raOffset)) - static_cast<int64_t>(targetRA);
+      uint64_t radiffSq = static_cast<uint64_t>(radiff * radiff);
+      if (radiffSq >= bestDiff) {
+        left = -1; // everything further left is only farther away in RA -- retire this side for good
+      } else {
+        int64_t decdiff = static_cast<int64_t>(readCatalogRawDec(table, order[left], decOffset)) - static_cast<int64_t>(targetDec);
+        uint64_t total = radiffSq + static_cast<uint64_t>(decdiff * decdiff);
+        if (total < bestDiff) { bestDiff = total; bestByteIndex = order[left]; improved = true; }
+        left--;
+      }
+    }
+    if (right < count) {
+      int64_t radiff = static_cast<int64_t>(readCatalogRawRA(table, order[right], raOffset)) - static_cast<int64_t>(targetRA);
+      uint64_t radiffSq = static_cast<uint64_t>(radiff * radiff);
+      if (radiffSq >= bestDiff) {
+        right = count;
+      } else {
+        int64_t decdiff = static_cast<int64_t>(readCatalogRawDec(table, order[right], decOffset)) - static_cast<int64_t>(targetDec);
+        uint64_t total = radiffSq + static_cast<uint64_t>(decdiff * decdiff);
+        if (total < bestDiff) { bestDiff = total; bestByteIndex = order[right]; improved = true; }
+        right++;
+      }
+    }
+  }
+  return improved;
+}
+#endif // !__AVR_ATmega2560__
+
+void SiderealObjects::buildRAIndex(void) {
+#if !defined(__AVR_ATmega2560__)
+  for (int i = 0; i < NSTARS;   i++) { starRAOrder[i]  = static_cast<uint16_t>(i * 5); }
+  for (int i = 0; i < NGCNUM;   i++) { ngcRAOrder[i]   = static_cast<uint16_t>(i * 4); }
+  for (int i = 0; i < ICNUM;    i++) { icRAOrder[i]    = static_cast<uint16_t>(i * 4); }
+  for (int i = 0; i < OTHERNUM; i++) { otherRAOrder[i] = static_cast<uint16_t>(i * 6); }
+
+  std::sort(starRAOrder, starRAOrder + NSTARS, [](uint16_t a, uint16_t b) {
+    return readCatalogRawRA(SObjectsstars_bin, a, 0) < readCatalogRawRA(SObjectsstars_bin, b, 0);
+  });
+  std::sort(ngcRAOrder, ngcRAOrder + NGCNUM, [](uint16_t a, uint16_t b) {
+    return readCatalogRawRA(Cngc_bin, a, 0) < readCatalogRawRA(Cngc_bin, b, 0);
+  });
+  std::sort(icRAOrder, icRAOrder + ICNUM, [](uint16_t a, uint16_t b) {
+    return readCatalogRawRA(Ic_bin, a, 0) < readCatalogRawRA(Ic_bin, b, 0);
+  });
+  std::sort(otherRAOrder, otherRAOrder + OTHERNUM, [](uint16_t a, uint16_t b) {
+    return readCatalogRawRA(Other_bin, a, 2) < readCatalogRawRA(Other_bin, b, 2);
+  });
+#endif
+}
+
 boolean SiderealObjects::identifyObject(void) {
+  #if defined(__AVR_ATmega2560__)
   int64_t radiff = -1;
   int64_t decdiff = -1;
-  uint64_t totaldiff = UINT64_MAX;
   uint64_t comparediff;
+  #else
+  uint16_t bestByteIndex = 0;
+  #endif
+  uint64_t totaldiff = UINT64_MAX;
   uint16_t targetRA = RAdec * F2to16 / 24.; //convert to integers for faster compares
   int16_t targetDec = DeclinationDec * F2to15minus1 / 90.;
   int index;
   uint16_t tempobjnum;
   alttablenum = 0;
-  
+
+  #if !defined(__AVR_ATmega2560__)
+  if (!raIndexBuilt) {
+    buildRAIndex();
+    raIndexBuilt = true;
+  }
+  #endif
+
   // Check star table first
+  #if defined(__AVR_ATmega2560__)
   for (index = 0; index < NSTARS * 5; index += 5) {
-	#if defined(__AVR_ATmega2560__)
     rawRA = (pgm_read_byte_near(SObjectsstars_bin + index) << 8) | (pgm_read_byte_near(SObjectsstars_bin + index + 1));
     rawDec = (pgm_read_byte_near(SObjectsstars_bin + index + 2) << 8) | (pgm_read_byte_near(SObjectsstars_bin + index + 3));
-    #else
-    rawRA = (SObjectsstars_bin[index] << 8) | SObjectsstars_bin[index + 1];
-    rawDec = (SObjectsstars_bin[index + 2] << 8) | SObjectsstars_bin[index + 3];
-    #endif
 	radiff = rawRA - targetRA;
 	decdiff = rawDec - targetDec;
 	comparediff = (radiff * radiff) + (decdiff * decdiff);
@@ -551,15 +654,18 @@ boolean SiderealObjects::identifyObject(void) {
 	  totaldiff = comparediff;
     }
   }
+  #else
+  if (searchRASortedCatalog(starRAOrder, NSTARS, SObjectsstars_bin, 0, 2, targetRA, targetDec, totaldiff, bestByteIndex)) {
+    tablenum = 1;
+    objectnum = bestByteIndex / 5 + 1;
+  }
+  #endif
+
   // Check NGC table next
+  #if defined(__AVR_ATmega2560__)
   for (index = 0; index < NGCNUM * 4; index += 4) {
-    #if defined(__AVR_ATmega2560__)
     rawRA = (pgm_read_byte_near(Cngc_bin + index) << 8) | (pgm_read_byte_near(Cngc_bin + index + 1));
     rawDec = (pgm_read_byte_near(Cngc_bin + index + 2) << 8) | (pgm_read_byte_near(Cngc_bin + index + 3));
-    #else
-    rawRA = (Cngc_bin[index] << 8) | Cngc_bin[index + 1];
-    rawDec = (Cngc_bin[index + 2] << 8) | Cngc_bin[index + 3];
-    #endif
 	radiff = rawRA - targetRA;
 	decdiff = rawDec - targetDec;
 	comparediff = (radiff * radiff) + (decdiff * decdiff);
@@ -570,15 +676,18 @@ boolean SiderealObjects::identifyObject(void) {
 	  totaldiff = comparediff;
     }
   }
+  #else
+  if (searchRASortedCatalog(ngcRAOrder, NGCNUM, Cngc_bin, 0, 2, targetRA, targetDec, totaldiff, bestByteIndex)) {
+    tablenum = 2;
+    objectnum = bestByteIndex / 4 + 1;
+  }
+  #endif
+
   // Check IC table next
+  #if defined(__AVR_ATmega2560__)
   for (index = 0; index < ICNUM * 4; index += 4) {
-    #if defined(__AVR_ATmega2560__)
     rawRA = (pgm_read_byte_near(Ic_bin + index) << 8) | (pgm_read_byte_near(Ic_bin + index + 1));
     rawDec = (pgm_read_byte_near(Ic_bin + index + 2) << 8) | (pgm_read_byte_near(Ic_bin + index + 3));
-    #else
-    rawRA = (Ic_bin[index] << 8) | Ic_bin[index + 1];
-    rawDec = (Ic_bin[index + 2] << 8) | Ic_bin[index + 3];
-    #endif
 	radiff = rawRA - targetRA;
 	decdiff = rawDec - targetDec;
 	comparediff = (radiff * radiff) + (decdiff * decdiff);
@@ -589,29 +698,35 @@ boolean SiderealObjects::identifyObject(void) {
 	  totaldiff = comparediff;
     }
   }
+  #else
+  if (searchRASortedCatalog(icRAOrder, ICNUM, Ic_bin, 0, 2, targetRA, targetDec, totaldiff, bestByteIndex)) {
+    tablenum = 3;
+    objectnum = bestByteIndex / 4 + 1;
+  }
+  #endif
+
   // Check Other table next
+  #if defined(__AVR_ATmega2560__)
   for (index = 0; index < 567 * 6; index += 6) {
-    #if defined(__AVR_ATmega2560__)
     rawRA = (pgm_read_byte_near(Other_bin + index + 2) << 8) | (pgm_read_byte_near(Other_bin + index + 3));
     rawDec = (pgm_read_byte_near(Other_bin + index + 4) << 8) | (pgm_read_byte_near(Other_bin + index + 5));
-    #else
-    rawRA = (Other_bin[index + 2] << 8) | Other_bin[index + 3];
-    rawDec = (Other_bin[index + 4] << 8) | Other_bin[index + 5];
-    #endif
 	radiff = rawRA - targetRA;
 	decdiff = rawDec - targetDec;
 	comparediff = (radiff * radiff) + (decdiff * decdiff);
 	if (comparediff < totaldiff) {
       //better match
 	  tablenum = 7;
-	  #if defined(__AVR_ATmega2560__)
 	  objectnum = (pgm_read_byte_near(Other_bin + index) << 8) | (pgm_read_byte_near(Other_bin + index + 1));
-	  #else
-      objectnum = (Other_bin[index] << 8) | Other_bin[index + 1];
-      #endif
 	  totaldiff = comparediff;
     }
   }
+  #else
+  if (searchRASortedCatalog(otherRAOrder, OTHERNUM, Other_bin, 2, 4, targetRA, targetDec, totaldiff, bestByteIndex)) {
+    tablenum = 7;
+    objectnum = (static_cast<uint16_t>(Other_bin[bestByteIndex]) << 8) | Other_bin[bestByteIndex + 1];
+  }
+  #endif
+
   // See if it could be Messier, Caldwell, or Hershel object
   if (tablenum != 1) {
     // No further checks if the identified object was a star

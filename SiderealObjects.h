@@ -66,6 +66,7 @@ class SiderealObjects {
     const int NSTARS = 609; // Number of stars in table
     const int NGCNUM = 7840; // Number of NGC objects
     const int ICNUM = 5386; // Number of IC objects
+    const int OTHERNUM = 567; // Number of "other" objects in table
     SiderealObjectsData spData;
     boolean begin(void);
 	double decimalDegrees(int degrees, int minutes, float seconds);
@@ -132,7 +133,23 @@ class SiderealObjects {
 	double rad2deg(double n);
 
     int tablenum, alttablenum, objectnum, altobjnum;
-	
+
+    // identifyObject() nearest-match search: rather than scanning every
+    // catalog entry (NSTARS+NGCNUM+ICNUM+OTHERNUM ~= 14,400 entries) per
+    // call, each table's entries are indexed once by byte offset sorted
+    // ascending by raw RA, then searched via binary search + a bounded
+    // expansion (see identifyObject() in the .cpp for why that gives the
+    // exact same nearest match as the brute-force scan, just much faster).
+    // Fixed-size (not dynamically allocated): NSTARS/NGCNUM/ICNUM/OTHERNUM
+    // are compile-time constants, so there is no allocation-failure path
+    // to guard against.
+    bool raIndexBuilt = false;
+    uint16_t starRAOrder[609];
+    uint16_t ngcRAOrder[7840];
+    uint16_t icRAOrder[5386];
+    uint16_t otherRAOrder[567];
+    void buildRAIndex(void);
+
     union FourByte {
       unsigned long bit32;
       unsigned int bit16[2];

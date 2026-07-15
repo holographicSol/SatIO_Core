@@ -140,8 +140,11 @@ struct systemStruct {
   SystemConuters counters_gpiope_out;
   
   SystemConuters counters_uni;
-  SystemConuters counters_mtx;
   SystemConuters counters_track_planets;
+  SystemConuters counters_starnav;
+  SystemConuters counters_meteors;
+
+  SystemConuters counters_mtx;
   SystemConuters counters_dsp;
   SystemConuters counters_stg;
   SystemConuters counters_log;

@@ -364,6 +364,9 @@ static void intervalBreach1Second(void) {
 
   #ifdef SatIO_USE_UNIVERSE
   totalCounters(systemData.counters_uni);
+  totalCounters(systemData.counters_track_planets);
+  totalCounters(systemData.counters_starnav);
+  totalCounters(systemData.counters_meteors);
   #endif
 
   totalCounters(systemData.counters_track_planets);
@@ -430,6 +433,9 @@ static void intervalBreach1Second(void) {
 
   #ifdef SatIO_USE_UNIVERSE
   clearCounters(systemData.counters_uni);
+  clearCounters(systemData.counters_track_planets);
+  clearCounters(systemData.counters_starnav);
+  clearCounters(systemData.counters_meteors);
   #endif
 
   clearCounters(systemData.counters_track_planets);
@@ -1249,7 +1255,6 @@ static void taskUniverse(void *pvParameters) {
       // ------------------------------------------------
       // Set Sidereal Data for Planet/Object Tracking.
       // ------------------------------------------------
-      // TODO: throttle track plans seperately so that star nav can rip if required
       xSemaphoreTake(dataMutex, portMAX_DELAY);
       setSiderealData(
         SatIOData.system_degrees_latitude,
@@ -1273,9 +1278,22 @@ static void taskUniverse(void *pvParameters) {
       // ------------------------------------------------
       // Track Planets/Meteors
       // ------------------------------------------------
-      trackPlanets();
+      // Gated independently of the outer taskFrequencyUniverse() period so
+      // TASK_MAX_FREQ_UNIVERSE can be set fast (for StarNav below) without
+      // forcing this heavier planet/object sweep to run every pass.
+      static int64_t trackplanets_last_uS = 0;
+      if ((esp_timer_get_time() - trackplanets_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_TRACKPLANETS) {
+        trackPlanets();
+        trackplanets_last_uS = esp_timer_get_time();
+        stepFFCounter(systemData.counters_track_planets, 1);
+      }
       esp_task_wdt_reset();
-      setMeteorShowerWarning(SatIOData.localTime.month, SatIOData.localTime.mday);
+      static int64_t meteors_last_uS = 0;
+      if ((esp_timer_get_time() - meteors_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_METEORS) {
+        setMeteorShowerWarning(SatIOData.localTime.month, SatIOData.localTime.mday);
+        meteors_last_uS = esp_timer_get_time();
+        stepFFCounter(systemData.counters_meteors, 1);
+      }
       esp_task_wdt_reset();
       
       // ------------------------------------------------
@@ -1324,35 +1342,39 @@ static void taskUniverse(void *pvParameters) {
       // printf("---------------------------------------------\n");
 
       // -----------------------------------------------------------
-      // StarNav Gyroscopic Star Navigation (SINGLE CLOSEST OBJECT).
+      // StarNav Gyroscopic Star Navigation (SINGLE CLOSEST OBJECT +
+      // RANGE CLOSEST OBJECTS). Gated on its own frequency so it can be
+      // set faster than TASK_MAX_FREQ_TRACKPLANETS.
       // -----------------------------------------------------------
-      setStarNav(
-        siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
-        siderealPlanetData.gyro_0_sidereal_attitude.ra_m,
-        siderealPlanetData.gyro_0_sidereal_attitude.ra_s,
-        siderealPlanetData.gyro_0_sidereal_attitude.dec_d,
-        siderealPlanetData.gyro_0_sidereal_attitude.dec_m,
-        siderealPlanetData.gyro_0_sidereal_attitude.dec_s
-      );
-      esp_task_wdt_reset();
-      // printf("---------------------------------------------\n");
-      // printf("Table Index:   %d\n", siderealObjectSingle.object_table_i);
-      // printf("Table:         %s\n", siderealObjectSingle.object_table_name);
-      // printf("Number:        %d\n", siderealObjectSingle.object_number);
-      // printf("Name:          %s\n", siderealObjectSingle.object_name);
-      // printf("Type:          %s\n", siderealObjectSingle.object_type);
-      // printf("Constellation: %s\n", siderealObjectSingle.object_con);
-      // printf("Distance:      %f\n", siderealObjectSingle.object_dist);
-      // printf("Azimuth:       %f\n", siderealObjectSingle.object_az);
-      // printf("Altitude:      %f\n", siderealObjectSingle.object_alt);
-      // printf("Rise:          %f\n", siderealObjectSingle.object_r);
-      // printf("Set:           %f\n", siderealObjectSingle.object_s);
-      // printf("---------------------------------------------\n");
+      static int64_t starnav_last_uS = 0;
+      if ((esp_timer_get_time() - starnav_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV) {
+        // setStarNav(
+        //   siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
+        //   siderealPlanetData.gyro_0_sidereal_attitude.ra_m,
+        //   siderealPlanetData.gyro_0_sidereal_attitude.ra_s,
+        //   siderealPlanetData.gyro_0_sidereal_attitude.dec_d,
+        //   siderealPlanetData.gyro_0_sidereal_attitude.dec_m,
+        //   siderealPlanetData.gyro_0_sidereal_attitude.dec_s
+        // );
+        // esp_task_wdt_reset();
+        // printf("---------------------------------------------\n");
+        // printf("Table Index:   %d\n", siderealObjectSingle.object_table_i);
+        // printf("Table:         %s\n", siderealObjectSingle.object_table_name);
+        // printf("Number:        %d\n", siderealObjectSingle.object_number);
+        // printf("Name:          %s\n", siderealObjectSingle.object_name);
+        // printf("Type:          %s\n", siderealObjectSingle.object_type);
+        // printf("Constellation: %s\n", siderealObjectSingle.object_con);
+        // printf("Distance:      %f\n", siderealObjectSingle.object_dist);
+        // printf("Azimuth:       %f\n", siderealObjectSingle.object_az);
+        // printf("Altitude:      %f\n", siderealObjectSingle.object_alt);
+        // printf("Rise:          %f\n", siderealObjectSingle.object_r);
+        // printf("Set:           %f\n", siderealObjectSingle.object_s);
+        // printf("---------------------------------------------\n");
 
-      // -----------------------------------------------------------
-      // StarNav Gyroscopic Star Navigation (RANGE CLOSEST OBJECTS).
-      // -----------------------------------------------------------
-      starNavSweep();
+        starNavSweep();
+        starnav_last_uS = esp_timer_get_time();
+        stepFFCounter(systemData.counters_starnav, 1);
+      }
 
       // --------------------------------------------
       // Task frequency counter

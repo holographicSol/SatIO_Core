@@ -89,8 +89,11 @@ struct systemStruct systemData = {
   .counters_gpiope_out = {},
   
   .counters_uni = {},
-  .counters_mtx = {},
   .counters_track_planets = {},
+  .counters_starnav = {},
+  .counters_meteors = {},
+
+  .counters_mtx = {},
   .counters_dsp = {},
   .counters_stg = {},
   .counters_log = {},
