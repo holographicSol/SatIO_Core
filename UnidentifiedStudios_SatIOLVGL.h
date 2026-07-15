@@ -330,6 +330,10 @@ typedef struct {
 typedef struct {
     lv_obj_t * panel;
 
+    // Input/Output device set toggle
+    button_t btn_gpiope_mode_input;
+    button_t btn_gpiope_mode_output;
+
     // Device address select (0-127)
     lv_obj_t * label_address;
     lv_obj_t * dd_address;
@@ -894,6 +898,8 @@ void current_matrix_override_off_event_cb(lv_event_t * e);
 void dd_gpiope_screen_address_event_cb(lv_event_t * e);
 void dd_gpiope_port_i_event_cb(lv_event_t * e);
 void sw_gpiope_enabled_event_cb(lv_event_t * e);
+void btn_gpiope_mode_input_event_cb(lv_event_t * e);
+void btn_gpiope_mode_output_event_cb(lv_event_t * e);
 
 /** -------------------------------------------------------------------------------------
  * @brief Create System Tray.

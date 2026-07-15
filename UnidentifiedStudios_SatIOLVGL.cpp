@@ -149,8 +149,45 @@ lv_obj_t * matrix_overview_grid_1;
 matrix_function_container_t mfc;
 mapping_config_container_t mcc;
 gpiope_container_t gpc;
-uint8_t current_gpiope_address = 0; // device address (0-127) currently selected in the GPIOPE inspector panel
-int current_gpiope_port_i = 0;      // port index currently selected within that device
+uint8_t current_gpiope_address = 0;  // device address (0-127) currently selected in the GPIOPE inspector panel
+int current_gpiope_port_i = 0;       // port index currently selected within that device
+bool current_gpiope_output_mode = true; // true = browsing GPIOPE_OUTPUT_* devices, false = GPIOPE_INPUT_*
+
+/** -------------------------------------------------------------------------------------
+ * @brief Looks up the GPIOPE device currently selected in the inspector panel, honoring
+ *        current_gpiope_output_mode (INPUT vs OUTPUT device set).
+ */
+GPIOPortExpander* gpiope_selected_device(uint8_t address)
+{
+    return current_gpiope_output_mode ? isGPIOPE_OUTPUT(address) : isGPIOPE_INPUT(address);
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Rebuilds the GPIOPE inspector's port-index dropdown to match the currently
+ *        selected device's max_pins (or a single "0" placeholder if no device answers),
+ *        and resets current_gpiope_port_i to 0. Shared by address changes and
+ *        input/output mode changes, since both can swap in a different device.
+ */
+void gpiope_rebuild_port_i_dropdown()
+{
+    GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
+    int8_t max_pins = 1;
+    if (gpiope != nullptr) {
+        if (gpiope->max_pins > 0) {
+            max_pins = gpiope->max_pins;
+        }
+    }
+
+    lv_dropdown_clear_options(gpc.dd_port_i);
+    char dd_port_i_name[MAX_GLOBAL_ELEMENT_SIZE];
+    for (int i = 0; i < max_pins; i++) {
+        snprintf(dd_port_i_name, sizeof(dd_port_i_name), "%s", String(i).c_str());
+        lv_dropdown_add_option(gpc.dd_port_i, dd_port_i_name, LV_DROPDOWN_POS_LAST);
+    }
+    lv_dropdown_set_selected(gpc.dd_port_i, 0);
+    current_gpiope_port_i = 0;
+}
+
 button_t matrix_new;
 button_t matrix_save;
 button_t matrix_load;
@@ -693,7 +730,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_PWM_OFF:
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
-                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
+                GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
                 if (gpiope != nullptr) {
                     gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF] = val;
                     GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
@@ -705,7 +742,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_PWM_ON:
             if (strval_validate(ctx->strval_type, input)) {
                 uint32_t val = strtoul(input, NULL, 10);
-                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
+                GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
                 if (gpiope != nullptr) {
                     gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON] = val;
                     GPIOPE_Set_Portmap_Index_As_PWM(*gpiope, current_gpiope_port_i, gpiope->modulation_time[current_gpiope_port_i][0], gpiope->modulation_time[current_gpiope_port_i][1]);
@@ -717,7 +754,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_PORT_MAP:
             if (strval_validate(ctx->strval_type, input)) {
                 int8_t val = (int8_t)atoi(input);
-                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
+                GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
                 if (gpiope != nullptr) {
                     gpiope->port_map[current_gpiope_port_i] = val;
                     GPIOPE_Set_Portmap_Index_As_Pin(*gpiope, current_gpiope_port_i, val);
@@ -729,7 +766,7 @@ void keyboard_event_cb(lv_event_t * e)
         case KB_GPIOPE_CHAN_FREQ:
             if (strval_validate(ctx->strval_type, input)) {
                 uint64_t val = strtoull(input, NULL, 10);
-                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
+                GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
                 if (gpiope != nullptr) {
                     GPIOPE_Set_Channel_Frequency(*gpiope, current_gpiope_port_i, val);
                 }
@@ -1196,23 +1233,7 @@ void dd_gpiope_screen_address_event_cb(lv_event_t * e)
         lv_obj_t * dd = (lv_obj_t *)lv_event_get_target(e);
         uint32_t sel = lv_dropdown_get_selected(dd);
         current_gpiope_address = (uint8_t)sel;
-
-        GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
-        int8_t max_pins = 1;
-        if (gpiope != nullptr) {
-            if (gpiope->max_pins > 0) {
-                max_pins = gpiope->max_pins;
-            }
-        }
-
-        lv_dropdown_clear_options(gpc.dd_port_i);
-        char dd_port_i_name[MAX_GLOBAL_ELEMENT_SIZE];
-        for (int i = 0; i < max_pins; i++) {
-            snprintf(dd_port_i_name, sizeof(dd_port_i_name), "%s", String(i).c_str());
-            lv_dropdown_add_option(gpc.dd_port_i, dd_port_i_name, LV_DROPDOWN_POS_LAST);
-        }
-        lv_dropdown_set_selected(gpc.dd_port_i, 0);
-        current_gpiope_port_i = 0;
+        gpiope_rebuild_port_i_dropdown();
     }
 }
 
@@ -1241,7 +1262,7 @@ void sw_gpiope_enabled_event_cb(lv_event_t * e)
     lv_event_code_t code = lv_event_get_code(e);
     if(code == LV_EVENT_VALUE_CHANGED) {
         lv_obj_t * sw = (lv_obj_t *)lv_event_get_target(e);
-        GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
+        GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
         if (gpiope != nullptr) {
             bool checked = lv_obj_has_state(sw, LV_STATE_CHECKED);
             GPIOPE_Set_Channel_Enabled(*gpiope, current_gpiope_port_i, checked);
@@ -1250,8 +1271,38 @@ void sw_gpiope_enabled_event_cb(lv_event_t * e)
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief Event callback. Switches the GPIOPE inspector panel to browse GPIOPE_INPUT_*
+ * devices.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void btn_gpiope_mode_input_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_CLICKED) {
+        current_gpiope_output_mode = false;
+        gpiope_rebuild_port_i_dropdown();
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback. Switches the GPIOPE inspector panel to browse GPIOPE_OUTPUT_*
+ * devices.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void btn_gpiope_mode_output_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_CLICKED) {
+        current_gpiope_output_mode = true;
+        gpiope_rebuild_port_i_dropdown();
+    }
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Event callback.
- * 
+ *
  * @param e Pointer to the LVGL event structure.
  */
 void dd_matrix_file_slot_select_event_cb(lv_event_t * e)
@@ -15576,6 +15627,60 @@ gpiope_container_t create_gpiope_container(
     int32_t obj_w_1 = 0;
     int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
 
+    /* --- Input/Output Mode --------------------------------------------- */
+
+    lv_obj_t * row_gpiope_mode = create_row(
+        result.panel,
+        sub_row_width,
+        sub_row_height,
+        inner_pad_all,
+        sub_row_padding,
+        sub_column_padding,
+        false,
+        false
+    );
+
+    // Set row object widths (two equal-width buttons spanning the full row)
+    obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+    obj_w_1 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+
+    result.btn_gpiope_mode_input = create_button(
+        row_gpiope_mode,      // parent
+        obj_w_0,              // width px
+        obj_height,           // height px
+        LV_ALIGN_CENTER,      // alignment
+        0, 0,
+        "INPUT",              // label text
+        LV_TEXT_ALIGN_CENTER, // text align
+        false,                // show scrollbar
+        false,                // enable scrolling
+        &font_cobalt_alien_17,
+        radius_rounded,
+        default_btn_bg,
+        default_btn_off_value_hue
+    );
+    lv_obj_add_event_cb(result.btn_gpiope_mode_input.button, btn_gpiope_mode_input_event_cb, LV_EVENT_CLICKED, NULL);
+
+    result.btn_gpiope_mode_output = create_button(
+        row_gpiope_mode,      // parent
+        obj_w_1,              // width px
+        obj_height,           // height px
+        LV_ALIGN_CENTER,      // alignment
+        0, 0,
+        "OUTPUT",             // label text
+        LV_TEXT_ALIGN_CENTER, // text align
+        false,                // show scrollbar
+        false,                // enable scrolling
+        &font_cobalt_alien_17,
+        radius_rounded,
+        default_btn_bg,
+        default_btn_off_value_hue
+    );
+    lv_obj_add_event_cb(result.btn_gpiope_mode_output.button, btn_gpiope_mode_output_event_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_set_size(result.btn_gpiope_mode_input.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.btn_gpiope_mode_output.panel, obj_w_1, obj_height);
+
     /* --- Address ------------------------------------------------------- */
 
     lv_obj_t * row_address = create_row(
@@ -17971,10 +18076,32 @@ void update_display_lvgl()
                 lv_obj_set_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN, true);
                 lv_obj_set_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN, false);
 
+                // Input/Output mode buttons
+                if (current_gpiope_output_mode) {
+                    // Input lowlight
+                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_input.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_input.panel, default_btn_off_bg, LV_PART_MAIN);
+                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_input.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    // Output emphasis
+                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_output.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_output.panel, default_btn_on_bg, LV_PART_MAIN);
+                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_output.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                }
+                else {
+                    // Output lowlight
+                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_output.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_output.panel, default_btn_off_bg, LV_PART_MAIN);
+                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_output.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    // Input emphasis
+                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_input.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_input.panel, default_btn_on_bg, LV_PART_MAIN);
+                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_input.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                }
+
                 // Device Address
                 dd_select(gpc.dd_address, current_gpiope_address);
 
-                GPIOPortExpander* gpiope = isGPIOPE_OUTPUT(current_gpiope_address);
+                GPIOPortExpander* gpiope = gpiope_selected_device(current_gpiope_address);
                 if (gpiope != nullptr) {
 
                     // Static device info
