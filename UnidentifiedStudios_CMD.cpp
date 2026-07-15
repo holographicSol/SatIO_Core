@@ -1236,15 +1236,16 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "xmap") == true) {systemData.output_config_mapping_enabled=enable; printf("setting config_mapping output enabled: %d\n", systemData.output_config_mapping_enabled);}
         }
 
-        /*
-          StarNav via CLI
-          Temporarily disabled for user so that system has exclusive r/w access for associated values
-          that StarNav already uses.
-          Possible update: create seperate functions & values for identification and tracking of objects
-          so that this command line feature can be safely re-enabled.
-        */
-        else if (strcmp(pos[0], "starnav")==0) {star_nav();}
       }
+      /*
+        StarNav via CLI
+        Temporarily disabled for user so that system has exclusive r/w access for associated values
+        that StarNav already uses.
+        Possible update: create seperate functions & values for identification and tracking of objects
+        so that this command line feature can be safely re-enabled.
+      */
+      else if (strcmp(pos[0], "starnav")==0) {star_nav();}
+
       else {
         /* not "help"/"h"/"stat": fall through to the systemData.serial_command dispatch below */
       }

@@ -144,8 +144,8 @@ matrix --pwm1 n             Set switch -s uS time on period  (0uS = remain off a
 matrix --flux n             Set switch -s output fluctuation threshold.
 matrix --oride n            Override switch -s output values.
 matrix --uvalue n           Set switch -s user output value.
-matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
 matrix --map-slot n         Set switch -s output as map slot n value.
+matrix --omode n            Set switch -s output mode: (0 : matrix logic) (1 : mapped value analog/digital).
 matrix -p n                 Set GPIOPE port slot for switch -s.
 matrix --gpiope n           Set GPIOPE I2C address for switch -s.
 matrix --computer-assist n  Enable/disable computer assist for switch -s.
@@ -339,8 +339,6 @@ powercfg --setdelay --admplex0 1000 --gyro0 200 --gps 10
 ---
 
 ## StarNav
-
-*(currently disabled via CLI while being used internally with a gyro)*
 
 ```
 starnav RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
