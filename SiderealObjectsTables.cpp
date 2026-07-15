@@ -14,6 +14,16 @@
 
 #include "SiderealObjectsTables.h"
 
+const SiderealObjectTableName objectTableName[] = {
+  {0, "Star Table"},
+  {1, "NGC Table"},
+  {2, "IC Table"},
+  {3, "Messier Table"},
+  {4, "Caldwell Table"},
+  {5, "Herschel 400 Table"},
+  {6, "Other Objects Table"}
+};
+
 const SiderealLegacyObjectTypeEntry legacyOjectType[] = {
     { 0, "Asterism" },
     { 1, "Double Star" },

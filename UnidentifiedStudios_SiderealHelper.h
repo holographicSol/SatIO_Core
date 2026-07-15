@@ -161,8 +161,6 @@ extern struct SiderealPlantetsStruct siderealPlanetData;
 // Object Data Structure.
 // ----------------------------------------------------------------------------------------
 typedef struct SiderealObjectSingle {
-    char object_name[MAX_GLOBAL_ELEMENT_SIZE];
-    char object_table_name[MAX_GLOBAL_ELEMENT_SIZE];
     signed int object_number;
     signed int object_table_i;
     double object_ra;
@@ -172,11 +170,7 @@ typedef struct SiderealObjectSingle {
     double object_mag;
     double object_r;
     double object_s;
-    char object_table[7][MAX_GLOBAL_ELEMENT_SIZE];
     int object_s_value;
-    char object_type[MAX_GLOBAL_ELEMENT_SIZE];
-    char object_con[MAX_GLOBAL_ELEMENT_SIZE];
-    char object_desc[MAX_GLOBAL_ELEMENT_SIZE];
     double object_dist;
 } SiderealObjectSingle;
 extern SiderealObjectSingle siderealObjectSingle;
@@ -184,15 +178,13 @@ extern SiderealObjectSingle siderealObjectSingle;
 // ----------------------------------------------------------------------------------------
 // StarNav Sweep Object Data Structure.
 // ----------------------------------------------------------------------------------------
-#define MAX_STARNAV_OBJECTS 50
+#define MAX_STARNAV_OBJECTS 100
 // starNavSweep() scans a square grid of Alt/Az points within
 // +/- STARNAV_SWEEP_RANGE_DEG (degrees, both axes) of the current
 // gyroscopic attitude's Alt/Az, stepping by STARNAV_SWEEP_STEP_DEG.
-#define STARNAV_SWEEP_RANGE_DEG 15.0 // appature
+#define STARNAV_SWEEP_RANGE_DEG 45.0 // appature
 #define STARNAV_SWEEP_STEP_DEG  5.0  // resolution degrees (lower = higher resolution, higher performance impact!)
 typedef struct SiderealObjectSweep {
-    char object_name[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
-    char object_table_name[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
     signed int object_number[MAX_STARNAV_OBJECTS];
     signed int object_table_i[MAX_STARNAV_OBJECTS];
     double object_ra[MAX_STARNAV_OBJECTS];
@@ -202,11 +194,7 @@ typedef struct SiderealObjectSweep {
     double object_mag[MAX_STARNAV_OBJECTS];
     double object_r[MAX_STARNAV_OBJECTS];
     double object_s[MAX_STARNAV_OBJECTS];
-    char object_table[7][MAX_GLOBAL_ELEMENT_SIZE];
     int object_s_value[MAX_STARNAV_OBJECTS];
-    char object_type[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
-    char object_con[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
-    char object_desc[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
     double object_dist[MAX_STARNAV_OBJECTS];
 } SiderealObjectSweep;
 extern SiderealObjectSweep siderealObjectSweep;
@@ -241,11 +229,29 @@ void trackObject(SiderealObjectSweep *obj, int index, int object_table_i, int ob
  * object table, and populates *obj (or slot `index` of *obj, for the
  * SiderealObjectSweep overload) with its identity (but not yet its Alt/Az
  * or rise/set times — see trackObject()).
- * @note obj->object_table must already hold the 7 table-name strings (as
- * siderealObjectSingle and siderealObjectSweep's static initializers do).
  */
 void IdentifyObject(SiderealObjectSingle *obj, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
 void IdentifyObject(SiderealObjectSweep *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
+
+/**
+ * Resolves *obj's (or, for the SiderealObjectSweep overload, slot `index`
+ * of *obj's) name/table name/type/constellation/description on demand from
+ * its stored object_table_i and object_number indices, or "Unidentified" if
+ * that property doesn't apply to the object's table (e.g. stars have no
+ * constellation, "Other" objects have no name/type/constellation, only
+ * stars have a description).
+ * @note IdentifyObject() must be called first.
+ */
+const char* getObjectName(SiderealObjectSingle *obj);
+const char* getObjectName(SiderealObjectSweep *obj, int index);
+const char* getObjectTableName(SiderealObjectSingle *obj);
+const char* getObjectTableName(SiderealObjectSweep *obj, int index);
+const char* getObjectType(SiderealObjectSingle *obj);
+const char* getObjectType(SiderealObjectSweep *obj, int index);
+const char* getObjectConstellation(SiderealObjectSingle *obj);
+const char* getObjectConstellation(SiderealObjectSweep *obj, int index);
+const char* getObjectDescription(SiderealObjectSingle *obj);
+const char* getObjectDescription(SiderealObjectSweep *obj, int index);
 
 /**
  * Identifies the object nearest the given RA/Dec coordinates, then tracks

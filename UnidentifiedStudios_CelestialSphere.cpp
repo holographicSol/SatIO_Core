@@ -263,10 +263,10 @@ static void update_target_data_content(const int32_t object_index) {
             "Set              %.2f\n"
             "Azimuth          %.2f\n"
             "Altitude         %.2f",
-            siderealObjectSweep.object_name[object_index],
-            siderealObjectSweep.object_table_name[object_index],
-            siderealObjectSweep.object_type[object_index],
-            siderealObjectSweep.object_con[object_index],
+            getObjectName(&siderealObjectSweep, object_index),
+            getObjectTableName(&siderealObjectSweep, object_index),
+            getObjectType(&siderealObjectSweep, object_index),
+            getObjectConstellation(&siderealObjectSweep, object_index),
             siderealObjectSweep.object_dist[object_index],
             siderealObjectSweep.object_mag[object_index],
             siderealObjectSweep.object_r[object_index],

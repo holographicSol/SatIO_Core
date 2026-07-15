@@ -5553,6 +5553,17 @@ const uint8_t SObjectsstars_bin[] = {
 #endif
 
 // Common Legacy Object Types Header
+#ifndef SiderealObjectTableName_H
+#define SiderealObjectTableName_H
+struct SiderealObjectTableName {
+  int num;
+  char name[40];
+};
+extern const SiderealObjectTableName objectTableName[];
+const unsigned int SiderealObjectTableName_num = 7;
+#endif
+
+// Common Legacy Object Types Header
 #ifndef SiderealLegacyObjectName_H
 #define SiderealLegacyObjectName_H
 struct SiderealLegacyObjectTypeEntry {

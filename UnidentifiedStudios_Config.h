@@ -172,7 +172,7 @@ typedef struct PwrConfig {
 
 #define TASK_MAX_FREQ_LOW_SWITCHES                    100000  // (10 Hz)
 
-#define TASK_MAX_FREQ_LOW_GPIOE_INPUT        1000000   // (1 Hz)
+#define TASK_MAX_FREQ_LOW_GPIOE_INPUT                1000000   // (1 Hz)
 
 #define TASK_MAX_FREQ_LOW_STORAGE                     1000000 // (1 Hz)
 
@@ -201,7 +201,7 @@ typedef struct PwrConfig {
 
 #define TASK_MAX_FREQ_BALANCED_SWITCHES               5000    // (200 Hz)
 
-#define TASK_MAX_FREQ_BALANCED_GPIOE_INPUT   1000000   // (1 Hz)
+#define TASK_MAX_FREQ_BALANCED_GPIOE_INPUT            1000000   // (1 Hz)
 
 #define TASK_MAX_FREQ_BALANCED_STORAGE                1000000 // (1 Hz)
 
@@ -230,7 +230,7 @@ typedef struct PwrConfig {
 
 #define TASK_MAX_FREQ_HIGH_SWITCHES                   2000    // (500 Hz)
 
-#define TASK_MAX_FREQ_HIGH_GPIOE_INPUT       1000000   // (1 Hz)
+#define TASK_MAX_FREQ_HIGH_GPIOE_INPUT                1000000   // (1 Hz)
 
 #define TASK_MAX_FREQ_HIGH_STORAGE                    1000000 // (1 Hz)
 

@@ -180,10 +180,9 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     }
 };
 SiderealObjectSingle siderealObjectSingle = {
-    .object_name = {0},
-    .object_table_name = {0},
     .object_number = 0,
     .object_table_i = 0,
+    .object_s_value = -1,
     .object_ra = NAN,
     .object_dec = NAN,
     .object_az = NAN,
@@ -191,27 +190,13 @@ SiderealObjectSingle siderealObjectSingle = {
     .object_mag = NAN,
     .object_r = NAN,
     .object_s = NAN,
-    .object_table = {
-        "Star Table",
-        "NGC Table",
-        "IC Table",
-        "Messier Table",
-        "Caldwell Table",
-        "Herschel 400 Table",
-        "Other Objects Table",
-    },
-    .object_s_value = -1,
-    .object_type = {0},
-    .object_con = {0},
-    .object_desc = {0},
     .object_dist = NAN,
 };
 
 SiderealObjectSweep siderealObjectSweep = {
-    .object_name = {{0}},
-    .object_table_name = {{0}},
     .object_number = {},
     .object_table_i = {},
+    .object_s_value = {},
     .object_ra = {},
     .object_dec = {},
     .object_az = {},
@@ -219,48 +204,8 @@ SiderealObjectSweep siderealObjectSweep = {
     .object_mag = {},
     .object_r = {},
     .object_s = {},
-    .object_table = {
-        "Star Table",
-        "NGC Table",
-        "IC Table",
-        "Messier Table",
-        "Caldwell Table",
-        "Herschel 400 Table",
-        "Other Objects Table",
-    },
-    .object_s_value = {},
-    .object_type = {{0}},
-    .object_con = {{0}},
-    .object_desc = {{0}},
     .object_dist = {},
 };
-
-/*
- * Object identity fields (name/type/constellation) share one shape: look
- * up a number (already range-checked by the caller's getXIdentifiedObjectNumber()),
- * and either copy the matching vendor-table string into dest, or "Unidentified"
- * if the number is out of range. Rule 16.x: this helper plus a pointer to
- * the matching SiderealObjects::print*() method replaces ~14 duplicated
- * functions with one implementation per call site.
- */
-typedef const char *(SiderealObjects::*ObjectPrintFn)(int n);
-
-static void setObjectStringField(char *dest, size_t dest_size, int num, int max_num, ObjectPrintFn print_fn)
-{
-    const char *value;
-
-    if ((num >= 0) && (num <= max_num))
-    {
-        value = (myAstroObj.*print_fn)(num);
-    }
-    else
-    {
-        value = "Unidentified";
-    }
-
-    (void)strncpy(dest, value, dest_size - 1U);
-    dest[dest_size - 1U] = '\0';
-}
 
 /*
  * Object distance fields have no "Unidentified" fallback: if num is out of
@@ -303,127 +248,94 @@ static inline double& sRef(SiderealObjectSweep *obj, int index)         { return
 static inline double& distRef(SiderealObjectSingle *obj, int)           { return obj->object_dist; }
 static inline double& distRef(SiderealObjectSweep *obj, int index)      { return obj->object_dist[index]; }
 
-static inline char* nameField(SiderealObjectSingle *obj, int)           { return obj->object_name; }
-static inline char* nameField(SiderealObjectSweep *obj, int index)      { return obj->object_name[index]; }
-static inline char* tableNameField(SiderealObjectSingle *obj, int)      { return obj->object_table_name; }
-static inline char* tableNameField(SiderealObjectSweep *obj, int index) { return obj->object_table_name[index]; }
-static inline char* typeField(SiderealObjectSingle *obj, int)           { return obj->object_type; }
-static inline char* typeField(SiderealObjectSweep *obj, int index)      { return obj->object_type[index]; }
-static inline char* conField(SiderealObjectSingle *obj, int)            { return obj->object_con; }
-static inline char* conField(SiderealObjectSweep *obj, int index)       { return obj->object_con[index]; }
-static inline char* descField(SiderealObjectSingle *obj, int)           { return obj->object_desc; }
-static inline char* descField(SiderealObjectSweep *obj, int index)      { return obj->object_desc[index]; }
+// ----------------------------------------------------------------------------------------
+// Get Object Name / Table Name / Type / Constellation / Description.
+// ----------------------------------------------------------------------------------------
+// object_table_i + object_number already say exactly which vendor-table
+// row this object is, so name/type/constellation/description need no
+// storage of their own: each getter below just resolves those two indices
+// through the matching SiderealObjects::print*() call (bounds-checked
+// against the vendor table's own *_names_num count), falling back to
+// "Unidentified" for any table where the property doesn't apply (e.g.
+// stars have no constellation, "Other" objects have no name/type/
+// constellation, only stars have a description).
+// ----------------------------------------------------------------------------------------
+static inline bool numValid(int num, unsigned int max_num) { return (num >= 0) && (num <= (int)max_num); }
 
-// ----------------------------------------------------------------------------------------
-// Set Object Name.
-// ----------------------------------------------------------------------------------------
 template <typename T>
-static void setObjectStarName(T *obj, int index)
+static const char* objectNameImpl(T *obj, int index)
 {
-    setObjectStringField(nameField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getIdentifiedObjectNumber(), SObjectsstars_names_num,
-                          &SiderealObjects::printStarName);
-}
-template <typename T>
-static void setObjectMessierName(T *obj, int index)
-{
-    setObjectStringField(nameField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectsmessier_names_num,
-                          &SiderealObjects::printMessierName);
-}
-template <typename T>
-static void setObjectCaldwellName(T *obj, int index)
-{
-    setObjectStringField(nameField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectcaldwell_names_num,
-                          &SiderealObjects::printCaldwellName);
+    const int num = numberRef(obj, index);
+    switch (tableIRef(obj, index))
+    {
+        case INDEX_SIDEREAL_STAR_TABLE:     return numValid(num, SObjectsstars_names_num)   ? myAstroObj.printStarName(num)     : "Unidentified";
+        case INDEX_SIDEREAL_MESSIER_TABLE:  return numValid(num, SObjectsmessier_names_num) ? myAstroObj.printMessierName(num)  : "Unidentified";
+        case INDEX_SIDEREAL_CALDWELL_TABLE: return numValid(num, SObjectcaldwell_names_num) ? myAstroObj.printCaldwellName(num) : "Unidentified";
+        default:                            return "Unidentified";
+    }
 }
 
-// ----------------------------------------------------------------------------------------
-// Set Object Type.
-// ----------------------------------------------------------------------------------------
 template <typename T>
-static void setObjectStarType(T *obj, int index)
+static const char* objectTableNameImpl(T *obj, int index)
 {
-    setObjectStringField(typeField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getIdentifiedObjectNumber(), SObjectsstars_names_num,
-                          &SiderealObjects::printStarType);
-}
-template <typename T>
-static void setObjectNGCType(T *obj, int index)
-{
-    setObjectStringField(typeField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getIdentifiedObjectNumber(), SObjectsNGC_names_num,
-                          &SiderealObjects::printNGCType);
-}
-template <typename T>
-static void setObjectICType(T *obj, int index)
-{
-    setObjectStringField(typeField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getIdentifiedObjectNumber(), SObjectsIC_names_num,
-                          &SiderealObjects::printICType);
-}
-template <typename T>
-static void setObjectMessierType(T *obj, int index)
-{
-    setObjectStringField(typeField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectsmessier_names_num,
-                          &SiderealObjects::printMessierType);
-}
-template <typename T>
-static void setObjectCaldwelllType(T *obj, int index)
-{
-    setObjectStringField(typeField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectcaldwell_names_num,
-                          &SiderealObjects::printCaldwellType);
-}
-template <typename T>
-static void setObjectHerschelType(T *obj, int index)
-{
-    setObjectStringField(typeField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectHerschel400_names_num,
-                          &SiderealObjects::printHerschel400Type);
+    const int table_i = tableIRef(obj, index);
+    return ((table_i >= 0) && (table_i < (int)SiderealObjectTableName_num)) ? objectTableName[table_i].name : "Unidentified";
 }
 
-// ----------------------------------------------------------------------------------------
-// Set Object Constellation.
-// ----------------------------------------------------------------------------------------
+template <typename T>
+static const char* objectTypeImpl(T *obj, int index)
+{
+    const int num = numberRef(obj, index);
+    switch (tableIRef(obj, index))
+    {
+        case INDEX_SIDEREAL_STAR_TABLE:       return numValid(num, SObjectsstars_names_num)     ? myAstroObj.printStarType(num)        : "Unidentified";
+        case INDEX_SIDEREAL_NGC_TABLE:        return numValid(num, SObjectsNGC_names_num)       ? myAstroObj.printNGCType(num)         : "Unidentified";
+        case INDEX_SIDEREAL_IC_TABLE:         return numValid(num, SObjectsIC_names_num)        ? myAstroObj.printICType(num)          : "Unidentified";
+        case INDEX_SIDEREAL_MESSIER_TABLE:    return numValid(num, SObjectsmessier_names_num)   ? myAstroObj.printMessierType(num)     : "Unidentified";
+        case INDEX_SIDEREAL_CALDWELL_TABLE:   return numValid(num, SObjectcaldwell_names_num)   ? myAstroObj.printCaldwellType(num)    : "Unidentified";
+        case INDEX_SIDEREAL_HERSHEL400_TABLE: return numValid(num, SObjectHerschel400_names_num)? myAstroObj.printHerschel400Type(num) : "Unidentified";
+        default:                              return "Unidentified";
+    }
+}
+
 // Stars have no constellation lookup in the vendor table (no printStarCon()).
 template <typename T>
-static void setObjectNGCConstellation(T *obj, int index)
+static const char* objectConstellationImpl(T *obj, int index)
 {
-    setObjectStringField(conField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getIdentifiedObjectNumber(), SObjectsNGC_names_num,
-                          &SiderealObjects::printNGCCon);
+    const int num = numberRef(obj, index);
+    switch (tableIRef(obj, index))
+    {
+        case INDEX_SIDEREAL_NGC_TABLE:        return numValid(num, SObjectsNGC_names_num)       ? myAstroObj.printNGCCon(num)         : "Unidentified";
+        case INDEX_SIDEREAL_IC_TABLE:         return numValid(num, SObjectsIC_names_num)        ? myAstroObj.printICCon(num)          : "Unidentified";
+        case INDEX_SIDEREAL_MESSIER_TABLE:    return numValid(num, SObjectsmessier_names_num)   ? myAstroObj.printMessierCon(num)     : "Unidentified";
+        case INDEX_SIDEREAL_CALDWELL_TABLE:   return numValid(num, SObjectcaldwell_names_num)   ? myAstroObj.printCaldwellCon(num)    : "Unidentified";
+        case INDEX_SIDEREAL_HERSHEL400_TABLE: return numValid(num, SObjectHerschel400_names_num)? myAstroObj.printHerschel400Con(num) : "Unidentified";
+        default:                              return "Unidentified";
+    }
 }
+
+// Only stars carry a description in the vendor table (printStarDesc()).
 template <typename T>
-static void setObjectICConstellation(T *obj, int index)
+static const char* objectDescriptionImpl(T *obj, int index)
 {
-    setObjectStringField(conField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getIdentifiedObjectNumber(), SObjectsIC_names_num,
-                          &SiderealObjects::printICCon);
+    const int num = numberRef(obj, index);
+    if ((tableIRef(obj, index) == INDEX_SIDEREAL_STAR_TABLE) && numValid(num, SObjectsstars_names_num))
+    {
+        return myAstroObj.printStarDesc(num);
+    }
+    return "Unidentified";
 }
-template <typename T>
-static void setObjectMessierConstellation(T *obj, int index)
-{
-    setObjectStringField(conField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectsmessier_names_num,
-                          &SiderealObjects::printMessierCon);
-}
-template <typename T>
-static void setObjectCaldwellConstellation(T *obj, int index)
-{
-    setObjectStringField(conField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectcaldwell_names_num,
-                          &SiderealObjects::printCaldwellCon);
-}
-template <typename T>
-static void setObjectHerschelConstellation(T *obj, int index)
-{
-    setObjectStringField(conField(obj, index), MAX_GLOBAL_ELEMENT_SIZE,
-                          myAstroObj.getAltIdentifiedObjectNumber(), SObjectHerschel400_names_num,
-                          &SiderealObjects::printHerschel400Con);
-}
+
+const char* getObjectName(SiderealObjectSingle *obj)            { return objectNameImpl(obj, 0); }
+const char* getObjectName(SiderealObjectSweep *obj, int index)  { return objectNameImpl(obj, index); }
+const char* getObjectTableName(SiderealObjectSingle *obj)           { return objectTableNameImpl(obj, 0); }
+const char* getObjectTableName(SiderealObjectSweep *obj, int index) { return objectTableNameImpl(obj, index); }
+const char* getObjectType(SiderealObjectSingle *obj)            { return objectTypeImpl(obj, 0); }
+const char* getObjectType(SiderealObjectSweep *obj, int index)  { return objectTypeImpl(obj, index); }
+const char* getObjectConstellation(SiderealObjectSingle *obj)           { return objectConstellationImpl(obj, 0); }
+const char* getObjectConstellation(SiderealObjectSweep *obj, int index) { return objectConstellationImpl(obj, index); }
+const char* getObjectDescription(SiderealObjectSingle *obj)           { return objectDescriptionImpl(obj, 0); }
+const char* getObjectDescription(SiderealObjectSweep *obj, int index) { return objectDescriptionImpl(obj, index); }
 
 // ----------------------------------------------------------------------------------------
 // Set Object Distance.
@@ -445,19 +357,6 @@ static void setObjectCaldwellDist(T *obj, int index)
 {
     setObjectDistField(&distRef(obj, index), myAstroObj.getAltIdentifiedObjectNumber(),
                         SObjectcaldwell_names_num, &SiderealObjects::printCaldwellDist);
-}
-
-// ----------------------------------------------------------------------------------------
-// Set Object Table Name.
-// ----------------------------------------------------------------------------------------
-template <typename T>
-static void setObjectTableName(T *obj, int index)
-{
-    const char *name = obj->object_table[tableIRef(obj, index)];
-    char *dest = tableNameField(obj, index);
-
-    (void)strncpy(dest, name, MAX_GLOBAL_ELEMENT_SIZE - 1U);
-    dest[MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
 }
 
 // ----------------------------------------------------------------------------------------
@@ -484,21 +383,13 @@ static void clearAllObjects(T *obj, int index)
     rRef(obj, index) = NAN;
     sRef(obj, index) = NAN;
     distRef(obj, index) = NAN;
-    memset(tableNameField(obj, index), 0, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(nameField(obj, index), 0, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(typeField(obj, index), 0, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(conField(obj, index), 0, MAX_GLOBAL_ELEMENT_SIZE);
-    memset(descField(obj, index), 0, MAX_GLOBAL_ELEMENT_SIZE);
 }
 
 template <typename T>
 static void setStars(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setID(obj, index);
-    setObjectStarName(obj, index);
-    setObjectStarType(obj, index);
     setObjectStarDist(obj, index);
     // distance from earth
     // distance from system
@@ -510,10 +401,7 @@ template <typename T>
 static void setNGC(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setID(obj, index);
-    setObjectNGCType(obj, index);
-    setObjectNGCConstellation(obj, index);
     // distance
     // distance from system
     // magnitude from earth
@@ -524,10 +412,7 @@ template <typename T>
 static void setIC(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setID(obj, index);
-    setObjectICType(obj, index);
-    setObjectICConstellation(obj, index);
     // distance from earth
     // distance from system
     // magnitude from earth
@@ -538,7 +423,6 @@ template <typename T>
 static void setOther(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setID(obj, index);
     // name
     // type
@@ -553,11 +437,7 @@ template <typename T>
 static void setMessier(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setAltID(obj, index);
-    setObjectMessierName(obj, index);
-    setObjectMessierType(obj, index);
-    setObjectMessierConstellation(obj, index);
     setObjectMessierDist(obj, index);
     // distance from system
     // magnitude from earth
@@ -568,11 +448,7 @@ template <typename T>
 static void setCaldwell(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setAltID(obj, index);
-    setObjectCaldwellName(obj, index);
-    setObjectCaldwelllType(obj, index);
-    setObjectCaldwellConstellation(obj, index);
     setObjectCaldwellDist(obj, index);
     // distance from system
     // magnitude from earth
@@ -583,10 +459,7 @@ template <typename T>
 static void setHerschel400(T *obj, int index)
 {
     clearAllObjects(obj, index);
-    setObjectTableName(obj, index);
     setAltID(obj, index);
-    setObjectHerschelType(obj, index);
-    setObjectHerschelConstellation(obj, index);
     // distance from earth (ngc)
     // distance from system
     // magnitude from earth
@@ -981,8 +854,6 @@ static void clearStarNavObjects(SiderealObjectSweep *data)
 {
     for (int i = 0; i < MAX_STARNAV_OBJECTS; i++)
     {
-        data->object_name[i][0] = '\0';
-        data->object_table_name[i][0] = '\0';
         data->object_number[i] = -1;
         data->object_table_i[i] = -1;
         data->object_ra[i] = NAN;
@@ -993,9 +864,6 @@ static void clearStarNavObjects(SiderealObjectSweep *data)
         data->object_r[i] = NAN;
         data->object_s[i] = NAN;
         data->object_s_value[i] = -1;
-        data->object_type[i][0] = '\0';
-        data->object_con[i][0] = '\0';
-        data->object_desc[i][0] = '\0';
         data->object_dist[i] = NAN;
     }
 }
@@ -1007,9 +875,10 @@ void starNavSweep() {
     // this, so a function-local static is safe -- no reentrancy concern).
     // Built up here and published to siderealObjectSweep in one assignment
     // at the end, so nothing observing the global sees a partial sweep.
-    // The copy-init from siderealObjectSweep runs only once (first call),
-    // purely to seed object_table[]'s name strings, which never change again.
-    static SiderealObjectSweep sweep_data = siderealObjectSweep;
+    // Zero-initialized (not copied from siderealObjectSweep): every field is
+    // overwritten by clearStarNavObjects() below, so there is nothing left
+    // in the global worth seeding from.
+    static SiderealObjectSweep sweep_data{};
     clearStarNavObjects(&sweep_data);
 
     double center_alt = siderealPlanetData.gyro_0_sidereal_attitude.alt;
@@ -1051,17 +920,19 @@ void starNavSweep() {
             }
 
             // Skip objects already captured by an earlier sweep point.
-            bool duplicate = false;
+            bool ignore = false;
             for (int i = 0; i < count; i++)
             {
                 if ((sweep_data.object_table_i[i] == sweep_data.object_table_i[count]) &&
                     (sweep_data.object_number[i] == sweep_data.object_number[count]))
                 {
-                    duplicate = true;
+                    ignore = true;
                     break;
                 }
+                // if (strcmp(sweep_data.object_type, "Star") != 0) {
+                // }
             }
-            if (duplicate == true)
+            if (ignore == true)
             {
                 continue;
             }

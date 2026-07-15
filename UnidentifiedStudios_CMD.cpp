@@ -1062,11 +1062,11 @@ static void star_nav(void) {
     trackObject(&cli_obj, cli_obj.object_table_i, cli_obj.object_number);
     printf("---------------------------------------------\n");
     printf("Table Index:   %d\n", cli_obj.object_table_i);
-    printf("Table:         %s\n", cli_obj.object_table_name);
+    printf("Table:         %s\n", getObjectTableName(&cli_obj));
     printf("Number:        %d\n", cli_obj.object_number);
-    printf("Name:          %s\n", cli_obj.object_name);
-    printf("Type:          %s\n", cli_obj.object_type);
-    printf("Constellation: %s\n", cli_obj.object_con);
+    printf("Name:          %s\n", getObjectName(&cli_obj));
+    printf("Type:          %s\n", getObjectType(&cli_obj));
+    printf("Constellation: %s\n", getObjectConstellation(&cli_obj));
     printf("Distance:      %f\n", cli_obj.object_dist);
     printf("Azimuth:       %f\n", cli_obj.object_az);
     printf("Altitude:      %f\n", cli_obj.object_alt);
@@ -3826,23 +3826,22 @@ void outputStat(void) {
       // found them. Slots fill contiguously from 0 (see starNavSweep()), so
       // the first invalid slot marks the end of the results.
       {
-          const char* columns[] = {"Table Index", "Table", "Number", "Name", "Type", "Constellation", "Distance", "Azimuth", "Altitude", "Rise", "Set"};
-          const char* colFormats[] = {
-              STAT_WIDE_COL_FORMAT_S,          // Table Index
-              STAT_STARNAV_TABLE_COL_FORMAT_S, // Table (+1 char)
-              STAT_WIDE_COL_FORMAT_S,          // Number
-              STAT_STARNAV_WIDE_COL_FORMAT_S,  // Name (+8 chars)
-              STAT_STARNAV_WIDE_COL_FORMAT_S,  // Type (+8 chars)
-              STAT_STARNAV_WIDE_COL_FORMAT_S,  // Constellation (+8 chars)
-              STAT_WIDE_COL_FORMAT_S,          // Distance
-              STAT_WIDE_COL_FORMAT_S,          // Azimuth
-              STAT_WIDE_COL_FORMAT_S,          // Altitude
-              STAT_WIDE_COL_FORMAT_S,          // Rise
-              STAT_WIDE_COL_FORMAT_S,          // Set
-          };
-          const int numColumns = sizeof(columns) / sizeof(columns[0]);
+          // const char* columns[] = {"Table Index", "Table", "Number", "Name", "Type", "Constellation", "Distance", "Azimuth", "Altitude", "Rise", "Set"};
+          // const char* colFormats[] = {
+          //     STAT_WIDE_COL_FORMAT_S,          // Table Index
+          //     STAT_STARNAV_TABLE_COL_FORMAT_S, // Table (+1 char)
+          //     STAT_WIDE_COL_FORMAT_S,          // Number
+          //     STAT_STARNAV_WIDE_COL_FORMAT_S,  // Name (+8 chars)
+          //     STAT_STARNAV_WIDE_COL_FORMAT_S,  // Type (+8 chars)
+          //     STAT_STARNAV_WIDE_COL_FORMAT_S,  // Constellation (+8 chars)
+          //     STAT_WIDE_COL_FORMAT_S,          // Distance
+          //     STAT_WIDE_COL_FORMAT_S,          // Azimuth
+          //     STAT_WIDE_COL_FORMAT_S,          // Altitude
+          //     STAT_WIDE_COL_FORMAT_S,          // Rise
+          //     STAT_WIDE_COL_FORMAT_S,          // Set
+          // };
+          // const int numColumns = sizeof(columns) / sizeof(columns[0]);
 
-          // uncomment to print results from StarNav sweep
           // printStatSeparator();
           // printf(STAT_LABEL_BLANK_FMT, "");
           // for (int i = 0; i < numColumns; i++) {printf(colFormats[i], columns[i]);}
@@ -3856,11 +3855,11 @@ void outputStat(void) {
           //     (void)snprintf(label, sizeof(label), "StarNav%d", i);
           //     printf(STAT_LABEL_FMT, label);
           //     printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_table_i[i]);
-          //     printf(STAT_STARNAV_TABLE_COL_FORMAT_S, siderealObjectSweep.object_table_name[i]);
+          //     printf(STAT_STARNAV_TABLE_COL_FORMAT_S, getObjectTableName(&siderealObjectSweep, i));
           //     printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_number[i]);
-          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_name[i]);
-          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_type[i]);
-          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_con[i]);
+          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, getObjectName(&siderealObjectSweep, i));
+          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, getObjectType(&siderealObjectSweep, i));
+          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, getObjectConstellation(&siderealObjectSweep, i));
           //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_dist[i]);
           //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_az[i]);
           //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_alt[i]);
