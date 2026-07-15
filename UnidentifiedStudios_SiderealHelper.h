@@ -160,7 +160,7 @@ extern struct SiderealPlantetsStruct siderealPlanetData;
 // ----------------------------------------------------------------------------------------
 // Object Data Structure.
 // ----------------------------------------------------------------------------------------
-struct SiderealObjectStruct {
+typedef struct SiderealObjectSingle {
     char object_name[MAX_GLOBAL_ELEMENT_SIZE];
     char object_table_name[MAX_GLOBAL_ELEMENT_SIZE];
     signed int object_number;
@@ -178,8 +178,40 @@ struct SiderealObjectStruct {
     char object_con[MAX_GLOBAL_ELEMENT_SIZE];
     char object_desc[MAX_GLOBAL_ELEMENT_SIZE];
     double object_dist;
-};
-extern struct SiderealObjectStruct siderealObjectData;
+} SiderealObjectSingle;
+extern SiderealObjectSingle siderealObjectSingle;
+
+// ----------------------------------------------------------------------------------------
+// StarNav Sweep Object Data Structure.
+// ----------------------------------------------------------------------------------------
+#define MAX_STARNAV_OBJECTS 50
+// starNavSweep() scans a square grid of Alt/Az points within
+// +/- STARNAV_SWEEP_RANGE_DEG (degrees, both axes) of the current
+// gyroscopic attitude's Alt/Az, stepping by STARNAV_SWEEP_STEP_DEG.
+#define STARNAV_SWEEP_RANGE_DEG 10.0 // appature
+#define STARNAV_SWEEP_STEP_DEG  5.0  // resolution degrees (lower = higher resolution, higher performance impact!)
+typedef struct SiderealObjectSweep {
+    char object_name[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
+    char object_table_name[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
+    signed int object_number[MAX_STARNAV_OBJECTS];
+    signed int object_table_i[MAX_STARNAV_OBJECTS];
+    double object_ra[MAX_STARNAV_OBJECTS];
+    double object_dec[MAX_STARNAV_OBJECTS];
+    double object_az[MAX_STARNAV_OBJECTS];
+    double object_alt[MAX_STARNAV_OBJECTS];
+    double object_mag[MAX_STARNAV_OBJECTS];
+    double object_r[MAX_STARNAV_OBJECTS];
+    double object_s[MAX_STARNAV_OBJECTS];
+    char object_table[7][MAX_GLOBAL_ELEMENT_SIZE];
+    int object_s_value[MAX_STARNAV_OBJECTS];
+    char object_type[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
+    char object_con[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
+    char object_desc[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
+    double object_dist[MAX_STARNAV_OBJECTS];
+} SiderealObjectSweep;
+extern SiderealObjectSweep siderealObjectSweep;
+
+
 
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
@@ -198,24 +230,39 @@ void setSiderealData(double latitude, double longitude,
 
 /**
  * Computes RA/Dec, Alt/Az, and rise/set times for the object at object_i
- * within the table named by object_table_i, and stores the result in
- * siderealObjectData.
+ * within the table named by object_table_i, and stores the result in *obj
+ * (or, for the SiderealObjectSweep overload, in slot `index` of *obj).
  * @note setSiderealData() must be called first.
  */
-void trackObject(int object_table_i, int object_i);
+void trackObject(SiderealObjectSingle *obj, int object_table_i, int object_i);
+void trackObject(SiderealObjectSweep *obj, int index, int object_table_i, int object_i);
 
 /**
  * Identifies the object nearest the given RA/Dec coordinates across every
- * object table, and populates siderealObjectData with its identity (but
- * not yet its Alt/Az or rise/set times — see trackObject()).
+ * object table, and populates *obj (or slot `index` of *obj, for the
+ * SiderealObjectSweep overload) with its identity (but not yet its Alt/Az
+ * or rise/set times — see trackObject()).
+ * @note obj->object_table must already hold the 7 table-name strings (as
+ * siderealObjectSingle and siderealObjectSweep's static initializers do).
  */
-void IdentifyObject(int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
+void IdentifyObject(SiderealObjectSingle *obj, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
+void IdentifyObject(SiderealObjectSweep *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
 
 /**
  * Identifies the object nearest the given RA/Dec coordinates, then tracks
  * it (Alt/Az and rise/set times).
  */
 void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s);
+
+/**
+ * Sweeps a square grid of Alt/Az points within +/- STARNAV_SWEEP_RANGE_DEG
+ * of the current gyroscopic attitude's Alt/Az, identifying every distinct
+ * object found and storing up to MAX_STARNAV_OBJECTS of them in
+ * siderealObjectSweep.
+ * @note siderealPlanetData.gyro_0_sidereal_attitude must already be set
+ * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).
+ */
+void starNavSweep();
 
 /**
  * Tracks every enabled body (Sun, Moon, and planets) for the current

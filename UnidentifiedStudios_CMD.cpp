@@ -1041,8 +1041,12 @@ static void star_nav(void) {
     )
   {
     printf("attempting to identify object..\n");
+    // Local instance, not the shared siderealObjectSingle global: a CLI-triggered
+    // identify must not clobber whatever setStarNav()/starNavSweep() last stored there.
+    SiderealObjectSingle cli_obj = siderealObjectSingle;
     // this is identify (so first identify object)
     IdentifyObject(
+      &cli_obj,
       atoi(plainparser.tokens[0]),
       atoi(plainparser.tokens[1]),
       atof(plainparser.tokens[2]),
@@ -1054,20 +1058,20 @@ static void star_nav(void) {
     /*
       Once identified we can track object (requires modified SiderealObjects lib).
     */
-    
-    trackObject(siderealObjectData.object_table_i, siderealObjectData.object_number);
+
+    trackObject(&cli_obj, cli_obj.object_table_i, cli_obj.object_number);
     printf("---------------------------------------------\n");
-    printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-    printf("Table:         %s\n", siderealObjectData.object_table_name);
-    printf("Number:        %d\n", siderealObjectData.object_number);
-    printf("Name:          %s\n", siderealObjectData.object_name);
-    printf("Type:          %s\n", siderealObjectData.object_type);
-    printf("Constellation: %s\n", siderealObjectData.object_con);
-    printf("Distance:      %f\n", siderealObjectData.object_dist);
-    printf("Azimuth:       %f\n", siderealObjectData.object_az);
-    printf("Altitude:      %f\n", siderealObjectData.object_alt);
-    printf("Rise:          %f\n", siderealObjectData.object_r);
-    printf("Set:           %f\n", siderealObjectData.object_s);
+    printf("Table Index:   %d\n", cli_obj.object_table_i);
+    printf("Table:         %s\n", cli_obj.object_table_name);
+    printf("Number:        %d\n", cli_obj.object_number);
+    printf("Name:          %s\n", cli_obj.object_name);
+    printf("Type:          %s\n", cli_obj.object_type);
+    printf("Constellation: %s\n", cli_obj.object_con);
+    printf("Distance:      %f\n", cli_obj.object_dist);
+    printf("Azimuth:       %f\n", cli_obj.object_az);
+    printf("Altitude:      %f\n", cli_obj.object_alt);
+    printf("Rise:          %f\n", cli_obj.object_r);
+    printf("Set:           %f\n", cli_obj.object_s);
     printf("---------------------------------------------\n");
   }
   else {printf("identify object: bad input data\n");}
@@ -3811,7 +3815,9 @@ void outputStat(void) {
         for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_F, sources[i].alt);}
         printf("\n");
       }
-      // StarNav
+      // StarNav Sweep: one row per identified object, in the order the sweep
+      // found them. Slots fill contiguously from 0 (see starNavSweep()), so
+      // the first invalid slot marks the end of the results.
       {
           const char* columns[] = {"Table Index", "Table", "Number", "Name", "Type", "Constellation", "Distance", "Azimuth", "Altitude", "Rise", "Set"};
           const int numColumns = sizeof(columns) / sizeof(columns[0]);
@@ -3821,19 +3827,26 @@ void outputStat(void) {
           for (int i = 0; i < numColumns; i++) {printf(STAT_WIDE_COL_FORMAT_S, columns[i]);}
           printf("\n");
           printStatSeparator();
-          printf(STAT_LABEL_FMT, "StarNav");
-          printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectData.object_table_i);
-          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_table_name);
-          printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectData.object_number);
-          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_name);
-          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_type);
-          printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectData.object_con);
-          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_dist);
-          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_az);
-          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_alt);
-          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_r);
-          printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectData.object_s);
-          printf("\n");
+          for (int i = 0; i < MAX_STARNAV_OBJECTS; i++) {
+              if ((siderealObjectSweep.object_table_i[i] < 0) || (siderealObjectSweep.object_number[i] < 0)) {
+                  break;
+              }
+              char label[STAT_LABEL_WIDTH];
+              (void)snprintf(label, sizeof(label), "StarNav%d", i);
+              printf(STAT_LABEL_FMT, label);
+              printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_table_i[i]);
+              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_table_name[i]);
+              printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_number[i]);
+              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_name[i]);
+              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_type[i]);
+              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_con[i]);
+              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_dist[i]);
+              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_az[i]);
+              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_alt[i]);
+              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_r[i]);
+              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_s[i]);
+              printf("\n");
+          }
       }
     #endif // SatIO_USE_UNIVERSE
   }

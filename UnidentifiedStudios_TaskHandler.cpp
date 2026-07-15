@@ -389,7 +389,7 @@ static void intervalBreach1Second(void) {
   }
 
   // diag
-  outputStat();
+  systemData.output_stat_flag = true;
 
   clearCounters(systemData.counters_st);
 
@@ -1310,22 +1310,22 @@ static void taskUniverse(void *pvParameters) {
       // );
       // esp_task_wdt_reset();
       // printf("---------------------------------------------\n");
-      // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-      // printf("Table:         %s\n", siderealObjectData.object_table_name);
-      // printf("Number:        %d\n", siderealObjectData.object_number);
-      // printf("Name:          %s\n", siderealObjectData.object_name);
-      // printf("Type:          %s\n", siderealObjectData.object_type);
-      // printf("Constellation: %s\n", siderealObjectData.object_con);
-      // printf("Distance:      %f\n", siderealObjectData.object_dist);
-      // printf("Azimuth:       %f\n", siderealObjectData.object_az);
-      // printf("Altitude:      %f\n", siderealObjectData.object_alt);
-      // printf("Rise:          %f\n", siderealObjectData.object_r);
-      // printf("Set:           %f\n", siderealObjectData.object_s);
+      // printf("Table Index:   %d\n", siderealObjectSingle.object_table_i);
+      // printf("Table:         %s\n", siderealObjectSingle.object_table_name);
+      // printf("Number:        %d\n", siderealObjectSingle.object_number);
+      // printf("Name:          %s\n", siderealObjectSingle.object_name);
+      // printf("Type:          %s\n", siderealObjectSingle.object_type);
+      // printf("Constellation: %s\n", siderealObjectSingle.object_con);
+      // printf("Distance:      %f\n", siderealObjectSingle.object_dist);
+      // printf("Azimuth:       %f\n", siderealObjectSingle.object_az);
+      // printf("Altitude:      %f\n", siderealObjectSingle.object_alt);
+      // printf("Rise:          %f\n", siderealObjectSingle.object_r);
+      // printf("Set:           %f\n", siderealObjectSingle.object_s);
       // printf("---------------------------------------------\n");
 
-      // ------------------------------------------------
-      // StarNav Gyroscopic Star Navigation.
-      // ------------------------------------------------
+      // -----------------------------------------------------------
+      // StarNav Gyroscopic Star Navigation (SINGLE CLOSEST OBJECT).
+      // -----------------------------------------------------------
       setStarNav(
         siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
         siderealPlanetData.gyro_0_sidereal_attitude.ra_m,
@@ -1336,18 +1336,23 @@ static void taskUniverse(void *pvParameters) {
       );
       esp_task_wdt_reset();
       // printf("---------------------------------------------\n");
-      // printf("Table Index:   %d\n", siderealObjectData.object_table_i);
-      // printf("Table:         %s\n", siderealObjectData.object_table_name);
-      // printf("Number:        %d\n", siderealObjectData.object_number);
-      // printf("Name:          %s\n", siderealObjectData.object_name);
-      // printf("Type:          %s\n", siderealObjectData.object_type);
-      // printf("Constellation: %s\n", siderealObjectData.object_con);
-      // printf("Distance:      %f\n", siderealObjectData.object_dist);
-      // printf("Azimuth:       %f\n", siderealObjectData.object_az);
-      // printf("Altitude:      %f\n", siderealObjectData.object_alt);
-      // printf("Rise:          %f\n", siderealObjectData.object_r);
-      // printf("Set:           %f\n", siderealObjectData.object_s);
+      // printf("Table Index:   %d\n", siderealObjectSingle.object_table_i);
+      // printf("Table:         %s\n", siderealObjectSingle.object_table_name);
+      // printf("Number:        %d\n", siderealObjectSingle.object_number);
+      // printf("Name:          %s\n", siderealObjectSingle.object_name);
+      // printf("Type:          %s\n", siderealObjectSingle.object_type);
+      // printf("Constellation: %s\n", siderealObjectSingle.object_con);
+      // printf("Distance:      %f\n", siderealObjectSingle.object_dist);
+      // printf("Azimuth:       %f\n", siderealObjectSingle.object_az);
+      // printf("Altitude:      %f\n", siderealObjectSingle.object_alt);
+      // printf("Rise:          %f\n", siderealObjectSingle.object_r);
+      // printf("Set:           %f\n", siderealObjectSingle.object_s);
       // printf("---------------------------------------------\n");
+
+      // -----------------------------------------------------------
+      // StarNav Gyroscopic Star Navigation (RANGE CLOSEST OBJECTS).
+      // -----------------------------------------------------------
+      starNavSweep();
 
       // --------------------------------------------
       // Task frequency counter
@@ -1407,6 +1412,10 @@ static void taskSatIOSerialTx(void *pvParameters) {
       // --------------------------------------------
       // Output.
       // --------------------------------------------
+      if (systemData.output_stat_flag==true) {
+        systemData.output_stat_flag=false;
+        outputStat();
+      }
       outputSerialGPS();
       outputSerialSatIO();
       outputSerialADMplex0();

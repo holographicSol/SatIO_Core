@@ -76,6 +76,7 @@ struct systemStruct {
   bool serial_command;     // Enables processing of incoming serial commands.
   bool logging_enabled;    // Enables writing log entries to storage.
 
+  bool output_stat_flag;
   bool output_stat_datetime;    // Prints the datetime table in outputStat().
   bool output_stat_task_rates;  // Prints the task rates (Hz) table in outputStat().
   bool output_stat_position;    // Prints the position/target and RA/Dec tables in outputStat().

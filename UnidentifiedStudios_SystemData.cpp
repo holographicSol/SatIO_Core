@@ -34,6 +34,7 @@ struct systemStruct systemData = {
   .serial_command = true,
   .logging_enabled=false,
 
+  .output_stat_flag = true,
   .output_stat_datetime = true,
   .output_stat_task_rates = true,
   .output_stat_position = true,
