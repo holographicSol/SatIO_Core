@@ -182,6 +182,9 @@ struct SiderealPlantetsStruct siderealPlanetData = {
 SiderealObjectSingle siderealObjectSingle = {
     .object_number = 0,
     .object_table_i = 0,
+    .object_type = -1,
+    .object_con = -1,
+    .object_desc = -1,
     .object_s_value = -1,
     .object_ra = NAN,
     .object_dec = NAN,
@@ -196,6 +199,9 @@ SiderealObjectSingle siderealObjectSingle = {
 SiderealObjectSweep siderealObjectSweep = {
     .object_number = {},
     .object_table_i = {},
+    .object_type = {},
+    .object_con = {},
+    .object_desc = {},
     .object_s_value = {},
     .object_ra = {},
     .object_dec = {},
@@ -233,6 +239,12 @@ static inline int&    numberRef(SiderealObjectSingle *obj, int)          { retur
 static inline int&    numberRef(SiderealObjectSweep *obj, int index)     { return obj->object_number[index]; }
 static inline int&    tableIRef(SiderealObjectSingle *obj, int)          { return obj->object_table_i; }
 static inline int&    tableIRef(SiderealObjectSweep *obj, int index)     { return obj->object_table_i[index]; }
+static inline int&    typeRef(SiderealObjectSingle *obj, int)            { return obj->object_type; }
+static inline int&    typeRef(SiderealObjectSweep *obj, int index)       { return obj->object_type[index]; }
+static inline int&    conRef(SiderealObjectSingle *obj, int)             { return obj->object_con; }
+static inline int&    conRef(SiderealObjectSweep *obj, int index)        { return obj->object_con[index]; }
+static inline int&    descRef(SiderealObjectSingle *obj, int)            { return obj->object_desc; }
+static inline int&    descRef(SiderealObjectSweep *obj, int index)       { return obj->object_desc[index]; }
 static inline double& raRef(SiderealObjectSingle *obj, int)              { return obj->object_ra; }
 static inline double& raRef(SiderealObjectSweep *obj, int index)        { return obj->object_ra[index]; }
 static inline double& decRef(SiderealObjectSingle *obj, int)            { return obj->object_dec; }
@@ -251,13 +263,17 @@ static inline double& distRef(SiderealObjectSweep *obj, int index)      { return
 // ----------------------------------------------------------------------------------------
 // Get Object Name / Table Name / Type / Constellation / Description.
 // ----------------------------------------------------------------------------------------
-// object_table_i + object_number already say exactly which vendor-table
-// row this object is, so name/type/constellation/description need no
-// storage of their own: each getter below just resolves those two indices
-// through the matching SiderealObjects::print*() call (bounds-checked
-// against the vendor table's own *_names_num count), falling back to
-// "Unidentified" for any table where the property doesn't apply (e.g.
-// stars have no constellation, "Other" objects have no name/type/
+// Name and table name need no storage of their own: object_table_i +
+// object_number already say exactly which vendor-table row this object is,
+// so those two getters just resolve the matching SiderealObjects::print*()
+// call directly. Type/constellation/description are instead resolved from
+// their own stored index (object_type/object_con/object_desc, set at
+// identify-time in setStars()/setNGC()/etc. below, -1 where the property
+// doesn't apply to that object's table), so each getter only needs
+// object_table_i to pick which print*() function to call. Every lookup is
+// bounds-checked against the vendor table's own *_names_num count, falling
+// back to "Unidentified" for any table where the property doesn't apply
+// (e.g. stars have no constellation, "Other" objects have no name/type/
 // constellation, only stars have a description).
 // ----------------------------------------------------------------------------------------
 static inline bool numValid(int num, unsigned int max_num) { return (num >= 0) && (num <= (int)max_num); }
@@ -285,7 +301,7 @@ static const char* objectTableNameImpl(T *obj, int index)
 template <typename T>
 static const char* objectTypeImpl(T *obj, int index)
 {
-    const int num = numberRef(obj, index);
+    const int num = typeRef(obj, index);
     switch (tableIRef(obj, index))
     {
         case INDEX_SIDEREAL_STAR_TABLE:       return numValid(num, SObjectsstars_names_num)     ? myAstroObj.printStarType(num)        : "Unidentified";
@@ -302,7 +318,7 @@ static const char* objectTypeImpl(T *obj, int index)
 template <typename T>
 static const char* objectConstellationImpl(T *obj, int index)
 {
-    const int num = numberRef(obj, index);
+    const int num = conRef(obj, index);
     switch (tableIRef(obj, index))
     {
         case INDEX_SIDEREAL_NGC_TABLE:        return numValid(num, SObjectsNGC_names_num)       ? myAstroObj.printNGCCon(num)         : "Unidentified";
@@ -318,7 +334,7 @@ static const char* objectConstellationImpl(T *obj, int index)
 template <typename T>
 static const char* objectDescriptionImpl(T *obj, int index)
 {
-    const int num = numberRef(obj, index);
+    const int num = descRef(obj, index);
     if ((tableIRef(obj, index) == INDEX_SIDEREAL_STAR_TABLE) && numValid(num, SObjectsstars_names_num))
     {
         return myAstroObj.printStarDesc(num);
@@ -383,6 +399,9 @@ static void clearAllObjects(T *obj, int index)
     rRef(obj, index) = NAN;
     sRef(obj, index) = NAN;
     distRef(obj, index) = NAN;
+    typeRef(obj, index) = -1;
+    conRef(obj, index) = -1;
+    descRef(obj, index) = -1;
 }
 
 template <typename T>
@@ -390,6 +409,8 @@ static void setStars(T *obj, int index)
 {
     clearAllObjects(obj, index);
     setID(obj, index);
+    typeRef(obj, index) = numberRef(obj, index);
+    descRef(obj, index) = numberRef(obj, index);
     setObjectStarDist(obj, index);
     // distance from earth
     // distance from system
@@ -402,6 +423,8 @@ static void setNGC(T *obj, int index)
 {
     clearAllObjects(obj, index);
     setID(obj, index);
+    typeRef(obj, index) = numberRef(obj, index);
+    conRef(obj, index) = numberRef(obj, index);
     // distance
     // distance from system
     // magnitude from earth
@@ -413,6 +436,8 @@ static void setIC(T *obj, int index)
 {
     clearAllObjects(obj, index);
     setID(obj, index);
+    typeRef(obj, index) = numberRef(obj, index);
+    conRef(obj, index) = numberRef(obj, index);
     // distance from earth
     // distance from system
     // magnitude from earth
@@ -438,6 +463,8 @@ static void setMessier(T *obj, int index)
 {
     clearAllObjects(obj, index);
     setAltID(obj, index);
+    typeRef(obj, index) = numberRef(obj, index);
+    conRef(obj, index) = numberRef(obj, index);
     setObjectMessierDist(obj, index);
     // distance from system
     // magnitude from earth
@@ -449,6 +476,8 @@ static void setCaldwell(T *obj, int index)
 {
     clearAllObjects(obj, index);
     setAltID(obj, index);
+    typeRef(obj, index) = numberRef(obj, index);
+    conRef(obj, index) = numberRef(obj, index);
     setObjectCaldwellDist(obj, index);
     // distance from system
     // magnitude from earth
@@ -460,6 +489,8 @@ static void setHerschel400(T *obj, int index)
 {
     clearAllObjects(obj, index);
     setAltID(obj, index);
+    typeRef(obj, index) = numberRef(obj, index);
+    conRef(obj, index) = numberRef(obj, index);
     // distance from earth (ngc)
     // distance from system
     // magnitude from earth
@@ -856,6 +887,9 @@ static void clearStarNavObjects(SiderealObjectSweep *data)
     {
         data->object_number[i] = -1;
         data->object_table_i[i] = -1;
+        data->object_type[i] = -1;
+        data->object_con[i] = -1;
+        data->object_desc[i] = -1;
         data->object_ra[i] = NAN;
         data->object_dec[i] = NAN;
         data->object_az[i] = NAN;
@@ -919,18 +953,22 @@ void starNavSweep() {
                 continue; // nothing identified at this sweep point
             }
 
-            // Skip objects already captured by an earlier sweep point.
+            // Skip objects
             bool ignore = false;
             for (int i = 0; i < count; i++)
             {
+                // skip objects already captured in the sweep
                 if ((sweep_data.object_table_i[i] == sweep_data.object_table_i[count]) &&
                     (sweep_data.object_number[i] == sweep_data.object_number[count]))
                 {
                     ignore = true;
                     break;
                 }
-                // if (strcmp(sweep_data.object_type, "Star") != 0) {
+
+                // skip objects not included in the sweep
+                // if (sweep_data.object_type[i] ) {
                 // }
+
             }
             if (ignore == true)
             {

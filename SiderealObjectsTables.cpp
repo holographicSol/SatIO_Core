@@ -6,8 +6,15 @@
  *  Star Types
  *  More Star Names
  *  More Distances
- *  All new data can be accessed by index, for efficiency, to return any available
- *  above data, for an identified object, along with original object names.
+
+ *  Note that not all tables have the same data. Data from certain sources providing
+ *  text/csv files has been used to expand the data set. Great effort with python has been
+ *  made to convert any .text file tables to .csv, and parse the .csv files with python,
+ *  and then use python to write the espanded object tables in C, in an efficient, minimal
+ *  footprint.
+ * 
+ *  Indices are stored per Object Table (Star Table, NGC, IC, etc), which point
+ *  at arrays: Object Table Name, Object Name, Object Type, Object Constellation.
  * 
  *  Data created was parsed by python from multiple star/object tables, year 2025.
 ******************************************************************************/

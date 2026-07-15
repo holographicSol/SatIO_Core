@@ -163,6 +163,12 @@ extern struct SiderealPlantetsStruct siderealPlanetData;
 typedef struct SiderealObjectSingle {
     signed int object_number;
     signed int object_table_i;
+
+    signed int object_type;
+    signed int object_con;
+    signed int object_desc;
+
+    int object_s_value;
     double object_ra;
     double object_dec;
     double object_az;
@@ -170,7 +176,6 @@ typedef struct SiderealObjectSingle {
     double object_mag;
     double object_r;
     double object_s;
-    int object_s_value;
     double object_dist;
 } SiderealObjectSingle;
 extern SiderealObjectSingle siderealObjectSingle;
@@ -182,11 +187,17 @@ extern SiderealObjectSingle siderealObjectSingle;
 // starNavSweep() scans a square grid of Alt/Az points within
 // +/- STARNAV_SWEEP_RANGE_DEG (degrees, both axes) of the current
 // gyroscopic attitude's Alt/Az, stepping by STARNAV_SWEEP_STEP_DEG.
-#define STARNAV_SWEEP_RANGE_DEG 45.0 // appature
+#define STARNAV_SWEEP_RANGE_DEG 15.0 // appature
 #define STARNAV_SWEEP_STEP_DEG  5.0  // resolution degrees (lower = higher resolution, higher performance impact!)
 typedef struct SiderealObjectSweep {
     signed int object_number[MAX_STARNAV_OBJECTS];
     signed int object_table_i[MAX_STARNAV_OBJECTS];
+
+    signed int object_type[MAX_STARNAV_OBJECTS];
+    signed int object_con[MAX_STARNAV_OBJECTS];
+    signed int object_desc[MAX_STARNAV_OBJECTS];
+
+    int object_s_value[MAX_STARNAV_OBJECTS];
     double object_ra[MAX_STARNAV_OBJECTS];
     double object_dec[MAX_STARNAV_OBJECTS];
     double object_az[MAX_STARNAV_OBJECTS];
@@ -194,7 +205,6 @@ typedef struct SiderealObjectSweep {
     double object_mag[MAX_STARNAV_OBJECTS];
     double object_r[MAX_STARNAV_OBJECTS];
     double object_s[MAX_STARNAV_OBJECTS];
-    int object_s_value[MAX_STARNAV_OBJECTS];
     double object_dist[MAX_STARNAV_OBJECTS];
 } SiderealObjectSweep;
 extern SiderealObjectSweep siderealObjectSweep;
@@ -235,11 +245,14 @@ void IdentifyObject(SiderealObjectSweep *obj, int index, int ra_hour, int ra_min
 
 /**
  * Resolves *obj's (or, for the SiderealObjectSweep overload, slot `index`
- * of *obj's) name/table name/type/constellation/description on demand from
- * its stored object_table_i and object_number indices, or "Unidentified" if
- * that property doesn't apply to the object's table (e.g. stars have no
- * constellation, "Other" objects have no name/type/constellation, only
- * stars have a description).
+ * of *obj's) name/table name/type/constellation/description on demand:
+ * name and table name from its stored object_table_i and object_number
+ * indices, type/constellation/description from their own stored indices
+ * (object_type/object_con/object_desc), each looked up in the vendor table
+ * selected by object_table_i. Returns "Unidentified" wherever the property
+ * doesn't apply to the object's table (e.g. stars have no constellation,
+ * "Other" objects have no name/type/constellation, only stars have a
+ * description).
  * @note IdentifyObject() must be called first.
  */
 const char* getObjectName(SiderealObjectSingle *obj);
