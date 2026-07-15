@@ -1,0 +1,111 @@
+  Index  ID    NGC      Type    Magnitude    Size (Arc minutes)    Distance (Light Years)    RA (Hours Min)    Dec (Deg Min)    Constellation    Common Name
+-------  ----  -------  ------  -----------  --------------------  ------------------------  ----------------  ---------------  ---------------  --------------------------------
+      1  C1    188      Oc      8.1          14                    4800                      00 44.4           +85 20           Cep              Planetary Cluster
+      2  C2    40       Pl      11.6         0.6                   3500                      00 13.0           +72 32           Cep              Bow Tie Nebula
+      3  C3    4236     Sb      9.7          21x7                  7000000                   12 16.7           +69 28           Dra              Reflection Nebula
+      4  C4    7023     Bn      6.8          18x18                 1400                      21 01.8           +68 12           Cep              Iris Nebula
+      5  C5    IC 342   Sp      9.2          18x17                 13000000                  03 46.8           +68 06           Cam              Cat's Eye Neb.
+      6  C6    6543     Pl      8.8          0.3/5.8               3000                      17 58.6           +66 38           Dra              Cat's Eye Nebula
+      7  C7    2403     Sp      8.9          18x10                 14000000                  07 36.9           +65 36           Cam              Open Cluster
+      8  C8    559      Oc      9.5          4                     3700                      01 29.5           +63 18           Cas              Cave Nebula
+      9  C9    Sh2-155  Bn      7.7          50x10                 2800                      22 56.8           +62 37           Cep              Cave Nebula
+     10  C10   663      Oc      7.1          16                    7200                      01 46.0           +61 15           Cas              Bubble Nebula
+     11  C11   7635     Bn      7.0          15x8                  7100                      23 20.7           +61 12           Cas              Bubble nebula
+     12  C12   6946     Sp      9.7          11x9                  18000000                  20 34.8           +60 09           Cep              Phi Cas Cluster
+     13  C13   457      Oc      6.4          13                    -                         01 19.1           +58 20           Cas              Owl or E.T. Cluster
+     14  C14   869/884  Oc      4.3          30 & 30               7300                      02 20.0           +57 08           Per              Double Cluster, h & chi Persei
+     15  C15   6826     Pl      9.8          0.5/2.3               2200                      19 44.8           +50 31           Cyg              Blinking Planetary
+     16  C16   7243     Oc      6.4          21                    2500                      22 15.3           +49 53           Lac              Elliptical Galaxy
+     17  C17   147      El      9.3          13x8                  2300000                   00 33.2           +48 30           Cas              Elliptical Galaxy
+     18  C18   185      El      9.2          12x9                  2300000                   00 39.0           +48 20           Cas              Cocoon Nebula
+     19  C19   IC 5146  Bn      10.0         12x12                 3300                      21 53.5           +47 16           Cyg              Cocoon Nebula
+     20  C20   7000     Bn      6.0          120x100               1800                      20 58.8           +44 20           Cyg              North America Nebula
+     21  C21   4449     Ir      9.4          5x3                   10000000                  12 28.2           +44 06           CVn              Planetary Nebula
+     22  C22   7662     Pl      9.2          0.3/2.2               3200                      23 25.9           +42 33           And              Blue Snowball
+     23  C23   891      Sb      9.9          14x2                  31000000                  02 22.6           +42 21           And              Per A Galaxy
+     24  C24   1275     Sx      11.6         2.6x1                 230000000                 03 19.8           +41 31           Per              Perseus A
+     25  C25   2419     Gc      10.4         4.1                   275000                    07 38.1           +38 53           Lyn              Edge On Galaxy
+     26  C26   4244     Sp      10.6         16x2.5                10000000                  12 17.5           +37 49           CVn              Crescent Nebula
+     27  C27   6888     Bn      7.5          20x10                 4700                      20 12.0           +38 21           Cyg              Crescent Nebula
+     28  C28   752      Oc      5.7          50                    1200                      01 57.8           +37 41           And              Spiral Galaxy
+     29  C29   5005     Sb      9.8          5.4x2                 69000000                  13 10.9           +37 03           CVn              Spiral Galaxy
+     30  C30   7331     Sb      9.5          11x4                  47000000                  22 37.1           +34 25           Peg              Flaming Star Neb.
+     31  C31   IC 405   Bn      6.0          30x19                 1600                      05 16.2           +34 16           Aur              Flaming Star Nebula
+     32  C32   4631     Sp      9.3          15x3                  22000000                  12 42.1           +32 32           CVn              Whale Galaxy
+     33  C33   6992/5   Sn      -            60x8                  2500                      20 56.4           +31 43           Cyg              East Veil Nebula
+     34  C34   6960     Sn      -            70x6                  2500                      20 45.7           +30 43           Cyg              West Veil Nebula
+     35  C35   4889     El      11.4         3x2                   300000000                 13 00.1           +27 59           Com              Spiral Galaxy
+     36  C36   4559     Sp      9.8          10x4                  32000000                  12 36.0           +27 58           Com              Open Cluster
+     37  C37   6885     Oc      5.7          7                     1950                      20 12.0           +26 29           Vul              Edge On Galaxy
+     38  C38   4565     Sb      9.6          16x3                  32000000                  12 36.3           +25 59           Com              Needle Galaxy
+     39  C39   2392     Pl      9.9          0.2/0.7               4000                      07 29.2           +20 55           Gem              Eskimo or Clown Nebula
+     40  C40   3626     Sb      10.9         3x2                   86000000                  11 20.1           +18 21           Leo              Hyades Mel25 Open Cluster
+     41  C41   -        Oc      1.0          330                   151                       04 27.0           +16 00           Tau              Hyades
+     42  C42   7006     Gc      10.6         2.8                   135000                    21 01.5           +16 11           Del              Spiral Galaxy
+     43  C43   7814     Sb      10.5         6x2                   49000000                  00 03.3           +16 09           Peg              Spiral Galaxy
+     44  C44   7479     Sb      11.0         4x3                   106000000                 23 04.9           +12 19           Peg              Spiral Galaxy
+     45  C45   5248     Sp      10.2         6x4                   74000000                  13 37.5           +08 53           Boo              Hubble's Var. Nebula
+     46  C46   2261     Bn      10.0         2x1                   2500                      06 39.2           +08 44           Mon              Hubble's Variable Nebula
+     47  C47   6934     Gc      8.9          5.9                   57000                     20 34.2           +07 24           Del              Spiral Galaxy
+     48  C48   2775     Sp      10.3         4.5x3                 55000000                  09 10.3           +07 02           Can              Rosette Nebula
+     49  C49   2237-9   Bn      -            80x60                 4900                      06 32.3           +05 03           Mon              Rosette Nebula
+     50  C50   2244     Oc      4.8          24                    4900                      06 32.4           +04 52           Mon              Irregular Galaxy
+     51  C51   IC 1613  Ir      9.0          12x11                 2300000                   01 04.8           +02 07           Cet              Elliptical Galaxy
+     52  C52   4697     El      9.3          6x3                   76000000                  12 48.6           -05 48           Vir              Spindle Galaxy
+     53  C53   3115     El      9.1          8x3                   22000000                  10 05.2           -07 43           Sex              Spindle Galaxy
+     54  C54   2506     Oc      7.6          7                     10000                     08 00.2           -10 47           Mon              Saturn Planetary Nebula
+     55  C55   7009     Pl      8.3          2.5/1                 1400                      21 04.2           -11 22           Aqr              Saturn Nebula
+     56  C56   246      Pl      8.0          3.8                   1600                      00 47.0           -11 53           Cet              Barnard's Galaxy
+     57  C57   6822     Ir      9.3          10x9                  2300000                   19 44.9           -14 48           Sgr              Barnard's Galaxy
+     58  C58   2360     Oc      7.2          13                    3700                      07 17.8           -15 37           CMa              Ghost of Jupiter Planetary
+     59  C59   3242     Pl      8.6          0.3/21                1400                      10 24.8           -18 38           Hya              Ghost of Jupiter
+     60  C60   4038     Sp      11.3         2.6x1.8               83000000                  12 01.9           -18 52           Crv              Antennae Galaxies
+     61  C61   4039     Sp      13.0         3.2x2.2               83000000                  12 01.9           -18 53           Crv              Antennae Galaxies
+     62  C62   247      Sp      8.9          20x7                  6800000                   00 47.1           -20 46           Cet              Helix Nebula
+     63  C63   7293     Pl      6.5          13                    522                       22 29.6           -20 48           Aqr              Helix Nebula
+     64  C64   2362     Oc      4.1          8                     5100                      07 18.8           -24 57           CMa              Sculptor Galaxy
+     65  C65   253      Sp      7.1          25x7                  9800000                   00 47.6           -25 17           Scl              Sculptor Galaxy
+     66  C66   5694     Gc      10.2         3.6                   113000                    14 39.6           -26 32           Hya              Spiral Galaxy
+     67  C67   1097     Sb      9.2          9x6                   47000000                  02 46.3           -30 17           For              R CrA Nebula
+     68  C68   6729     Bn      9.7          1.0                   424                       19 01.9           -36 57           CrA              Bug Nebula
+     69  C69   6302     Pl      12.8         0.8                   5200                      17 13.7           -37 06           Sco              Bug Nebula
+     70  C70   300      Sp      8.1          20x13                 3900000                   00 54.9           -37 41           Scl              Open Cluster
+     71  C71   2477     Oc      5.8          27                    3700                      07 52.3           -38 33           Pup              Galaxy In Scl Group
+     72  C72   55       Sb      8.2          32x6                  4200000                   00 14.9           -39 11           Scl              Dun 508 Globular Cluster
+     73  C73   1851     Gc      7.3          11                    39400                     05 14.1           -40 03           Col              Eight-Burst Planetary
+     74  C74   3132     Pl      8.2          0.8                   2000                      10 07.7           -40 26           Vel              Eight Burst Nebula
+     75  C75   6124     Oc      5.8          29                    1500                      16 25.6           -40 40           Sco              Cluster
+     76  C76   6231     Oc      2.6          15                    6000                      16 54.0           -41 48           Sco              Cen A Galaxy
+     77  C77   5128     Px      7.0          18x14                 16000000                  13 25.5           -43 01           Cen              Centaurus A
+     78  C78   6541     Gc      6.6          13                    22300                     18 08.0           -43 42           CrA              Globular Cluster
+     79  C79   3201     Gc      6.7          18                    17000                     10 17.6           -46 25           Vel              Omega Centauri Globular
+     80  C80   5139     Gc      3.6          36                    17300                     13 26.8           -47 29           Cen              Omega Centauri
+     81  C81   6352     Gc      8.1          7                     18600                     17 25.5           -48 25           Ara              Open Cluster
+     82  C82   6193     Oc      5.2          15                    4300                      16 41.3           -48 46           Ara              Spiral Galaxy
+     83  C83   4945     Sp      9.5          20x4                  17000000                  13 05.4           -49 28           Cen              Globular Cluster
+     84  C84   5286     Gc      7.6          9                     36000                     13 46.4           -51 22           Cen              Omicron Vel Open Cluster
+     85  C85   IC 2391  Oc      2.5          50                    500                       08 40.2           -53 04           Vel              Omicron Vel Cluster
+     86  C86   6397     Gc      5.6          26                    7500                      17 40.7           -53 40           Ara              Globular Cluster
+     87  C87   1261     Gc      8.4          7                     55500                     03 12.3           -55 13           Hor              Open Cluster
+     88  C88   5823     Oc      7.9          10                    3400                      15 05.7           -55 36           Cir              S Nor Open Cluster
+     89  C89   6087     Oc      5.4          12                    3300                      16 18.9           -57 54           Nor              S Norma Cluster
+     90  C90   2867     Pl      9.7          0.2                   5500                      09 21.4           -58 19           Car              Open Cluster
+     91  C91   3532     Oc      3.0          55                    1600                      11 06.4           -58 40           Car              Eta Carinae Nebula
+     92  C92   3372     Bn      6.2          120x120               7500                      10 43.8           -59 52           Car              Eta Carinae Nebula
+     93  C93   6752     Gc      5.4          20                    13000                     19 10.9           -59 59           Pav              Kappa Crucis Cluster (Jewel Box)
+     94  C94   4755     Oc      4.2          10                    4900                      12 53.6           -60 20           Cru              Jewel Box
+     95  C95   6025     Oc      5.1          12                    2500                      16 03.7           -60 30           TrA              Open Cluster
+     96  C96   2516     Oc      3.8          30                    1300                      07 58.3           -60 52           Car              Open Cluster
+     97  C97   3766     Oc      5.3          12                    5800                      11 36.1           -61 37           Cen              Open Cluster
+     98  C98   4609     Oc      6.9          5                     4200                      12 42.3           -62 58           Cru              Coal Sack DN
+     99  C99   -        Dn      -            400x300               610                       12 53.0           -63 00           Cru              Coalsack Nebula
+    100  C100  IC 2944  Oc      4.5          15                    6000                      11 36.6           -63 02           Cen              Lambda Centauri Nebula
+    101  C101  6744     Sb      9.0          16x10                 34000000                  19 09.8           -63 51           Pav              Theta Car Open Cluster
+    102  C102  IC 2602  Oc      1.9          50                    492                       10 43.2           -64 24           Car              Theta Car Cluster
+    103  C103  2070     Bn      1.0          40x25                 170000                    05 38.7           -69 06           Dor              Tarantula Nebula
+    104  C104  362      Gc      6.6          13                    27700                     01 03.2           -70 51           Tuc              Globular Cluster
+    105  C105  4833     Gc      7.3          14                    19600                     12 59.6           -70 53           Mus              47 Tucanae Globular
+    106  C106  104      Gc      4.0          31                    14700                     00 24.1           -72 05           Tuc              47 Tucanae
+    107  C107  6101     Gc      9.3          11                    49900                     16 25.8           -72 12           Aps              Globular Cluster
+    108  C108  4372     Gc      7.8          19                    18900                     12 25.8           -72 40           Mus              Globular Cluster
+    109  C109  3195     Pl      11.6         40_35                 5400                      10 09.5           -80 52           Cha              Planetary Nebula

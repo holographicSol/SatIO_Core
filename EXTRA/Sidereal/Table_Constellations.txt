@@ -1,0 +1,90 @@
+  Index  Constellation        IAU Abbrev.    Genitive             Description             Location      Area (Deg.²)    Area (%)    Area Rank
+-------  -------------------  -------------  -------------------  ----------------------  ----------  --------------  ----------  -----------
+      1  Andromeda            And            Andromedae           Chained Maiden          N                      722        1.75           19
+      2  Antlia               Ant            Antliae              Air Pump                S                      239        0.58           62
+      3  Apus                 Aps            Apodis               Bird of Paradise        S                      206        0.5            67
+      4  Aquarius             Aqr            Aquarii              Water Carrier           S/Eq/Z                 980        2.38           10
+      5  Aquila               Aql            Aquilae              Eagle                   Eq                     652        1.58           22
+      6  Ara                  Ara            Arae                 Altar                   S                      237        0.57           63
+      7  Aries                Ari            Arietis              Ram                     N/Z                    441        1.07           39
+      8  Auriga               Aur            Aurigae              Charioteer              N                      657        1.59           21
+      9  Bootes               Boo            Bootis               Herdsman                N                      907        2.2            13
+     10  Caelum               Cae            Caeli                Chisel                  S                      125        0.3            81
+     11  Camelopardalis       Cam            Camelopardalis       Giraffe                 N                      757        1.84           18
+     12  Cancer               Cnc            Cancri               Crab                    N/Z                    506        1.23           31
+     13  Canes Venatici       CVn            Canun Venaticorum    Hunting Dogs            N                      465        1.13           38
+     14  Canis Major          CMa            Canis Majoris        Greater Dog             S                      380        0.92           43
+     15  Canis Minor          CMi            Canis Minoris        Lesser Dog              N/Eq                   183        0.44           71
+     16  Capricornus          Cap            Capricorni           Sea Goat                S/Z                    414        1              40
+     17  Carina               Car            Carinae              Keel                    S                      494        1.2            34
+     18  Cassiopeia           Cas            Cassiopeiae          Seated Queen            N                      598        1.45           25
+     19  Centaurus            Cen            Centauri             Centaur                 S                     1060        2.57            9
+     20  Cepheus              Cep            Cephei               King                    S                      588        1.43           27
+     21  Cetus                Cet            Ceti                 Sea Monster             Eq                    1231        2.98            4
+     22  Chamaleon            Cha            Chamaleontis         Chameleon               S                      132        0.32           78
+     23  Circinus             Cir            Circini              Compasses               S                       93        0.23           85
+     24  Columba              Col            Columbae             Dove                    S                      270        0.65           54
+     25  Coma Berenices       Com            Comae Berenices      Berenice's Hair         N                      386        0.94           42
+     26  Corona Australis     CrA            Coronae Australis    Southern Crown          S                      128        0.31           80
+     27  Corona Borealis      CrB            Coronae Borealis     Northern Crown          N                      179        0.43           72
+     28  Corvus               Crv            Corvi                Crow                    S                      184        0.45           70
+     29  Crater               Crt            Crateris             Cup                     S                      282        0.68           53
+     30  Crux                 Cru            Crucis               Southern Cross          S                       68        0.16           88
+     31  Cygnus               Cyg            Cygni                Swan                    N                      804        1.95           16
+     32  Delphinus            Del            Delphini             Dolphin                 N                      189        0.46           69
+     33  Dorado               Dor            Doradus              Swordfish               S                      179        0.43           73
+     34  Draco                Dra            Draconis             Dragon                  N                     1083        2.63            8
+     35  Equuleus             Equ            Equulei              Little Horse            N                       72        0.17           87
+     36  Eridanus             Eri            Eridani              River                   S/Eq                  1138        2.76            6
+     37  Fornax               For            Fornacis             Furnace                 S                      398        0.96           41
+     38  Gemini               Gem            Geminorum            Twins                   N/Z                    514        1.25           30
+     39  Grus                 Gru            Gruis                Crane                   S                      366        0.89           45
+     40  Hercules             Her            Herculis             Strong Man              N                     1225        2.97            5
+     41  Horologium           Hor            Horologii            Clock                   S                      249        0.6            58
+     42  Hydra                Hya            Hydrae               Water Serpent (female)  S/Eq                  1303        3.16            1
+     43  Hydrus               Hyi            Hydri                Water Serpent (male)    S                      243        0.59           61
+     44  Indus                Ind            Indi                 Indian                  S                      294        0.71           49
+     45  Lacerta              Lac            Lacertae             Lizard                  N                      201        0.49           68
+     46  Leo                  Leo            Leonis               Lion                    N/Eq/Z                 947        2.3            12
+     47  Leo Minor            LMi            Leonis Minoris       Small Lion              N                      232        0.56           64
+     48  Lepus                Lep            Leporis              Hare                    S                      290        0.7            51
+     49  Libra                Lib            Librae               Balance                 S/Z                    538        1.3            29
+     50  Lupus                Lup            Lupi                 Wolf                    S                      334        0.81           46
+     51  Lynx                 Lyn            Lyncis               Lynx                    N                      545        1.32           28
+     52  Lyra                 Lyr            Lyrae                Lyre                    N                      286        0.69           52
+     53  Mensa                Men            Mensae               Table                   S                      153        0.37           75
+     54  Microscopium         Mic            Microscopii          Microscope              S                      210        0.51           66
+     55  Monoceros            Mon            Monocerotis          Unicorn                 Eq                     482        1.17           35
+     56  Musca                Mus            Muscae               Fly                     S                      138        0.33           77
+     57  Norma                Nor            Normae               Square                  S                      165        0.4            74
+     58  Octans               Oct            Octantis             Octant                  S                      291        0.71           50
+     59  Ophiucus             Oph            Ophiuchi             Serpent Bearer          Eq                     948        2.3            11
+     60  Orion                Ori            Orionis              Hunter                  Eq                     594        1.44           26
+     61  Pavo                 Pav            Pavonis              Peacock                 S                      378        0.92           44
+     62  Pegasus              Peg            Pegasi               Winged Horse            N                     1121        2.72            7
+     63  Perseus              Per            Persei               Hero                    N                      615        1.49           24
+     64  Phoenix              Phe            Phoenicis            Fire Bird               S                      469        1.14           37
+     65  Pictor               Pic            Pictoris             Easel                   S                      247        0.6            59
+     66  Pisces               Psc            Piscium              Fishes                  N/Eq/Z                 889        2.15           14
+     67  Pisces Austrinus     PsA            Pisces Austrini      Southern Fish           S                      245        0.59           60
+     68  Puppis               Pup            Puppis               Stern                   S                      673        1.63           20
+     69  Pyxis                Pyx            Pyxidis              Compass                 S                      221        0.54           65
+     70  Reticulum            Ret            Reticuli             Reticle                 S                      114        0.28           82
+     71  Sagitta              Sge            Sagittae             Arrow                   N                       80        0.19           86
+     72  Sagittarius          Sgr            Sagittarii           Archer                  S/Z                    867        2.1            15
+     73  Scorpius             Sco            Scorpii              Scorpion                S/Z                    497        1.2            33
+     74  Sculptor             Scl            Sculptoris           Sculptor                S                      475        1.15           36
+     75  Scutum               Sct            Scuti                Shield                  S                      109        0.26           84
+     76  Serpens              Ser            Serpentis            Serpent                 Eq                     637        1.54           23
+     77  Sextans              Sex            Sextantis            Sextant                 Eq                     314        0.76           47
+     78  Taurus               Tau            Tauri                Bull                    N/Eq/Z                 797        1.93           17
+     79  Telescopium          Tel            Telescopii           Telescope               S                      252        0.61           57
+     80  Triangulum           Tri            Trianguli            Triangle                N                      132        0.32           79
+     81  Triangulum Australe  TrA            Trianguli Australis  Southern Triangle       S                      110        0.27           83
+     82  Tucana               Tuc            Tucanae              Toucan                  S                      295        0.72           48
+     83  Ursa Major           UMa            Ursae Majoris        Great Bear              N                     1280        3.1             3
+     84  Ursa Minor           UMi            Ursae Minoris        Little Bear             N                      256        0.62           56
+     85  Vela                 Vel            Velorum              Sails                   S                      500        1.21           32
+     86  Virgo                Vir            Virginis             Virgin                  Eq/Z                  1294        3.14            2
+     87  Volans               Vol            Volantis             Flying Fish             S                      141        0.34           76
+     88  Vulpecula            Vul            Vulpeculae           Fox                     N                      268        0.65           55
