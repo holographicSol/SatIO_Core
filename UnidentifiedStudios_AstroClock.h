@@ -64,4 +64,8 @@ void astro_clock_update(void);
 // Selects the celestial object, or indicator, shown in the target data box.
 void astro_clock_set_target(AstroTarget target_key);
 
+// Enables or disables click handling on every astro clock object (used to
+// suppress clicks while an overlay, e.g. the celestial sphere, sits on top).
+void astro_clock_set_clickable(bool enabled);
+
 #endif

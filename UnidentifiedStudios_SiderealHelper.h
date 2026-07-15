@@ -188,7 +188,7 @@ extern SiderealObjectSingle siderealObjectSingle;
 // starNavSweep() scans a square grid of Alt/Az points within
 // +/- STARNAV_SWEEP_RANGE_DEG (degrees, both axes) of the current
 // gyroscopic attitude's Alt/Az, stepping by STARNAV_SWEEP_STEP_DEG.
-#define STARNAV_SWEEP_RANGE_DEG 10.0 // appature
+#define STARNAV_SWEEP_RANGE_DEG 15.0 // appature
 #define STARNAV_SWEEP_STEP_DEG  5.0  // resolution degrees (lower = higher resolution, higher performance impact!)
 typedef struct SiderealObjectSweep {
     char object_name[MAX_STARNAV_OBJECTS][MAX_GLOBAL_ELEMENT_SIZE];
@@ -210,7 +210,6 @@ typedef struct SiderealObjectSweep {
     double object_dist[MAX_STARNAV_OBJECTS];
 } SiderealObjectSweep;
 extern SiderealObjectSweep siderealObjectSweep;
-
 
 
 // ----------------------------------------------------------------------------------------

@@ -64,6 +64,7 @@
 #include "UnidentifiedStudios_TaskHandler.h"
 #include "UnidentifiedStudios_I2C.h"
 #include "UnidentifiedStudios_AstroClock.h"
+#include "UnidentifiedStudios_CelestialSphere.h"
 #include "UnidentifiedStudios_SatIOFile.h"
 #include "UnidentifiedStudios_SatIOLVGL.h"
 
@@ -16740,6 +16741,7 @@ void cleanup_loading_image() {
 void lvgl_cleanup_all() {
     cleanup_loading_image();
     astro_clock_end();
+    celestial_sphere_end();
 }
 
 /** -------------------------------------------------------------------------------------
@@ -16866,6 +16868,29 @@ void display_loading_screen() {
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief Tracks whether the celestial sphere overlay is currently shown on
+ * the home screen; toggled by celestial_sphere_toggle_btn_event_cb().
+ */
+static bool celestial_sphere_overlay_visible = false;
+
+/** -------------------------------------------------------------------------------------
+ * @brief Toggles the celestial sphere overlay on/off. While shown, it sits on
+ * top of (and is made semi-transparent over) the astro clock, and the astro
+ * clock's own click handling is disabled so the two don't fight over clicks.
+ */
+static void celestial_sphere_toggle_btn_event_cb(lv_event_t * e) {
+    celestial_sphere_overlay_visible = !celestial_sphere_overlay_visible;
+
+    celestial_sphere_set_visible(celestial_sphere_overlay_visible);
+    astro_clock_set_clickable(!celestial_sphere_overlay_visible);
+
+    lv_obj_t * const label = static_cast<lv_obj_t *>(lv_event_get_user_data(e));
+    if (label != nullptr) {
+        lv_label_set_text(label, celestial_sphere_overlay_visible ? "Sphere: ON" : "Sphere: OFF");
+    }
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Show Home Screen.
  */
 void display_home_screen()
@@ -16904,6 +16929,49 @@ void display_home_screen()
         0,               // pos y
         90               // angle offset
     );
+
+    // -------------------------------- Celestial Sphere ----------------------------------- //
+
+    /* UNCOMMENT TO USE CELESTIAL SPHERE (IN EARLY DEVELOPMENT) */
+
+    // // Initialize celestial sphere on main screen
+    // celestial_sphere_begin(
+    //     home_screen,
+    //     550,                         // outline width (total available width)
+    //     550,                         // outline height (total available height)
+    //     550,                         // sphere width (span X of total available width)
+    //     550,                         // sphere height (span Y of total available height)
+    //     LV_ALIGN_CENTER,             // alignment
+    //     0,                           // pos x
+    //     0,                           // pos y
+    //     CELESTIAL_SPHERE_MODE_GYRO   // initial mode
+    // );
+
+    // // Fresh screen instance: celestial_sphere_begin() always starts hidden,
+    // // so make sure the toggle button's tracked state agrees with that.
+    // celestial_sphere_overlay_visible = false;
+
+    // // -------------------------------- Celestial Sphere Toggle ----------------------------------- //
+
+    // // TODO: toggle celestial_sphere_begin/end on show/hide
+    // button_t celestial_sphere_toggle_btn = create_button(
+    //     home_screen,
+    //     140,                   // width px
+    //     40,                    // height px
+    //     LV_ALIGN_BOTTOM_MID,   // alignment
+    //     10,                    // pos x
+    //     -20,                   // pos y
+    //     "Sphere: OFF",
+    //     LV_TEXT_ALIGN_CENTER,
+    //     false,                 // show scrollbar
+    //     false,                 // enable scrolling
+    //     &font_cobalt_alien_17,
+    //     radius_rounded,
+    //     default_btn_bg,
+    //     default_btn_off_value_hue
+    // );
+    // lv_obj_add_event_cb(celestial_sphere_toggle_btn.button, celestial_sphere_toggle_btn_event_cb,
+    //                      LV_EVENT_CLICKED, celestial_sphere_toggle_btn.label);
 }
 
 /** -------------------------------------------------------------------------------------

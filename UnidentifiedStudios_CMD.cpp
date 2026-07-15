@@ -3842,31 +3842,32 @@ void outputStat(void) {
           };
           const int numColumns = sizeof(columns) / sizeof(columns[0]);
 
-          printStatSeparator();
-          printf(STAT_LABEL_BLANK_FMT, "");
-          for (int i = 0; i < numColumns; i++) {printf(colFormats[i], columns[i]);}
-          printf("\n");
-          printStatSeparator();
-          for (int i = 0; i < MAX_STARNAV_OBJECTS; i++) {
-              if ((siderealObjectSweep.object_table_i[i] < 0) || (siderealObjectSweep.object_number[i] < 0)) {
-                  break;
-              }
-              char label[STAT_LABEL_WIDTH];
-              (void)snprintf(label, sizeof(label), "StarNav%d", i);
-              printf(STAT_LABEL_FMT, label);
-              printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_table_i[i]);
-              printf(STAT_STARNAV_TABLE_COL_FORMAT_S, siderealObjectSweep.object_table_name[i]);
-              printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_number[i]);
-              printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_name[i]);
-              printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_type[i]);
-              printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_con[i]);
-              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_dist[i]);
-              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_az[i]);
-              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_alt[i]);
-              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_r[i]);
-              printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_s[i]);
-              printf("\n");
-          }
+          // uncomment to print results from StarNav sweep
+          // printStatSeparator();
+          // printf(STAT_LABEL_BLANK_FMT, "");
+          // for (int i = 0; i < numColumns; i++) {printf(colFormats[i], columns[i]);}
+          // printf("\n");
+          // printStatSeparator();
+          // for (int i = 0; i < MAX_STARNAV_OBJECTS; i++) {
+          //     if ((siderealObjectSweep.object_table_i[i] < 0) || (siderealObjectSweep.object_number[i] < 0)) {
+          //         break;
+          //     }
+          //     char label[STAT_LABEL_WIDTH];
+          //     (void)snprintf(label, sizeof(label), "StarNav%d", i);
+          //     printf(STAT_LABEL_FMT, label);
+          //     printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_table_i[i]);
+          //     printf(STAT_STARNAV_TABLE_COL_FORMAT_S, siderealObjectSweep.object_table_name[i]);
+          //     printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_number[i]);
+          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_name[i]);
+          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_type[i]);
+          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_con[i]);
+          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_dist[i]);
+          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_az[i]);
+          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_alt[i]);
+          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_r[i]);
+          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_s[i]);
+          //     printf("\n");
+          // }
       }
     #endif // SatIO_USE_UNIVERSE
   }

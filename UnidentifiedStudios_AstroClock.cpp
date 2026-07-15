@@ -1456,6 +1456,37 @@ void astro_clock_set_target(const AstroTarget target) {
     }
 }
 
+// ============================================================================
+// SET CLICKABLE
+// ============================================================================
+// Adds or removes LV_OBJ_FLAG_CLICKABLE on obj; a no-op if obj is nullptr.
+static void set_obj_clickable(lv_obj_t * const obj, const bool enabled) {
+    if (obj != nullptr) {
+        if (enabled) {
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+        } else {
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+        }
+    }
+}
+
+// Enables or disables click handling on astro_container and every celestial
+// object/indicator, without touching whatever target is currently selected.
+void astro_clock_set_clickable(const bool enabled) {
+    set_obj_clickable(astro_container, enabled);
+    set_obj_clickable(sun.obj, enabled);
+    set_obj_clickable(mercury.obj, enabled);
+    set_obj_clickable(venus.obj, enabled);
+    set_obj_clickable(earth.obj, enabled);
+    set_obj_clickable(luna.obj, enabled);
+    set_obj_clickable(mars.obj, enabled);
+    set_obj_clickable(jupiter.obj, enabled);
+    set_obj_clickable(saturn.obj, enabled);
+    set_obj_clickable(uranus.obj, enabled);
+    set_obj_clickable(neptune.obj, enabled);
+    set_obj_clickable(meteors_indicator.label, enabled);
+}
+
 /** ---------------------------------------------------------------------------------------
  * @brief Astro clock animation callback to update positions.
  */
