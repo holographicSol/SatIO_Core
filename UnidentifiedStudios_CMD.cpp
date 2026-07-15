@@ -3610,6 +3610,12 @@ void outputSerialGPIOPEnput(void) {
 #define STAT_GYRO_COL_FORMAT_S  "%-30s"
 #define STAT_GYRO_COL_FORMAT_F  "%-30.2f"
 #define STAT_GYRO_COL_FORMAT_LD "%-30ld"
+// StarNav Sweep table: Table needs 1 extra char over STAT_WIDE_COL_WIDTH, and
+// Name/Type/Constellation need 8 extra, to fit their longer catalog strings.
+#define STAT_STARNAV_TABLE_COL_WIDTH 21
+#define STAT_STARNAV_TABLE_COL_FORMAT_S "%-21s"
+#define STAT_STARNAV_WIDE_COL_WIDTH 28
+#define STAT_STARNAV_WIDE_COL_FORMAT_S  "%-28s"
 // Every table in outputStat() shares one separator width: the widest table
 // (the GPIOPE/Computer Assist paged channel dumps, STAT_SWITCHES_PER_PAGE
 // columns wide) sets the width for every horizontal rule, not just its own.
@@ -3821,11 +3827,24 @@ void outputStat(void) {
       // the first invalid slot marks the end of the results.
       {
           const char* columns[] = {"Table Index", "Table", "Number", "Name", "Type", "Constellation", "Distance", "Azimuth", "Altitude", "Rise", "Set"};
+          const char* colFormats[] = {
+              STAT_WIDE_COL_FORMAT_S,          // Table Index
+              STAT_STARNAV_TABLE_COL_FORMAT_S, // Table (+1 char)
+              STAT_WIDE_COL_FORMAT_S,          // Number
+              STAT_STARNAV_WIDE_COL_FORMAT_S,  // Name (+8 chars)
+              STAT_STARNAV_WIDE_COL_FORMAT_S,  // Type (+8 chars)
+              STAT_STARNAV_WIDE_COL_FORMAT_S,  // Constellation (+8 chars)
+              STAT_WIDE_COL_FORMAT_S,          // Distance
+              STAT_WIDE_COL_FORMAT_S,          // Azimuth
+              STAT_WIDE_COL_FORMAT_S,          // Altitude
+              STAT_WIDE_COL_FORMAT_S,          // Rise
+              STAT_WIDE_COL_FORMAT_S,          // Set
+          };
           const int numColumns = sizeof(columns) / sizeof(columns[0]);
 
           printStatSeparator();
           printf(STAT_LABEL_BLANK_FMT, "");
-          for (int i = 0; i < numColumns; i++) {printf(STAT_WIDE_COL_FORMAT_S, columns[i]);}
+          for (int i = 0; i < numColumns; i++) {printf(colFormats[i], columns[i]);}
           printf("\n");
           printStatSeparator();
           for (int i = 0; i < MAX_STARNAV_OBJECTS; i++) {
@@ -3836,11 +3855,11 @@ void outputStat(void) {
               (void)snprintf(label, sizeof(label), "StarNav%d", i);
               printf(STAT_LABEL_FMT, label);
               printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_table_i[i]);
-              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_table_name[i]);
+              printf(STAT_STARNAV_TABLE_COL_FORMAT_S, siderealObjectSweep.object_table_name[i]);
               printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_number[i]);
-              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_name[i]);
-              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_type[i]);
-              printf(STAT_WIDE_COL_FORMAT_S,  siderealObjectSweep.object_con[i]);
+              printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_name[i]);
+              printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_type[i]);
+              printf(STAT_STARNAV_WIDE_COL_FORMAT_S, siderealObjectSweep.object_con[i]);
               printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_dist[i]);
               printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_az[i]);
               printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_alt[i]);
