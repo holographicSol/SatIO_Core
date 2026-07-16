@@ -43,6 +43,10 @@ static int32_t SPHERE_HEIGHT = 480;
 static int32_t OUTLINE_WIDTH  = 550;
 static int32_t OUTLINE_HEIGHT = 550;
 
+// Side length of the square parent container (square_container) that hosts
+// sphere_container and the gyro attitude readout.
+static int32_t SQUARE_CONTAINER_SIZE = 550;
+
 // Center of the celestial sphere display (the boresight/crosshair position).
 static int32_t SPHERE_CENTER_X = OUTLINE_WIDTH / 2;
 static int32_t SPHERE_CENTER_Y = OUTLINE_HEIGHT / 2;
@@ -74,6 +78,11 @@ static constexpr int32_t CROSSHAIR_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
+
+// How much smaller sphere_container is than the square parent container that
+// hosts it (split evenly by LVGL's center alignment), leaving a margin where
+// the gyro attitude readout sits.
+static constexpr int32_t SPHERE_CONTAINER_INSET_PX = 52;
 
 // Overall opacity of the whole overlay (container + every child, composited
 // as one layer), so whatever sits behind it -- e.g. the astro clock -- stays
@@ -121,12 +130,27 @@ static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 // ============================================================================
 // LVGL OBJECTS
 // ============================================================================
+// Square parent container: hosts sphere_container (centered, slightly
+// smaller) and the gyro attitude readout in its top-right corner. This is
+// the object celestial_sphere_set_visible toggles, since it composites
+// sphere_container and the readout together as one overlay.
+static lv_obj_t * volatile square_container = nullptr;
 static lv_obj_t * volatile sphere_container = nullptr;
 static lv_obj_t * aperture_boundary = nullptr;
 static lv_obj_t * crosshair_h = nullptr;
 static lv_obj_t * crosshair_v = nullptr;
 static lv_point_precise_t crosshair_h_points[2];
 static lv_point_precise_t crosshair_v_points[2];
+
+// Live Alt/Az/RA/Dec readout for siderealPlanetData.gyro_0_sidereal_attitude,
+// shown regardless of current_mode (it always reflects the gyro, not
+// whichever attitude currently supplies the boresight). Split across two
+// labels: Alt/Az top-mid, RA/Dec bottom-mid.
+static lv_obj_t * gyro_alt_az_label = nullptr;
+static lv_obj_t * gyro_ra_dec_label = nullptr;
+
+// Count of objects currently plotted (within the aperture), top-left of square_container.
+static lv_obj_t * objects_found_label = nullptr;
 
 // Highlights whichever marker is currently selected.
 static lv_obj_t * selection_box = nullptr;
@@ -286,6 +310,48 @@ static void update_target_data_content(const int32_t object_index) {
 }
 
 // ============================================================================
+// UPDATE GYRO ATTITUDE LABEL
+// ============================================================================
+// Refreshes the top-mid (Alt/Az) and bottom-mid (RA/Dec) readouts from
+// siderealPlanetData.gyro_0_sidereal_attitude.
+static void update_gyro_attitude_label(void) {
+    if (gyro_alt_az_label != nullptr) {
+        char buf[80];
+        snprintf(buf, sizeof(buf),
+            "Alt %.2f\n"
+            "Az  %.2f",
+            siderealPlanetData.gyro_0_sidereal_attitude.alt,
+            siderealPlanetData.gyro_0_sidereal_attitude.az
+        );
+        lv_label_set_text(gyro_alt_az_label, buf);
+    }
+
+    if (gyro_ra_dec_label != nullptr) {
+        char buf[160];
+        snprintf(buf, sizeof(buf),
+            "RA %s\n"
+            "Dec %s",
+            siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str,
+            siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str
+        );
+        lv_label_set_text(gyro_ra_dec_label, buf);
+    }
+}
+
+// ============================================================================
+// UPDATE OBJECTS FOUND LABEL
+// ============================================================================
+// Refreshes the top-left readout with the count of objects currently
+// plotted (i.e. within the aperture that populated siderealObjectSweep).
+static void update_objects_found_label(const int32_t count) {
+    if (objects_found_label != nullptr) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), " Objects %ld", static_cast<long>(count));
+        lv_label_set_text(objects_found_label, buf);
+    }
+}
+
+// ============================================================================
 // SET TARGET
 // ============================================================================
 // Selects object_index as the active target: hides the selection box/data
@@ -426,6 +492,8 @@ void celestial_sphere_update(void) {
     if (sphere_container != nullptr) {
         lv_timer_pause(sphere_timer);
 
+        update_gyro_attitude_label();
+
         const double center_alt = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
             ? siderealPlanetData.local_sidereal_attitude.alt
             : siderealPlanetData.gyro_0_sidereal_attitude.alt;
@@ -437,6 +505,8 @@ void celestial_sphere_update(void) {
         // by cos(center_alt) keeps the projection spatially consistent
         // instead of stretching objects near the zenith horizontally.
         const float cos_center_alt = cosf(deg2rad(static_cast<float>(center_alt)));
+
+        int32_t found_count = 0;
 
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
             ObjectMarker * const marker = &markers[i];
@@ -462,6 +532,8 @@ void celestial_sphere_update(void) {
                         lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
                 } else {
+                    found_count++;
+
                     marker->x = SPHERE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
                     // Screen Y grows downward while altitude grows upward, so invert.
                     marker->y = SPHERE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
@@ -476,6 +548,8 @@ void celestial_sphere_update(void) {
                 }
             }
         }
+
+        update_objects_found_label(found_count);
 
         // -----------------------------------------------------------------
         // REFRESH ACTIVE TARGET
@@ -541,11 +615,22 @@ void celestial_sphere_begin(
     if (ok) {
         celestial_sphere_end();
 
-        SPHERE_WIDTH = sphere_w_px;
-        SPHERE_HEIGHT = sphere_h_px;
+        // The parent container is forced square (shorter of the two outline
+        // dimensions), and sphere_container is sized to fit inside it with
+        // SPHERE_CONTAINER_INSET_PX to spare -- capped by the caller's sphere
+        // dimensions too, so sphere_w_px/sphere_h_px can still shrink it
+        // further if requested.
+        SQUARE_CONTAINER_SIZE = (outline_w_px < outline_h_px) ? outline_w_px : outline_h_px;
+        const int32_t requested_sphere_size = (sphere_w_px < sphere_h_px) ? sphere_w_px : sphere_h_px;
+        const int32_t inner_size = (requested_sphere_size < (SQUARE_CONTAINER_SIZE - SPHERE_CONTAINER_INSET_PX))
+            ? requested_sphere_size
+            : (SQUARE_CONTAINER_SIZE - SPHERE_CONTAINER_INSET_PX);
 
-        OUTLINE_WIDTH = outline_w_px;
-        OUTLINE_HEIGHT = outline_h_px;
+        SPHERE_WIDTH = inner_size;
+        SPHERE_HEIGHT = inner_size;
+
+        OUTLINE_WIDTH = inner_size;
+        OUTLINE_HEIGHT = inner_size;
 
         SPHERE_CENTER_X = OUTLINE_WIDTH / 2;
         SPHERE_CENTER_Y = OUTLINE_HEIGHT / 2;
@@ -556,8 +641,31 @@ void celestial_sphere_begin(
         current_mode = initial_mode;
         current_target_index = -1;
 
-        // Celestial Sphere Container
-        sphere_container = lv_obj_create(parent);
+        // Square Parent Container
+        square_container = lv_obj_create(parent);
+        ok = (square_container != nullptr);
+        if (!ok) {
+            printf("ERROR: celestial_sphere_begin failed to create square_container\n");
+        }
+    }
+
+    if (ok) {
+        // Style Square Parent Container
+        lv_obj_remove_style_all(square_container);
+        lv_obj_set_size(square_container, SQUARE_CONTAINER_SIZE, SQUARE_CONTAINER_SIZE);
+        lv_obj_align(square_container, alignment, pos_x, pos_y);
+        lv_obj_set_style_bg_opa(square_container, LV_OPA_0, 0);
+        lv_obj_set_style_border_width(square_container, 0, 0);
+        lv_obj_remove_flag(square_container, LV_OBJ_FLAG_SCROLLABLE);
+
+        // Composite the whole overlay (container + every child) as one
+        // partially transparent layer, so whatever sits behind it is still
+        // visible through it; starts hidden until celestial_sphere_set_visible(true).
+        lv_obj_set_style_opa(square_container, CONTAINER_OPA, 0);
+        lv_obj_add_flag(square_container, LV_OBJ_FLAG_HIDDEN);
+
+        // Celestial Sphere Container (slightly smaller, centered inside the square parent)
+        sphere_container = lv_obj_create(square_container);
         ok = (sphere_container != nullptr);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin failed to create sphere_container\n");
@@ -568,16 +676,33 @@ void celestial_sphere_begin(
         // Style Celestial Sphere Container
         lv_obj_remove_style_all(sphere_container);
         lv_obj_set_size(sphere_container, OUTLINE_WIDTH, OUTLINE_HEIGHT);
-        lv_obj_align(sphere_container, alignment, pos_x, pos_y);
+        lv_obj_align(sphere_container, LV_ALIGN_CENTER, 0, 0);
         lv_obj_set_style_bg_opa(sphere_container, LV_OPA_0, 0);
         lv_obj_set_style_border_width(sphere_container, 0, 0);
         lv_obj_remove_flag(sphere_container, LV_OBJ_FLAG_SCROLLABLE);
 
-        // Composite the whole overlay (container + every child) as one
-        // partially transparent layer, so whatever sits behind it is still
-        // visible through it; starts hidden until celestial_sphere_set_visible(true).
-        lv_obj_set_style_opa(sphere_container, CONTAINER_OPA, 0);
-        lv_obj_add_flag(sphere_container, LV_OBJ_FLAG_HIDDEN);
+        // Gyro attitude readout: Alt/Az top-mid, RA/Dec bottom-mid of the square parent container.
+        gyro_alt_az_label = lv_label_create(square_container);
+        lv_obj_set_style_text_font(gyro_alt_az_label, &font_unscii_12, LV_PART_MAIN);
+        lv_obj_set_style_text_color(gyro_alt_az_label, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_text_align(gyro_alt_az_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+        lv_obj_align(gyro_alt_az_label, LV_ALIGN_TOP_MID, 0, DATA_BOX_MARGIN);
+
+        gyro_ra_dec_label = lv_label_create(square_container);
+        lv_obj_set_style_text_font(gyro_ra_dec_label, &font_unscii_12, LV_PART_MAIN);
+        lv_obj_set_style_text_color(gyro_ra_dec_label, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_text_align(gyro_ra_dec_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+        lv_obj_align(gyro_ra_dec_label, LV_ALIGN_BOTTOM_MID, 0, -DATA_BOX_MARGIN);
+
+        update_gyro_attitude_label();
+
+        // Objects-found readout, top-left corner of the square parent container.
+        objects_found_label = lv_label_create(square_container);
+        lv_obj_set_style_text_font(objects_found_label, &font_unscii_12, LV_PART_MAIN);
+        lv_obj_set_style_text_color(objects_found_label, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_text_align(objects_found_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+        lv_obj_align(objects_found_label, LV_ALIGN_TOP_LEFT, DATA_BOX_MARGIN, DATA_BOX_MARGIN);
+        update_objects_found_label(0);
 
         aperture_boundary = lv_obj_create(sphere_container);
         ok = (aperture_boundary != nullptr);
@@ -682,11 +807,11 @@ void celestial_sphere_begin(
 // running either way, so the marker positions are already current whenever
 // the overlay is shown again.
 void celestial_sphere_set_visible(const bool visible) {
-    if (sphere_container != nullptr) {
+    if (square_container != nullptr) {
         if (visible) {
-            lv_obj_clear_flag(sphere_container, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(square_container, LV_OBJ_FLAG_HIDDEN);
         } else {
-            lv_obj_add_flag(sphere_container, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(square_container, LV_OBJ_FLAG_HIDDEN);
         }
     }
 }
