@@ -796,7 +796,7 @@ void celestial_sphere_begin(
         lv_obj_add_event_cb(sphere_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
 
         // Create timer for celestial sphere updates
-        sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 500, nullptr);
+        sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 1000, nullptr);
     }
 }
 
