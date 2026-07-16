@@ -13,7 +13,7 @@ SatIO is a realtime data hive & programmable switch, for building devices with a
 
 2. **Value Utilization**  — 
 
-- **The Matrix** — utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
+- **The Matrix** — The number of possible combinations that can be entered into the matrix may dwarf the estimated ~10⁸⁰ atoms in the observable universe by roughly 8,000 orders of magnitude. The matrix utilizes the values from across the system, to switch output high/low/analog/mapped, according to programmable
    logic whereby any value in the system can be compared to any other value in the system and or comapred to a user defined
    value. The comaprisons use some basic operators, <>==, and in range. Every value in the matrix is treated as a double
    and there are around 120 system values that can be used in the matrix as 'matrix functions'. Each matrix function accepts function values as X,Y,Z, that are also stored in a matrix (See usage below for more matrix programmability options). This means that the Matrix combinational potential is considerably high, and all possible combinations and all possible reasonings for any given combination may be impossible for one person to ever know or comprehend (see below for Inference via Bayesian Reasoning). The matrix is the core of SatIO and SatIO's potential, it makes SatIO a computer, however it does not make SatIO Turing Complete.
