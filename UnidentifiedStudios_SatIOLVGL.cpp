@@ -16947,8 +16947,6 @@ void display_home_screen()
 
     /* (IN EARLY DEVELOPMENT) */
 
-    // currently running alongside astroclock for quick transition between astroclock and celestial sphere.
-
     // Initialize celestial sphere on main screen
     celestial_sphere_begin(
         home_screen,
@@ -16962,9 +16960,7 @@ void display_home_screen()
         CELESTIAL_SPHERE_MODE_GYRO   // initial mode
     );
     celestial_sphere_pause();
-
-    // Fresh screen instance: celestial_sphere_begin() always starts hidden,
-    // so make sure the toggle button's tracked state agrees with that.
+    // Fresh screen instance: celestial_sphere_begin() always starts hidden
     celestial_sphere_overlay_visible = false;
 
     // -------------------------------- Celestial Sphere Toggle ----------------------------------- //
