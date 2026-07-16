@@ -15,7 +15,9 @@
 #include <cstring>
 #include "lvgl.h"
 #include <math.h>
+#include "SiderealObjectsTables.h" // SiderealObjectTypeEntry (getObjectTypeEntry() return type)
 #include "UnidentifiedStudios_CelestialSphere.h"
+#include "UnidentifiedStudios_ObjectTypeIcons.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
 
 #ifndef M_PI
@@ -62,7 +64,11 @@ static int32_t current_target_index = -1;
 // Timer for celestial sphere updates.
 static lv_timer_t * sphere_timer = nullptr;
 
-static constexpr int32_t MARKER_RADIUS = 4;
+// Every object type icon (see UnidentifiedStudios_ObjectTypeIcons.h) is a
+// fixed 16x16 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
+// the same way the plain dot marker used to be colored directly.
+static constexpr int32_t MARKER_ICON_SIZE = 16;
+static constexpr int32_t MARKER_ICON_HALF = MARKER_ICON_SIZE / 2;
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
@@ -152,28 +158,27 @@ static inline double wrap_delta_deg(const double delta_deg) {
 }
 
 // ============================================================================
-// CREATE MARKER DOT
+// CREATE MARKER ICON
 // ============================================================================
-// Creates a hidden, circular, clickable widget representing one swept object.
-static lv_obj_t * create_marker(lv_obj_t * const parent, const int32_t radius, const lv_color_t color) {
+// Creates a hidden, clickable icon widget representing one swept object.
+// Starts out showing object_type_icon_fallback (a plain dot); celestial_
+// sphere_update() swaps in the object's type-specific icon (see
+// UnidentifiedStudios_ObjectTypeIcons.h) once its identity is known.
+static lv_obj_t * create_marker(lv_obj_t * const parent, const lv_color_t color) {
     lv_obj_t * result = nullptr;
     const bool parent_is_valid = (parent != nullptr) && lv_obj_is_valid(parent);
-    const bool radius_is_valid = (radius > 0);
 
     if (!parent_is_valid) {
         printf("ERROR: create_marker called with invalid parent (ptr=%p)\n", static_cast<const void *>(parent));
-    } else if (!radius_is_valid) {
-        printf("ERROR: create_marker called with invalid radius (%ld)\n", static_cast<long>(radius));
     } else {
-        lv_obj_t * const obj = lv_obj_create(parent);
+        lv_obj_t * const obj = lv_image_create(parent);
         if (obj == nullptr) {
             printf("ERROR: create_marker failed to allocate an object\n");
         } else {
-            lv_obj_remove_style_all(obj);
-            lv_obj_set_size(obj, radius * 2, radius * 2);
-            lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
-            lv_obj_set_style_bg_color(obj, color, 0);
-            lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
+            lv_obj_remove_style_all(obj); // matches every other widget in this file: no theme default bg/border
+            lv_image_set_src(obj, &object_type_icon_fallback);
+            lv_obj_set_style_image_recolor(obj, color, 0);
+            lv_obj_set_style_image_recolor_opa(obj, LV_OPA_COVER, 0);
             lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN); // Hidden until first update positions it
@@ -253,8 +258,9 @@ static void update_target_data_content(const int32_t object_index) {
 
         char buf[768];
         snprintf(buf, sizeof(buf),
-            "%s\n\n"
+            "Name             %s\n\n"
             "Table            %s\n"
+            "Object Number    %d\n"
             "Type             %s\n"
             "Constellation    %s\n"
             "Distance         %.2f\n"
@@ -265,6 +271,7 @@ static void update_target_data_content(const int32_t object_index) {
             "Altitude         %.2f",
             getObjectName(&siderealObjectSweep, object_index),
             getObjectTableName(&siderealObjectSweep, object_index),
+            siderealObjectSweep.object_number[object_index],
             getObjectType(&siderealObjectSweep, object_index),
             getObjectConstellation(&siderealObjectSweep, object_index),
             siderealObjectSweep.object_dist[object_index],
@@ -303,8 +310,8 @@ void celestial_sphere_set_target(const int32_t object_index) {
 
     if (slot_valid) {
         const ObjectMarker * const marker = &markers[object_index];
-        const int32_t obj_center_x = marker->x + MARKER_RADIUS;
-        const int32_t obj_center_y = marker->y + MARKER_RADIUS;
+        const int32_t obj_center_x = marker->x + MARKER_ICON_HALF;
+        const int32_t obj_center_y = marker->y + MARKER_ICON_HALF;
 
         if (selection_box != nullptr) {
             lv_obj_set_pos(selection_box, marker->x - 4, marker->y - 4);
@@ -455,11 +462,14 @@ void celestial_sphere_update(void) {
                         lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
                 } else {
-                    marker->x = SPHERE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - MARKER_RADIUS;
+                    marker->x = SPHERE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
                     // Screen Y grows downward while altitude grows upward, so invert.
-                    marker->y = SPHERE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - MARKER_RADIUS;
+                    marker->y = SPHERE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
 
                     if (marker->dot != nullptr) {
+                        const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&siderealObjectSweep, i);
+                        const lv_image_dsc_t * const icon = (type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr;
+                        lv_image_set_src(marker->dot, (icon != nullptr) ? icon : &object_type_icon_fallback);
                         lv_obj_set_pos(marker->dot, marker->x, marker->y);
                         lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
@@ -613,14 +623,14 @@ void celestial_sphere_begin(
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
             markers[i].x = 0;
             markers[i].y = 0;
-            markers[i].dot = create_marker(sphere_container, MARKER_RADIUS, COLOR_MARKER);
+            markers[i].dot = create_marker(sphere_container, COLOR_MARKER);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
             }
         }
 
-        selection_box = create_selection_box(sphere_container, MARKER_RADIUS * 2);
+        selection_box = create_selection_box(sphere_container, MARKER_ICON_SIZE);
         ok = (selection_box != nullptr);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin failed to create selection_box\n");

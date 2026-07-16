@@ -315,6 +315,51 @@ static const char* objectTypeImpl(T *obj, int index)
     }
 }
 
+// Resolves the objectType[] row an NGC/IC/Herschel400 object's stored catalog
+// number classifies as. Stars/Messier/Caldwell/Other return nullptr: stars
+// have no catalog "type" field, and Messier/Caldwell classify through
+// legacyOjectType[] instead (see SiderealObjects::printMessierType()/
+// printCaldwellType()), not objectType[].
+template <typename T>
+static const SiderealObjectTypeEntry* objectTypeEntryImpl(T *obj, int index)
+{
+    const int num = typeRef(obj, index);
+    int catalog_type = -1;
+
+    switch (tableIRef(obj, index))
+    {
+        case INDEX_SIDEREAL_NGC_TABLE:
+            for (int i = 0; i < (int)SObjectsNGC_names_num; i++) {
+                if (ngcData[i].num == num) { catalog_type = ngcData[i].type; break; }
+            }
+            break;
+        case INDEX_SIDEREAL_IC_TABLE:
+            for (int i = 0; i < (int)SObjectsIC_names_num; i++) {
+                if (icData[i].num == num) { catalog_type = icData[i].type; break; }
+            }
+            break;
+        case INDEX_SIDEREAL_HERSHEL400_TABLE:
+            {
+                int ngc_id = -1;
+                for (int i = 0; i < (int)SObjectHerschel400_names_num; i++) {
+                    if (herschel400Data[i].num == num) { ngc_id = herschel400Data[i].ngc; break; }
+                }
+                for (int i = 0; (ngc_id >= 0) && (i < (int)SObjectsNGC_names_num); i++) {
+                    if (ngcData[i].num == ngc_id) { catalog_type = ngcData[i].type; break; }
+                }
+            }
+            break;
+        default:
+            break;
+    }
+
+    const SiderealObjectTypeEntry* result = nullptr;
+    for (int i = 0; (catalog_type >= 0) && (i < (int)SObjectType_names_num); i++) {
+        if (objectType[i].num == catalog_type) { result = &objectType[i]; break; }
+    }
+    return result;
+}
+
 // Stars have no constellation lookup in the vendor table (no printStarCon()).
 template <typename T>
 static const char* objectConstellationImpl(T *obj, int index)
@@ -349,6 +394,8 @@ const char* getObjectTableName(SiderealObjectSingle *obj)           { return obj
 const char* getObjectTableName(SiderealObjectSweep *obj, int index) { return objectTableNameImpl(obj, index); }
 const char* getObjectType(SiderealObjectSingle *obj)            { return objectTypeImpl(obj, 0); }
 const char* getObjectType(SiderealObjectSweep *obj, int index)  { return objectTypeImpl(obj, index); }
+const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj)           { return objectTypeEntryImpl(obj, 0); }
+const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSweep *obj, int index) { return objectTypeEntryImpl(obj, index); }
 const char* getObjectConstellation(SiderealObjectSingle *obj)           { return objectConstellationImpl(obj, 0); }
 const char* getObjectConstellation(SiderealObjectSweep *obj, int index) { return objectConstellationImpl(obj, index); }
 const char* getObjectDescription(SiderealObjectSingle *obj)           { return objectDescriptionImpl(obj, 0); }
@@ -915,6 +962,9 @@ void starNavSweep() {
     // overwritten by clearStarNavObjects() below, so there is nothing left
     // in the global worth seeding from.
     // int64_t full_time_t0 = esp_timer_get_time();
+    // int64_t full_time_total = 0;
+    // int64_t identifyobject_total = 0;
+    // int64_t trackobject_time_total = 0; // cumulative time spent inside trackObject() (Alt/Az + rise/set), to split out from the per-point identify/transform cost
 
     static SiderealObjectSweep sweep_data{};
     clearStarNavObjects(&sweep_data);
@@ -950,7 +1000,9 @@ void starNavSweep() {
             decimalToSexagesimal(myAstro.getRAdec(), &ra_h, &ra_m, &ra_s);
             decimalToSexagesimal(myAstro.getDeclinationDec(), &dec_d, &dec_m, &dec_s);
 
+            // int64_t identifyobject_t0 = esp_timer_get_time();
             IdentifyObject(&sweep_data, count, ra_h, ra_m, ra_s, dec_d, dec_m, dec_s);
+            // identifyobject_total += esp_timer_get_time() - identifyobject_t0;
 
             if ((sweep_data.object_table_i[count] < 0) || (sweep_data.object_number[count] < 0))
             {
@@ -979,7 +1031,9 @@ void starNavSweep() {
                 continue;
             }
             
+            // int64_t trackobject_t0 = esp_timer_get_time();
             trackObject(&sweep_data, count, sweep_data.object_table_i[count], sweep_data.object_number[count]);
+            // trackobject_time_total += esp_timer_get_time() - trackobject_t0;
             sweep_data.objects_found++;
             count++;
         }
@@ -987,8 +1041,9 @@ void starNavSweep() {
 
     siderealObjectSweep = sweep_data;
 
-    // int64_t full_time_t1 = esp_timer_get_time();
-    // printf("\n[starsweep] time=%lld  found=%d\n", full_time_t1-full_time_t0, sweep_data.objects_found);
+    // full_time_total = esp_timer_get_time()-full_time_t0;
+    // printf("\n[starsweep] time=%lld  trackobject=%lld  identifyobject=%lld  found=%d\n",
+    //     full_time_total, trackobject_time_total, identifyobject_total, sweep_data.objects_found);
 }
 
 // ----------------------------------------------------------------------------------------

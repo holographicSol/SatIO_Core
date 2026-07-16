@@ -43,7 +43,7 @@
 // ------------------------------------------------------------
 // MASTER Build Option: Global GPIOPE Device Switch
 // ------------------------------------------------------------
-#define GPIOPE_USE_INPUT
+// #define GPIOPE_USE_INPUT
 #define GPIOPE_USE_OUTPUT
 
 // ------------------------------------------------------------
@@ -64,7 +64,7 @@
 // #define GPIOPE_USE_INPUT_6
 // #define GPIOPE_USE_INPUT_7
 // #define GPIOPE_USE_INPUT_8
-#define GPIOPE_USE_INPUT_9
+// #define GPIOPE_USE_INPUT_9
 // #define GPIOPE_USE_INPUT_10
 // #define GPIOPE_USE_INPUT_11
 // #define GPIOPE_USE_INPUT_12

@@ -10,6 +10,12 @@
 #include "SiderealPlanets.h"
 #include "UnidentifiedStudios_Config.h"
 
+// Forward-declared rather than #include "SiderealObjectsTables.h": this
+// header only needs to name the type for getObjectTypeEntry()'s pointer
+// return value below; callers that dereference the result (e.g. to read
+// ::num) already need the full definition and include that header directly.
+struct SiderealObjectTypeEntry;
+
 #define INDEX_SIDEREAL_STAR_TABLE          0          
 #define INDEX_SIDEREAL_NGC_TABLE           1 // New General Catalogue
 #define INDEX_SIDEREAL_IC_TABLE            2 // The Index Catalogue of Nebulae and Clusters of Stars (IC)
@@ -269,6 +275,20 @@ const char* getObjectConstellation(SiderealObjectSingle *obj);
 const char* getObjectConstellation(SiderealObjectSweep *obj, int index);
 const char* getObjectDescription(SiderealObjectSingle *obj);
 const char* getObjectDescription(SiderealObjectSweep *obj, int index);
+
+/**
+ * Resolves the SiderealObjectTypeEntry (see SiderealObjectsTables.h) that
+ * classifies *obj's (or slot `index` of *obj's) catalog entry, for callers
+ * that need the numeric type code (SiderealObjectTypeEntry::num) rather
+ * than the name string getObjectType() returns -- e.g. to pick a matching
+ * icon (see UnidentifiedStudios_ObjectTypeIcons.h). Only NGC, IC and
+ * Herschel400 objects classify through objectType[]: every other table
+ * (stars, Messier, Caldwell) either has no type or classifies through
+ * SiderealLegacyObjectTypeEntry instead, so this returns nullptr for those.
+ * @note IdentifyObject() must be called first.
+ */
+const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj);
+const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSweep *obj, int index);
 
 /**
  * Identifies the object nearest the given RA/Dec coordinates, then tracks
