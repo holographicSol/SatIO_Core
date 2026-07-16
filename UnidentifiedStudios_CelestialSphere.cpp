@@ -691,6 +691,14 @@ void celestial_sphere_set_visible(const bool visible) {
     }
 }
 
+void celestial_sphere_pause(void) {
+    lv_timer_pause(sphere_timer);
+}
+
+void celestial_sphere_resume(void) {
+    lv_timer_resume(sphere_timer);
+}
+
 // Stops and releases the update timer, if one is running, and clears the
 // current target selection.
 void celestial_sphere_end(void) {

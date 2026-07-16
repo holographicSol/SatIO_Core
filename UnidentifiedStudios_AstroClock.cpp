@@ -1905,6 +1905,24 @@ void astro_clock_begin(
     }
 }
 
+void astroclock_set_visible(const bool visible) {
+    if (astro_container != nullptr) {
+        if (visible) {
+            lv_obj_clear_flag(astro_container, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(astro_container, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}
+
+void astro_clock_pause(void) {
+    lv_timer_pause(astro_timer);
+}
+
+void astro_clock_resume(void) {
+    lv_timer_resume(astro_timer);
+}
+
 // Stops and releases the update timer, if one is running, and clears the
 // current target selection.
 void astro_clock_end(void) {

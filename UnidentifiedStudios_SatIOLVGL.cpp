@@ -16881,8 +16881,21 @@ static bool celestial_sphere_overlay_visible = false;
 static void celestial_sphere_toggle_btn_event_cb(lv_event_t * e) {
     celestial_sphere_overlay_visible = !celestial_sphere_overlay_visible;
 
-    celestial_sphere_set_visible(celestial_sphere_overlay_visible);
-    astro_clock_set_clickable(!celestial_sphere_overlay_visible);
+    if (celestial_sphere_overlay_visible == true) {
+        astroclock_set_visible(false);
+        astro_clock_pause();
+
+        celestial_sphere_resume();
+        celestial_sphere_set_visible(true);
+    }
+    else if (celestial_sphere_overlay_visible == false) {
+        celestial_sphere_set_visible(false);
+        celestial_sphere_pause();
+
+        astroclock_set_visible(true);
+        astro_clock_resume();
+    }
+    // astro_clock_set_clickable(!celestial_sphere_overlay_visible);
 
     lv_obj_t * const label = static_cast<lv_obj_t *>(lv_event_get_user_data(e));
     if (label != nullptr) {
@@ -16932,8 +16945,9 @@ void display_home_screen()
 
     // -------------------------------- Celestial Sphere ----------------------------------- //
 
-    /* UNCOMMENT TO USE CELESTIAL SPHERE (IN EARLY DEVELOPMENT) */
-    // TODO: toggle celestial_sphere_begin/end on show/hide
+    /* (IN EARLY DEVELOPMENT) */
+
+    // currently running alongside astroclock for quick transition between astroclock and celestial sphere.
 
     // Initialize celestial sphere on main screen
     celestial_sphere_begin(
@@ -16947,6 +16961,7 @@ void display_home_screen()
         0,                           // pos y
         CELESTIAL_SPHERE_MODE_GYRO   // initial mode
     );
+    celestial_sphere_pause();
 
     // Fresh screen instance: celestial_sphere_begin() always starts hidden,
     // so make sure the toggle button's tracked state agrees with that.

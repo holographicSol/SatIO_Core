@@ -68,4 +68,10 @@ void astro_clock_set_target(AstroTarget target_key);
 // suppress clicks while an overlay, e.g. the celestial sphere, sits on top).
 void astro_clock_set_clickable(bool enabled);
 
+void astroclock_set_visible(const bool visible);
+
+void astro_clock_pause(void);
+
+void astro_clock_resume(void);
+
 #endif

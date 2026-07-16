@@ -66,4 +66,8 @@ void celestial_sphere_set_target(int32_t object_index);
 // either way, so the view is already current the moment it is shown again.
 void celestial_sphere_set_visible(bool visible);
 
+void celestial_sphere_pause(void);
+
+void celestial_sphere_resume(void);
+
 #endif
