@@ -70,9 +70,9 @@ and the system values are set according to a values mode: GPS, Gyro, User. This 
 
 ### StarNav
 
-**Earth Zenith RA/Dec** Right Ascension and Declination are calculated for 90 degrees altitude at a local/remote position. This 'Zenith RA dec' is used to set a gyroscopic Ra Dec and gyroscopic azimuth and altitude, by offsetting from zenith Ra Dec relative to the gyro's attitude in roll, pitch and yaw.
+**Earth Zenith RA/Dec** Right Ascension and Declination are calculated for 90 degrees altitude (zenith) at a local/remote position. 'Zenith RA dec' is then used to set a 'Gyroscopic Ra Dec', which is offset from Zenith Ra Dec relative to the gyroscopes attitude in roll, pitch and yaw. This makes navigation of the celestial sphere possible. 
 
-Zenith Ra and dec is created and used as a sentinal to provide a celestial point (that on Earth is likely always changing relative to some position), gyro Ra Dec is resolved from Zenith Ra Dec, making navigation of the celestial sphere possible. Note that this is not like using a sky maps app from an app store, users will not easily be able to steady the boresight on any celestial object with ones own hands, because the system is highly sensitive to even very small changes in attitude (it would be like trying to use a telescope on ones shoulders to focus on a spiral galaxy, light years away). The system is intended to be scientific. A user would require a mount, tripod or turret to **mechanically** track an object in the celestial sphere, with stability.
+Note that users will not easily be able to steady the boresight on any celestial object with ones own hands, because the system is highly sensitive to even very small changes in attitude (it would be like trying to use a telescope on ones shoulders to focus on a spiral galaxy, that is hundreds of light years away). The system is intended to be scientific. A user would require a mount, tripod or turret to stabalize the gyroscope, to **mechanically** track an object in the celestial sphere.
 
 ---
 
