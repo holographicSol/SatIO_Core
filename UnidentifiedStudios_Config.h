@@ -172,9 +172,9 @@ typedef struct PwrConfig {
 #define TASK_MAX_FREQ_LOW_GYRO                        100000  // (10 Hz)
 
 #define TASK_MAX_FREQ_LOW_UNIVERSE                    1000000 // (1 Hz)
-#define TASK_MAX_FREQ_LOW_TRACKPLANETS                1000000 // (1 Hz)
-#define TASK_MAX_FREQ_LOW_STARNAV                     1000000 // (1 Hz)
-#define TASK_MAX_FREQ_LOW_METEORS                     1000000 // (1 Hz)
+#define TASK_MAX_FREQ_LOW_TRACKPLANETS                0 // (TASK_MAX_FREQ_LOW_UNIVERSE)
+#define TASK_MAX_FREQ_LOW_STARNAV                     0 // (TASK_MAX_FREQ_LOW_UNIVERSE)
+#define TASK_MAX_FREQ_LOW_METEORS                     0 // (TASK_MAX_FREQ_LOW_UNIVERSE)
 
 #define TASK_MAX_FREQ_LOW_SWITCHES                    100000  // (10 Hz)
 
@@ -203,10 +203,10 @@ typedef struct PwrConfig {
 
 #define TASK_MAX_FREQ_BALANCED_GYRO                   5000    // (200 Hz)
 
-#define TASK_MAX_FREQ_BALANCED_UNIVERSE               100000  // (10 Hz)
-#define TASK_MAX_FREQ_BALANCED_TRACKPLANETS           1000000 // (1 Hz)
-#define TASK_MAX_FREQ_BALANCED_STARNAV                100000  // (10 Hz)
-#define TASK_MAX_FREQ_BALANCED_METEORS                1000000 // (1 Hz)
+#define TASK_MAX_FREQ_BALANCED_UNIVERSE               1000000 // (1 Hz)
+#define TASK_MAX_FREQ_BALANCED_TRACKPLANETS           0 // (TASK_MAX_FREQ_BALANCED_UNIVERSE)
+#define TASK_MAX_FREQ_BALANCED_STARNAV                0 // (TASK_MAX_FREQ_BALANCED_UNIVERSE)
+#define TASK_MAX_FREQ_BALANCED_METEORS                0 // (TASK_MAX_FREQ_BALANCED_UNIVERSE)
 
 #define TASK_MAX_FREQ_BALANCED_SWITCHES               5000    // (200 Hz)
 
@@ -236,9 +236,9 @@ typedef struct PwrConfig {
 #define TASK_MAX_FREQ_HIGH_GYRO                       5000    // (200 Hz)
 
 #define TASK_MAX_FREQ_HIGH_UNIVERSE                   100000  // (10 Hz)
-#define TASK_MAX_FREQ_HIGH_TRACKPLANETS               1000000 // (1 Hz)
-#define TASK_MAX_FREQ_HIGH_STARNAV                    100000  // (10 Hz)
-#define TASK_MAX_FREQ_HIGH_METEORS                    1000000 // (1 Hz)
+#define TASK_MAX_FREQ_HIGH_TRACKPLANETS               0 // (TASK_MAX_FREQ_HIGH_UNIVERSE)
+#define TASK_MAX_FREQ_HIGH_STARNAV                    0 // (TASK_MAX_FREQ_HIGH_UNIVERSE)
+#define TASK_MAX_FREQ_HIGH_METEORS                    0 // (TASK_MAX_FREQ_HIGH_UNIVERSE)
 
 #define TASK_MAX_FREQ_HIGH_SWITCHES                   2000    // (500 Hz)
 
