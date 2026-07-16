@@ -70,7 +70,7 @@ and the system values are set according to a values mode: GPS, Gyro, User. This 
 
 ### StarNav
 
-**Earth Zenith RA/Dec** Right Ascension and Declination are calculated for 90 degrees altitude (zenith) at a local/remote position. 'Zenith RA dec' is then used to set a 'Gyroscopic Ra Dec', which is offset from Zenith Ra Dec relative to the gyroscopes attitude in roll, pitch and yaw. This makes navigation of the celestial sphere possible, relative to some system/user-specified, local/remote position. 
+**Earth Zenith Right Ascension and Declination** is calculated for 90 degrees altitude (zenith) at a local/remote position relative to Earth. Zenith RA dec is then used to set a 'Gyroscopic Ra Dec', which is offset from Zenith Ra Dec relative to the gyroscopes attitude in roll, pitch and yaw. This makes navigation of the celestial sphere possible, relative to some system/user-specified, local/remote position. 
 
 Note that users will not easily be able to steady the boresight on any celestial object with ones own hands, because the system is highly sensitive to even very small changes in attitude (it would be like trying to use a telescope on ones shoulders to focus on a spiral galaxy, that is hundreds of light years away). The system is intended to be scientific. A user would require a mount, tripod or turret to stabalize the gyroscope, to **mechanically** track an object in the celestial sphere.
 
