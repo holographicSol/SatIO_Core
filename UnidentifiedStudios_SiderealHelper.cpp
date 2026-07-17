@@ -214,6 +214,28 @@ SiderealObjectSweep siderealObjectSweep = {
     .object_dist = {},
 };
 
+double starNavSweepRangeDeg = 10.0;
+double starNavSweepStepDeg  = 1.0;
+
+// Clamps to a closed [lo, hi] range; NaN is left as-is (clamping it either
+// direction would silently manufacture a bogus finite value).
+static double clampDeg(double value, double lo, double hi) {
+    double result = value;
+    if (!isnan(value)) {
+        if (result < lo) { result = lo; }
+        if (result > hi) { result = hi; }
+    }
+    return result;
+}
+
+void setStarNavSweepRangeDeg(double degrees) {
+    starNavSweepRangeDeg = clampDeg(degrees, STARNAV_SWEEP_RANGE_DEG_MIN, STARNAV_SWEEP_RANGE_DEG_MAX);
+}
+
+void setStarNavSweepStepDeg(double degrees) {
+    starNavSweepStepDeg = clampDeg(degrees, STARNAV_SWEEP_STEP_DEG_MIN, STARNAV_SWEEP_STEP_DEG_MAX);
+}
+
 /*
  * Object distance fields have no "Unidentified" fallback: if num is out of
  * range, *dest is left exactly as the caller (always clearAllObjects()
@@ -975,18 +997,18 @@ void starNavSweep() {
 
     // Alt outer, Az inner: every Az step gets sampled at each Alt step, so
     // hitting the MAX_STARNAV_OBJECTS cap partway through still leaves the
-    // whole +/- STARNAV_SWEEP_RANGE_DEG square represented in both axes.
-    for (double alt = center_alt - STARNAV_SWEEP_RANGE_DEG;
-         (alt <= (center_alt + STARNAV_SWEEP_RANGE_DEG)) && (count < MAX_STARNAV_OBJECTS);
-         alt += STARNAV_SWEEP_STEP_DEG)
+    // whole +/- starNavSweepRangeDeg square represented in both axes.
+    for (double alt = center_alt - starNavSweepRangeDeg;
+         (alt <= (center_alt + starNavSweepRangeDeg)) && (count < MAX_STARNAV_OBJECTS);
+         alt += starNavSweepStepDeg)
     {
         double clamped_alt = alt;
         if (clamped_alt > 90.0)  { clamped_alt = 90.0; }
         if (clamped_alt < -90.0) { clamped_alt = -90.0; }
 
-        for (double az = center_az - STARNAV_SWEEP_RANGE_DEG;
-             (az <= (center_az + STARNAV_SWEEP_RANGE_DEG)) && (count < MAX_STARNAV_OBJECTS);
-             az += STARNAV_SWEEP_STEP_DEG)
+        for (double az = center_az - starNavSweepRangeDeg;
+             (az <= (center_az + starNavSweepRangeDeg)) && (count < MAX_STARNAV_OBJECTS);
+             az += starNavSweepStepDeg)
         {
             double wrapped_az = fmod(az, 360.0);
             if (wrapped_az < 0.0) { wrapped_az += 360.0; }

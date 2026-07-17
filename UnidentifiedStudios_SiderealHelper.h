@@ -191,10 +191,24 @@ extern SiderealObjectSingle siderealObjectSingle;
 // ----------------------------------------------------------------------------------------
 #define MAX_STARNAV_OBJECTS 100
 // starNavSweep() scans a square grid of Alt/Az points within
-// +/- STARNAV_SWEEP_RANGE_DEG (degrees, both axes) of the current
-// gyroscopic attitude's Alt/Az, stepping by STARNAV_SWEEP_STEP_DEG.
-#define STARNAV_SWEEP_RANGE_DEG 5.0  // appature
-#define STARNAV_SWEEP_STEP_DEG  1.0  // resolution degrees (lower = higher resolution, higher performance impact!)
+// +/- starNavSweepRangeDeg (degrees, both axes) of the current gyroscopic
+// attitude's Alt/Az, stepping by starNavSweepStepDeg. Both are runtime-
+// adjustable (see the range/step adjuster rows in celestial_sphere_begin(),
+// UnidentifiedStudios_CelestialSphere.cpp) via the clamped setters below
+// instead of being compile-time constants; starNavSweep() reads them fresh
+// at the top of each sweep, so a change takes effect on the next sweep.
+extern double starNavSweepRangeDeg; // aperture/zoom (higher = capture more of the celestial sphere, higher performance impact!)
+extern double starNavSweepStepDeg;  // resolution degrees (lower = higher resolution, higher performance impact!)
+
+constexpr double STARNAV_SWEEP_RANGE_DEG_MIN = 0.01;
+constexpr double STARNAV_SWEEP_RANGE_DEG_MAX = 180.0;
+constexpr double STARNAV_SWEEP_STEP_DEG_MIN  = 0.01;
+constexpr double STARNAV_SWEEP_STEP_DEG_MAX  = 5.0;
+
+// Sets starNavSweepRangeDeg / starNavSweepStepDeg, clamped to
+// [STARNAV_SWEEP_*_DEG_MIN, STARNAV_SWEEP_*_DEG_MAX] above.
+void setStarNavSweepRangeDeg(double degrees);
+void setStarNavSweepStepDeg(double degrees);
 
 typedef struct SiderealObjectSweep {
     // ADD SCAN BY OBJECT TYPE 
@@ -297,7 +311,7 @@ const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSweep *obj, int 
 void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s);
 
 /**
- * Sweeps a square grid of Alt/Az points within +/- STARNAV_SWEEP_RANGE_DEG
+ * Sweeps a square grid of Alt/Az points within +/- starNavSweepRangeDeg
  * of the current gyroscopic attitude's Alt/Az, identifying every distinct
  * object found and storing up to MAX_STARNAV_OBJECTS of them in
  * siderealObjectSweep.

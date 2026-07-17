@@ -17,6 +17,7 @@
 #include <math.h>
 #include "SiderealObjectsTables.h" // SiderealObjectTypeEntry (getObjectTypeEntry() return type)
 #include "UnidentifiedStudios_CelestialSphere.h"
+#include "UnidentifiedStudios_GlobalLVGL.h" // stepper_panel_t, create_stepper_panel()
 #include "UnidentifiedStudios_ObjectTypeIcons.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
 
@@ -36,28 +37,28 @@ LV_FONT_DECLARE(font_unscii_12);
 // in UnidentifiedStudios_CelestialSphere.h.
 
 // Dimensions of the sphere's usable drawing area (sub-region of the outline).
-static int32_t SPHERE_WIDTH  = 480;
-static int32_t SPHERE_HEIGHT = 480;
+static int32_t SCOPE_WIDTH  = 480;
+static int32_t SCOPE_HEIGHT = 480;
 
 // Dimensions of the outline around the celestial sphere display.
 static int32_t OUTLINE_WIDTH  = 550;
 static int32_t OUTLINE_HEIGHT = 550;
 
-// Side length of the square parent container (square_container) that hosts
-// sphere_container and the gyro attitude readout.
-static int32_t SQUARE_CONTAINER_SIZE = 550;
+// Side length of the square parent container (celestial_sphere_container) that hosts
+// scope_container and the gyro attitude readout.
+static int32_t CELESTIAL_SPHERE_CONTAINER_SIZE = 550;
 
 // Center of the celestial sphere display (the boresight/crosshair position).
-static int32_t SPHERE_CENTER_X = OUTLINE_WIDTH / 2;
-static int32_t SPHERE_CENTER_Y = OUTLINE_HEIGHT / 2;
+static int32_t SCOPE_CENTER_X = OUTLINE_WIDTH / 2;
+static int32_t SCOPE_CENTER_Y = OUTLINE_HEIGHT / 2;
 
 // Max usable aperture radius (leave margin for marker size).
-static int32_t SPHERE_RADIUS = ((SPHERE_WIDTH < SPHERE_HEIGHT) ? SPHERE_WIDTH : SPHERE_HEIGHT) / 2 - 15;
+static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - 15;
 
 // Pixels drawn per degree of Alt/Az offset from the boresight, derived from
 // the same aperture that populates siderealObjectSweep (see starNavSweep()
 // in UnidentifiedStudios_SiderealHelper.cpp).
-static float PX_PER_DEG = static_cast<float>(SPHERE_RADIUS) / static_cast<float>(STARNAV_SWEEP_RANGE_DEG);
+static float PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
 
 // Currently selected boresight source.
 static CelestialSphereMode current_mode = CELESTIAL_SPHERE_MODE_GYRO;
@@ -69,9 +70,9 @@ static int32_t current_target_index = -1;
 static lv_timer_t * sphere_timer = nullptr;
 
 // Every object type icon (see UnidentifiedStudios_ObjectTypeIcons.h) is a
-// fixed 16x16 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
+// fixed 32x32 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
 // the same way the plain dot marker used to be colored directly.
-static constexpr int32_t MARKER_ICON_SIZE = 16;
+static constexpr int32_t MARKER_ICON_SIZE = 32;
 static constexpr int32_t MARKER_ICON_HALF = MARKER_ICON_SIZE / 2;
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_LINE_WIDTH = 2;
@@ -79,10 +80,25 @@ static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
 
-// How much smaller sphere_container is than the square parent container that
-// hosts it (split evenly by LVGL's center alignment), leaving a margin where
-// the gyro attitude readout sits.
-static constexpr int32_t SPHERE_CONTAINER_INSET_PX = 52;
+// scope_container is forced square and capped at this fraction of
+// celestial_sphere_container's side length (see celestial_sphere_begin()), leaving the
+// rest as margin -- split evenly on every side by LVGL's center alignment --
+// for the gyro/objects-found readouts and the sweep range/step adjuster rows
+// below.
+static constexpr int32_t SCOPE_CONTAINER_SIZE_FRACTION_NUM = 3;
+static constexpr int32_t SCOPE_CONTAINER_SIZE_FRACTION_DEN = 4;
+
+// Sweep range/step adjuster row: one horizontal [-][value][+] control per
+// parameter (see setStarNavSweepRangeDeg()/setStarNavSweepStepDeg() in
+// UnidentifiedStudios_SiderealHelper.h), placed in the corners of the margin
+// freed up by shrinking scope_container to SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN.
+static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 28;
+static constexpr int32_t SWEEP_ADJUSTER_GAP_PX = 4;
+static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
+
+// Amount starNavSweepRangeDeg/starNavSweepStepDeg change per button press.
+static constexpr double SWEEP_RANGE_STEP_INCREMENT_DEG = 1.0;
+static constexpr double SWEEP_STEP_STEP_INCREMENT_DEG  = 0.1;
 
 // Overall opacity of the whole overlay (container + every child, composited
 // as one layer), so whatever sits behind it -- e.g. the astro clock -- stays
@@ -96,6 +112,92 @@ static const lv_color_t COLOR_MARKER      = lv_color_make(128, 128, 128);
 static const lv_color_t COLOR_TARGET      = lv_color_make(255,   0,    0);
 static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 56,  56,   56);
 static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 56,  56,   56);
+
+static const lv_color_t COLOR_GROUP_GALAXY  = lv_color_make(0x00, 0x74, 0xff);
+static const lv_color_t COLOR_GROUP_CLUSTER = lv_color_make(0x00, 0xff, 0x00);
+static const lv_color_t COLOR_GROUP_NEBULA  = lv_color_make(0xff, 0x00, 0x5d);
+static const lv_color_t COLOR_GROUP_STAR    = lv_color_make(0xff, 0xa9, 0x00);
+
+// MISRA: a named enum (not raw ints) identifies the 4 object-type families so
+// object_type_color()'s switch can enumerate every case explicitly.
+enum class ObjectTypeGroup {
+    GALAXY,
+    CLUSTER,
+    NEBULA,
+    STAR,
+    UNKNOWN
+};
+
+// Maps an objectType[] row's num field (see SiderealObjectsTables.cpp) to its
+// family. num=9 ("Not found") and any num outside objectType[] (Messier/
+// Caldwell/Star-table objects resolve through the fallback icon instead, see
+// getObjectTypeEntry() in UnidentifiedStudios_SiderealHelper.h) fall through
+// to UNKNOWN.
+static ObjectTypeGroup object_type_group(const int32_t type_num) {
+    ObjectTypeGroup result = ObjectTypeGroup::UNKNOWN;
+    switch (type_num) {
+        case 0:  // Polar Ring Galaxy
+        case 1:  // Part of Galaxy (e.g. bright HII region)
+        case 15: // Compact Galaxy
+        case 16: // Dwarf Galaxy
+        case 17: // Elliptical Galaxy
+        case 18: // Irregular Galaxy
+        case 19: // Peculiar Galaxy
+        case 20: // Spiral Galaxy
+        case 21: // Ring Galaxy
+            result = ObjectTypeGroup::GALAXY;
+            break;
+        case 2: // Open Cluster
+        case 3: // Globular Cluster
+            result = ObjectTypeGroup::CLUSTER;
+            break;
+        case 5: // Dark Nebula
+        case 6: // Emission Nebula
+        case 7: // Reflection Nebula
+        case 8: // Planetary Nebula
+            result = ObjectTypeGroup::NEBULA;
+            break;
+        case 4:  // Supernova Remnant
+        case 11: // Double Star
+        case 12: // Triple Star / Quad Star (objectType[] reuses num=12 for both)
+        case 13: // Star
+        case 14: // Star Group
+            result = ObjectTypeGroup::STAR;
+            break;
+        default:
+            result = ObjectTypeGroup::UNKNOWN;
+            break;
+    }
+    return result;
+}
+
+// Returns the marker tint for a swept object's resolved type entry, falling
+// back to COLOR_MARKER when the object has no objectType[] entry at all or
+// its num doesn't map to one of the 4 families.
+static lv_color_t object_type_color(const SiderealObjectTypeEntry * const type_entry) {
+    lv_color_t result = COLOR_MARKER;
+    if (type_entry != nullptr) {
+        switch (object_type_group(type_entry->num)) {
+            case ObjectTypeGroup::GALAXY:
+                result = COLOR_GROUP_GALAXY;
+                break;
+            case ObjectTypeGroup::CLUSTER:
+                result = COLOR_GROUP_CLUSTER;
+                break;
+            case ObjectTypeGroup::NEBULA:
+                result = COLOR_GROUP_NEBULA;
+                break;
+            case ObjectTypeGroup::STAR:
+                result = COLOR_GROUP_STAR;
+                break;
+            case ObjectTypeGroup::UNKNOWN:
+            default:
+                result = COLOR_MARKER;
+                break;
+        }
+    }
+    return result;
+}
 
 // Returns the boresight indicator color for the given mode.
 static lv_color_t mode_color(const CelestialSphereMode mode) {
@@ -130,12 +232,15 @@ static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 // ============================================================================
 // LVGL OBJECTS
 // ============================================================================
-// Square parent container: hosts sphere_container (centered, slightly
-// smaller) and the gyro attitude readout in its top-right corner. This is
-// the object celestial_sphere_set_visible toggles, since it composites
-// sphere_container and the readout together as one overlay.
-static lv_obj_t * volatile square_container = nullptr;
-static lv_obj_t * volatile sphere_container = nullptr;
+// Square parent container: hosts scope_container (square, centered, capped
+// at SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN of the parent's side length)
+// plus, in the margin that frees up, the gyro attitude readout (top-mid/
+// bottom-mid) and the sweep range/step adjuster rows (bottom-left/
+// bottom-right). This is the object celestial_sphere_set_visible toggles,
+// since it composites scope_container and every readout/control together as
+// one overlay.
+static lv_obj_t * volatile celestial_sphere_container = nullptr;
+static lv_obj_t * volatile scope_container = nullptr;
 static lv_obj_t * aperture_boundary = nullptr;
 static lv_obj_t * crosshair_h = nullptr;
 static lv_obj_t * crosshair_v = nullptr;
@@ -144,13 +249,16 @@ static lv_point_precise_t crosshair_v_points[2];
 
 // Live Alt/Az/RA/Dec readout for siderealPlanetData.gyro_0_sidereal_attitude,
 // shown regardless of current_mode (it always reflects the gyro, not
-// whichever attitude currently supplies the boresight). Split across two
-// labels: Alt/Az top-mid, RA/Dec bottom-mid.
-static lv_obj_t * gyro_alt_az_label = nullptr;
-static lv_obj_t * gyro_ra_dec_label = nullptr;
+// whichever attitude currently supplies the boresight). Stacked top-mid,
+// one create_label_pair_panel() row per value. Only the value labels are
+// kept: the title labels are never referenced again.
+static lv_obj_t * gyro_alt_value_label = nullptr;
+static lv_obj_t * gyro_az_value_label = nullptr;
+static lv_obj_t * gyro_ra_value_label = nullptr;
+static lv_obj_t * gyro_dec_value_label = nullptr;
 
-// Count of objects currently plotted (within the aperture), top-left of square_container.
-static lv_obj_t * objects_found_label = nullptr;
+// Count of objects currently plotted (within the aperture), top-mid of celestial_sphere_container.
+static lv_obj_t * objects_found_value_label = nullptr;
 
 // Highlights whichever marker is currently selected.
 static lv_obj_t * selection_box = nullptr;
@@ -159,6 +267,14 @@ static lv_obj_t * selection_box = nullptr;
 static lv_obj_t * target_data_box = nullptr;
 static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
+
+// Sweep range/step adjuster rows (bottom-left/bottom-right corners of
+// celestial_sphere_container, in the margin freed up by shrinking scope_container --
+// see SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN). Only the value labels are kept: the
+// buttons are wired up via lv_obj_add_event_cb() at creation and never
+// referenced again.
+static lv_obj_t * sweep_range_value_label = nullptr;
+static lv_obj_t * sweep_step_value_label = nullptr;
 
 // ============================================================================
 // TO RADIANS
@@ -315,26 +431,24 @@ static void update_target_data_content(const int32_t object_index) {
 // Refreshes the top-mid (Alt/Az) and bottom-mid (RA/Dec) readouts from
 // siderealPlanetData.gyro_0_sidereal_attitude.
 static void update_gyro_attitude_label(void) {
-    if (gyro_alt_az_label != nullptr) {
-        char buf[80];
-        snprintf(buf, sizeof(buf),
-            "Alt %.2f\n"
-            "Az  %.2f",
-            siderealPlanetData.gyro_0_sidereal_attitude.alt,
-            siderealPlanetData.gyro_0_sidereal_attitude.az
-        );
-        lv_label_set_text(gyro_alt_az_label, buf);
+    if (gyro_alt_value_label != nullptr) {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.2f", siderealPlanetData.gyro_0_sidereal_attitude.alt);
+        lv_label_set_text(gyro_alt_value_label, buf);
     }
 
-    if (gyro_ra_dec_label != nullptr) {
-        char buf[160];
-        snprintf(buf, sizeof(buf),
-            "RA %s\n"
-            "Dec %s",
-            siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str,
-            siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str
-        );
-        lv_label_set_text(gyro_ra_dec_label, buf);
+    if (gyro_az_value_label != nullptr) {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%.2f", siderealPlanetData.gyro_0_sidereal_attitude.az);
+        lv_label_set_text(gyro_az_value_label, buf);
+    }
+
+    if (gyro_ra_value_label != nullptr) {
+        lv_label_set_text(gyro_ra_value_label, siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
+    }
+
+    if (gyro_dec_value_label != nullptr) {
+        lv_label_set_text(gyro_dec_value_label, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
     }
 }
 
@@ -344,11 +458,64 @@ static void update_gyro_attitude_label(void) {
 // Refreshes the top-left readout with the count of objects currently
 // plotted (i.e. within the aperture that populated siderealObjectSweep).
 static void update_objects_found_label(const int32_t count) {
-    if (objects_found_label != nullptr) {
-        char buf[32];
-        snprintf(buf, sizeof(buf), " Objects %ld", static_cast<long>(count));
-        lv_label_set_text(objects_found_label, buf);
+    if (objects_found_value_label != nullptr) {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%ld", static_cast<long>(count));
+        lv_label_set_text(objects_found_value_label, buf);
     }
+}
+
+// ============================================================================
+// UPDATE SWEEP ADJUSTER LABELS
+// ============================================================================
+// Refreshes both adjuster rows' value labels from the current
+// starNavSweepRangeDeg/starNavSweepStepDeg (see UnidentifiedStudios_
+// SiderealHelper.h).
+static void update_sweep_adjuster_labels(void) {
+    if (sweep_range_value_label != nullptr) {
+        char buf[24];
+        snprintf(buf, sizeof(buf), "%.2f", starNavSweepRangeDeg);
+        lv_label_set_text(sweep_range_value_label, buf);
+    }
+    if (sweep_step_value_label != nullptr) {
+        char buf[24];
+        snprintf(buf, sizeof(buf), "%.2f", starNavSweepStepDeg);
+        lv_label_set_text(sweep_step_value_label, buf);
+    }
+}
+
+// ============================================================================
+// SWEEP ADJUSTER BUTTON CALLBACKS
+// ============================================================================
+// Range affects PX_PER_DEG (the projection scale -- see celestial_sphere_
+// update()), so its callbacks recompute that immediately rather than waiting
+// for the next sweep/timer tick; step only affects the next starNavSweep()
+// call (see UnidentifiedStudios_SiderealHelper.cpp) and needs no such
+// recompute here.
+static void sweep_range_minus_cb(lv_event_t * e) {
+    (void)e;
+    setStarNavSweepRangeDeg(starNavSweepRangeDeg - SWEEP_RANGE_STEP_INCREMENT_DEG);
+    PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
+    update_sweep_adjuster_labels();
+}
+
+static void sweep_range_plus_cb(lv_event_t * e) {
+    (void)e;
+    setStarNavSweepRangeDeg(starNavSweepRangeDeg + SWEEP_RANGE_STEP_INCREMENT_DEG);
+    PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
+    update_sweep_adjuster_labels();
+}
+
+static void sweep_step_minus_cb(lv_event_t * e) {
+    (void)e;
+    setStarNavSweepStepDeg(starNavSweepStepDeg - SWEEP_STEP_STEP_INCREMENT_DEG);
+    update_sweep_adjuster_labels();
+}
+
+static void sweep_step_plus_cb(lv_event_t * e) {
+    (void)e;
+    setStarNavSweepStepDeg(starNavSweepStepDeg + SWEEP_STEP_STEP_INCREMENT_DEG);
+    update_sweep_adjuster_labels();
 }
 
 // ============================================================================
@@ -403,8 +570,8 @@ void celestial_sphere_set_target(const int32_t object_index) {
         int32_t connector_end_x;
         int32_t connector_end_y;
 
-        const bool on_right_side = (obj_center_x > SPHERE_CENTER_X);
-        const bool in_top_half = (obj_center_y < SPHERE_CENTER_Y);
+        const bool on_right_side = (obj_center_x > SCOPE_CENTER_X);
+        const bool in_top_half = (obj_center_y < SCOPE_CENTER_Y);
 
         if (on_right_side) {
             data_box_x = obj_center_x - data_box_width - DATA_BOX_MARGIN - 20;
@@ -430,16 +597,16 @@ void celestial_sphere_set_target(const int32_t object_index) {
         if (data_box_x < DATA_BOX_MARGIN) {
             data_box_x = DATA_BOX_MARGIN;
         }
-        if ((data_box_x + data_box_width) > (SPHERE_WIDTH - DATA_BOX_MARGIN)) {
-            data_box_x = SPHERE_WIDTH - data_box_width - DATA_BOX_MARGIN;
+        if ((data_box_x + data_box_width) > (SCOPE_WIDTH - DATA_BOX_MARGIN)) {
+            data_box_x = SCOPE_WIDTH - data_box_width - DATA_BOX_MARGIN;
         }
 
         // Clamp data box Y to container bounds
         if (data_box_y < DATA_BOX_MARGIN) {
             data_box_y = DATA_BOX_MARGIN;
         }
-        if ((data_box_y + data_box_height) > (SPHERE_HEIGHT - DATA_BOX_MARGIN)) {
-            data_box_y = SPHERE_HEIGHT - data_box_height - DATA_BOX_MARGIN;
+        if ((data_box_y + data_box_height) > (SCOPE_HEIGHT - DATA_BOX_MARGIN)) {
+            data_box_y = SCOPE_HEIGHT - data_box_height - DATA_BOX_MARGIN;
         }
 
         if (target_data_box != nullptr) {
@@ -486,10 +653,10 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
 // ============================================================================
 // Recomputes every marker's screen position from siderealObjectSweep,
 // relative to the boresight Alt/Az selected by current_mode.
-// MISRA: the whole body is wrapped in the sphere_container guard below
+// MISRA: the whole body is wrapped in the scope_container guard below
 // instead of returning early, giving the function a single point of exit.
 void celestial_sphere_update(void) {
-    if (sphere_container != nullptr) {
+    if (scope_container != nullptr) {
         lv_timer_pause(sphere_timer);
 
         update_gyro_attitude_label();
@@ -526,7 +693,7 @@ void celestial_sphere_update(void) {
                 const float proj_y_deg = static_cast<float>(delta_alt);
                 const float radial_deg = sqrtf((proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg));
 
-                if (radial_deg > static_cast<float>(STARNAV_SWEEP_RANGE_DEG)) {
+                if (radial_deg > static_cast<float>(starNavSweepRangeDeg)) {
                     // Outside the aperture that populated this sweep slot.
                     if (marker->dot != nullptr) {
                         lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
@@ -534,14 +701,15 @@ void celestial_sphere_update(void) {
                 } else {
                     found_count++;
 
-                    marker->x = SPHERE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
                     // Screen Y grows downward while altitude grows upward, so invert.
-                    marker->y = SPHERE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
 
                     if (marker->dot != nullptr) {
                         const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&siderealObjectSweep, i);
                         const lv_image_dsc_t * const icon = (type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr;
                         lv_image_set_src(marker->dot, (icon != nullptr) ? icon : &object_type_icon_fallback);
+                        lv_obj_set_style_image_recolor(marker->dot, object_type_color(type_entry), 0);
                         lv_obj_set_pos(marker->dot, marker->x, marker->y);
                         lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
@@ -583,8 +751,8 @@ void celestial_sphere_begin(
     lv_obj_t * parent,
     int32_t outline_w_px,
     int32_t outline_h_px,
-    int32_t sphere_w_px,
-    int32_t sphere_h_px,
+    int32_t scope_w_px,
+    int32_t scope_h_px,
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
@@ -605,10 +773,10 @@ void celestial_sphere_begin(
     }
 
     if (ok) {
-        ok = (sphere_w_px > 0) && (sphere_h_px > 0);
+        ok = (scope_w_px > 0) && (scope_h_px > 0);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin called with invalid sphere dimensions (%ld x %ld)\n",
-                   static_cast<long>(sphere_w_px), static_cast<long>(sphere_h_px));
+                   static_cast<long>(scope_w_px), static_cast<long>(scope_h_px));
         }
     }
 
@@ -616,95 +784,270 @@ void celestial_sphere_begin(
         celestial_sphere_end();
 
         // The parent container is forced square (shorter of the two outline
-        // dimensions), and sphere_container is sized to fit inside it with
-        // SPHERE_CONTAINER_INSET_PX to spare -- capped by the caller's sphere
-        // dimensions too, so sphere_w_px/sphere_h_px can still shrink it
-        // further if requested.
-        SQUARE_CONTAINER_SIZE = (outline_w_px < outline_h_px) ? outline_w_px : outline_h_px;
-        const int32_t requested_sphere_size = (sphere_w_px < sphere_h_px) ? sphere_w_px : sphere_h_px;
-        const int32_t inner_size = (requested_sphere_size < (SQUARE_CONTAINER_SIZE - SPHERE_CONTAINER_INSET_PX))
-            ? requested_sphere_size
-            : (SQUARE_CONTAINER_SIZE - SPHERE_CONTAINER_INSET_PX);
+        // dimensions), and scope_container is forced square too, capped at
+        // SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN of its side length --
+        // capped by the caller's sphere dimensions too, so scope_w_px/
+        // scope_h_px can still shrink it further if requested. Shrinking the
+        // sphere (previously nearly the whole square, minus a thin fixed
+        // inset) frees up a larger margin band around it for the gyro/
+        // objects-found readouts and the sweep range/step adjuster rows.
+        CELESTIAL_SPHERE_CONTAINER_SIZE = (outline_w_px < outline_h_px) ? outline_w_px : outline_h_px;
+        const int32_t requested_scope_size = (scope_w_px < scope_h_px) ? scope_w_px : scope_h_px;
+        const int32_t scope_size_cap =
+            (CELESTIAL_SPHERE_CONTAINER_SIZE * SCOPE_CONTAINER_SIZE_FRACTION_NUM) / SCOPE_CONTAINER_SIZE_FRACTION_DEN;
+        const int32_t inner_size = (requested_scope_size < scope_size_cap)
+            ? requested_scope_size
+            : scope_size_cap;
 
-        SPHERE_WIDTH = inner_size;
-        SPHERE_HEIGHT = inner_size;
+        SCOPE_WIDTH = inner_size;
+        SCOPE_HEIGHT = inner_size;
 
         OUTLINE_WIDTH = inner_size;
         OUTLINE_HEIGHT = inner_size;
 
-        SPHERE_CENTER_X = OUTLINE_WIDTH / 2;
-        SPHERE_CENTER_Y = OUTLINE_HEIGHT / 2;
+        SCOPE_CENTER_X = OUTLINE_WIDTH / 2;
+        SCOPE_CENTER_Y = OUTLINE_HEIGHT / 2;
 
-        SPHERE_RADIUS = ((SPHERE_WIDTH < SPHERE_HEIGHT) ? SPHERE_WIDTH : SPHERE_HEIGHT) / 2 - 15;
-        PX_PER_DEG = static_cast<float>(SPHERE_RADIUS) / static_cast<float>(STARNAV_SWEEP_RANGE_DEG);
+        SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - 15;
+        PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
 
         current_mode = initial_mode;
         current_target_index = -1;
 
         // Square Parent Container
-        square_container = lv_obj_create(parent);
-        ok = (square_container != nullptr);
+        celestial_sphere_container = lv_obj_create(parent);
+        ok = (celestial_sphere_container != nullptr);
         if (!ok) {
-            printf("ERROR: celestial_sphere_begin failed to create square_container\n");
+            printf("ERROR: celestial_sphere_begin failed to create celestial_sphere_container\n");
         }
     }
 
     if (ok) {
         // Style Square Parent Container
-        lv_obj_remove_style_all(square_container);
-        lv_obj_set_size(square_container, SQUARE_CONTAINER_SIZE, SQUARE_CONTAINER_SIZE);
-        lv_obj_align(square_container, alignment, pos_x, pos_y);
-        lv_obj_set_style_bg_opa(square_container, LV_OPA_0, 0);
-        lv_obj_set_style_border_width(square_container, 0, 0);
-        lv_obj_remove_flag(square_container, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_remove_style_all(celestial_sphere_container);
+        lv_obj_set_size(celestial_sphere_container, CELESTIAL_SPHERE_CONTAINER_SIZE, CELESTIAL_SPHERE_CONTAINER_SIZE);
+        lv_obj_align(celestial_sphere_container, alignment, pos_x, pos_y);
+        lv_obj_set_style_bg_opa(celestial_sphere_container, LV_OPA_0, 0);
+        lv_obj_set_style_border_width(celestial_sphere_container, 0, 0);
+        lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_SCROLLABLE);
 
         // Composite the whole overlay (container + every child) as one
         // partially transparent layer, so whatever sits behind it is still
         // visible through it; starts hidden until celestial_sphere_set_visible(true).
-        lv_obj_set_style_opa(square_container, CONTAINER_OPA, 0);
-        lv_obj_add_flag(square_container, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_opa(celestial_sphere_container, CONTAINER_OPA, 0);
+        lv_obj_add_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
 
-        // Celestial Sphere Container (slightly smaller, centered inside the square parent)
-        sphere_container = lv_obj_create(square_container);
-        ok = (sphere_container != nullptr);
+        // Scope Container
+        scope_container = lv_obj_create(celestial_sphere_container);
+        ok = (scope_container != nullptr);
         if (!ok) {
-            printf("ERROR: celestial_sphere_begin failed to create sphere_container\n");
+            printf("ERROR: celestial_sphere_begin failed to create scope_container\n");
         }
     }
 
     if (ok) {
-        // Style Celestial Sphere Container
-        lv_obj_remove_style_all(sphere_container);
-        lv_obj_set_size(sphere_container, OUTLINE_WIDTH, OUTLINE_HEIGHT);
-        lv_obj_align(sphere_container, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_set_style_bg_opa(sphere_container, LV_OPA_0, 0);
-        lv_obj_set_style_border_width(sphere_container, 0, 0);
-        lv_obj_remove_flag(sphere_container, LV_OBJ_FLAG_SCROLLABLE);
+        // Style Scope Container
+        lv_obj_remove_style_all(scope_container);
+        lv_obj_set_size(scope_container, OUTLINE_WIDTH, OUTLINE_HEIGHT);
+        lv_obj_align(scope_container, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_style_bg_opa(scope_container, LV_OPA_0, 0);
+        lv_obj_set_style_border_width(scope_container, 0, 0);
+        lv_obj_remove_flag(scope_container, LV_OBJ_FLAG_SCROLLABLE);
 
-        // Gyro attitude readout: Alt/Az top-mid, RA/Dec bottom-mid of the square parent container.
-        gyro_alt_az_label = lv_label_create(square_container);
-        lv_obj_set_style_text_font(gyro_alt_az_label, &font_unscii_12, LV_PART_MAIN);
-        lv_obj_set_style_text_color(gyro_alt_az_label, lv_color_make(0, 255, 0), LV_PART_MAIN);
-        lv_obj_set_style_text_align(gyro_alt_az_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-        lv_obj_align(gyro_alt_az_label, LV_ALIGN_TOP_MID, 0, DATA_BOX_MARGIN);
+        // Gyro attitude + objects-found readout: stacked top-mid, one
+        // create_label_pair_panel() row per value. Only the value labels
+        // are kept: the title labels are never referenced again.
+        const label_pair_panel_t gyro_alt_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            160,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_LEFT,              // alignment
+            20,                              // pos_x
+            26,                              // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "Alt",                          // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_alt_value_label = gyro_alt_panel.label_1;
 
-        gyro_ra_dec_label = lv_label_create(square_container);
-        lv_obj_set_style_text_font(gyro_ra_dec_label, &font_unscii_12, LV_PART_MAIN);
-        lv_obj_set_style_text_color(gyro_ra_dec_label, lv_color_make(0, 255, 0), LV_PART_MAIN);
-        lv_obj_set_style_text_align(gyro_ra_dec_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-        lv_obj_align(gyro_ra_dec_label, LV_ALIGN_BOTTOM_MID, 0, -DATA_BOX_MARGIN);
+        const label_pair_panel_t gyro_az_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            160,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_LEFT,              // alignment
+            20,                              // pos_x
+            52,                             // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "Az",                           // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_az_value_label = gyro_az_panel.label_1;
+
+        const label_pair_panel_t gyro_ra_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            300,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_RIGHT,             // alignment
+            -20,                              // pos_x
+            26,                              // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "RA",                           // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_ra_value_label = gyro_ra_panel.label_1;
+
+        const label_pair_panel_t gyro_dec_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            300,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_RIGHT,             // alignment
+            -20,                              // pos_x
+            52,                             // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "Dec",                          // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_dec_value_label = gyro_dec_panel.label_1;
 
         update_gyro_attitude_label();
 
-        // Objects-found readout, top-left corner of the square parent container.
-        objects_found_label = lv_label_create(square_container);
-        lv_obj_set_style_text_font(objects_found_label, &font_unscii_12, LV_PART_MAIN);
-        lv_obj_set_style_text_color(objects_found_label, lv_color_make(0, 255, 0), LV_PART_MAIN);
-        lv_obj_set_style_text_align(objects_found_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
-        lv_obj_align(objects_found_label, LV_ALIGN_TOP_LEFT, DATA_BOX_MARGIN, DATA_BOX_MARGIN);
+        // Objects-found readout, continuing the top-mid stack.
+        const label_pair_panel_t objects_found_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            160,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_MID,               // alignment
+            0,                              // pos_x
+            0,                              // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "Objects",                      // label_0_text
+            ""                              // label_1_text: filled by update_objects_found_label()
+        );
+        objects_found_value_label = objects_found_panel.label_1;
         update_objects_found_label(0);
 
-        aperture_boundary = lv_obj_create(sphere_container);
+        // Sweep range/step adjuster panels: bottom-left/bottom-right corners of
+        // the square parent container, in the margin freed up by capping
+        // scope_container at SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN. Only the
+        // value labels are kept: the buttons are wired up via
+        // lv_obj_add_event_cb() below and never referenced again.
+        const stepper_panel_t sweep_range_panel = create_stepper_panel(
+            celestial_sphere_container,     // parent
+            300,                            // width_px
+            32,                             // height_px
+            LV_ALIGN_BOTTOM_MID,            // alignment
+            0,                              // pos_x
+            -42,                            // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            32,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "ZOOM",                         // title_text
+            ""                              // value_text
+        );
+        lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
+        sweep_range_value_label = sweep_range_panel.value_label;
+
+        const stepper_panel_t sweep_step_panel = create_stepper_panel(
+            celestial_sphere_container,     // parent
+            300,                            // width_px
+            32,                             // height_px
+            LV_ALIGN_BOTTOM_MID,            // alignment
+            0,                              // pos_x
+            -2,                             // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            32,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_unscii_12,                // font_sub
+            "STEP",                         // title_text
+            ""                              // value_text
+        );
+        lv_obj_add_event_cb(sweep_step_panel.btn_minus.button, sweep_step_minus_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(sweep_step_panel.btn_plus.button, sweep_step_plus_cb, LV_EVENT_CLICKED, nullptr);
+        sweep_step_value_label = sweep_step_panel.value_label;
+
+        update_sweep_adjuster_labels();
+
+        aperture_boundary = lv_obj_create(scope_container);
         ok = (aperture_boundary != nullptr);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin failed to create aperture_boundary\n");
@@ -714,9 +1057,9 @@ void celestial_sphere_begin(
     if (ok) {
         // Aperture Boundary
         lv_obj_remove_style_all(aperture_boundary);
-        lv_obj_set_size(aperture_boundary, SPHERE_RADIUS * 2, SPHERE_RADIUS * 2);
+        lv_obj_set_size(aperture_boundary, SCOPE_RADIUS * 2, SCOPE_RADIUS * 2);
         lv_obj_align(aperture_boundary, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_set_style_radius(aperture_boundary, LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_radius(aperture_boundary, 0, 0);
         lv_obj_set_style_border_width(aperture_boundary, APERTURE_BORDER_WIDTH, 0);
         lv_obj_set_style_border_color(aperture_boundary, mode_color(current_mode), 0);
         lv_obj_set_style_bg_opa(aperture_boundary, LV_OPA_TRANSP, 0);
@@ -726,36 +1069,36 @@ void celestial_sphere_begin(
         // Crosshair marking the boresight; fixed at the container's center,
         // since the boresight Alt/Az is by definition wherever the container
         // center points -- only the objects around it move.
-        crosshair_h = lv_line_create(sphere_container);
+        crosshair_h = lv_line_create(scope_container);
         lv_obj_set_style_line_color(crosshair_h, mode_color(current_mode), 0);
         lv_obj_set_style_line_width(crosshair_h, CROSSHAIR_LINE_WIDTH, 0);
-        crosshair_h_points[0].x = SPHERE_CENTER_X - CROSSHAIR_ARM_LEN_PX;
-        crosshair_h_points[0].y = SPHERE_CENTER_Y;
-        crosshair_h_points[1].x = SPHERE_CENTER_X + CROSSHAIR_ARM_LEN_PX;
-        crosshair_h_points[1].y = SPHERE_CENTER_Y;
+        crosshair_h_points[0].x = SCOPE_CENTER_X - CROSSHAIR_ARM_LEN_PX;
+        crosshair_h_points[0].y = SCOPE_CENTER_Y;
+        crosshair_h_points[1].x = SCOPE_CENTER_X + CROSSHAIR_ARM_LEN_PX;
+        crosshair_h_points[1].y = SCOPE_CENTER_Y;
         lv_line_set_points(crosshair_h, crosshair_h_points, 2);
 
-        crosshair_v = lv_line_create(sphere_container);
+        crosshair_v = lv_line_create(scope_container);
         lv_obj_set_style_line_color(crosshair_v, mode_color(current_mode), 0);
         lv_obj_set_style_line_width(crosshair_v, CROSSHAIR_LINE_WIDTH, 0);
-        crosshair_v_points[0].x = SPHERE_CENTER_X;
-        crosshair_v_points[0].y = SPHERE_CENTER_Y - CROSSHAIR_ARM_LEN_PX;
-        crosshair_v_points[1].x = SPHERE_CENTER_X;
-        crosshair_v_points[1].y = SPHERE_CENTER_Y + CROSSHAIR_ARM_LEN_PX;
+        crosshair_v_points[0].x = SCOPE_CENTER_X;
+        crosshair_v_points[0].y = SCOPE_CENTER_Y - CROSSHAIR_ARM_LEN_PX;
+        crosshair_v_points[1].x = SCOPE_CENTER_X;
+        crosshair_v_points[1].y = SCOPE_CENTER_Y + CROSSHAIR_ARM_LEN_PX;
         lv_line_set_points(crosshair_v, crosshair_v_points, 2);
 
         // Markers, one per possible siderealObjectSweep slot.
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
             markers[i].x = 0;
             markers[i].y = 0;
-            markers[i].dot = create_marker(sphere_container, COLOR_MARKER);
+            markers[i].dot = create_marker(scope_container, COLOR_MARKER);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
             }
         }
 
-        selection_box = create_selection_box(sphere_container, MARKER_ICON_SIZE);
+        selection_box = create_selection_box(scope_container, MARKER_ICON_SIZE);
         ok = (selection_box != nullptr);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin failed to create selection_box\n");
@@ -766,7 +1109,7 @@ void celestial_sphere_begin(
         // -----------------------------------------------------------------
         // Target data box (displays object information when selected)
         // -----------------------------------------------------------------
-        target_data_box = lv_obj_create(sphere_container);
+        target_data_box = lv_obj_create(scope_container);
         lv_obj_add_flag(target_data_box, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_style_all(target_data_box);
         lv_obj_set_size(target_data_box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
@@ -781,7 +1124,7 @@ void celestial_sphere_begin(
         // -----------------------------------------------------------------
         // Connector line (connects selection box to data box)
         // -----------------------------------------------------------------
-        target_connector_line = lv_line_create(sphere_container);
+        target_connector_line = lv_line_create(scope_container);
         lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
         lv_obj_set_style_line_color(target_connector_line, COLOR_TARGET, 0);
         lv_obj_set_style_line_width(target_connector_line, SELECTION_BOX_LINE_WIDTH, 0);
@@ -792,8 +1135,8 @@ void celestial_sphere_begin(
         connector_points[1].y = 0;
 
         // Click handler to reset target when clicking background
-        lv_obj_add_flag(sphere_container, LV_OBJ_FLAG_CLICKABLE);
-        lv_obj_add_event_cb(sphere_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_flag(scope_container, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(scope_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
 
         // Create timer for celestial sphere updates
         sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 1000, nullptr);
@@ -807,11 +1150,11 @@ void celestial_sphere_begin(
 // running either way, so the marker positions are already current whenever
 // the overlay is shown again.
 void celestial_sphere_set_visible(const bool visible) {
-    if (square_container != nullptr) {
+    if (celestial_sphere_container != nullptr) {
         if (visible) {
-            lv_obj_clear_flag(square_container, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
         } else {
-            lv_obj_add_flag(square_container, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
         }
     }
 }

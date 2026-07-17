@@ -51,12 +51,18 @@ const SiderealLegacyObjectTypeEntry legacyOjectType[] = {
     { 16, "Diffuse Nebula" }
 };
 
+/**
+ * Galaxy  x9
+ * Cluster x2
+ * Nebula  x4
+ * Star    x6 (including supernova remnant)
+ */
 const SiderealObjectTypeEntry objectType[] = {
-  { 0, "Polar ring galaxy" },
-  { 1, "Part of galaxy (e.g. bright HII region)" },
-  { 2, "Open cluster" },
-  { 3, "Globular cluster" },
-  { 4, "Supernova remnant" },
+  { 0, "Polar Ring Galaxy" },
+  { 1, "Part of Galaxy (e.g. bright HII region)" },
+  { 2, "Open Cluster" },
+  { 3, "Globular Cluster" },
+  { 4, "Supernova Remnant" },
   { 5, "Dark Nebula" },
   { 6, "Emission Nebula" },
   { 7, "Reflection Nebula" },
@@ -73,7 +79,7 @@ const SiderealObjectTypeEntry objectType[] = {
   { 18, "Irregular Galaxy" },
   { 19, "Peculiar Galaxy" },
   { 20, "Spiral Galaxy" },
-  { 21, "Ring galaxy" }
+  { 21, "Ring Galaxy" }
 };
 
 const SiderealConstellationEntry constellationName[] = {
