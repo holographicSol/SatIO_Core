@@ -1953,6 +1953,7 @@ label_pair_panel_t create_label_pair_panel(
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
+    int32_t obj_w_1 = 0;
     int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
 
     /* --- Row Labels ------------------------------------------------------------------ */
@@ -1997,7 +1998,8 @@ label_pair_panel_t create_label_pair_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    obj_w_1 = (((sub_row_width/4) *3)) - (sub_column_padding*1);
 
     // Left Label
     result.label_0 = create_label(
@@ -2022,7 +2024,7 @@ label_pair_panel_t create_label_pair_panel(
     // Right Label
     result.label_1 = create_label(
         row_0,
-        obj_w_0,
+        obj_w_1,
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
@@ -2040,7 +2042,7 @@ label_pair_panel_t create_label_pair_panel(
     );
 
     lv_obj_set_size(result.label_0, obj_w_0, obj_height);
-    lv_obj_set_size(result.label_1, obj_w_0, obj_height);
+    lv_obj_set_size(result.label_1, obj_w_1, obj_height);
 
     return result;
 }
