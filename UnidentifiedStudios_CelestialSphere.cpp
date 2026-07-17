@@ -1011,7 +1011,7 @@ void celestial_sphere_begin(
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
             &font_unscii_12,                // font_sub
-            "ZOOM",                         // title_text
+            "Aperture",                     // title_text
             ""                              // value_text
         );
         lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
