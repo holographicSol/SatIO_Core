@@ -52,8 +52,24 @@ static int32_t CELESTIAL_SPHERE_CONTAINER_SIZE = 550;
 static int32_t SCOPE_CENTER_X = OUTLINE_WIDTH / 2;
 static int32_t SCOPE_CENTER_Y = OUTLINE_HEIGHT / 2;
 
+// Every object type icon (see UnidentifiedStudios_ObjectTypeIcons.h) is a
+// fixed 32x32 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
+// the same way the plain dot marker used to be colored directly.
+static constexpr int32_t MARKER_ICON_SIZE = 32;
+static constexpr int32_t MARKER_ICON_HALF = MARKER_ICON_SIZE / 2;
+// create_selection_box() grows the highlight this far past the marker icon
+// on every side (see its size+SELECTION_BOX_PADDING_PX below).
+static constexpr int32_t SELECTION_BOX_PADDING_PX = 8;
+
+// Distance a marker's center must stay from scope_container's edge so its
+// selection highlight box (the widest thing centered on a marker) never
+// gets clipped by the container. Must be >= half the highlight box's side
+// (MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX), not just half the marker
+// icon -- the highlight is larger than the icon it surrounds.
+static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX) / 2;
+
 // Max usable aperture radius (leave margin for marker size).
-static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - 15;
+static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
 // Pixels drawn per degree of Alt/Az offset from the boresight, derived from
 // the same aperture that populates siderealObjectSweep (see starNavSweep()
@@ -69,11 +85,6 @@ static int32_t current_target_index = -1;
 // Timer for celestial sphere updates.
 static lv_timer_t * sphere_timer = nullptr;
 
-// Every object type icon (see UnidentifiedStudios_ObjectTypeIcons.h) is a
-// fixed 32x32 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
-// the same way the plain dot marker used to be colored directly.
-static constexpr int32_t MARKER_ICON_SIZE = 32;
-static constexpr int32_t MARKER_ICON_HALF = MARKER_ICON_SIZE / 2;
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
@@ -347,7 +358,7 @@ static lv_obj_t * create_selection_box(lv_obj_t * const parent, const int32_t si
             printf("ERROR: create_selection_box failed to allocate a box\n");
         } else {
             lv_obj_remove_style_all(box);
-            lv_obj_set_size(box, size + 8, size + 8);
+            lv_obj_set_size(box, size + SELECTION_BOX_PADDING_PX, size + SELECTION_BOX_PADDING_PX);
             lv_obj_set_style_border_width(box, SELECTION_BOX_LINE_WIDTH, 0);
             lv_obj_set_style_border_color(box, COLOR_TARGET, 0);
             lv_obj_set_style_bg_opa(box, LV_OPA_TRANSP, 0);
@@ -358,6 +369,61 @@ static lv_obj_t * create_selection_box(lv_obj_t * const parent, const int32_t si
         }
     }
     return result;
+}
+
+// ============================================================================
+// SHORTEST RECTANGLE CONNECTOR
+// ============================================================================
+// Computes the endpoints of the shortest straight segment connecting the
+// boundaries of two disjoint axis-aligned rectangles, rect_a [a_x0,a_y0]-
+// [a_x1,a_y1] and rect_b [b_x0,b_y0]-[b_x1,b_y1] (both in the same
+// coordinate space). Each axis is resolved independently: if the rectangles'
+// ranges on that axis don't overlap, the segment meets each rectangle's near
+// edge on that axis; if they do overlap, the segment runs along the
+// midpoint of the overlap, contributing nothing to the distance on that
+// axis. Combined, this is the true nearest-point pair between the two
+// rectangles, so the segment always lands exactly on each rectangle's edge
+// and -- being the minimum-distance segment between two disjoint convex
+// regions -- never crosses into either rectangle's interior.
+static void compute_shortest_connector(
+    const int32_t a_x0, const int32_t a_y0, const int32_t a_x1, const int32_t a_y1,
+    const int32_t b_x0, const int32_t b_y0, const int32_t b_x1, const int32_t b_y1,
+    lv_point_precise_t * const out_start, lv_point_precise_t * const out_end)
+{
+    int32_t start_x;
+    int32_t end_x;
+    if (b_x1 < a_x0) {
+        start_x = a_x0;
+        end_x = b_x1;
+    } else if (b_x0 > a_x1) {
+        start_x = a_x1;
+        end_x = b_x0;
+    } else {
+        const int32_t overlap_lo = (a_x0 > b_x0) ? a_x0 : b_x0;
+        const int32_t overlap_hi = (a_x1 < b_x1) ? a_x1 : b_x1;
+        start_x = (overlap_lo + overlap_hi) / 2;
+        end_x = start_x;
+    }
+
+    int32_t start_y;
+    int32_t end_y;
+    if (b_y1 < a_y0) {
+        start_y = a_y0;
+        end_y = b_y1;
+    } else if (b_y0 > a_y1) {
+        start_y = a_y1;
+        end_y = b_y0;
+    } else {
+        const int32_t overlap_lo = (a_y0 > b_y0) ? a_y0 : b_y0;
+        const int32_t overlap_hi = (a_y1 < b_y1) ? a_y1 : b_y1;
+        start_y = (overlap_lo + overlap_hi) / 2;
+        end_y = start_y;
+    }
+
+    out_start->x = start_x;
+    out_start->y = start_y;
+    out_end->x = end_x;
+    out_end->y = end_y;
 }
 
 // ============================================================================
@@ -543,13 +609,23 @@ void celestial_sphere_set_target(const int32_t object_index) {
 
     if (slot_valid) {
         const ObjectMarker * const marker = &markers[object_index];
-        const int32_t obj_center_x = marker->x + MARKER_ICON_HALF;
-        const int32_t obj_center_y = marker->y + MARKER_ICON_HALF;
 
         if (selection_box != nullptr) {
             lv_obj_set_pos(selection_box, marker->x - 4, marker->y - 4);
             lv_obj_clear_flag(selection_box, LV_OBJ_FLAG_HIDDEN);
         }
+
+        // target_data_box/target_connector_line are parented to
+        // celestial_sphere_container (the whole overlay), not scope_container,
+        // so a wide box isn't clipped against scope_container's tighter
+        // bounds. scope_container sits centered inside it, so marker
+        // coordinates (scope_container-local) need this offset to land in
+        // celestial_sphere_container-local space.
+        const int32_t scope_offset_x = (CELESTIAL_SPHERE_CONTAINER_SIZE - OUTLINE_WIDTH) / 2;
+        const int32_t scope_offset_y = (CELESTIAL_SPHERE_CONTAINER_SIZE - OUTLINE_HEIGHT) / 2;
+
+        const int32_t obj_center_x = marker->x + MARKER_ICON_HALF + scope_offset_x;
+        const int32_t obj_center_y = marker->y + MARKER_ICON_HALF + scope_offset_y;
 
         // Update data box content FIRST so we can measure its size
         update_target_data_content(object_index);
@@ -565,48 +641,39 @@ void celestial_sphere_set_target(const int32_t object_index) {
         // -----------------------------------------------------------------
         int32_t data_box_x;
         int32_t data_box_y;
-        int32_t connector_start_x;
-        int32_t connector_start_y;
-        int32_t connector_end_x;
-        int32_t connector_end_y;
 
-        const bool on_right_side = (obj_center_x > SCOPE_CENTER_X);
-        const bool in_top_half = (obj_center_y < SCOPE_CENTER_Y);
+        const bool on_right_side = (obj_center_x > (CELESTIAL_SPHERE_CONTAINER_SIZE / 2));
+        const bool in_top_half = (obj_center_y < (CELESTIAL_SPHERE_CONTAINER_SIZE / 2));
 
         if (on_right_side) {
             data_box_x = obj_center_x - data_box_width - DATA_BOX_MARGIN - 20;
-            connector_start_x = obj_center_x - DATA_BOX_MARGIN;
-            connector_end_x = data_box_x + data_box_width;
         } else {
             data_box_x = obj_center_x + DATA_BOX_MARGIN + 20;
-            connector_start_x = obj_center_x + DATA_BOX_MARGIN;
-            connector_end_x = data_box_x;
         }
 
         if (in_top_half) {
             data_box_y = obj_center_y + DATA_BOX_MARGIN + 20;
-            connector_start_y = obj_center_y + DATA_BOX_MARGIN;
-            connector_end_y = data_box_y;
         } else {
             data_box_y = obj_center_y - data_box_height - DATA_BOX_MARGIN - 20;
-            connector_start_y = obj_center_y - DATA_BOX_MARGIN;
-            connector_end_y = data_box_y + data_box_height;
         }
 
-        // Clamp data box X to container bounds
+        // Clamp data box to celestial_sphere_container bounds. The far-edge
+        // (right/bottom) check runs first and the near-edge (left/top)
+        // check runs last, so the left/top edge -- where the field labels
+        // (Name, Type, ...) start -- always wins the conflict and is never
+        // pushed negative.
+        if ((data_box_x + data_box_width) > (CELESTIAL_SPHERE_CONTAINER_SIZE - DATA_BOX_MARGIN)) {
+            data_box_x = CELESTIAL_SPHERE_CONTAINER_SIZE - data_box_width - DATA_BOX_MARGIN;
+        }
         if (data_box_x < DATA_BOX_MARGIN) {
             data_box_x = DATA_BOX_MARGIN;
         }
-        if ((data_box_x + data_box_width) > (SCOPE_WIDTH - DATA_BOX_MARGIN)) {
-            data_box_x = SCOPE_WIDTH - data_box_width - DATA_BOX_MARGIN;
-        }
 
-        // Clamp data box Y to container bounds
+        if ((data_box_y + data_box_height) > (CELESTIAL_SPHERE_CONTAINER_SIZE - DATA_BOX_MARGIN)) {
+            data_box_y = CELESTIAL_SPHERE_CONTAINER_SIZE - data_box_height - DATA_BOX_MARGIN;
+        }
         if (data_box_y < DATA_BOX_MARGIN) {
             data_box_y = DATA_BOX_MARGIN;
-        }
-        if ((data_box_y + data_box_height) > (SCOPE_HEIGHT - DATA_BOX_MARGIN)) {
-            data_box_y = SCOPE_HEIGHT - data_box_height - DATA_BOX_MARGIN;
         }
 
         if (target_data_box != nullptr) {
@@ -614,11 +681,22 @@ void celestial_sphere_set_target(const int32_t object_index) {
             lv_obj_clear_flag(target_data_box, LV_OBJ_FLAG_HIDDEN);
         }
 
+        // Connector line: the shortest segment between the selection box
+        // (around the marker) and the data box, in celestial_sphere_
+        // container-local space -- see compute_shortest_connector(). Always
+        // the minimum-length path and never dips into either box, since
+        // both endpoints land exactly on a box's edge.
         if (target_connector_line != nullptr) {
-            connector_points[0].x = connector_start_x;
-            connector_points[0].y = connector_start_y;
-            connector_points[1].x = connector_end_x;
-            connector_points[1].y = connector_end_y;
+            constexpr int32_t SEL_SIZE = MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX;
+            const int32_t sel_x0 = (marker->x - 4) + scope_offset_x;
+            const int32_t sel_y0 = (marker->y - 4) + scope_offset_y;
+            const int32_t sel_x1 = sel_x0 + SEL_SIZE;
+            const int32_t sel_y1 = sel_y0 + SEL_SIZE;
+
+            compute_shortest_connector(
+                sel_x0, sel_y0, sel_x1, sel_y1,
+                data_box_x, data_box_y, data_box_x + data_box_width, data_box_y + data_box_height,
+                &connector_points[0], &connector_points[1]);
             lv_line_set_points(target_connector_line, connector_points, 2);
             lv_obj_clear_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
         }
@@ -808,7 +886,7 @@ void celestial_sphere_begin(
         SCOPE_CENTER_X = OUTLINE_WIDTH / 2;
         SCOPE_CENTER_Y = OUTLINE_HEIGHT / 2;
 
-        SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - 15;
+        SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
         PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
 
         current_mode = initial_mode;
@@ -1107,9 +1185,14 @@ void celestial_sphere_begin(
 
     if (ok) {
         // -----------------------------------------------------------------
-        // Target data box (displays object information when selected)
+        // Target data box (displays object information when selected).
+        // Parented to celestial_sphere_container (not scope_container) so a
+        // wide box (long object/constellation name) has the whole overlay's
+        // area to sit in instead of being clipped against the tighter
+        // scope_container bounds -- see celestial_sphere_set_target(),
+        // which converts to celestial_sphere_container-local coordinates.
         // -----------------------------------------------------------------
-        target_data_box = lv_obj_create(scope_container);
+        target_data_box = lv_obj_create(celestial_sphere_container);
         lv_obj_add_flag(target_data_box, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_style_all(target_data_box);
         lv_obj_set_size(target_data_box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
@@ -1122,9 +1205,11 @@ void celestial_sphere_begin(
         lv_obj_remove_flag(target_data_box, LV_OBJ_FLAG_CLICKABLE);
 
         // -----------------------------------------------------------------
-        // Connector line (connects selection box to data box)
+        // Connector line (connects selection box to data box). Parented to
+        // celestial_sphere_container alongside target_data_box so it can
+        // still reach the box wherever it ends up.
         // -----------------------------------------------------------------
-        target_connector_line = lv_line_create(scope_container);
+        target_connector_line = lv_line_create(celestial_sphere_container);
         lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
         lv_obj_set_style_line_color(target_connector_line, COLOR_TARGET, 0);
         lv_obj_set_style_line_width(target_connector_line, SELECTION_BOX_LINE_WIDTH, 0);
