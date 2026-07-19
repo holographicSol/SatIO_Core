@@ -45,24 +45,26 @@ static int32_t SCOPE_HEIGHT = 480;
 static int32_t CELESTIAL_SPHERE_CONTAINER_SIZE = 550;
 
 // Center of the celestial sphere display (the boresight/crosshair position).
-static int32_t SCOPE_CENTER_X = SCOPE_WIDTH / 2;
-static int32_t SCOPE_CENTER_Y = SCOPE_HEIGHT / 2;
+// The crosshair, markers, selection_box, target_data_box and
+// target_connector_line are all parented to celestial_sphere_container (not
+// scope_container -- a plain decorative ring/background with no positioned
+// children of its own), so this is that container's own center, and every
+// position derived from here lands in that one shared coordinate space with
+// no per-widget offset needed.
+static int32_t SCOPE_CENTER_X = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
+static int32_t SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 
-// Every object type icon (see UnidentifiedStudios_ObjectTypeIcons.h) is a
-// fixed 32x32 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
-// the same way the plain dot marker used to be colored directly.
 static constexpr int32_t MARKER_ICON_SIZE = 32;
 static constexpr int32_t MARKER_ICON_HALF = MARKER_ICON_SIZE / 2;
 // create_selection_box() grows the highlight this far past the marker icon
 // on every side (see its size+SELECTION_BOX_PADDING_PX below).
 static constexpr int32_t SELECTION_BOX_PADDING_PX = 8;
 
-// Distance a marker's center must stay from scope_container's edge so its
-// selection highlight box (the widest thing centered on a marker) never
-// gets clipped by the container. Must be >= half the highlight box's side
-// (MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX), not just half the marker
-// icon -- the highlight is larger than the icon it surrounds.
+// Distance a marker's center must stay from scope_container's edge
 static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX) / 2;
+
+// Distance from a marker's center to the selection box's edge
+static constexpr int32_t SELECTION_BOX_HALF_SIZE = APERTURE_EDGE_MARGIN_PX;
 
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
@@ -87,10 +89,7 @@ static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
 
-// Sweep range/step adjuster row: one horizontal [-][value][+] control per
-// parameter (see setStarNavSweepRangeDeg()/setStarNavSweepStepDeg() in
-// UnidentifiedStudios_SiderealHelper.h), placed in the corners of the margin
-// freed up by scope_container being smaller than celestial_sphere_container.
+// Sweep range/step/max adjuster
 static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 28;
 static constexpr int32_t SWEEP_ADJUSTER_GAP_PX = 4;
 static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
@@ -232,13 +231,6 @@ static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 // ============================================================================
 // LVGL OBJECTS
 // ============================================================================
-// Square parent container: hosts scope_container (centered, sized from the
-// caller's scope_w_px/scope_h_px, smaller than the parent's side length)
-// plus, in the margin that frees up, the gyro attitude readout (top-mid/
-// bottom-mid) and the sweep range/step adjuster rows (bottom-left/
-// bottom-right). This is the object celestial_sphere_set_visible toggles,
-// since it composites scope_container and every readout/control together as
-// one overlay.
 static lv_obj_t * volatile celestial_sphere_container = nullptr;
 static lv_obj_t * volatile scope_container = nullptr;
 static lv_obj_t * crosshair_h = nullptr;
@@ -246,17 +238,12 @@ static lv_obj_t * crosshair_v = nullptr;
 static lv_point_precise_t crosshair_h_points[2];
 static lv_point_precise_t crosshair_v_points[2];
 
-// Live Alt/Az/RA/Dec readout for siderealPlanetData.gyro_0_sidereal_attitude,
-// shown regardless of current_mode (it always reflects the gyro, not
-// whichever attitude currently supplies the boresight). Stacked top-mid,
-// one create_label_pair_panel() row per value. Only the value labels are
-// kept: the title labels are never referenced again.
 static lv_obj_t * gyro_alt_value_label = nullptr;
 static lv_obj_t * gyro_az_value_label = nullptr;
 static lv_obj_t * gyro_ra_value_label = nullptr;
 static lv_obj_t * gyro_dec_value_label = nullptr;
 
-// Count of objects currently plotted (within the aperture), top-mid of celestial_sphere_container.
+// Count of objects currently plotted within the scope
 static lv_obj_t * objects_found_value_label = nullptr;
 
 // Highlights whichever marker is currently selected.
@@ -267,11 +254,6 @@ static lv_obj_t * target_data_box = nullptr;
 static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
 
-// Sweep range/step/max-objects adjuster rows (stacked bottom-mid of
-// celestial_sphere_container, in the margin freed up by scope_container being
-// smaller than its parent). Only the value labels are kept: the
-// buttons are wired up via lv_obj_add_event_cb() at creation and never
-// referenced again.
 static lv_obj_t * sweep_range_value_label = nullptr;
 static lv_obj_t * sweep_step_value_label = nullptr;
 static lv_obj_t * sweep_max_objects_value_label = nullptr;
@@ -361,61 +343,6 @@ static lv_obj_t * create_selection_box(lv_obj_t * const parent, const int32_t si
 }
 
 // ============================================================================
-// SHORTEST RECTANGLE CONNECTOR
-// ============================================================================
-// Computes the endpoints of the shortest straight segment connecting the
-// boundaries of two disjoint axis-aligned rectangles, rect_a [a_x0,a_y0]-
-// [a_x1,a_y1] and rect_b [b_x0,b_y0]-[b_x1,b_y1] (both in the same
-// coordinate space). Each axis is resolved independently: if the rectangles'
-// ranges on that axis don't overlap, the segment meets each rectangle's near
-// edge on that axis; if they do overlap, the segment runs along the
-// midpoint of the overlap, contributing nothing to the distance on that
-// axis. Combined, this is the true nearest-point pair between the two
-// rectangles, so the segment always lands exactly on each rectangle's edge
-// and -- being the minimum-distance segment between two disjoint convex
-// regions -- never crosses into either rectangle's interior.
-static void compute_shortest_connector(
-    const int32_t a_x0, const int32_t a_y0, const int32_t a_x1, const int32_t a_y1,
-    const int32_t b_x0, const int32_t b_y0, const int32_t b_x1, const int32_t b_y1,
-    lv_point_precise_t * const out_start, lv_point_precise_t * const out_end)
-{
-    int32_t start_x;
-    int32_t end_x;
-    if (b_x1 < a_x0) {
-        start_x = a_x0;
-        end_x = b_x1;
-    } else if (b_x0 > a_x1) {
-        start_x = a_x1;
-        end_x = b_x0;
-    } else {
-        const int32_t overlap_lo = (a_x0 > b_x0) ? a_x0 : b_x0;
-        const int32_t overlap_hi = (a_x1 < b_x1) ? a_x1 : b_x1;
-        start_x = (overlap_lo + overlap_hi) / 2;
-        end_x = start_x;
-    }
-
-    int32_t start_y;
-    int32_t end_y;
-    if (b_y1 < a_y0) {
-        start_y = a_y0;
-        end_y = b_y1;
-    } else if (b_y0 > a_y1) {
-        start_y = a_y1;
-        end_y = b_y0;
-    } else {
-        const int32_t overlap_lo = (a_y0 > b_y0) ? a_y0 : b_y0;
-        const int32_t overlap_hi = (a_y1 < b_y1) ? a_y1 : b_y1;
-        start_y = (overlap_lo + overlap_hi) / 2;
-        end_y = start_y;
-    }
-
-    out_start->x = start_x;
-    out_start->y = start_y;
-    out_end->x = end_x;
-    out_end->y = end_y;
-}
-
-// ============================================================================
 // CELESTIAL OBJECT CLICK CALLBACK
 // ============================================================================
 // Reads the object index stored as this event's user data and selects it.
@@ -443,7 +370,6 @@ static void celestial_container_click_cb(lv_event_t * e) {
 // ============================================================================
 // UPDATE TARGET DATA BOX CONTENT
 // ============================================================================
-// Fills the data box with the fields siderealObjectSweep holds for object_index.
 static void update_target_data_content(const int32_t object_index) {
     if ((target_data_box != nullptr) && (object_index >= 0) && (object_index < MAX_STARNAV_OBJECTS)) {
         lv_obj_clean(target_data_box);
@@ -453,18 +379,18 @@ static void update_target_data_content(const int32_t object_index) {
 
         char buf[768];
         snprintf(buf, sizeof(buf),
-            "Name             %s\n\n"
-            "Table            %s\n"
-            "Object Number    %d\n"
-            "ObjectType       %s\n"
-            "Description      %s\n"
-            "Constellation    %s\n"
-            "Distance         %.2f\n"
-            "Magnitude        %.2f\n"
-            "Rise             %.2f\n"
-            "Set              %.2f\n"
-            "Azimuth          %.2f\n"
-            "Altitude         %.2f",
+            "Name            %s\n\n"
+            "Table           %s\n"
+            "Object Number   %d\n"
+            "ObjectType      %s\n"
+            "Description     %s\n"
+            "Constellation   %s\n"
+            "Distance        %.2f\n"
+            "Magnitude       %.2f\n"
+            "Rise            %.2f\n"
+            "Set             %.2f\n"
+            "Azimuth         %.2f\n"
+            "Altitude        %.2f",
             getObjectName(&siderealObjectSweep, object_index),
             getObjectTableName(&siderealObjectSweep, object_index),
             siderealObjectSweep.object_number[object_index],
@@ -485,8 +411,6 @@ static void update_target_data_content(const int32_t object_index) {
 // ============================================================================
 // UPDATE GYRO ATTITUDE LABEL
 // ============================================================================
-// Refreshes the top-mid (Alt/Az) and bottom-mid (RA/Dec) readouts from
-// siderealPlanetData.gyro_0_sidereal_attitude.
 static void update_gyro_attitude_label(void) {
     if (gyro_alt_value_label != nullptr) {
         char buf[16];
@@ -512,8 +436,6 @@ static void update_gyro_attitude_label(void) {
 // ============================================================================
 // UPDATE OBJECTS FOUND LABEL
 // ============================================================================
-// Refreshes the top-left readout with the count of objects currently
-// plotted (i.e. within the aperture that populated siderealObjectSweep).
 static void update_objects_found_label(const int32_t count) {
     if (objects_found_value_label != nullptr) {
         char buf[16];
@@ -525,9 +447,6 @@ static void update_objects_found_label(const int32_t count) {
 // ============================================================================
 // UPDATE SWEEP ADJUSTER LABELS
 // ============================================================================
-// Refreshes all three adjuster rows' value labels from the current
-// starNavSweepRangeDeg/starNavSweepStepDeg/starNavMaxObjects (see
-// UnidentifiedStudios_SiderealHelper.h).
 static void update_sweep_adjuster_labels(void) {
     if (sweep_range_value_label != nullptr) {
         char buf[24];
@@ -549,11 +468,6 @@ static void update_sweep_adjuster_labels(void) {
 // ============================================================================
 // SWEEP ADJUSTER BUTTON CALLBACKS
 // ============================================================================
-// Range affects PX_PER_DEG (the projection scale -- see celestial_sphere_
-// update()), so its callbacks recompute that immediately rather than waiting
-// for the next sweep/timer tick; step only affects the next starNavSweep()
-// call (see UnidentifiedStudios_SiderealHelper.cpp) and needs no such
-// recompute here.
 static void sweep_range_minus_cb(lv_event_t * e) {
     (void)e;
     setStarNavSweepRangeDeg(starNavSweepRangeDeg - SWEEP_RANGE_STEP_INCREMENT_DEG);
@@ -595,13 +509,8 @@ static void sweep_max_objects_plus_cb(lv_event_t * e) {
 // ============================================================================
 // SET TARGET
 // ============================================================================
-// Selects object_index as the active target: hides the selection box/data
-// box/connector line, then (unless object_index is out of range or its slot
-// is unidentified) shows them positioned relative to the marker's last
-// plotted location.
-// MISRA: the whole body is wrapped in the slot_valid guard below instead of
-// returning early, giving the function a single point of exit.
 void celestial_sphere_set_target(const int32_t object_index) {
+    // Hide all target boxes
     if (selection_box != nullptr) { lv_obj_add_flag(selection_box, LV_OBJ_FLAG_HIDDEN); }
     if (target_data_box != nullptr) { lv_obj_add_flag(target_data_box, LV_OBJ_FLAG_HIDDEN); }
     if (target_connector_line != nullptr) { lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN); }
@@ -623,88 +532,96 @@ void celestial_sphere_set_target(const int32_t object_index) {
             lv_obj_clear_flag(selection_box, LV_OBJ_FLAG_HIDDEN);
         }
 
-        // target_data_box/target_connector_line are parented to
-        // celestial_sphere_container (the whole overlay), not scope_container,
-        // so a wide box isn't clipped against scope_container's tighter
-        // bounds. scope_container sits centered inside it, so marker
-        // coordinates (scope_container-local) need this offset to land in
-        // celestial_sphere_container-local space.
-        const int32_t scope_offset_x = (CELESTIAL_SPHERE_CONTAINER_SIZE - SCOPE_WIDTH) / 2;
-        const int32_t scope_offset_y = (CELESTIAL_SPHERE_CONTAINER_SIZE - SCOPE_HEIGHT) / 2;
-
-        const int32_t obj_center_x = marker->x + MARKER_ICON_HALF + scope_offset_x;
-        const int32_t obj_center_y = marker->y + MARKER_ICON_HALF + scope_offset_y;
+        // marker->x/y, selection_box, target_data_box and target_connector_line
+        // are all parented to celestial_sphere_container, so no coordinate
+        // conversion is needed here -- everything below is already in that
+        // one shared space.
+        const int32_t obj_center_x = marker->x + MARKER_ICON_HALF;
+        const int32_t obj_center_y = marker->y + MARKER_ICON_HALF;
 
         // Update data box content FIRST so we can measure its size
         update_target_data_content(object_index);
         lv_obj_update_layout(target_data_box); // Force layout update to calculate size
 
+        // Get actual data box dimensions after content is set
         const int32_t data_box_width = lv_obj_get_width(target_data_box);
         const int32_t data_box_height = lv_obj_get_height(target_data_box);
 
         // -----------------------------------------------------------------
-        // Position data box based on marker location in container
+        // Position data box based on object location in container
+        // -----------------------------------------------------------------
         // Horizontal: Left side -> data box on RIGHT, Right side -> LEFT
         // Vertical: Top half -> data box BELOW, Bottom half -> ABOVE
         // -----------------------------------------------------------------
+
         int32_t data_box_x;
         int32_t data_box_y;
 
+        // Determine if object is on left or right side of container
         const bool on_right_side = (obj_center_x > (CELESTIAL_SPHERE_CONTAINER_SIZE / 2));
+        // Determine if object is in top or bottom half of container
         const bool in_top_half = (obj_center_y < (CELESTIAL_SPHERE_CONTAINER_SIZE / 2));
 
+        // Connector start: the selection box's edge facing the data box.
+        const int32_t connector_start_x = on_right_side
+            ? (obj_center_x - SELECTION_BOX_HALF_SIZE)
+            : (obj_center_x + SELECTION_BOX_HALF_SIZE);
+        const int32_t connector_start_y = in_top_half
+            ? (obj_center_y + SELECTION_BOX_HALF_SIZE)
+            : (obj_center_y - SELECTION_BOX_HALF_SIZE);
+
+        // Horizontal positioning (left/right)
         if (on_right_side) {
+            // Object is on right side: place data box on LEFT of object
             data_box_x = obj_center_x - data_box_width - DATA_BOX_MARGIN - 20;
         } else {
+            // Object is on left side or center: place data box on RIGHT of object
             data_box_x = obj_center_x + DATA_BOX_MARGIN + 20;
         }
 
+        // Vertical positioning (above/below)
         if (in_top_half) {
+            // Object is in top half: place data box BELOW object
             data_box_y = obj_center_y + DATA_BOX_MARGIN + 20;
         } else {
+            // Object is in bottom half: place data box ABOVE object
             data_box_y = obj_center_y - data_box_height - DATA_BOX_MARGIN - 20;
         }
 
-        // Clamp data box to celestial_sphere_container bounds. The far-edge
-        // (right/bottom) check runs first and the near-edge (left/top)
-        // check runs last, so the left/top edge -- where the field labels
-        // (Name, Type, ...) start -- always wins the conflict and is never
-        // pushed negative.
-        if ((data_box_x + data_box_width) > (CELESTIAL_SPHERE_CONTAINER_SIZE - DATA_BOX_MARGIN)) {
-            data_box_x = CELESTIAL_SPHERE_CONTAINER_SIZE - data_box_width - DATA_BOX_MARGIN;
-        }
+        // Clamp data box X to container bounds
         if (data_box_x < DATA_BOX_MARGIN) {
             data_box_x = DATA_BOX_MARGIN;
         }
-
-        if ((data_box_y + data_box_height) > (CELESTIAL_SPHERE_CONTAINER_SIZE - DATA_BOX_MARGIN)) {
-            data_box_y = CELESTIAL_SPHERE_CONTAINER_SIZE - data_box_height - DATA_BOX_MARGIN;
+        if ((data_box_x + data_box_width) > (CELESTIAL_SPHERE_CONTAINER_SIZE - DATA_BOX_MARGIN)) {
+            data_box_x = CELESTIAL_SPHERE_CONTAINER_SIZE - data_box_width - DATA_BOX_MARGIN;
         }
+
+        // Clamp data box Y to container bounds
         if (data_box_y < DATA_BOX_MARGIN) {
             data_box_y = DATA_BOX_MARGIN;
         }
+        if ((data_box_y + data_box_height) > (CELESTIAL_SPHERE_CONTAINER_SIZE - DATA_BOX_MARGIN)) {
+            data_box_y = CELESTIAL_SPHERE_CONTAINER_SIZE - data_box_height - DATA_BOX_MARGIN;
+        }
 
+        // Position and show data box
         if (target_data_box != nullptr) {
             lv_obj_set_pos(target_data_box, data_box_x, data_box_y);
             lv_obj_clear_flag(target_data_box, LV_OBJ_FLAG_HIDDEN);
         }
 
-        // Connector line: the shortest segment between the selection box
-        // (around the marker) and the data box, in celestial_sphere_
-        // container-local space -- see compute_shortest_connector(). Always
-        // the minimum-length path and never dips into either box, since
-        // both endpoints land exactly on a box's edge.
-        if (target_connector_line != nullptr) {
-            constexpr int32_t SEL_SIZE = MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX;
-            const int32_t sel_x0 = (marker->x - 4) + scope_offset_x;
-            const int32_t sel_y0 = (marker->y - 4) + scope_offset_y;
-            const int32_t sel_x1 = sel_x0 + SEL_SIZE;
-            const int32_t sel_y1 = sel_y0 + SEL_SIZE;
+        // Connector end: the data box's edge facing the marker, read from
+        // its final (post-clamp) position so the line always meets the box
+        // where it actually ended up on screen.
+        const int32_t connector_end_x = on_right_side ? (data_box_x + data_box_width) : data_box_x;
+        const int32_t connector_end_y = in_top_half ? data_box_y : (data_box_y + data_box_height);
 
-            compute_shortest_connector(
-                sel_x0, sel_y0, sel_x1, sel_y1,
-                data_box_x, data_box_y, data_box_x + data_box_width, data_box_y + data_box_height,
-                &connector_points[0], &connector_points[1]);
+        // Position and show connector line
+        if (target_connector_line != nullptr) {
+            connector_points[0].x = connector_start_x;
+            connector_points[0].y = connector_start_y;
+            connector_points[1].x = connector_end_x;
+            connector_points[1].y = connector_end_y;
             lv_line_set_points(target_connector_line, connector_points, 2);
             lv_obj_clear_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
         }
@@ -866,18 +783,13 @@ void celestial_sphere_begin(
     if (ok) {
         celestial_sphere_end();
 
-        // The parent container is forced square (shorter of the two outline
-        // dimensions). scope_container is sized directly from the caller's
-        // scope_w_px/scope_h_px -- smaller than the parent (by whatever the
-        // caller passes) frees up the margin band around it for the gyro/
-        // objects-found readouts and the sweep range/step adjuster rows.
         CELESTIAL_SPHERE_CONTAINER_SIZE = (width_px < height_px) ? width_px : height_px;
 
         SCOPE_WIDTH = scope_w_px;
         SCOPE_HEIGHT = scope_h_px;
 
-        SCOPE_CENTER_X = SCOPE_WIDTH / 2;
-        SCOPE_CENTER_Y = SCOPE_HEIGHT / 2;
+        SCOPE_CENTER_X = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
+        SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 
         SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
         PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
@@ -901,10 +813,6 @@ void celestial_sphere_begin(
         lv_obj_set_style_bg_opa(celestial_sphere_container, LV_OPA_0, 0);
         lv_obj_set_style_border_width(celestial_sphere_container, 0, 0);
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_SCROLLABLE);
-
-        // Composite the whole overlay (container + every child) as one
-        // partially transparent layer, so whatever sits behind it is still
-        // visible through it; starts hidden until celestial_sphere_set_visible(true).
         lv_obj_set_style_opa(celestial_sphere_container, CONTAINER_OPA, 0);
         lv_obj_add_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
 
@@ -1074,11 +982,6 @@ void celestial_sphere_begin(
 
         update_gyro_attitude_label();
 
-        // Sweep range/step/max-objects adjuster panels: stacked bottom-mid of
-        // the square parent container, in the margin freed up by
-        // scope_container being smaller than its parent. Only the
-        // value labels are kept: the buttons are wired up via
-        // lv_obj_add_event_cb() below and never referenced again.
         const stepper_panel_t sweep_range_panel = create_stepper_panel(
             celestial_sphere_container,     // parent
             240,                            // width_px
@@ -1164,10 +1067,7 @@ void celestial_sphere_begin(
     }
 
     if (ok) {
-        // Crosshair marking the boresight; fixed at the container's center,
-        // since the boresight Alt/Az is by definition wherever the container
-        // center points -- only the objects around it move.
-        crosshair_h = lv_line_create(scope_container);
+        crosshair_h = lv_line_create(celestial_sphere_container);
         lv_obj_set_style_line_color(crosshair_h, mode_color(current_mode), 0);
         lv_obj_set_style_line_width(crosshair_h, CROSSHAIR_LINE_WIDTH, 0);
         crosshair_h_points[0].x = SCOPE_CENTER_X - CROSSHAIR_ARM_LEN_PX;
@@ -1176,7 +1076,7 @@ void celestial_sphere_begin(
         crosshair_h_points[1].y = SCOPE_CENTER_Y;
         lv_line_set_points(crosshair_h, crosshair_h_points, 2);
 
-        crosshair_v = lv_line_create(scope_container);
+        crosshair_v = lv_line_create(celestial_sphere_container);
         lv_obj_set_style_line_color(crosshair_v, mode_color(current_mode), 0);
         lv_obj_set_style_line_width(crosshair_v, CROSSHAIR_LINE_WIDTH, 0);
         crosshair_v_points[0].x = SCOPE_CENTER_X;
@@ -1189,14 +1089,14 @@ void celestial_sphere_begin(
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
             markers[i].x = 0;
             markers[i].y = 0;
-            markers[i].dot = create_marker(scope_container, COLOR_MARKER);
+            markers[i].dot = create_marker(celestial_sphere_container, COLOR_MARKER);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
             }
         }
 
-        selection_box = create_selection_box(scope_container, MARKER_ICON_SIZE);
+        selection_box = create_selection_box(celestial_sphere_container, MARKER_ICON_SIZE);
         ok = (selection_box != nullptr);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin failed to create selection_box\n");
@@ -1206,11 +1106,10 @@ void celestial_sphere_begin(
     if (ok) {
         // -----------------------------------------------------------------
         // Target data box (displays object information when selected).
-        // Parented to celestial_sphere_container (not scope_container) so a
-        // wide box (long object/constellation name) has the whole overlay's
-        // area to sit in instead of being clipped against the tighter
-        // scope_container bounds -- see celestial_sphere_set_target(),
-        // which converts to celestial_sphere_container-local coordinates.
+        // Parented to celestial_sphere_container, like every other marker/
+        // target widget, so a wide box (long object/constellation name) has
+        // the whole overlay's area to sit in instead of being clipped
+        // against the tighter scope_container bounds.
         // -----------------------------------------------------------------
         target_data_box = lv_obj_create(celestial_sphere_container);
         lv_obj_add_flag(target_data_box, LV_OBJ_FLAG_HIDDEN);
@@ -1226,8 +1125,8 @@ void celestial_sphere_begin(
 
         // -----------------------------------------------------------------
         // Connector line (connects selection box to data box). Parented to
-        // celestial_sphere_container alongside target_data_box so it can
-        // still reach the box wherever it ends up.
+        // celestial_sphere_container alongside every other marker/target
+        // widget, so both its endpoints are always in the same space.
         // -----------------------------------------------------------------
         target_connector_line = lv_line_create(celestial_sphere_container);
         lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
@@ -1251,9 +1150,6 @@ void celestial_sphere_begin(
 // ============================================================================
 // SET VISIBLE
 // ============================================================================
-// Shows or hides the whole overlay in one step; the update timer is left
-// running either way, so the marker positions are already current whenever
-// the overlay is shown again.
 void celestial_sphere_set_visible(const bool visible) {
     if (celestial_sphere_container != nullptr) {
         if (visible) {
