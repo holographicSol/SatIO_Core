@@ -109,8 +109,8 @@ static constexpr lv_opa_t CONTAINER_OPA = LV_OPA_70;
 // ============================================================================
 static const lv_color_t COLOR_MARKER      = lv_color_make(128, 128, 128);
 static const lv_color_t COLOR_TARGET      = lv_color_make(255, 0, 0);
-static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 56, 56, 56);
-static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 56, 56, 56);
+static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 0, 255, 0);
+static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 255, 0, 0);
 
 static const lv_color_t COLOR_GROUP_GALAXY  = lv_color_make(255, 0, 255);
 static const lv_color_t COLOR_GROUP_CLUSTER = lv_color_make(0, 255, 0);
