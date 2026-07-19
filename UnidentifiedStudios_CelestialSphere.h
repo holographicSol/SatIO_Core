@@ -39,8 +39,8 @@ enum CelestialSphereMode : int32_t {
 // Builds the celestial sphere inside parent and starts its periodic update timer.
 void celestial_sphere_begin(
     lv_obj_t * parent,
-    int32_t outline_w_px,
-    int32_t outline_h_px,
+    int32_t width_px,
+    int32_t height_px,
     int32_t scope_w_px,
     int32_t scope_h_px,
     lv_align_t alignment,

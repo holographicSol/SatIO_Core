@@ -36,21 +36,17 @@ LV_FONT_DECLARE(font_unscii_12);
 // and celestial_sphere_set_target are part of the public interface declared
 // in UnidentifiedStudios_CelestialSphere.h.
 
-// Dimensions of the sphere's usable drawing area (sub-region of the outline).
+// Dimensions of the scope
 static int32_t SCOPE_WIDTH  = 480;
 static int32_t SCOPE_HEIGHT = 480;
-
-// Dimensions of the outline around the celestial sphere display.
-static int32_t OUTLINE_WIDTH  = 550;
-static int32_t OUTLINE_HEIGHT = 550;
 
 // Side length of the square parent container (celestial_sphere_container) that hosts
 // scope_container and the gyro attitude readout.
 static int32_t CELESTIAL_SPHERE_CONTAINER_SIZE = 550;
 
 // Center of the celestial sphere display (the boresight/crosshair position).
-static int32_t SCOPE_CENTER_X = OUTLINE_WIDTH / 2;
-static int32_t SCOPE_CENTER_Y = OUTLINE_HEIGHT / 2;
+static int32_t SCOPE_CENTER_X = SCOPE_WIDTH / 2;
+static int32_t SCOPE_CENTER_Y = SCOPE_HEIGHT / 2;
 
 // Every object type icon (see UnidentifiedStudios_ObjectTypeIcons.h) is a
 // fixed 32x32 alpha-only bitmap, tinted via lv_obj_set_style_image_recolor()
@@ -91,18 +87,10 @@ static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
 
-// scope_container is forced square and capped at this fraction of
-// celestial_sphere_container's side length (see celestial_sphere_begin()), leaving the
-// rest as margin -- split evenly on every side by LVGL's center alignment --
-// for the gyro/objects-found readouts and the sweep range/step adjuster rows
-// below.
-static constexpr int32_t SCOPE_CONTAINER_SIZE_FRACTION_NUM = 3;
-static constexpr int32_t SCOPE_CONTAINER_SIZE_FRACTION_DEN = 4;
-
 // Sweep range/step adjuster row: one horizontal [-][value][+] control per
 // parameter (see setStarNavSweepRangeDeg()/setStarNavSweepStepDeg() in
 // UnidentifiedStudios_SiderealHelper.h), placed in the corners of the margin
-// freed up by shrinking scope_container to SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN.
+// freed up by scope_container being smaller than celestial_sphere_container.
 static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 28;
 static constexpr int32_t SWEEP_ADJUSTER_GAP_PX = 4;
 static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
@@ -244,8 +232,8 @@ static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 // ============================================================================
 // LVGL OBJECTS
 // ============================================================================
-// Square parent container: hosts scope_container (square, centered, capped
-// at SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN of the parent's side length)
+// Square parent container: hosts scope_container (centered, sized from the
+// caller's scope_w_px/scope_h_px, smaller than the parent's side length)
 // plus, in the margin that frees up, the gyro attitude readout (top-mid/
 // bottom-mid) and the sweep range/step adjuster rows (bottom-left/
 // bottom-right). This is the object celestial_sphere_set_visible toggles,
@@ -253,7 +241,6 @@ static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 // one overlay.
 static lv_obj_t * volatile celestial_sphere_container = nullptr;
 static lv_obj_t * volatile scope_container = nullptr;
-static lv_obj_t * aperture_boundary = nullptr;
 static lv_obj_t * crosshair_h = nullptr;
 static lv_obj_t * crosshair_v = nullptr;
 static lv_point_precise_t crosshair_h_points[2];
@@ -281,8 +268,8 @@ static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
 
 // Sweep range/step/max-objects adjuster rows (stacked bottom-mid of
-// celestial_sphere_container, in the margin freed up by shrinking scope_container --
-// see SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN). Only the value labels are kept: the
+// celestial_sphere_container, in the margin freed up by scope_container being
+// smaller than its parent). Only the value labels are kept: the
 // buttons are wired up via lv_obj_add_event_cb() at creation and never
 // referenced again.
 static lv_obj_t * sweep_range_value_label = nullptr;
@@ -642,8 +629,8 @@ void celestial_sphere_set_target(const int32_t object_index) {
         // bounds. scope_container sits centered inside it, so marker
         // coordinates (scope_container-local) need this offset to land in
         // celestial_sphere_container-local space.
-        const int32_t scope_offset_x = (CELESTIAL_SPHERE_CONTAINER_SIZE - OUTLINE_WIDTH) / 2;
-        const int32_t scope_offset_y = (CELESTIAL_SPHERE_CONTAINER_SIZE - OUTLINE_HEIGHT) / 2;
+        const int32_t scope_offset_x = (CELESTIAL_SPHERE_CONTAINER_SIZE - SCOPE_WIDTH) / 2;
+        const int32_t scope_offset_y = (CELESTIAL_SPHERE_CONTAINER_SIZE - SCOPE_HEIGHT) / 2;
 
         const int32_t obj_center_x = marker->x + MARKER_ICON_HALF + scope_offset_x;
         const int32_t obj_center_y = marker->y + MARKER_ICON_HALF + scope_offset_y;
@@ -734,9 +721,6 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
     current_mode = mode;
     const lv_color_t color = mode_color(mode);
 
-    if (aperture_boundary != nullptr) {
-        lv_obj_set_style_border_color(aperture_boundary, color, LV_PART_MAIN);
-    }
     if (crosshair_h != nullptr) {
         lv_obj_set_style_line_color(crosshair_h, color, 0);
     }
@@ -848,8 +832,8 @@ static void celestial_sphere_timer_cb(lv_timer_t * timer) {
 // point of exit at its closing brace (mirrors astro_clock_begin()).
 void celestial_sphere_begin(
     lv_obj_t * parent,
-    int32_t outline_w_px,
-    int32_t outline_h_px,
+    int32_t width_px,
+    int32_t height_px,
     int32_t scope_w_px,
     int32_t scope_h_px,
     lv_align_t alignment,
@@ -864,10 +848,10 @@ void celestial_sphere_begin(
     }
 
     if (ok) {
-        ok = (outline_w_px > 0) && (outline_h_px > 0);
+        ok = (width_px > 0) && (height_px > 0);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin called with invalid outline dimensions (%ld x %ld)\n",
-                   static_cast<long>(outline_w_px), static_cast<long>(outline_h_px));
+                   static_cast<long>(width_px), static_cast<long>(height_px));
         }
     }
 
@@ -883,29 +867,17 @@ void celestial_sphere_begin(
         celestial_sphere_end();
 
         // The parent container is forced square (shorter of the two outline
-        // dimensions), and scope_container is forced square too, capped at
-        // SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN of its side length --
-        // capped by the caller's sphere dimensions too, so scope_w_px/
-        // scope_h_px can still shrink it further if requested. Shrinking the
-        // sphere (previously nearly the whole square, minus a thin fixed
-        // inset) frees up a larger margin band around it for the gyro/
+        // dimensions). scope_container is sized directly from the caller's
+        // scope_w_px/scope_h_px -- smaller than the parent (by whatever the
+        // caller passes) frees up the margin band around it for the gyro/
         // objects-found readouts and the sweep range/step adjuster rows.
-        CELESTIAL_SPHERE_CONTAINER_SIZE = (outline_w_px < outline_h_px) ? outline_w_px : outline_h_px;
-        const int32_t requested_scope_size = (scope_w_px < scope_h_px) ? scope_w_px : scope_h_px;
-        const int32_t scope_size_cap =
-            (CELESTIAL_SPHERE_CONTAINER_SIZE * SCOPE_CONTAINER_SIZE_FRACTION_NUM) / SCOPE_CONTAINER_SIZE_FRACTION_DEN;
-        const int32_t inner_size = (requested_scope_size < scope_size_cap)
-            ? requested_scope_size
-            : scope_size_cap;
+        CELESTIAL_SPHERE_CONTAINER_SIZE = (width_px < height_px) ? width_px : height_px;
 
-        SCOPE_WIDTH = inner_size;
-        SCOPE_HEIGHT = inner_size;
+        SCOPE_WIDTH = scope_w_px;
+        SCOPE_HEIGHT = scope_h_px;
 
-        OUTLINE_WIDTH = inner_size;
-        OUTLINE_HEIGHT = inner_size;
-
-        SCOPE_CENTER_X = OUTLINE_WIDTH / 2;
-        SCOPE_CENTER_Y = OUTLINE_HEIGHT / 2;
+        SCOPE_CENTER_X = SCOPE_WIDTH / 2;
+        SCOPE_CENTER_Y = SCOPE_HEIGHT / 2;
 
         SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
         PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
@@ -945,12 +917,29 @@ void celestial_sphere_begin(
     }
 
     if (ok) {
-        // Style Scope Container
-        lv_obj_remove_style_all(scope_container);
-        lv_obj_set_size(scope_container, OUTLINE_WIDTH, OUTLINE_HEIGHT);
+        // Scope style: Size and position
+        lv_obj_set_size(scope_container, SCOPE_WIDTH, SCOPE_HEIGHT);
         lv_obj_align(scope_container, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_set_style_bg_opa(scope_container, LV_OPA_0, 0);
-        lv_obj_set_style_border_width(scope_container, 0, 0);
+
+        // Scope style: radius
+        lv_obj_set_style_radius(scope_container, general_radius, LV_PART_MAIN);
+
+        // Scope style: outline
+        lv_obj_set_style_outline_width(scope_container, outline_width, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(scope_container, default_outline_hue, LV_PART_MAIN);
+
+        // Scope style: border
+        lv_obj_set_style_border_width(scope_container, border_width, LV_PART_MAIN);
+        lv_obj_set_style_border_color(scope_container, default_border_hue, LV_PART_MAIN);
+
+        // Scope style: background
+        lv_obj_set_style_bg_color(scope_container, default_bg_title_hue, LV_PART_MAIN);
+
+        // Scope style: shadow
+        lv_obj_set_style_shadow_width(scope_container, shadow_width, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(scope_container, default_shadow_hue, LV_PART_MAIN);
+
+        // Scope style: No scroll
         lv_obj_remove_flag(scope_container, LV_OBJ_FLAG_SCROLLABLE);
 
         // Objects-found readout, continuing the top-mid stack.
@@ -1086,8 +1075,8 @@ void celestial_sphere_begin(
         update_gyro_attitude_label();
 
         // Sweep range/step/max-objects adjuster panels: stacked bottom-mid of
-        // the square parent container, in the margin freed up by capping
-        // scope_container at SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN. Only the
+        // the square parent container, in the margin freed up by
+        // scope_container being smaller than its parent. Only the
         // value labels are kept: the buttons are wired up via
         // lv_obj_add_event_cb() below and never referenced again.
         const stepper_panel_t sweep_range_panel = create_stepper_panel(
@@ -1172,26 +1161,9 @@ void celestial_sphere_begin(
         sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
 
         update_sweep_adjuster_labels();
-
-        aperture_boundary = lv_obj_create(scope_container);
-        ok = (aperture_boundary != nullptr);
-        if (!ok) {
-            printf("ERROR: celestial_sphere_begin failed to create aperture_boundary\n");
-        }
     }
 
     if (ok) {
-        // Aperture Boundary
-        lv_obj_remove_style_all(aperture_boundary);
-        lv_obj_set_size(aperture_boundary, SCOPE_RADIUS * 2, SCOPE_RADIUS * 2);
-        lv_obj_align(aperture_boundary, LV_ALIGN_CENTER, 0, 0);
-        lv_obj_set_style_radius(aperture_boundary, 0, 0);
-        lv_obj_set_style_border_width(aperture_boundary, APERTURE_BORDER_WIDTH, 0);
-        lv_obj_set_style_border_color(aperture_boundary, mode_color(current_mode), 0);
-        lv_obj_set_style_bg_opa(aperture_boundary, LV_OPA_TRANSP, 0);
-        lv_obj_remove_flag(aperture_boundary, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_remove_flag(aperture_boundary, LV_OBJ_FLAG_CLICKABLE);
-
         // Crosshair marking the boresight; fixed at the container's center,
         // since the boresight Alt/Az is by definition wherever the container
         // center points -- only the objects around it move.

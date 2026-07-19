@@ -15201,8 +15201,8 @@ void display_home_screen()
     // Initialize astro clock on main screen
     astro_clock_begin(
         home_screen,
-        550,             // outline width (total available width)
-        550,             // outline height (total available height)
+        550,             // width (total available width)
+        550,             // height (total available height)
         550,             // astro width (span X of total available width)
         550,             // astro height (span Y of total available height)
         LV_ALIGN_CENTER, // alignment
@@ -15218,10 +15218,10 @@ void display_home_screen()
     // Initialize celestial sphere on main screen
     celestial_sphere_begin(
         home_screen,
-        550,                         // outline width (total available width)
-        550,                         // outline height (total available height)
-        550,                         // scope width (span X of total available width)
-        550,                         // scope height (span Y of total available height)
+        550,                         // width (total available width)
+        550,                         // height (total available height)
+        360,                         // scope width (span X of total available width)
+        360,                         // scope height (span Y of total available height)
         LV_ALIGN_CENTER,             // alignment
         0,                           // pos x
         0,                           // pos y
