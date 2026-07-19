@@ -144,10 +144,10 @@ const char* SiderealObjects::printStarType(int n) {
   for (index_0=0; index_0 < SObjectsstars_names_num; index_0++) {
 	  if (starName[index_0].starNum == n) {
 
-      for (index_1=0; index_1 < SObjectStarTypesnum; index_1++) {
+      for (index_1=0; index_1 < SObjectType_names_num; index_1++) {
 
-        if (starType[index_1].num == starName[index_0].type ) {
-          return starType[index_1].type;
+        if (objectType[index_1].num == starName[index_0].type ) {
+          return objectType[index_1].name;
         }
       }
     }
@@ -163,6 +163,23 @@ double SiderealObjects::printStarDist(int n) {
     }
   }
   return NAN;
+}
+
+const char* SiderealObjects::printStarDesc(int n) {
+  int index_0;
+  int index_1;
+  for (index_0=0; index_0 < SObjectsstars_names_num; index_0++) {
+	  if (starName[index_0].starNum == n) {
+
+      for (index_1=0; index_1 < SObjectStarTypesnum; index_1++) {
+
+        if (starType[index_1].num == starName[index_0].starType ) {
+          return starType[index_1].type;
+        }
+      }
+    }
+  }
+  return "";
 }
 
 const char* SiderealObjects::printMessierName(int n) {

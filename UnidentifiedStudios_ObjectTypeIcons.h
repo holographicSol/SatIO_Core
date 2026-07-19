@@ -25,8 +25,8 @@
 const lv_image_dsc_t * get_object_type_icon(int type_num);
 
 // Plain filled-dot marker (also LV_COLOR_FORMAT_A8) for swept objects that
-// don't classify through objectType[] at all (stars, Messier, Caldwell,
-// Other tables use their own/no type field) -- see getObjectTypeEntry() in
+// don't classify through objectType[] at all (Messier, Caldwell and Other
+// tables use their own/no type field) -- see getObjectTypeEntry() in
 // UnidentifiedStudios_SiderealHelper.h.
 extern const lv_image_dsc_t object_type_icon_fallback;
 

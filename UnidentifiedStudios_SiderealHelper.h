@@ -189,26 +189,35 @@ extern SiderealObjectSingle siderealObjectSingle;
 // ----------------------------------------------------------------------------------------
 // StarNav Sweep Object Data Structure.
 // ----------------------------------------------------------------------------------------
-#define MAX_STARNAV_OBJECTS 100
+// Hard compile-time cap: sizes every array below and bounds starNavMaxObjects.
+// Not itself runtime-adjustable (it fixes storage), unlike starNavMaxObjects.
+#define MAX_STARNAV_OBJECTS 500
 // starNavSweep() scans a square grid of Alt/Az points within
 // +/- starNavSweepRangeDeg (degrees, both axes) of the current gyroscopic
-// attitude's Alt/Az, stepping by starNavSweepStepDeg. Both are runtime-
-// adjustable (see the range/step adjuster rows in celestial_sphere_begin(),
-// UnidentifiedStudios_CelestialSphere.cpp) via the clamped setters below
-// instead of being compile-time constants; starNavSweep() reads them fresh
-// at the top of each sweep, so a change takes effect on the next sweep.
+// attitude's Alt/Az, stepping by starNavSweepStepDeg, and stops early once
+// starNavMaxObjects distinct objects have been found. All three are runtime-
+// adjustable (see the range/step/max-objects adjuster rows in
+// celestial_sphere_begin(), UnidentifiedStudios_CelestialSphere.cpp) via the
+// clamped setters below instead of being compile-time constants;
+// starNavSweep() reads them fresh at the top of each sweep, so a change
+// takes effect on the next sweep.
 extern double starNavSweepRangeDeg; // aperture/zoom (higher = capture more of the celestial sphere, higher performance impact!)
 extern double starNavSweepStepDeg;  // resolution degrees (lower = higher resolution, higher performance impact!)
+extern int starNavMaxObjects;       // cap on distinct objects per sweep (higher = capture more of the celestial sphere, higher performance impact!)
 
 constexpr double STARNAV_SWEEP_RANGE_DEG_MIN = 0.01;
 constexpr double STARNAV_SWEEP_RANGE_DEG_MAX = 180.0;
 constexpr double STARNAV_SWEEP_STEP_DEG_MIN  = 0.01;
 constexpr double STARNAV_SWEEP_STEP_DEG_MAX  = 5.0;
+constexpr int STARNAV_MAX_OBJECTS_MIN = 1;
+constexpr int STARNAV_MAX_OBJECTS_MAX = MAX_STARNAV_OBJECTS;
 
-// Sets starNavSweepRangeDeg / starNavSweepStepDeg, clamped to
-// [STARNAV_SWEEP_*_DEG_MIN, STARNAV_SWEEP_*_DEG_MAX] above.
+// Sets starNavSweepRangeDeg / starNavSweepStepDeg / starNavMaxObjects,
+// clamped to [STARNAV_SWEEP_*_DEG_MIN, STARNAV_SWEEP_*_DEG_MAX] /
+// [STARNAV_MAX_OBJECTS_MIN, STARNAV_MAX_OBJECTS_MAX] above.
 void setStarNavSweepRangeDeg(double degrees);
 void setStarNavSweepStepDeg(double degrees);
+void setStarNavMaxObjects(int count);
 
 typedef struct SiderealObjectSweep {
     // ADD SCAN BY OBJECT TYPE 
@@ -295,10 +304,10 @@ const char* getObjectDescription(SiderealObjectSweep *obj, int index);
  * classifies *obj's (or slot `index` of *obj's) catalog entry, for callers
  * that need the numeric type code (SiderealObjectTypeEntry::num) rather
  * than the name string getObjectType() returns -- e.g. to pick a matching
- * icon (see UnidentifiedStudios_ObjectTypeIcons.h). Only NGC, IC and
- * Herschel400 objects classify through objectType[]: every other table
- * (stars, Messier, Caldwell) either has no type or classifies through
- * SiderealLegacyObjectTypeEntry instead, so this returns nullptr for those.
+ * icon (see UnidentifiedStudios_ObjectTypeIcons.h). Only NGC, IC, Herschel400
+ * and Star objects classify through objectType[]: Messier/Caldwell classify
+ * through SiderealLegacyObjectTypeEntry instead, and "Other" objects have no
+ * type at all, so this returns nullptr for those.
  * @note IdentifyObject() must be called first.
  */
 const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj);
@@ -313,7 +322,7 @@ void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_
 /**
  * Sweeps a square grid of Alt/Az points within +/- starNavSweepRangeDeg
  * of the current gyroscopic attitude's Alt/Az, identifying every distinct
- * object found and storing up to MAX_STARNAV_OBJECTS of them in
+ * object found and storing up to starNavMaxObjects of them in
  * siderealObjectSweep.
  * @note siderealPlanetData.gyro_0_sidereal_attitude must already be set
  * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).

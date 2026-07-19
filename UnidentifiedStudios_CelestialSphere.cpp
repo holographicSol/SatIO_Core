@@ -107,9 +107,10 @@ static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 28;
 static constexpr int32_t SWEEP_ADJUSTER_GAP_PX = 4;
 static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
 
-// Amount starNavSweepRangeDeg/starNavSweepStepDeg change per button press.
+// Amount starNavSweepRangeDeg/starNavSweepStepDeg/starNavMaxObjects change per button press.
 static constexpr double SWEEP_RANGE_STEP_INCREMENT_DEG = 1.0;
 static constexpr double SWEEP_STEP_STEP_INCREMENT_DEG  = 0.1;
+static constexpr int    SWEEP_MAX_OBJECTS_INCREMENT    = 10;
 
 // Overall opacity of the whole overlay (container + every child, composited
 // as one layer), so whatever sits behind it -- e.g. the astro clock -- stays
@@ -120,14 +121,14 @@ static constexpr lv_opa_t CONTAINER_OPA = LV_OPA_70;
 // COLORS
 // ============================================================================
 static const lv_color_t COLOR_MARKER      = lv_color_make(128, 128, 128);
-static const lv_color_t COLOR_TARGET      = lv_color_make(255,   0,    0);
-static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 56,  56,   56);
-static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 56,  56,   56);
+static const lv_color_t COLOR_TARGET      = lv_color_make(255, 0, 0);
+static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 56, 56, 56);
+static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 56, 56, 56);
 
-static const lv_color_t COLOR_GROUP_GALAXY  = lv_color_make(0x00, 0x74, 0xff);
-static const lv_color_t COLOR_GROUP_CLUSTER = lv_color_make(0x00, 0xff, 0x00);
-static const lv_color_t COLOR_GROUP_NEBULA  = lv_color_make(0xff, 0x00, 0x5d);
-static const lv_color_t COLOR_GROUP_STAR    = lv_color_make(0xff, 0xa9, 0x00);
+static const lv_color_t COLOR_GROUP_GALAXY  = lv_color_make(255, 0, 255);
+static const lv_color_t COLOR_GROUP_CLUSTER = lv_color_make(0, 255, 0);
+static const lv_color_t COLOR_GROUP_NEBULA  = lv_color_make(0, 255, 255);
+static const lv_color_t COLOR_GROUP_STAR    = lv_color_make(255, 255, 0);
 
 // MISRA: a named enum (not raw ints) identifies the 4 object-type families so
 // object_type_color()'s switch can enumerate every case explicitly.
@@ -141,7 +142,7 @@ enum class ObjectTypeGroup {
 
 // Maps an objectType[] row's num field (see SiderealObjectsTables.cpp) to its
 // family. num=9 ("Not found") and any num outside objectType[] (Messier/
-// Caldwell/Star-table objects resolve through the fallback icon instead, see
+// Caldwell objects resolve through the fallback icon instead, see
 // getObjectTypeEntry() in UnidentifiedStudios_SiderealHelper.h) fall through
 // to UNKNOWN.
 static ObjectTypeGroup object_type_group(const int32_t type_num) {
@@ -279,13 +280,14 @@ static lv_obj_t * target_data_box = nullptr;
 static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
 
-// Sweep range/step adjuster rows (bottom-left/bottom-right corners of
+// Sweep range/step/max-objects adjuster rows (stacked bottom-mid of
 // celestial_sphere_container, in the margin freed up by shrinking scope_container --
 // see SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN). Only the value labels are kept: the
 // buttons are wired up via lv_obj_add_event_cb() at creation and never
 // referenced again.
 static lv_obj_t * sweep_range_value_label = nullptr;
 static lv_obj_t * sweep_step_value_label = nullptr;
+static lv_obj_t * sweep_max_objects_value_label = nullptr;
 
 // ============================================================================
 // TO RADIANS
@@ -467,7 +469,8 @@ static void update_target_data_content(const int32_t object_index) {
             "Name             %s\n\n"
             "Table            %s\n"
             "Object Number    %d\n"
-            "Type             %s\n"
+            "ObjectType       %s\n"
+            "Description      %s\n"
             "Constellation    %s\n"
             "Distance         %.2f\n"
             "Magnitude        %.2f\n"
@@ -479,6 +482,7 @@ static void update_target_data_content(const int32_t object_index) {
             getObjectTableName(&siderealObjectSweep, object_index),
             siderealObjectSweep.object_number[object_index],
             getObjectType(&siderealObjectSweep, object_index),
+            getObjectDescription(&siderealObjectSweep, object_index),
             getObjectConstellation(&siderealObjectSweep, object_index),
             siderealObjectSweep.object_dist[object_index],
             siderealObjectSweep.object_mag[object_index],
@@ -534,9 +538,9 @@ static void update_objects_found_label(const int32_t count) {
 // ============================================================================
 // UPDATE SWEEP ADJUSTER LABELS
 // ============================================================================
-// Refreshes both adjuster rows' value labels from the current
-// starNavSweepRangeDeg/starNavSweepStepDeg (see UnidentifiedStudios_
-// SiderealHelper.h).
+// Refreshes all three adjuster rows' value labels from the current
+// starNavSweepRangeDeg/starNavSweepStepDeg/starNavMaxObjects (see
+// UnidentifiedStudios_SiderealHelper.h).
 static void update_sweep_adjuster_labels(void) {
     if (sweep_range_value_label != nullptr) {
         char buf[24];
@@ -547,6 +551,11 @@ static void update_sweep_adjuster_labels(void) {
         char buf[24];
         snprintf(buf, sizeof(buf), "%.2f", starNavSweepStepDeg);
         lv_label_set_text(sweep_step_value_label, buf);
+    }
+    if (sweep_max_objects_value_label != nullptr) {
+        char buf[24];
+        snprintf(buf, sizeof(buf), "%d", starNavMaxObjects);
+        lv_label_set_text(sweep_max_objects_value_label, buf);
     }
 }
 
@@ -581,6 +590,18 @@ static void sweep_step_minus_cb(lv_event_t * e) {
 static void sweep_step_plus_cb(lv_event_t * e) {
     (void)e;
     setStarNavSweepStepDeg(starNavSweepStepDeg + SWEEP_STEP_STEP_INCREMENT_DEG);
+    update_sweep_adjuster_labels();
+}
+
+static void sweep_max_objects_minus_cb(lv_event_t * e) {
+    (void)e;
+    setStarNavMaxObjects(starNavMaxObjects - SWEEP_MAX_OBJECTS_INCREMENT);
+    update_sweep_adjuster_labels();
+}
+
+static void sweep_max_objects_plus_cb(lv_event_t * e) {
+    (void)e;
+    setStarNavMaxObjects(starNavMaxObjects + SWEEP_MAX_OBJECTS_INCREMENT);
     update_sweep_adjuster_labels();
 }
 
@@ -932,118 +953,13 @@ void celestial_sphere_begin(
         lv_obj_set_style_border_width(scope_container, 0, 0);
         lv_obj_remove_flag(scope_container, LV_OBJ_FLAG_SCROLLABLE);
 
-        // Gyro attitude + objects-found readout: stacked top-mid, one
-        // create_label_pair_panel() row per value. Only the value labels
-        // are kept: the title labels are never referenced again.
-        const label_pair_panel_t gyro_alt_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            160,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_LEFT,              // alignment
-            20,                              // pos_x
-            26,                              // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "Alt",                          // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_alt_value_label = gyro_alt_panel.label_1;
-
-        const label_pair_panel_t gyro_az_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            160,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_LEFT,              // alignment
-            20,                              // pos_x
-            52,                             // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "Az",                           // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_az_value_label = gyro_az_panel.label_1;
-
-        const label_pair_panel_t gyro_ra_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            300,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_RIGHT,             // alignment
-            -20,                              // pos_x
-            26,                              // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "RA",                           // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_ra_value_label = gyro_ra_panel.label_1;
-
-        const label_pair_panel_t gyro_dec_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            300,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_RIGHT,             // alignment
-            -20,                              // pos_x
-            52,                             // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "Dec",                          // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_dec_value_label = gyro_dec_panel.label_1;
-
-        update_gyro_attitude_label();
-
         // Objects-found readout, continuing the top-mid stack.
         const label_pair_panel_t objects_found_panel = create_label_pair_panel(
             celestial_sphere_container,     // parent
-            160,                            // width_px
+            168,                            // width_px
             24,                             // height_px
             LV_ALIGN_TOP_MID,               // alignment
-            0,                              // pos_x
+            -88,                            // pos_x
             0,                              // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
@@ -1057,25 +973,23 @@ void celestial_sphere_begin(
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "Objects",                      // label_0_text
+            &font_cobalt_alien_17,          // font_sub
+            "OBJECTS",                      // label_0_text
             ""                              // label_1_text: filled by update_objects_found_label()
         );
         objects_found_value_label = objects_found_panel.label_1;
         update_objects_found_label(0);
 
-        // Sweep range/step adjuster panels: bottom-left/bottom-right corners of
-        // the square parent container, in the margin freed up by capping
-        // scope_container at SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN. Only the
-        // value labels are kept: the buttons are wired up via
-        // lv_obj_add_event_cb() below and never referenced again.
-        const stepper_panel_t sweep_range_panel = create_stepper_panel(
+        // Gyro attitude + objects-found readout: stacked top-mid, one
+        // create_label_pair_panel() row per value. Only the value labels
+        // are kept: the title labels are never referenced again.
+        const label_pair_panel_t gyro_alt_panel = create_label_pair_panel(
             celestial_sphere_container,     // parent
-            300,                            // width_px
-            32,                             // height_px
-            LV_ALIGN_BOTTOM_MID,            // alignment
-            0,                              // pos_x
-            -42,                            // pos_y
+            168,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_MID,               // alignment
+            -88,                            // pos_x
+            26,                             // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
@@ -1084,12 +998,119 @@ void celestial_sphere_begin(
             1,                              // main_column_padding
             1,                              // sub_row_padding
             4,                              // sub_column_padding
-            32,                             // row_height
+            24,                             // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "Aperture",                     // title_text
+            &font_cobalt_alien_17,          // font_sub
+            "ALT",                          // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_alt_value_label = gyro_alt_panel.label_1;
+
+        const label_pair_panel_t gyro_az_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            168,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_MID,               // alignment
+            -88,                            // pos_x
+            52,                             // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "AZ",                           // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_az_value_label = gyro_az_panel.label_1;
+
+        const label_pair_panel_t gyro_ra_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            200,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_MID,               // alignment
+            102,                            // pos_x
+            26,                             // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "RA ",                          // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_ra_value_label = gyro_ra_panel.label_1;
+
+        const label_pair_panel_t gyro_dec_panel = create_label_pair_panel(
+            celestial_sphere_container,     // parent
+            200,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_TOP_MID,               // alignment
+            102,                            // pos_x
+            52,                             // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "DEC",                          // label_0_text
+            ""                              // label_1_text: filled by update_gyro_attitude_label()
+        );
+        gyro_dec_value_label = gyro_dec_panel.label_1;
+
+        update_gyro_attitude_label();
+
+        // Sweep range/step/max-objects adjuster panels: stacked bottom-mid of
+        // the square parent container, in the margin freed up by capping
+        // scope_container at SCOPE_CONTAINER_SIZE_FRACTION_NUM/_DEN. Only the
+        // value labels are kept: the buttons are wired up via
+        // lv_obj_add_event_cb() below and never referenced again.
+        const stepper_panel_t sweep_range_panel = create_stepper_panel(
+            celestial_sphere_container,     // parent
+            240,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_BOTTOM_MID,            // alignment
+            0,                              // pos_x
+            -48,                            // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "DEG",                          // title_text
             ""                              // value_text
         );
         lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
@@ -1098,8 +1119,35 @@ void celestial_sphere_begin(
 
         const stepper_panel_t sweep_step_panel = create_stepper_panel(
             celestial_sphere_container,     // parent
-            300,                            // width_px
-            32,                             // height_px
+            240,                            // width_px
+            24,                             // height_px
+            LV_ALIGN_BOTTOM_MID,            // alignment
+            0,                              // pos_x
+            -26,                            // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            24,                             // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "STEP",                         // title_text
+            ""                              // value_text
+        );
+        lv_obj_add_event_cb(sweep_step_panel.btn_minus.button, sweep_step_minus_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(sweep_step_panel.btn_plus.button, sweep_step_plus_cb, LV_EVENT_CLICKED, nullptr);
+        sweep_step_value_label = sweep_step_panel.value_label;
+
+        const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
+            celestial_sphere_container,     // parent
+            240,                            // width_px
+            24,                             // height_px
             LV_ALIGN_BOTTOM_MID,            // alignment
             0,                              // pos_x
             -2,                             // pos_y
@@ -1111,17 +1159,17 @@ void celestial_sphere_begin(
             1,                              // main_column_padding
             1,                              // sub_row_padding
             4,                              // sub_column_padding
-            32,                             // row_height
+            24,                             // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
-            &font_unscii_12,                // font_sub
-            "STEP",                         // title_text
+            &font_cobalt_alien_17,          // font_sub
+            "MAX",                          // title_text
             ""                              // value_text
         );
-        lv_obj_add_event_cb(sweep_step_panel.btn_minus.button, sweep_step_minus_cb, LV_EVENT_CLICKED, nullptr);
-        lv_obj_add_event_cb(sweep_step_panel.btn_plus.button, sweep_step_plus_cb, LV_EVENT_CLICKED, nullptr);
-        sweep_step_value_label = sweep_step_panel.value_label;
+        lv_obj_add_event_cb(sweep_max_objects_panel.btn_minus.button, sweep_max_objects_minus_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(sweep_max_objects_panel.btn_plus.button, sweep_max_objects_plus_cb, LV_EVENT_CLICKED, nullptr);
+        sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
 
         update_sweep_adjuster_labels();
 

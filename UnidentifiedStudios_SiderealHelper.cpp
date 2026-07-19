@@ -216,6 +216,7 @@ SiderealObjectSweep siderealObjectSweep = {
 
 double starNavSweepRangeDeg = 10.0;
 double starNavSweepStepDeg  = 1.0;
+int starNavMaxObjects       = 100;
 
 // Clamps to a closed [lo, hi] range; NaN is left as-is (clamping it either
 // direction would silently manufacture a bogus finite value).
@@ -228,12 +229,24 @@ static double clampDeg(double value, double lo, double hi) {
     return result;
 }
 
+// Clamps to a closed [lo, hi] range.
+static int clampInt(int value, int lo, int hi) {
+    int result = value;
+    if (result < lo) { result = lo; }
+    if (result > hi) { result = hi; }
+    return result;
+}
+
 void setStarNavSweepRangeDeg(double degrees) {
     starNavSweepRangeDeg = clampDeg(degrees, STARNAV_SWEEP_RANGE_DEG_MIN, STARNAV_SWEEP_RANGE_DEG_MAX);
 }
 
 void setStarNavSweepStepDeg(double degrees) {
     starNavSweepStepDeg = clampDeg(degrees, STARNAV_SWEEP_STEP_DEG_MIN, STARNAV_SWEEP_STEP_DEG_MAX);
+}
+
+void setStarNavMaxObjects(int count) {
+    starNavMaxObjects = clampInt(count, STARNAV_MAX_OBJECTS_MIN, STARNAV_MAX_OBJECTS_MAX);
 }
 
 /*
@@ -337,11 +350,10 @@ static const char* objectTypeImpl(T *obj, int index)
     }
 }
 
-// Resolves the objectType[] row an NGC/IC/Herschel400 object's stored catalog
-// number classifies as. Stars/Messier/Caldwell/Other return nullptr: stars
-// have no catalog "type" field, and Messier/Caldwell classify through
-// legacyOjectType[] instead (see SiderealObjects::printMessierType()/
-// printCaldwellType()), not objectType[].
+// Resolves the objectType[] row an NGC/IC/Herschel400/Star object's stored
+// catalog number classifies as. Messier/Caldwell/Other return nullptr:
+// Messier/Caldwell classify through legacyOjectType[] instead (see
+// SiderealObjects::printMessierType()/printCaldwellType()), not objectType[].
 template <typename T>
 static const SiderealObjectTypeEntry* objectTypeEntryImpl(T *obj, int index)
 {
@@ -350,6 +362,11 @@ static const SiderealObjectTypeEntry* objectTypeEntryImpl(T *obj, int index)
 
     switch (tableIRef(obj, index))
     {
+        case INDEX_SIDEREAL_STAR_TABLE:
+            for (int i = 0; i < (int)SObjectsstars_names_num; i++) {
+                if (starName[i].starNum == num) { catalog_type = starName[i].type; break; }
+            }
+            break;
         case INDEX_SIDEREAL_NGC_TABLE:
             for (int i = 0; i < (int)SObjectsNGC_names_num; i++) {
                 if (ngcData[i].num == num) { catalog_type = ngcData[i].type; break; }
@@ -996,10 +1013,10 @@ void starNavSweep() {
     int count = 0;
 
     // Alt outer, Az inner: every Az step gets sampled at each Alt step, so
-    // hitting the MAX_STARNAV_OBJECTS cap partway through still leaves the
+    // hitting the starNavMaxObjects cap partway through still leaves the
     // whole +/- starNavSweepRangeDeg square represented in both axes.
     for (double alt = center_alt - starNavSweepRangeDeg;
-         (alt <= (center_alt + starNavSweepRangeDeg)) && (count < MAX_STARNAV_OBJECTS);
+         (alt <= (center_alt + starNavSweepRangeDeg)) && (count < starNavMaxObjects);
          alt += starNavSweepStepDeg)
     {
         double clamped_alt = alt;
@@ -1007,7 +1024,7 @@ void starNavSweep() {
         if (clamped_alt < -90.0) { clamped_alt = -90.0; }
 
         for (double az = center_az - starNavSweepRangeDeg;
-             (az <= (center_az + starNavSweepRangeDeg)) && (count < MAX_STARNAV_OBJECTS);
+             (az <= (center_az + starNavSweepRangeDeg)) && (count < starNavMaxObjects);
              az += starNavSweepStepDeg)
         {
             double wrapped_az = fmod(az, 360.0);

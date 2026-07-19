@@ -98,7 +98,7 @@ class SiderealObjects {
 	double printMessierDist(int n);
 	double printCaldwellDist(int n);
 
-	char* printStarDesc(int n);
+	const char* printStarDesc(int n);
 
 	boolean selectNGCTable(int n);
 	boolean selectICTable(int n);

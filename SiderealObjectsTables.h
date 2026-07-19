@@ -5612,7 +5612,8 @@ const unsigned int SObjectStarTypesnum = 146;
 #define SiderealObjectsSname_H
 struct SiderealStarNameEntry {
   int starNum;
-  int type;
+  int type;     // objectType[] row (see SiderealObjectsTables.cpp) -- always 13 ("Star")
+  int starType; // starType[] row: spectral classification (e.g. "Mira", "B8IVp")
   float mag;
   float dist; // (parsecs)
   char name[30];

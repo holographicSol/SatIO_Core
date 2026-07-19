@@ -57,21 +57,12 @@ TaskHandle_t TaskInputPortController;
 
 #ifdef SatIO_DISPLAY_OPTION_HEADLESS
 // PRIORITY (same priority so that task Hz (from delay ms) can be tuned without triggering wdt for a starved task)
-// TASK_SYSTEM_TIME_PRIORITY is deliberately one above its peers: it is idle
-// except for a brief once-a-second burst, so a higher priority costs nothing,
-// but it lets that burst preempt same-core tasks immediately on its notify
-// instead of waiting for the next FreeRTOS tick's round-robin time slice
-// (CONFIG_FREERTOS_HZ=1000, i.e. up to 1 ms of avoidable lateness otherwise).
-#define TASK_SYSTEM_TIME_PRIORITY           5
-#define TASK_GPS_PRIORITY                   5
+#define TASK_SYSTEM_TIME_PRIORITY           6
+#define TASK_GPS_PRIORITY                   6
 #define TASK_GYRO_PRIORITY                  5
 #define TASK_ADMPLEX0_PRIORITY              5
 #define TASK_ADMPLEX1_PRIORITY              5
-// TASK_SWITCHES_PRIORITY is one above its core-1 peers: it wakes rarely (gated
-// to TASK_MAX_FREQ_LOW_SWITCHES) but must send its pending I2C writes as soon
-// as it wakes rather than wait out a round-robin tick slice (up to ~1ms per
-// contending peer at CONFIG_FREERTOS_HZ=1000) behind same-priority tasks.
-#define TASK_SWITCHES_PRIORITY              1
+#define TASK_SWITCHES_PRIORITY              5
 #define TASK_UNIVERSE_PRIORITY              5
 #define TASK_STORAGE_PRIORITY               5
 #define TASK_SatIO_SERIAL_TX_PRIORITY       5
@@ -80,14 +71,12 @@ TaskHandle_t TaskInputPortController;
 #define TASK_SYSTEM_TIME_CORE               1
 #define TASK_GPS_CORE                       1
 #define TASK_GYRO_CORE                      1
-
 #ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_ADMPLEX0_CORE                  1
 #endif
 #ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_ADMPLEX1_CORE                  1
 #endif
-
 #define TASK_GPIOPE_INPUT_CORE              1
 #define TASK_SWITCHES_CORE                  0
 #define TASK_UNIVERSE_CORE                  0
@@ -108,33 +97,27 @@ TaskHandle_t TaskInputPortController;
 
 #ifdef SatIO_DISPLAY_OPTION_LVGL
 // PRIORITY (same priority so that task Hz (from delay ms) can be tuned without triggering wdt for a starved task)
-#define TASK_SYSTEM_TIME_PRIORITY           5
-#define TASK_GPS_PRIORITY                   5
+#define TASK_SYSTEM_TIME_PRIORITY           6
+#define TASK_GPS_PRIORITY                   6
 #define TASK_GYRO_PRIORITY                  5
 #define TASK_ADMPLEX0_PRIORITY              5
 #define TASK_ADMPLEX1_PRIORITY              5
-// TASK_SWITCHES_PRIORITY is one above its core-1 peers: it wakes rarely (gated
-// to TASK_MAX_FREQ_LOW_SWITCHES) but must send its pending I2C writes as soon
-// as it wakes rather than wait out a round-robin tick slice (up to ~1ms per
-// contending peer at CONFIG_FREERTOS_HZ=1000) behind same-priority tasks.
-#define TASK_SWITCHES_PRIORITY              6
+#define TASK_SWITCHES_PRIORITY              5
 #define TASK_UNIVERSE_PRIORITY              5
 #define TASK_STORAGE_PRIORITY               5
 #define TASK_DISPLAY_PRIORITY               5
 #define TASK_SatIO_SERIAL_TX_PRIORITY       5
-#define TASK_GPIOPE_INPUT_PRIORITY 5
+#define TASK_GPIOPE_INPUT_PRIORITY          5
 // CORE ASSIGNMENT
 #define TASK_SYSTEM_TIME_CORE               0
 #define TASK_GPS_CORE                       0
 #define TASK_GYRO_CORE                      1
-
 #ifdef SatIO_CD74HC4067_OPTION_USE_0
 #define TASK_ADMPLEX0_CORE                  1
 #endif
 #ifdef SatIO_CD74HC4067_OPTION_USE_1
 #define TASK_ADMPLEX1_CORE                  1
 #endif
-
 #define TASK_SWITCHES_CORE                  1
 #define TASK_UNIVERSE_CORE                  1
 #define TASK_STORAGE_CORE                   0

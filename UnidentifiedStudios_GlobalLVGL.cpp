@@ -1861,6 +1861,9 @@ stepper_panel_t create_stepper_panel(
 /** -------------------------------------------------------------------------------------
  * @brief Create Label Pair Panel Container (Left Label + Right Label).
  *
+ * Left label (label_0) is sized to fit label_0_text; the right label
+ * (label_1) fills the remaining row width.
+ *
  * @param parent Specify parent object.
  * @param width_px Container width.
  * @param height_px Container height.
@@ -1997,9 +2000,16 @@ label_pair_panel_t create_label_pair_panel(
         LV_FLEX_ALIGN_CENTER
     );
 
-    // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
-    obj_w_1 = (((sub_row_width/4) *3)) - (sub_column_padding*1);
+    // Set row object widths: label_0 (title) shrinks to fit its text, and
+    // label_1 (value) takes whatever width is left over, keeping the same
+    // total width budget the fixed 1/4-3/4 split used to consume.
+    lv_point_t label_0_text_size;
+    lv_text_get_size(&label_0_text_size, label_0_text, font_title, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+
+    const int32_t row_content_width = sub_row_width - (sub_column_padding*2);
+    obj_w_0 = label_0_text_size.x + (sub_column_padding*2);
+    if (obj_w_0 > row_content_width) {obj_w_0 = row_content_width;}
+    obj_w_1 = row_content_width - obj_w_0;
 
     // Left Label
     result.label_0 = create_label(
