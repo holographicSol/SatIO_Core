@@ -93,10 +93,31 @@ static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
 
+// Box drawn around the crosshair: wider than tall, with a gap on every side
+// so the crosshair's arms never touch the box border.
+static constexpr int32_t CROSSHAIR_BOX_HGAP_PX = 20; // arm tip -> box left/right edge
+static constexpr int32_t CROSSHAIR_BOX_VGAP_PX = 6;  // arm tip -> box top/bottom edge
+static constexpr int32_t CROSSHAIR_BOX_WIDTH_PX  = (CROSSHAIR_ARM_LEN_PX + CROSSHAIR_BOX_HGAP_PX) * 2 + 5;
+static constexpr int32_t CROSSHAIR_BOX_HEIGHT_PX = (CROSSHAIR_ARM_LEN_PX + CROSSHAIR_BOX_VGAP_PX) * 2 + 5;
+// Gap between the box and its ALT (left)/AZ (bottom) value labels.
+static constexpr int32_t CROSSHAIR_BOX_LABEL_GAP_PX = 10;
+// Fixed widths for the value labels stacked on the box's left (ALT/AZ) and
+// right (RA/Dec) sides, wide enough for their longest formatted string so
+// growing/shrinking text never drifts the label's box-facing edge.
+static constexpr int32_t CROSSHAIR_ALTAZ_VALUE_WIDTH_PX = 80;
+static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 150;
+
 // Sweep range/step/max adjuster
-static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 28;
+static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 32;
 static constexpr int32_t SWEEP_ADJUSTER_GAP_PX = 4;
 static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
+
+// Gap between scope_container's rim and any readout/panel pinned outside it
+// (objects-found, DEG/STEP/MAX). Height for the DEG/STEP/MAX panels; their
+// width is computed from SCOPE_WIDTH at runtime (see celestial_sphere_begin),
+// since SCOPE_WIDTH itself isn't known until then.
+static constexpr int32_t SCOPE_OUTSIDE_GAP_PX = 10;
+static constexpr int32_t SCOPE_OUTSIDE_STEPPER_HEIGHT_PX = 32;
 
 // Amount starNavSweepRangeDeg/starNavSweepStepDeg/starNavMaxObjects change per button press.
 static constexpr double SWEEP_RANGE_STEP_INCREMENT_DEG = 1.0;
@@ -239,13 +260,16 @@ static lv_obj_t * volatile celestial_sphere_container = nullptr;
 static lv_obj_t * volatile scope_container = nullptr;
 static lv_obj_t * crosshair_h = nullptr;
 static lv_obj_t * crosshair_v = nullptr;
+static lv_obj_t * crosshair_box = nullptr;
 static lv_point_precise_t crosshair_h_points[2];
 static lv_point_precise_t crosshair_v_points[2];
 
-static lv_obj_t * gyro_alt_value_label = nullptr;
-static lv_obj_t * gyro_az_value_label = nullptr;
-static lv_obj_t * gyro_ra_value_label = nullptr;
-static lv_obj_t * gyro_dec_value_label = nullptr;
+// Live Alt/Az/RA/Dec readout stacked around the crosshair box: ALT/AZ on
+// its left (ALT above AZ), RA/Dec on its right (RA above Dec).
+static lv_obj_t * crosshair_alt_value_label = nullptr;
+static lv_obj_t * crosshair_az_value_label = nullptr;
+static lv_obj_t * crosshair_ra_value_label = nullptr;
+static lv_obj_t * crosshair_dec_value_label = nullptr;
 
 // Count of objects currently plotted within the scope
 static lv_obj_t * objects_found_value_label = nullptr;
@@ -416,24 +440,28 @@ static void update_target_data_content(const int32_t object_index) {
 // UPDATE GYRO ATTITUDE LABEL
 // ============================================================================
 static void update_gyro_attitude_label(void) {
-    if (gyro_alt_value_label != nullptr) {
+    if (crosshair_alt_value_label != nullptr) {
         char buf[16];
-        snprintf(buf, sizeof(buf), "%.2f", siderealPlanetData.gyro_0_sidereal_attitude.alt);
-        lv_label_set_text(gyro_alt_value_label, buf);
+        snprintf(buf, sizeof(buf), "AT %.2f", siderealPlanetData.gyro_0_sidereal_attitude.alt);
+        lv_label_set_text(crosshair_alt_value_label, buf);
     }
 
-    if (gyro_az_value_label != nullptr) {
+    if (crosshair_az_value_label != nullptr) {
         char buf[16];
-        snprintf(buf, sizeof(buf), "%.2f", siderealPlanetData.gyro_0_sidereal_attitude.az);
-        lv_label_set_text(gyro_az_value_label, buf);
+        snprintf(buf, sizeof(buf), "AZ %.2f", siderealPlanetData.gyro_0_sidereal_attitude.az);
+        lv_label_set_text(crosshair_az_value_label, buf);
     }
 
-    if (gyro_ra_value_label != nullptr) {
-        lv_label_set_text(gyro_ra_value_label, siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
+    if (crosshair_ra_value_label != nullptr) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "RA %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
+        lv_label_set_text(crosshair_ra_value_label, buf);
     }
 
-    if (gyro_dec_value_label != nullptr) {
-        lv_label_set_text(gyro_dec_value_label, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
+    if (crosshair_dec_value_label != nullptr) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "DC %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
+        lv_label_set_text(crosshair_dec_value_label, buf);
     }
 }
 
@@ -648,6 +676,21 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
     if (crosshair_v != nullptr) {
         lv_obj_set_style_line_color(crosshair_v, color, 0);
     }
+    if (crosshair_box != nullptr) {
+        lv_obj_set_style_border_color(crosshair_box, color, 0);
+    }
+    if (crosshair_alt_value_label != nullptr) {
+        lv_obj_set_style_text_color(crosshair_alt_value_label, color, 0);
+    }
+    if (crosshair_az_value_label != nullptr) {
+        lv_obj_set_style_text_color(crosshair_az_value_label, color, 0);
+    }
+    if (crosshair_ra_value_label != nullptr) {
+        lv_obj_set_style_text_color(crosshair_ra_value_label, color, 0);
+    }
+    if (crosshair_dec_value_label != nullptr) {
+        lv_obj_set_style_text_color(crosshair_dec_value_label, color, 0);
+    }
 
     celestial_sphere_update();
 }
@@ -854,14 +897,26 @@ void celestial_sphere_begin(
         // Scope style: No scroll
         lv_obj_remove_flag(scope_container, LV_OBJ_FLAG_SCROLLABLE);
 
-        // Objects-found readout, continuing the top-mid stack.
+        // scope_container's own edges, in celestial_sphere_container's shared
+        // coordinate space -- every panel pinned "outside" the scope below
+        // is positioned from these.
+        const int32_t scope_left_px   = SCOPE_CENTER_X - (SCOPE_WIDTH / 2);
+        const int32_t scope_right_px  = SCOPE_CENTER_X + (SCOPE_WIDTH / 2);
+        const int32_t scope_top_px    = SCOPE_CENTER_Y - (SCOPE_HEIGHT / 2);
+        const int32_t scope_bottom_px = SCOPE_CENTER_Y + (SCOPE_HEIGHT / 2);
+        // A little under half of SCOPE_WIDTH, so the DEG/STEP column (left)
+        // and the MAX column (right) sit side by side without touching.
+        const int32_t outside_stepper_width_px = (SCOPE_WIDTH / 2) - 10;
+
+        // Objects-found readout, pinned outside scope_container, just above
+        // its top-left corner (left edges aligned, a small gap above).
         const label_pair_panel_t objects_found_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            168,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_MID,               // alignment
-            -88,                            // pos_x
-            0,                              // pos_y
+            celestial_sphere_container,                    // parent
+            168,                                            // width_px
+            24,                                             // height_px
+            LV_ALIGN_TOP_LEFT,                              // alignment
+            scope_left_px,                                  // pos_x
+            scope_top_px - 24 - SCOPE_OUTSIDE_GAP_PX,        // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
@@ -881,118 +936,15 @@ void celestial_sphere_begin(
         objects_found_value_label = objects_found_panel.label_1;
         update_objects_found_label(0);
 
-        // Gyro attitude + objects-found readout: stacked top-mid, one
-        // create_label_pair_panel() row per value. Only the value labels
-        // are kept: the title labels are never referenced again.
-        const label_pair_panel_t gyro_alt_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            168,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_MID,               // alignment
-            -88,                            // pos_x
-            26,                             // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "ALT",                          // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_alt_value_label = gyro_alt_panel.label_1;
-
-        const label_pair_panel_t gyro_az_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            168,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_MID,               // alignment
-            -88,                            // pos_x
-            52,                             // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "AZ",                           // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_az_value_label = gyro_az_panel.label_1;
-
-        const label_pair_panel_t gyro_ra_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            200,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_MID,               // alignment
-            102,                            // pos_x
-            26,                             // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "RA ",                          // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_ra_value_label = gyro_ra_panel.label_1;
-
-        const label_pair_panel_t gyro_dec_panel = create_label_pair_panel(
-            celestial_sphere_container,     // parent
-            200,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_TOP_MID,               // alignment
-            102,                            // pos_x
-            52,                             // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            24,                             // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "DEC",                          // label_0_text
-            ""                              // label_1_text: filled by update_gyro_attitude_label()
-        );
-        gyro_dec_value_label = gyro_dec_panel.label_1;
-
-        update_gyro_attitude_label();
-
+        // DEG/STEP stacked bottom-left, outside scope_container (left edges
+        // aligned with its left edge, DEG first then STEP below it).
         const stepper_panel_t sweep_range_panel = create_stepper_panel(
-            celestial_sphere_container,     // parent
-            240,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_BOTTOM_MID,            // alignment
-            0,                              // pos_x
-            -48,                            // pos_y
+            celestial_sphere_container,             // parent
+            outside_stepper_width_px,               // width_px
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+            LV_ALIGN_TOP_LEFT,                      // alignment
+            scope_left_px,                          // pos_x
+            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
@@ -1001,7 +953,7 @@ void celestial_sphere_begin(
             1,                              // main_column_padding
             1,                              // sub_row_padding
             4,                              // sub_column_padding
-            24,                             // row_height
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
@@ -1014,12 +966,14 @@ void celestial_sphere_begin(
         sweep_range_value_label = sweep_range_panel.value_label;
 
         const stepper_panel_t sweep_step_panel = create_stepper_panel(
-            celestial_sphere_container,     // parent
-            240,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_BOTTOM_MID,            // alignment
-            0,                              // pos_x
-            -26,                            // pos_y
+            celestial_sphere_container,             // parent
+            outside_stepper_width_px,               // width_px
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+            LV_ALIGN_TOP_LEFT,                      // alignment
+            scope_left_px,                          // pos_x
+            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX
+                + SCOPE_OUTSIDE_STEPPER_HEIGHT_PX
+                + SCOPE_OUTSIDE_GAP_PX,              // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
@@ -1028,7 +982,7 @@ void celestial_sphere_begin(
             1,                              // main_column_padding
             1,                              // sub_row_padding
             4,                              // sub_column_padding
-            24,                             // row_height
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
@@ -1040,13 +994,15 @@ void celestial_sphere_begin(
         lv_obj_add_event_cb(sweep_step_panel.btn_plus.button, sweep_step_plus_cb, LV_EVENT_CLICKED, nullptr);
         sweep_step_value_label = sweep_step_panel.value_label;
 
+        // MAX stacked bottom-right, outside scope_container (right edge
+        // aligned with its right edge, same row as DEG).
         const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
-            celestial_sphere_container,     // parent
-            240,                            // width_px
-            24,                             // height_px
-            LV_ALIGN_BOTTOM_MID,            // alignment
-            0,                              // pos_x
-            -2,                             // pos_y
+            celestial_sphere_container,             // parent
+            outside_stepper_width_px,               // width_px
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+            LV_ALIGN_TOP_LEFT,                      // alignment
+            scope_right_px - outside_stepper_width_px, // pos_x
+            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
@@ -1055,7 +1011,7 @@ void celestial_sphere_begin(
             1,                              // main_column_padding
             1,                              // sub_row_padding
             4,                              // sub_column_padding
-            24,                             // row_height
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
@@ -1088,6 +1044,58 @@ void celestial_sphere_begin(
         crosshair_v_points[1].x = SCOPE_CENTER_X;
         crosshair_v_points[1].y = SCOPE_CENTER_Y + CROSSHAIR_ARM_LEN_PX;
         lv_line_set_points(crosshair_v, crosshair_v_points, 2);
+
+        // Wide box around the crosshair: sized so a gap remains between
+        // each arm tip and the box border (see CROSSHAIR_BOX_*_GAP_PX).
+        crosshair_box = lv_obj_create(celestial_sphere_container);
+        lv_obj_remove_style_all(crosshair_box);
+        lv_obj_set_size(crosshair_box, CROSSHAIR_BOX_WIDTH_PX, CROSSHAIR_BOX_HEIGHT_PX);
+        lv_obj_set_pos(crosshair_box,
+                        SCOPE_CENTER_X - (CROSSHAIR_BOX_WIDTH_PX / 2),
+                        SCOPE_CENTER_Y - (CROSSHAIR_BOX_HEIGHT_PX / 2));
+        lv_obj_set_style_radius(crosshair_box, 0, 0);
+        lv_obj_set_style_bg_opa(crosshair_box, LV_OPA_TRANSP, 0);
+        lv_obj_set_style_border_width(crosshair_box, 0, 0);
+
+        lv_obj_set_style_outline_width(crosshair_box, 3, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(crosshair_box, lv_color_make(0, 255, 0), LV_PART_MAIN);
+
+        lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_CLICKABLE);
+
+        crosshair_alt_value_label = lv_label_create(celestial_sphere_container);
+        lv_obj_set_style_text_font(crosshair_alt_value_label, &font_cobalt_alien_17, 0);
+        lv_obj_set_style_text_color(crosshair_alt_value_label, mode_color(current_mode), 0);
+        lv_obj_set_width(crosshair_alt_value_label, CROSSHAIR_ALTAZ_VALUE_WIDTH_PX);
+        lv_obj_set_style_text_align(crosshair_alt_value_label, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_obj_align_to(crosshair_alt_value_label, crosshair_box, LV_ALIGN_OUT_LEFT_TOP,
+                         -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+
+        crosshair_az_value_label = lv_label_create(celestial_sphere_container);
+        lv_obj_set_style_text_font(crosshair_az_value_label, &font_cobalt_alien_17, 0);
+        lv_obj_set_style_text_color(crosshair_az_value_label, mode_color(current_mode), 0);
+        lv_obj_set_width(crosshair_az_value_label, CROSSHAIR_ALTAZ_VALUE_WIDTH_PX);
+        lv_obj_set_style_text_align(crosshair_az_value_label, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_obj_align_to(crosshair_az_value_label, crosshair_box, LV_ALIGN_OUT_LEFT_BOTTOM,
+                         -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+
+        crosshair_ra_value_label = lv_label_create(celestial_sphere_container);
+        lv_obj_set_style_text_font(crosshair_ra_value_label, &font_cobalt_alien_17, 0);
+        lv_obj_set_style_text_color(crosshair_ra_value_label, mode_color(current_mode), 0);
+        lv_obj_set_width(crosshair_ra_value_label, CROSSHAIR_RADEC_VALUE_WIDTH_PX);
+        lv_obj_set_style_text_align(crosshair_ra_value_label, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_align_to(crosshair_ra_value_label, crosshair_box, LV_ALIGN_OUT_RIGHT_TOP,
+                         CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+
+        crosshair_dec_value_label = lv_label_create(celestial_sphere_container);
+        lv_obj_set_style_text_font(crosshair_dec_value_label, &font_cobalt_alien_17, 0);
+        lv_obj_set_style_text_color(crosshair_dec_value_label, mode_color(current_mode), 0);
+        lv_obj_set_width(crosshair_dec_value_label, CROSSHAIR_RADEC_VALUE_WIDTH_PX);
+        lv_obj_set_style_text_align(crosshair_dec_value_label, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_align_to(crosshair_dec_value_label, crosshair_box, LV_ALIGN_OUT_RIGHT_BOTTOM,
+                         CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+
+        update_gyro_attitude_label(); // populate the four labels immediately
 
         // Markers, one per possible siderealObjectSweep slot.
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
@@ -1146,10 +1154,16 @@ void celestial_sphere_begin(
         lv_obj_add_flag(scope_container, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(scope_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
 
-        // Keep the crosshair above markers/selection box/target data box,
-        // which are all created (and thus stacked) after it.
+        // Keep the crosshair (and its box/Alt-Az readout) above markers/
+        // selection box/target data box, which are all created (and thus
+        // stacked) after it.
         lv_obj_move_foreground(crosshair_h);
         lv_obj_move_foreground(crosshair_v);
+        lv_obj_move_foreground(crosshair_box);
+        lv_obj_move_foreground(crosshair_alt_value_label);
+        lv_obj_move_foreground(crosshair_az_value_label);
+        lv_obj_move_foreground(crosshair_ra_value_label);
+        lv_obj_move_foreground(crosshair_dec_value_label);
 
         // allow show once built
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
