@@ -1154,9 +1154,8 @@ void celestial_sphere_begin(
         lv_obj_add_flag(scope_container, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(scope_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
 
-        // Keep the crosshair (and its box/Alt-Az readout) above markers/
-        // selection box/target data box, which are all created (and thus
-        // stacked) after it.
+        // Keep the crosshair (and its box/Alt-Az readout) above the plain
+        // markers, which are created (and thus stacked) after it.
         lv_obj_move_foreground(crosshair_h);
         lv_obj_move_foreground(crosshair_v);
         lv_obj_move_foreground(crosshair_box);
@@ -1164,6 +1163,12 @@ void celestial_sphere_begin(
         lv_obj_move_foreground(crosshair_az_value_label);
         lv_obj_move_foreground(crosshair_ra_value_label);
         lv_obj_move_foreground(crosshair_dec_value_label);
+
+        // Target boxes go last so they stay in front of the crosshair too
+        // (selecting/targeting a marker should never be hidden behind it).
+        lv_obj_move_foreground(selection_box);
+        lv_obj_move_foreground(target_data_box);
+        lv_obj_move_foreground(target_connector_line);
 
         // allow show once built
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
