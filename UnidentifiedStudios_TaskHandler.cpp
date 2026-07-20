@@ -1361,6 +1361,7 @@ static void taskUniverse(void *pvParameters) {
         // printf("---------------------------------------------\n");
 
         starNavSweep();
+        starNavConstellation();
         starnav_last_uS = esp_timer_get_time();
         stepFFCounter(systemData.counters_starnav, 1);
       }

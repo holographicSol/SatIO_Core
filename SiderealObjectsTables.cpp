@@ -173,6 +173,372 @@ const SiderealConstellationEntry constellationName[] = {
 { 88, "Vulpecula" }
 };
 
+// IAU/Delporte constellation boundaries (N.G. Roman 1987, PASP 99, 695; CDS
+// catalogue VI/42), equinox B1875.0. Row order is load-bearing: scanning
+// stops at the first row where (dec >= dec_low) && (ra >= ra_low) &&
+// (ra < ra_high), which is what makes Serpens's two disconnected lobes
+// (rows tagged Ser above) resolve correctly. See getConstellationAtRaDec()
+// in UnidentifiedStudios_SiderealHelper.cpp.
+const SiderealConstellationBoundaryEntry constellationBoundary[] = {
+  { 0.0000f, 24.0000f, 88.0000f, 84 }, // UMi Ursa Minor
+  { 8.0000f, 14.5000f, 86.5000f, 84 }, // UMi Ursa Minor
+  { 21.0000f, 23.0000f, 86.1667f, 84 }, // UMi Ursa Minor
+  { 18.0000f, 21.0000f, 86.0000f, 84 }, // UMi Ursa Minor
+  { 0.0000f, 8.0000f, 85.0000f, 20 }, // Cep Cepheus
+  { 9.1667f, 10.6667f, 82.0000f, 11 }, // Cam Camelopardalis
+  { 0.0000f, 5.0000f, 80.0000f, 20 }, // Cep Cepheus
+  { 10.6667f, 14.5000f, 80.0000f, 11 }, // Cam Camelopardalis
+  { 17.5000f, 18.0000f, 80.0000f, 84 }, // UMi Ursa Minor
+  { 20.1667f, 21.0000f, 80.0000f, 34 }, // Dra Draco
+  { 0.0000f, 3.5083f, 77.0000f, 20 }, // Cep Cepheus
+  { 11.5000f, 13.5833f, 77.0000f, 11 }, // Cam Camelopardalis
+  { 16.5333f, 17.5000f, 75.0000f, 84 }, // UMi Ursa Minor
+  { 20.1667f, 20.6667f, 75.0000f, 20 }, // Cep Cepheus
+  { 7.9667f, 9.1667f, 73.5000f, 11 }, // Cam Camelopardalis
+  { 9.1667f, 11.3333f, 73.5000f, 34 }, // Dra Draco
+  { 13.0000f, 16.5333f, 70.0000f, 84 }, // UMi Ursa Minor
+  { 3.1000f, 3.4167f, 68.0000f, 18 }, // Cas Cassiopeia
+  { 20.4167f, 20.6667f, 67.0000f, 34 }, // Dra Draco
+  { 11.3333f, 12.0000f, 66.5000f, 34 }, // Dra Draco
+  { 0.0000f, 0.3333f, 66.0000f, 20 }, // Cep Cepheus
+  { 14.0000f, 15.6667f, 66.0000f, 84 }, // UMi Ursa Minor
+  { 23.5833f, 24.0000f, 66.0000f, 20 }, // Cep Cepheus
+  { 12.0000f, 13.5000f, 64.0000f, 34 }, // Dra Draco
+  { 13.5000f, 14.4167f, 63.0000f, 34 }, // Dra Draco
+  { 23.1667f, 23.5833f, 63.0000f, 20 }, // Cep Cepheus
+  { 6.1000f, 7.0000f, 62.0000f, 11 }, // Cam Camelopardalis
+  { 20.0000f, 20.4167f, 61.5000f, 34 }, // Dra Draco
+  { 20.5367f, 20.6000f, 60.9167f, 20 }, // Cep Cepheus
+  { 7.0000f, 7.9667f, 60.0000f, 11 }, // Cam Camelopardalis
+  { 7.9667f, 8.4167f, 60.0000f, 83 }, // UMa Ursa Major
+  { 19.7667f, 20.0000f, 59.5000f, 34 }, // Dra Draco
+  { 20.0000f, 20.5367f, 59.5000f, 20 }, // Cep Cepheus
+  { 22.8667f, 23.1667f, 59.0833f, 20 }, // Cep Cepheus
+  { 0.0000f, 2.4333f, 58.5000f, 18 }, // Cas Cassiopeia
+  { 19.4167f, 19.7667f, 58.0000f, 34 }, // Dra Draco
+  { 1.7000f, 1.9083f, 57.5000f, 18 }, // Cas Cassiopeia
+  { 2.4333f, 3.1000f, 57.0000f, 18 }, // Cas Cassiopeia
+  { 3.1000f, 3.1667f, 57.0000f, 11 }, // Cam Camelopardalis
+  { 22.3167f, 22.8667f, 56.2500f, 20 }, // Cep Cepheus
+  { 5.0000f, 6.1000f, 56.0000f, 11 }, // Cam Camelopardalis
+  { 14.0333f, 14.4167f, 55.5000f, 83 }, // UMa Ursa Major
+  { 14.4167f, 19.4167f, 55.5000f, 34 }, // Dra Draco
+  { 3.1667f, 3.3333f, 55.0000f, 11 }, // Cam Camelopardalis
+  { 22.1333f, 22.3167f, 55.0000f, 20 }, // Cep Cepheus
+  { 20.6000f, 21.9667f, 54.8333f, 20 }, // Cep Cepheus
+  { 0.0000f, 1.7000f, 54.0000f, 18 }, // Cas Cassiopeia
+  { 6.1000f, 6.5000f, 54.0000f, 51 }, // Lyn Lynx
+  { 12.0833f, 13.5000f, 53.0000f, 83 }, // UMa Ursa Major
+  { 15.2500f, 15.7500f, 53.0000f, 34 }, // Dra Draco
+  { 21.9667f, 22.1333f, 52.7500f, 20 }, // Cep Cepheus
+  { 3.3333f, 5.0000f, 52.5000f, 11 }, // Cam Camelopardalis
+  { 22.8667f, 23.3333f, 52.5000f, 18 }, // Cas Cassiopeia
+  { 15.7500f, 17.0000f, 51.5000f, 34 }, // Dra Draco
+  { 2.0417f, 2.5167f, 50.5000f, 63 }, // Per Perseus
+  { 17.0000f, 18.2333f, 50.5000f, 34 }, // Dra Draco
+  { 0.0000f, 1.3667f, 50.0000f, 18 }, // Cas Cassiopeia
+  { 1.3667f, 1.6667f, 50.0000f, 63 }, // Per Perseus
+  { 6.5000f, 6.8000f, 50.0000f, 51 }, // Lyn Lynx
+  { 23.3333f, 24.0000f, 50.0000f, 18 }, // Cas Cassiopeia
+  { 13.5000f, 14.0333f, 48.5000f, 83 }, // UMa Ursa Major
+  { 0.0000f, 1.1167f, 48.0000f, 18 }, // Cas Cassiopeia
+  { 23.5833f, 24.0000f, 48.0000f, 18 }, // Cas Cassiopeia
+  { 18.1750f, 18.2333f, 47.5000f, 40 }, // Her Hercules
+  { 18.2333f, 19.0833f, 47.5000f, 34 }, // Dra Draco
+  { 19.0833f, 19.1667f, 47.5000f, 31 }, // Cyg Cygnus
+  { 1.6667f, 2.0417f, 47.0000f, 63 }, // Per Perseus
+  { 8.4167f, 9.1667f, 47.0000f, 83 }, // UMa Ursa Major
+  { 0.1667f, 0.8667f, 46.0000f, 18 }, // Cas Cassiopeia
+  { 12.0000f, 12.0833f, 45.0000f, 83 }, // UMa Ursa Major
+  { 6.8000f, 7.3667f, 44.5000f, 51 }, // Lyn Lynx
+  { 21.9083f, 21.9667f, 44.0000f, 31 }, // Cyg Cygnus
+  { 21.8750f, 21.9083f, 43.7500f, 31 }, // Cyg Cygnus
+  { 19.1667f, 19.4000f, 43.5000f, 31 }, // Cyg Cygnus
+  { 9.1667f, 10.1667f, 42.0000f, 83 }, // UMa Ursa Major
+  { 10.1667f, 10.7833f, 40.0000f, 83 }, // UMa Ursa Major
+  { 15.4333f, 15.7500f, 40.0000f, 9 }, // Boo Bootes
+  { 15.7500f, 16.3333f, 40.0000f, 40 }, // Her Hercules
+  { 9.2500f, 9.5833f, 39.7500f, 51 }, // Lyn Lynx
+  { 0.0000f, 2.5167f, 36.7500f, 1 }, // And Andromeda
+  { 2.5167f, 2.5667f, 36.7500f, 63 }, // Per Perseus
+  { 19.3583f, 19.4000f, 36.5000f, 52 }, // Lyr Lyra
+  { 4.5000f, 4.6917f, 36.0000f, 63 }, // Per Perseus
+  { 21.7333f, 21.8750f, 36.0000f, 31 }, // Cyg Cygnus
+  { 21.8750f, 22.0000f, 36.0000f, 45 }, // Lac Lacerta
+  { 6.5333f, 7.3667f, 35.5000f, 8 }, // Aur Auriga
+  { 7.3667f, 7.7500f, 35.5000f, 51 }, // Lyn Lynx
+  { 0.0000f, 2.0000f, 35.0000f, 1 }, // And Andromeda
+  { 22.0000f, 22.8167f, 35.0000f, 45 }, // Lac Lacerta
+  { 22.8167f, 22.8667f, 34.5000f, 45 }, // Lac Lacerta
+  { 22.8667f, 23.5000f, 34.5000f, 1 }, // And Andromeda
+  { 2.5667f, 2.7167f, 34.0000f, 63 }, // Per Perseus
+  { 10.7833f, 11.0000f, 34.0000f, 83 }, // UMa Ursa Major
+  { 12.0000f, 12.3333f, 34.0000f, 13 }, // CVn Canes Venatici
+  { 7.7500f, 9.2500f, 33.5000f, 51 }, // Lyn Lynx
+  { 9.2500f, 9.8833f, 33.5000f, 47 }, // LMi Leo Minor
+  { 0.7167f, 1.4083f, 33.0000f, 1 }, // And Andromeda
+  { 15.1833f, 15.4333f, 33.0000f, 9 }, // Boo Bootes
+  { 23.5000f, 23.7500f, 32.0833f, 1 }, // And Andromeda
+  { 12.3333f, 13.2500f, 32.0000f, 13 }, // CVn Canes Venatici
+  { 23.7500f, 24.0000f, 31.3333f, 1 }, // And Andromeda
+  { 13.9583f, 14.0333f, 30.7500f, 13 }, // CVn Canes Venatici
+  { 2.4167f, 2.7167f, 30.6667f, 80 }, // Tri Triangulum
+  { 2.7167f, 4.5000f, 30.6667f, 63 }, // Per Perseus
+  { 4.5000f, 4.7500f, 30.0000f, 8 }, // Aur Auriga
+  { 18.1750f, 19.3583f, 30.0000f, 52 }, // Lyr Lyra
+  { 11.0000f, 12.0000f, 29.0000f, 83 }, // UMa Ursa Major
+  { 19.6667f, 20.9167f, 29.0000f, 31 }, // Cyg Cygnus
+  { 4.7500f, 5.8833f, 28.5000f, 8 }, // Aur Auriga
+  { 9.8833f, 10.5000f, 28.5000f, 47 }, // LMi Leo Minor
+  { 13.2500f, 13.9583f, 28.5000f, 13 }, // CVn Canes Venatici
+  { 0.0000f, 0.0667f, 28.0000f, 1 }, // And Andromeda
+  { 1.4083f, 1.6667f, 28.0000f, 80 }, // Tri Triangulum
+  { 5.8833f, 6.5333f, 28.0000f, 8 }, // Aur Auriga
+  { 7.8833f, 8.0000f, 28.0000f, 38 }, // Gem Gemini
+  { 20.9167f, 21.7333f, 28.0000f, 31 }, // Cyg Cygnus
+  { 19.2583f, 19.6667f, 27.5000f, 31 }, // Cyg Cygnus
+  { 1.9167f, 2.4167f, 27.2500f, 80 }, // Tri Triangulum
+  { 16.1667f, 16.3333f, 27.0000f, 27 }, // CrB Corona Borealis
+  { 15.0833f, 15.1833f, 26.0000f, 9 }, // Boo Bootes
+  { 15.1833f, 16.1667f, 26.0000f, 27 }, // CrB Corona Borealis
+  { 18.3667f, 18.8667f, 26.0000f, 52 }, // Lyr Lyra
+  { 10.7500f, 11.0000f, 25.5000f, 47 }, // LMi Leo Minor
+  { 18.8667f, 19.2583f, 25.5000f, 52 }, // Lyr Lyra
+  { 1.6667f, 1.9167f, 25.0000f, 80 }, // Tri Triangulum
+  { 0.7167f, 0.8500f, 23.7500f, 66 }, // Psc Pisces
+  { 10.5000f, 10.7500f, 23.5000f, 47 }, // LMi Leo Minor
+  { 21.2500f, 21.4167f, 23.5000f, 88 }, // Vul Vulpecula
+  { 5.7000f, 5.8833f, 22.8333f, 78 }, // Tau Taurus
+  { 0.0667f, 0.1417f, 22.0000f, 1 }, // And Andromeda
+  { 15.9167f, 16.0333f, 22.0000f, 76 }, // Ser Serpens
+  { 5.8833f, 6.2167f, 21.5000f, 38 }, // Gem Gemini
+  { 19.8333f, 20.2500f, 21.2500f, 88 }, // Vul Vulpecula
+  { 18.8667f, 19.2500f, 21.0833f, 88 }, // Vul Vulpecula
+  { 0.1417f, 0.8500f, 21.0000f, 1 }, // And Andromeda
+  { 20.2500f, 20.5667f, 20.5000f, 88 }, // Vul Vulpecula
+  { 7.8083f, 7.8833f, 20.0000f, 38 }, // Gem Gemini
+  { 20.5667f, 21.2500f, 19.5000f, 88 }, // Vul Vulpecula
+  { 19.2500f, 19.8333f, 19.1667f, 88 }, // Vul Vulpecula
+  { 3.2833f, 3.3667f, 19.0000f, 7 }, // Ari Aries
+  { 18.8667f, 19.0000f, 18.5000f, 71 }, // Sge Sagitta
+  { 5.7000f, 5.7667f, 18.0000f, 60 }, // Ori Orion
+  { 6.2167f, 6.3083f, 17.5000f, 38 }, // Gem Gemini
+  { 19.0000f, 19.8333f, 16.1667f, 71 }, // Sge Sagitta
+  { 4.9667f, 5.3333f, 16.0000f, 78 }, // Tau Taurus
+  { 15.9167f, 16.0833f, 16.0000f, 40 }, // Her Hercules
+  { 19.8333f, 20.2500f, 15.7500f, 71 }, // Sge Sagitta
+  { 4.6167f, 4.9667f, 15.5000f, 78 }, // Tau Taurus
+  { 5.3333f, 5.6000f, 15.5000f, 78 }, // Tau Taurus
+  { 12.8333f, 13.5000f, 15.0000f, 25 }, // Com Coma Berenices
+  { 17.2500f, 18.2500f, 14.3333f, 40 }, // Her Hercules
+  { 11.8667f, 12.8333f, 14.0000f, 25 }, // Com Coma Berenices
+  { 7.5000f, 7.8083f, 13.5000f, 38 }, // Gem Gemini
+  { 16.7500f, 17.2500f, 12.8333f, 40 }, // Her Hercules
+  { 0.0000f, 0.1417f, 12.5000f, 62 }, // Peg Pegasus
+  { 5.6000f, 5.7667f, 12.5000f, 78 }, // Tau Taurus
+  { 7.0000f, 7.5000f, 12.5000f, 38 }, // Gem Gemini
+  { 21.1167f, 21.3333f, 12.5000f, 62 }, // Peg Pegasus
+  { 6.3083f, 6.9333f, 12.0000f, 38 }, // Gem Gemini
+  { 18.2500f, 18.8667f, 12.0000f, 40 }, // Her Hercules
+  { 20.8750f, 21.0500f, 11.8333f, 32 }, // Del Delphinus
+  { 21.0500f, 21.1167f, 11.8333f, 62 }, // Peg Pegasus
+  { 11.5167f, 11.8667f, 11.0000f, 46 }, // Leo Leo
+  { 6.2417f, 6.3083f, 10.0000f, 60 }, // Ori Orion
+  { 6.9333f, 7.0000f, 10.0000f, 38 }, // Gem Gemini
+  { 7.8083f, 7.9250f, 10.0000f, 12 }, // Cnc Cancer
+  { 23.8333f, 24.0000f, 10.0000f, 62 }, // Peg Pegasus
+  { 1.6667f, 3.2833f, 9.9167f, 7 }, // Ari Aries
+  { 20.1417f, 20.3000f, 8.5000f, 32 }, // Del Delphinus
+  { 13.5000f, 15.0833f, 8.0000f, 9 }, // Boo Bootes
+  { 22.7500f, 23.8333f, 7.5000f, 62 }, // Peg Pegasus
+  { 7.9250f, 9.2500f, 7.0000f, 12 }, // Cnc Cancer
+  { 9.2500f, 10.7500f, 7.0000f, 46 }, // Leo Leo
+  { 18.2500f, 18.6622f, 6.2500f, 59 }, // Oph Ophiucus
+  { 18.6622f, 18.8667f, 6.2500f, 5 }, // Aql Aquila
+  { 20.8333f, 20.8750f, 6.0000f, 32 }, // Del Delphinus
+  { 7.0000f, 7.0167f, 5.5000f, 15 }, // CMi Canis Minor
+  { 18.2500f, 18.4250f, 4.5000f, 76 }, // Ser Serpens
+  { 16.0833f, 16.7500f, 4.0000f, 40 }, // Her Hercules
+  { 18.2500f, 18.4250f, 3.0000f, 59 }, // Oph Ophiucus
+  { 21.4667f, 21.6667f, 2.7500f, 62 }, // Peg Pegasus
+  { 0.0000f, 2.0000f, 2.0000f, 66 }, // Psc Pisces
+  { 18.5833f, 18.8667f, 2.0000f, 76 }, // Ser Serpens
+  { 20.3000f, 20.8333f, 2.0000f, 32 }, // Del Delphinus
+  { 20.8333f, 21.3333f, 2.0000f, 35 }, // Equ Equuleus
+  { 21.3333f, 21.4667f, 2.0000f, 62 }, // Peg Pegasus
+  { 22.0000f, 22.7500f, 2.0000f, 62 }, // Peg Pegasus
+  { 21.6667f, 22.0000f, 1.7500f, 62 }, // Peg Pegasus
+  { 7.0167f, 7.2000f, 1.5000f, 15 }, // CMi Canis Minor
+  { 3.5833f, 4.6167f, 0.0000f, 78 }, // Tau Taurus
+  { 4.6167f, 4.6667f, 0.0000f, 60 }, // Ori Orion
+  { 7.2000f, 8.0833f, 0.0000f, 15 }, // CMi Canis Minor
+  { 14.6667f, 15.0833f, 0.0000f, 86 }, // Vir Virgo
+  { 17.8333f, 18.2500f, 0.0000f, 59 }, // Oph Ophiucus
+  { 2.6500f, 3.2833f, -1.7500f, 21 }, // Cet Cetus
+  { 3.2833f, 3.5833f, -1.7500f, 78 }, // Tau Taurus
+  { 15.0833f, 16.2667f, -3.2500f, 76 }, // Ser Serpens
+  { 4.6667f, 5.0833f, -4.0000f, 60 }, // Ori Orion
+  { 5.8333f, 6.2417f, -4.0000f, 60 }, // Ori Orion
+  { 17.8333f, 17.9667f, -4.0000f, 76 }, // Ser Serpens
+  { 18.2500f, 18.5833f, -4.0000f, 76 }, // Ser Serpens
+  { 18.5833f, 18.8667f, -4.0000f, 5 }, // Aql Aquila
+  { 22.7500f, 23.8333f, -4.0000f, 66 }, // Psc Pisces
+  { 10.7500f, 11.5167f, -6.0000f, 46 }, // Leo Leo
+  { 11.5167f, 11.8333f, -6.0000f, 86 }, // Vir Virgo
+  { 0.0000f, 0.3333f, -7.0000f, 66 }, // Psc Pisces
+  { 23.8333f, 24.0000f, -7.0000f, 66 }, // Psc Pisces
+  { 14.2500f, 14.6667f, -8.0000f, 86 }, // Vir Virgo
+  { 15.9167f, 16.2667f, -8.0000f, 59 }, // Oph Ophiucus
+  { 20.0000f, 20.5333f, -9.0000f, 5 }, // Aql Aquila
+  { 21.3333f, 21.8667f, -9.0000f, 4 }, // Aqr Aquarius
+  { 17.1667f, 17.9667f, -10.0000f, 59 }, // Oph Ophiucus
+  { 5.8333f, 8.0833f, -11.0000f, 55 }, // Mon Monoceros
+  { 4.9167f, 5.0833f, -11.0000f, 36 }, // Eri Eridanus
+  { 5.0833f, 5.8333f, -11.0000f, 60 }, // Ori Orion
+  { 8.0833f, 8.3667f, -11.0000f, 42 }, // Hya Hydra
+  { 9.5833f, 10.7500f, -11.0000f, 77 }, // Sex Sextans
+  { 11.8333f, 12.8333f, -11.0000f, 86 }, // Vir Virgo
+  { 17.5833f, 17.6667f, -11.6667f, 59 }, // Oph Ophiucus
+  { 18.8667f, 20.0000f, -12.0333f, 5 }, // Aql Aquila
+  { 4.8333f, 4.9167f, -14.5000f, 36 }, // Eri Eridanus
+  { 20.5333f, 21.3333f, -15.0000f, 4 }, // Aqr Aquarius
+  { 17.1667f, 18.2500f, -16.0000f, 76 }, // Ser Serpens
+  { 18.2500f, 18.8667f, -16.0000f, 75 }, // Sct Scutum
+  { 8.3667f, 8.5833f, -17.0000f, 42 }, // Hya Hydra
+  { 16.2667f, 16.3750f, -18.2500f, 59 }, // Oph Ophiucus
+  { 8.5833f, 9.0833f, -19.0000f, 42 }, // Hya Hydra
+  { 10.7500f, 10.8333f, -19.0000f, 29 }, // Crt Crater
+  { 16.2667f, 16.3750f, -19.2500f, 73 }, // Sco Scorpius
+  { 15.6667f, 15.9167f, -20.0000f, 49 }, // Lib Libra
+  { 12.5833f, 12.8333f, -22.0000f, 28 }, // Crv Corvus
+  { 12.8333f, 14.2500f, -22.0000f, 86 }, // Vir Virgo
+  { 9.0833f, 9.7500f, -24.0000f, 42 }, // Hya Hydra
+  { 1.6667f, 2.6500f, -24.3833f, 21 }, // Cet Cetus
+  { 2.6500f, 3.7500f, -24.3833f, 36 }, // Eri Eridanus
+  { 10.8333f, 11.8333f, -24.5000f, 29 }, // Crt Crater
+  { 11.8333f, 12.5833f, -24.5000f, 28 }, // Crv Corvus
+  { 14.2500f, 14.9167f, -24.5000f, 49 }, // Lib Libra
+  { 16.2667f, 16.7500f, -24.5833f, 59 }, // Oph Ophiucus
+  { 0.0000f, 1.6667f, -25.5000f, 21 }, // Cet Cetus
+  { 21.3333f, 21.8667f, -25.5000f, 16 }, // Cap Capricornus
+  { 21.8667f, 23.8333f, -25.5000f, 4 }, // Aqr Aquarius
+  { 23.8333f, 24.0000f, -25.5000f, 21 }, // Cet Cetus
+  { 9.7500f, 10.2500f, -26.5000f, 42 }, // Hya Hydra
+  { 4.7000f, 4.8333f, -27.2500f, 36 }, // Eri Eridanus
+  { 4.8333f, 6.1167f, -27.2500f, 48 }, // Lep Lepus
+  { 20.0000f, 21.3333f, -28.0000f, 16 }, // Cap Capricornus
+  { 10.2500f, 10.5833f, -29.1667f, 42 }, // Hya Hydra
+  { 12.5833f, 14.9167f, -29.5000f, 42 }, // Hya Hydra
+  { 14.9167f, 15.6667f, -29.5000f, 49 }, // Lib Libra
+  { 15.6667f, 16.0000f, -29.5000f, 73 }, // Sco Scorpius
+  { 4.5833f, 4.7000f, -30.0000f, 36 }, // Eri Eridanus
+  { 16.7500f, 17.6000f, -30.0000f, 59 }, // Oph Ophiucus
+  { 17.6000f, 17.8333f, -30.0000f, 72 }, // Sgr Sagittarius
+  { 10.5833f, 10.8333f, -31.1667f, 42 }, // Hya Hydra
+  { 6.1167f, 7.3667f, -33.0000f, 14 }, // CMa Canis Major
+  { 12.2500f, 12.5833f, -33.0000f, 42 }, // Hya Hydra
+  { 10.8333f, 12.2500f, -35.0000f, 42 }, // Hya Hydra
+  { 3.5000f, 3.7500f, -36.0000f, 37 }, // For Fornax
+  { 8.3667f, 9.3667f, -36.7500f, 69 }, // Pyx Pyxis
+  { 4.2667f, 4.5833f, -37.0000f, 36 }, // Eri Eridanus
+  { 17.8333f, 19.1667f, -37.0000f, 72 }, // Sgr Sagittarius
+  { 21.3333f, 23.0000f, -37.0000f, 67 }, // PsA Pisces Austrinus
+  { 23.0000f, 23.3333f, -37.0000f, 74 }, // Scl Sculptor
+  { 3.0000f, 3.5000f, -39.5833f, 37 }, // For Fornax
+  { 9.3667f, 11.0000f, -39.7500f, 2 }, // Ant Antlia
+  { 0.0000f, 1.6667f, -40.0000f, 74 }, // Scl Sculptor
+  { 1.6667f, 3.0000f, -40.0000f, 37 }, // For Fornax
+  { 3.8667f, 4.2667f, -40.0000f, 36 }, // Eri Eridanus
+  { 23.3333f, 24.0000f, -40.0000f, 74 }, // Scl Sculptor
+  { 14.1667f, 14.9167f, -42.0000f, 19 }, // Cen Centaurus
+  { 15.6667f, 16.0000f, -42.0000f, 50 }, // Lup Lupus
+  { 16.0000f, 16.4208f, -42.0000f, 73 }, // Sco Scorpius
+  { 4.8333f, 5.0000f, -43.0000f, 10 }, // Cae Caelum
+  { 5.0000f, 6.5833f, -43.0000f, 24 }, // Col Columba
+  { 8.0000f, 8.3667f, -43.0000f, 68 }, // Pup Puppis
+  { 3.4167f, 3.8667f, -44.0000f, 36 }, // Eri Eridanus
+  { 16.4208f, 17.8333f, -45.5000f, 73 }, // Sco Scorpius
+  { 17.8333f, 19.1667f, -45.5000f, 26 }, // CrA Corona Australis
+  { 19.1667f, 20.3333f, -45.5000f, 72 }, // Sgr Sagittarius
+  { 20.3333f, 21.3333f, -45.5000f, 54 }, // Mic Microscopium
+  { 3.0000f, 3.4167f, -46.0000f, 36 }, // Eri Eridanus
+  { 4.5000f, 4.8333f, -46.5000f, 10 }, // Cae Caelum
+  { 15.3333f, 15.6667f, -48.0000f, 50 }, // Lup Lupus
+  { 0.0000f, 2.3333f, -48.1667f, 64 }, // Phe Phoenix
+  { 2.6667f, 3.0000f, -49.0000f, 36 }, // Eri Eridanus
+  { 4.0833f, 4.2667f, -49.0000f, 41 }, // Hor Horologium
+  { 4.2667f, 4.5000f, -49.0000f, 10 }, // Cae Caelum
+  { 21.3333f, 22.0000f, -50.0000f, 39 }, // Gru Grus
+  { 6.0000f, 8.0000f, -50.7500f, 68 }, // Pup Puppis
+  { 8.0000f, 8.1667f, -50.7500f, 85 }, // Vel Vela
+  { 2.4167f, 2.6667f, -51.0000f, 36 }, // Eri Eridanus
+  { 3.8333f, 4.0833f, -51.0000f, 41 }, // Hor Horologium
+  { 0.0000f, 1.8333f, -51.5000f, 64 }, // Phe Phoenix
+  { 6.0000f, 6.1667f, -52.5000f, 17 }, // Car Carina
+  { 8.1667f, 8.4500f, -53.0000f, 85 }, // Vel Vela
+  { 3.5000f, 3.8333f, -53.1667f, 41 }, // Hor Horologium
+  { 3.8333f, 4.0000f, -53.1667f, 33 }, // Dor Dorado
+  { 0.0000f, 1.5833f, -53.5000f, 64 }, // Phe Phoenix
+  { 2.1667f, 2.4167f, -54.0000f, 36 }, // Eri Eridanus
+  { 4.5000f, 5.0000f, -54.0000f, 65 }, // Pic Pictor
+  { 15.0500f, 15.3333f, -54.0000f, 50 }, // Lup Lupus
+  { 8.4500f, 8.8333f, -54.5000f, 85 }, // Vel Vela
+  { 6.1667f, 6.5000f, -55.0000f, 17 }, // Car Carina
+  { 11.8333f, 12.8333f, -55.0000f, 19 }, // Cen Centaurus
+  { 14.1667f, 15.0500f, -55.0000f, 50 }, // Lup Lupus
+  { 15.0500f, 15.3333f, -55.0000f, 57 }, // Nor Norma
+  { 4.0000f, 4.3333f, -56.5000f, 33 }, // Dor Dorado
+  { 8.8333f, 11.0000f, -56.5000f, 85 }, // Vel Vela
+  { 11.0000f, 11.2500f, -56.5000f, 19 }, // Cen Centaurus
+  { 17.5000f, 18.0000f, -57.0000f, 6 }, // Ara Ara
+  { 18.0000f, 20.3333f, -57.0000f, 79 }, // Tel Telescopium
+  { 22.0000f, 23.3333f, -57.0000f, 39 }, // Gru Grus
+  { 3.2000f, 3.5000f, -57.5000f, 41 }, // Hor Horologium
+  { 5.0000f, 5.5000f, -57.5000f, 65 }, // Pic Pictor
+  { 6.5000f, 6.8333f, -58.0000f, 17 }, // Car Carina
+  { 0.0000f, 1.3333f, -58.5000f, 64 }, // Phe Phoenix
+  { 1.3333f, 2.1667f, -58.5000f, 36 }, // Eri Eridanus
+  { 23.3333f, 24.0000f, -58.5000f, 64 }, // Phe Phoenix
+  { 4.3333f, 4.5833f, -59.0000f, 33 }, // Dor Dorado
+  { 15.3333f, 16.4208f, -60.0000f, 57 }, // Nor Norma
+  { 20.3333f, 21.3333f, -60.0000f, 44 }, // Ind Indus
+  { 5.5000f, 6.0000f, -61.0000f, 65 }, // Pic Pictor
+  { 15.1667f, 15.3333f, -61.0000f, 23 }, // Cir Circinus
+  { 16.4208f, 16.5833f, -61.0000f, 6 }, // Ara Ara
+  { 14.9167f, 15.1667f, -63.5833f, 23 }, // Cir Circinus
+  { 16.5833f, 16.7500f, -63.5833f, 6 }, // Ara Ara
+  { 6.0000f, 6.8333f, -64.0000f, 65 }, // Pic Pictor
+  { 6.8333f, 9.0333f, -64.0000f, 17 }, // Car Carina
+  { 11.2500f, 11.8333f, -64.0000f, 19 }, // Cen Centaurus
+  { 11.8333f, 12.8333f, -64.0000f, 30 }, // Cru Crux
+  { 12.8333f, 14.5333f, -64.0000f, 19 }, // Cen Centaurus
+  { 13.5000f, 13.6667f, -65.0000f, 23 }, // Cir Circinus
+  { 16.7500f, 16.8333f, -65.0000f, 6 }, // Ara Ara
+  { 2.1667f, 3.2000f, -67.5000f, 41 }, // Hor Horologium
+  { 3.2000f, 4.5833f, -67.5000f, 70 }, // Ret Reticulum
+  { 14.7500f, 14.9167f, -67.5000f, 23 }, // Cir Circinus
+  { 16.8333f, 17.5000f, -67.5000f, 6 }, // Ara Ara
+  { 17.5000f, 18.0000f, -67.5000f, 61 }, // Pav Pavo
+  { 22.0000f, 23.3333f, -67.5000f, 82 }, // Tuc Tucana
+  { 4.5833f, 6.5833f, -70.0000f, 33 }, // Dor Dorado
+  { 13.6667f, 14.7500f, -70.0000f, 23 }, // Cir Circinus
+  { 14.7500f, 17.0000f, -70.0000f, 81 }, // TrA Triangulum Australe
+  { 0.0000f, 1.3333f, -75.0000f, 82 }, // Tuc Tucana
+  { 3.5000f, 4.5833f, -75.0000f, 43 }, // Hyi Hydrus
+  { 6.5833f, 9.0333f, -75.0000f, 87 }, // Vol Volans
+  { 9.0333f, 11.2500f, -75.0000f, 17 }, // Car Carina
+  { 11.2500f, 13.6667f, -75.0000f, 56 }, // Mus Musca
+  { 18.0000f, 21.3333f, -75.0000f, 61 }, // Pav Pavo
+  { 21.3333f, 23.3333f, -75.0000f, 44 }, // Ind Indus
+  { 23.3333f, 24.0000f, -75.0000f, 82 }, // Tuc Tucana
+  { 0.7500f, 1.3333f, -76.0000f, 82 }, // Tuc Tucana
+  { 0.0000f, 3.5000f, -82.5000f, 43 }, // Hyi Hydrus
+  { 7.6667f, 13.6667f, -82.5000f, 22 }, // Cha Chamaleon
+  { 13.6667f, 18.0000f, -82.5000f, 3 }, // Aps Apus
+  { 3.5000f, 7.6667f, -85.0000f, 53 }, // Men Mensa
+  { 0.0000f, 24.0000f, -90.0000f, 58 }, // Oct Octans
+};
+
 const SiderealStarTypeEntry starType[] = {
 { 1, "Mira" },
 { 2, "B8IVp" },

@@ -362,6 +362,27 @@ starnav 6 45 8.9 -16 42 58.0
 
 ---
 
+## Constellation
+
+Resolves the IAU constellation (Delporte 1930 boundaries, as tabulated by
+N.G. Roman, 1987) containing an arbitrary Right Ascension/Declination
+(mean equinox J2000.0). Unlike StarNav, this does not identify or track a
+catalog object — it just answers "what constellation is this coordinate in",
+which is also useful for arbitrary sky coordinates that aren't in any
+catalog (e.g. the live boresight).
+
+```
+constellation RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
+```
+
+**Example:**
+
+```
+constellation 5 55 10.3 7 24 25.4
+```
+
+---
+
 ## Stat
 
 Stat can be useful for providing real time, real world data to other systems, devices, microcontrollers and LLM's.

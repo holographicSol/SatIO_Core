@@ -11,6 +11,16 @@
 #include "UnidentifiedStudios_SiderealHelper.h"
 #include "UnidentifiedStudios_SatIO.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+// SiderealPlanets::deg2rad()/rad2deg() are private, so getConstellationAtRaDec()
+// (below) needs its own; matches UnidentifiedStudios_CelestialSphere.cpp's
+// local deg2rad() for the same reason.
+static inline double deg2rad(double degrees) { return degrees * M_PI / 180.0; }
+static inline double rad2deg(double radians) { return radians * 180.0 / M_PI; }
+
 // ------------------------------------------------------------------------------------------------------------------------------
 //                                                                                                               SIDEREAL PLANETS
 // ------------------------------------------------------------------------------------------------------------------------------
@@ -177,7 +187,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
         {0}, // formatted_dec_str
         {0}, // padded_ra_str
         {0}  // padded_dec_str
-    }
+    },
+    .gyro_0_constellation = nullptr
 };
 SiderealObjectSingle siderealObjectSingle = {
     .object_number = 0,
@@ -456,6 +467,77 @@ static const char* objectConstellationImpl(T *obj, int index)
         case INDEX_SIDEREAL_HERSHEL400_TABLE: return numValid(num, SObjectHerschel400_names_num)? myAstroObj.printHerschel400Con(num) : "Unidentified";
         default:                              return "Unidentified";
     }
+}
+
+// Fixed rotation from mean equinox J2000.0 to B1875.0 -- the equinox the
+// Roman (1987)/Delporte (1930) constellation boundaries (constellationBoundary[]
+// in SiderealObjectsTables.h) are tabulated in. Unlike SiderealPlanets's
+// precessionMatrix (SiderealPlanets.cpp:870-909), which is recomputed per
+// call for "now", B1875.0 is a fixed target epoch, so this is a constant:
+// generated offline with the identical precession-angle formula, evaluated
+// at t = -1.2499860766468203 Julian centuries (J2000.0 -> B1875.0).
+static constexpr double kJ2000ToB1875[3][3] = {
+    {  0.999535873001570,  0.027936935758479,  0.012147683047202 },
+    { -0.027936936201389,  0.999609673223428, -0.000169687449363 },
+    { -0.012147682028607, -0.000169760353448,  0.999926199778141 },
+};
+
+// Applies kJ2000ToB1875 to (ra_hours, dec_deg), following the same unit-vector
+// rotation approach as SiderealPlanets::doPrecessFrom2000() (SiderealPlanets.cpp:804-835).
+static void precessJ2000ToB1875(double ra_hours, double dec_deg,
+                                 double *ra_out_hours, double *dec_out_deg)
+{
+    const double ra_rad = deg2rad(ra_hours * 15.0);
+    const double dec_rad = deg2rad(dec_deg);
+    const double cv[3] = {
+        cos(dec_rad) * cos(ra_rad),
+        cos(dec_rad) * sin(ra_rad),
+        sin(dec_rad)
+    };
+
+    double out[3] = {0.0, 0.0, 0.0};
+    for (int j = 0; j < 3; j++) {
+        double sum = 0.0;
+        for (int i = 0; i < 3; i++) {
+            sum += kJ2000ToB1875[j][i] * cv[i];
+        }
+        out[j] = sum;
+    }
+
+    double x = out[0];
+    if (fabs(x) < 1e-20) { x = 1e-20; }
+    double ra_out = atan(out[1] / x);
+    if (x < 0.0) { ra_out += M_PI; }
+    ra_out = fmod(ra_out, 2.0 * M_PI);
+    if (ra_out < 0.0) { ra_out += 2.0 * M_PI; }
+
+    *ra_out_hours = rad2deg(ra_out) / 15.0;
+    *dec_out_deg = rad2deg(asin(out[2]));
+}
+
+const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000)
+{
+    double ra_h = fmod(ra_hours_j2000, 24.0);
+    if (ra_h < 0.0) { ra_h += 24.0; }
+
+    double ra_b1875 = 0.0;
+    double dec_b1875 = 0.0;
+    precessJ2000ToB1875(ra_h, dec_deg_j2000, &ra_b1875, &dec_b1875);
+
+    int con_num = -1;
+    for (int i = 0; i < (int)SObjectconstellationBoundary_num; i++) {
+        const SiderealConstellationBoundaryEntry &row = constellationBoundary[i];
+        if ((dec_b1875 >= row.dec_low) && (ra_b1875 >= row.ra_low) && (ra_b1875 < row.ra_high)) {
+            con_num = row.con;
+            break;
+        }
+    }
+
+    const SiderealConstellationEntry* result = nullptr;
+    for (int i = 0; (con_num >= 0) && (i < (int)SObjectconstellation_names_num); i++) {
+        if (constellationName[i].num == con_num) { result = &constellationName[i]; break; }
+    }
+    return result;
 }
 
 // Only stars carry a description in the vendor table (printStarDesc()).
@@ -1126,6 +1208,18 @@ void starNavSweep() {
     // full_time_total = esp_timer_get_time()-full_time_t0;
     // printf("\n[starsweep] time=%lld  trackobject=%lld  identifyobject=%lld  found=%d\n",
     //     full_time_total, trackobject_time_total, identifyobject_total, sweep_data.objects_found);
+}
+
+void starNavConstellation() {
+    const SiderealAttitudeData &gyro_attitude = siderealPlanetData.gyro_0_sidereal_attitude;
+    const double gyro_ra_hours = static_cast<double>(gyro_attitude.ra_h)
+        + (static_cast<double>(gyro_attitude.ra_m) / 60.0)
+        + (static_cast<double>(gyro_attitude.ra_s) / 3600.0);
+    const double gyro_dec_sign = (gyro_attitude.dec_d < 0) ? -1.0 : 1.0;
+    const double gyro_dec_deg = gyro_dec_sign * (fabs(static_cast<double>(gyro_attitude.dec_d))
+        + (static_cast<double>(gyro_attitude.dec_m) / 60.0)
+        + (static_cast<double>(gyro_attitude.dec_s) / 3600.0));
+    siderealPlanetData.gyro_0_constellation = getConstellationAtRaDec(gyro_ra_hours, gyro_dec_deg);
 }
 
 // ----------------------------------------------------------------------------------------

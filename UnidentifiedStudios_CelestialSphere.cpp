@@ -106,6 +106,9 @@ static constexpr int32_t CROSSHAIR_BOX_LABEL_GAP_PX = 10;
 // growing/shrinking text never drifts the label's box-facing edge.
 static constexpr int32_t CROSSHAIR_ALTAZ_VALUE_WIDTH_PX = 80;
 static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 140;
+// Fixed width for the constellation label centered above the box -- wide
+// enough for the longest constellationName[] entry ("Triangulum Australe").
+static constexpr int32_t CROSSHAIR_CONSTELLATION_VALUE_WIDTH_PX = 260;
 
 // Sweep range/step/max adjuster
 static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 32;
@@ -266,11 +269,13 @@ static lv_point_precise_t crosshair_h_points[2];
 static lv_point_precise_t crosshair_v_points[2];
 
 // Live Alt/Az/RA/Dec readout stacked around the crosshair box: ALT/AZ on
-// its left (ALT above AZ), RA/Dec on its right (RA above Dec).
+// its left (ALT above AZ), RA/Dec on its right (RA above Dec), constellation
+// above it.
 static lv_obj_t * crosshair_alt_value_label = nullptr;
 static lv_obj_t * crosshair_az_value_label = nullptr;
 static lv_obj_t * crosshair_ra_value_label = nullptr;
 static lv_obj_t * crosshair_dec_value_label = nullptr;
+static lv_obj_t * crosshair_constellation_value_label = nullptr;
 
 // Count of objects currently plotted within the scope
 static lv_obj_t * objects_found_value_label = nullptr;
@@ -463,6 +468,16 @@ static void update_gyro_attitude_label(void) {
         char buf[64];
         snprintf(buf, sizeof(buf), "DC %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
         lv_label_set_text(crosshair_dec_value_label, buf);
+    }
+
+    if (crosshair_constellation_value_label != nullptr) {
+        // Read-only here: siderealPlanetData.gyro_0_constellation is
+        // computed by starNavConstellation() (UnidentifiedStudios_SiderealHelper.cpp),
+        // called from taskUniverse() alongside starNavSweep(), not on every UI refresh.
+        const char* name = (siderealPlanetData.gyro_0_constellation != nullptr)
+            ? siderealPlanetData.gyro_0_constellation->name
+            : "Unidentified";
+        lv_label_set_text(crosshair_constellation_value_label, name);
     }
 }
 
@@ -691,6 +706,9 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
     }
     if (crosshair_dec_value_label != nullptr) {
         lv_obj_set_style_text_color(crosshair_dec_value_label, color, 0);
+    }
+    if (crosshair_constellation_value_label != nullptr) {
+        lv_obj_set_style_text_color(crosshair_constellation_value_label, color, 0);
     }
 
     celestial_sphere_update();
@@ -1064,6 +1082,16 @@ void celestial_sphere_begin(
         lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_CLICKABLE);
 
+        crosshair_constellation_value_label = lv_label_create(celestial_sphere_container);
+        lv_obj_set_style_text_font(crosshair_constellation_value_label, &font_cobalt_alien_17, 0);
+        lv_obj_set_style_text_color(crosshair_constellation_value_label, mode_color(current_mode), 0);
+        lv_obj_set_width(crosshair_constellation_value_label, CROSSHAIR_CONSTELLATION_VALUE_WIDTH_PX);
+        lv_obj_set_style_text_align(crosshair_constellation_value_label, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_align_to(crosshair_constellation_value_label, crosshair_box, LV_ALIGN_OUT_TOP_MID,
+                         0, -CROSSHAIR_BOX_LABEL_GAP_PX);
+        lv_obj_set_style_bg_color(crosshair_constellation_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(crosshair_constellation_value_label, LV_OPA_70, LV_PART_MAIN);
+
         crosshair_alt_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_alt_value_label, &font_cobalt_alien_17, 0);
         lv_obj_set_style_text_color(crosshair_alt_value_label, mode_color(current_mode), 0);
@@ -1172,6 +1200,7 @@ void celestial_sphere_begin(
         lv_obj_move_foreground(crosshair_az_value_label);
         lv_obj_move_foreground(crosshair_ra_value_label);
         lv_obj_move_foreground(crosshair_dec_value_label);
+        lv_obj_move_foreground(crosshair_constellation_value_label);
 
         // Target boxes go last so they stay in front of the crosshair too
         // (selecting/targeting a marker should never be hidden behind it).

@@ -15,6 +15,7 @@
 // return value below; callers that dereference the result (e.g. to read
 // ::num) already need the full definition and include that header directly.
 struct SiderealObjectTypeEntry;
+struct SiderealConstellationEntry;
 
 #define INDEX_SIDEREAL_STAR_TABLE          0          
 #define INDEX_SIDEREAL_NGC_TABLE           1 // New General Catalogue
@@ -160,6 +161,13 @@ struct SiderealPlantetsStruct {
     double local_sidereal_time;
     SiderealAttitudeData local_sidereal_attitude;
     SiderealAttitudeData gyro_0_sidereal_attitude;
+    // Constellation at gyro_0_sidereal_attitude's RA/Dec, resolved by
+    // taskUniverse() (UnidentifiedStudios_TaskHandler.cpp) alongside
+    // starNavSweep() via getConstellationAtRaDec() -- nullptr until the
+    // first sweep, or if no boundary row matched. Pointer into
+    // constellationName[] (SiderealObjectsTables.h), so it's valid for
+    // the life of the program once set; readers just dereference ::name.
+    const SiderealConstellationEntry* gyro_0_constellation;
 };
 extern struct SiderealPlantetsStruct siderealPlanetData;
 
@@ -317,6 +325,22 @@ const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj);
 const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSweep *obj, int index);
 
 /**
+ * Resolves the constellation containing an arbitrary RA/Dec, via the IAU
+ * boundaries (Delporte 1930 / Roman 1987; see constellationBoundary[] in
+ * SiderealObjectsTables.h). Unlike getObjectConstellation(), this takes a
+ * raw coordinate rather than a tracked catalog object, so no
+ * SiderealObjectSingle/Sweep overloads are needed.
+ * @param ra_hours_j2000 Right ascension, decimal hours [0,24), mean equinox J2000.0.
+ * @param dec_deg_j2000  Declination, decimal degrees [-90,90], mean equinox J2000.0.
+ * @return Pointer into constellationName[], or nullptr if no boundary row matched.
+ * @note Input must already be J2000; this precesses internally to B1875
+ *       (the boundaries' native equinox) before matching. Callers with
+ *       epoch-of-date RA/Dec (e.g. a live gyro boresight) must precess to
+ *       J2000 first themselves -- not done here.
+ */
+const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000);
+
+/**
  * Identifies the object nearest the given RA/Dec coordinates, then tracks
  * it (Alt/Az and rise/set times).
  */
@@ -331,6 +355,17 @@ void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_
  * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).
  */
 void starNavSweep();
+
+/**
+ * Resolves the constellation at siderealPlanetData.gyro_0_sidereal_attitude's
+ * RA/Dec via getConstellationAtRaDec(), storing the result in
+ * siderealPlanetData.gyro_0_constellation. Called alongside starNavSweep()
+ * (same cadence/gating) rather than per UI refresh -- consumers (e.g.
+ * UnidentifiedStudios_CelestialSphere.cpp) just read the stored pointer.
+ * @note siderealPlanetData.gyro_0_sidereal_attitude must already be set
+ * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).
+ */
+void starNavConstellation();
 
 /**
  * Tracks every enabled body (Sun, Moon, and planets) for the current

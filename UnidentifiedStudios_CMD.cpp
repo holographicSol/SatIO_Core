@@ -31,6 +31,7 @@
 #include "UnidentifiedStudios_Multiplexers.h"
 #include "UnidentifiedStudios_Mapping.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
+#include "SiderealObjectsTables.h" // SiderealConstellationEntry (getConstellationAtRaDec() return type)
 #include "UnidentifiedStudios_SatIO.h"
 #include "UnidentifiedStudios_INS.h"
 #include "UnidentifiedStudios_Meteors.h"
@@ -565,6 +566,16 @@ static void PrintHelp(void) {
 
       example: starnav 6 45 8.9 -16 42 58.0
 
+  [ Constellation ]
+
+      constellation RA_HOUR RA_MIN RA_SEC DEC_D DEC_M DEC_S
+                                   Resolves the IAU constellation (Delporte 1930 /
+                                   Roman 1987 boundaries) at an arbitrary RA/Dec
+                                   (J2000), unlike starnav this does not identify
+                                   or track a catalog object.
+
+      example: constellation 5 55 10.3 7 24 25.4
+
   [ Stat ]
 
       stat -e     Enable print.
@@ -1077,6 +1088,43 @@ static void star_nav(void) {
   else {printf("identify object: bad input data\n");}
 }
 
+/* Rule 8.7: internal linkage; only referenced from CmdProcess() within this file. */
+static void constellation_lookup(void) {
+  // Resolves the IAU constellation at an arbitrary RA/Dec (J2000), via
+  // getConstellationAtRaDec() (UnidentifiedStudios_SiderealHelper.cpp) --
+  // unlike "starnav", this doesn't identify/track a catalog object, it just
+  // answers "what constellation is this coordinate in".
+  // example: constellation 5 55 10.3 7 24 25.4   (near Betelgeuse -> Ori)
+  simple_argparser_init_from_buffer(&plainparser, serial0Data.BUFFER_RX, 1);
+  if ((str_is_int8(plainparser.tokens[0])==true) &&
+      (str_is_int8(plainparser.tokens[1])==true) &&
+      (str_is_float(plainparser.tokens[2])==true) &&
+      (str_is_int8(plainparser.tokens[3])==true) &&
+      (str_is_int8(plainparser.tokens[4])==true) &&
+      (str_is_float(plainparser.tokens[5])==true)
+    )
+  {
+    const int ra_h = atoi(plainparser.tokens[0]);
+    const int ra_m = atoi(plainparser.tokens[1]);
+    const float ra_s = atof(plainparser.tokens[2]);
+    const int dec_d = atoi(plainparser.tokens[3]);
+    const int dec_m = atoi(plainparser.tokens[4]);
+    const float dec_s = atof(plainparser.tokens[5]);
+
+    const double ra_hours = static_cast<double>(ra_h) + (static_cast<double>(ra_m) / 60.0) + (static_cast<double>(ra_s) / 3600.0);
+    const double dec_sign = (dec_d < 0) ? -1.0 : 1.0;
+    const double dec_deg = dec_sign * (fabs(static_cast<double>(dec_d)) + (static_cast<double>(dec_m) / 60.0) + (static_cast<double>(dec_s) / 3600.0));
+
+    const SiderealConstellationEntry* con = getConstellationAtRaDec(ra_hours, dec_deg);
+    printf("---------------------------------------------\n");
+    printf("RA:            %02d %02d %02.2f (%.6f h, J2000)\n", ra_h, ra_m, ra_s, ra_hours);
+    printf("Dec:           %+02d %02d %02.2f (%+.6f deg, J2000)\n", dec_d, dec_m, dec_s, dec_deg);
+    printf("Constellation: %s\n", (con != nullptr) ? con->name : "Unidentified");
+    printf("---------------------------------------------\n");
+  }
+  else {printf("constellation: bad input data\n");}
+}
+
 /* Rule 8.7: internal linkage; only referenced (currently commented out) within this file. */
 static void unmountSDCard(void) {
   sdcardFlagData.no_delay_flag=true;
@@ -1239,12 +1287,10 @@ void CmdProcess(void) {
       }
       /*
         StarNav via CLI
-        Temporarily disabled for user so that system has exclusive r/w access for associated values
-        that StarNav already uses.
-        Possible update: create seperate functions & values for identification and tracking of objects
-        so that this command line feature can be safely re-enabled.
       */
       else if (strcmp(pos[0], "starnav")==0) {star_nav();}
+
+      else if (strcmp(pos[0], "constellation")==0) {constellation_lookup();}
 
       else {
         /* not "help"/"h"/"stat": fall through to the systemData.serial_command dispatch below */

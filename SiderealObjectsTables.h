@@ -5596,6 +5596,22 @@ extern const SiderealConstellationEntry constellationName[];
 const unsigned int SObjectconstellation_names_num = 88;
 #endif
 
+// Constellation Boundary Header (IAU/Delporte boundaries, N.G. Roman 1987,
+// PASP 99, 695; CDS catalogue VI/42). Equinox B1875.0 -- see
+// getConstellationAtRaDec() in UnidentifiedStudios_SiderealHelper.cpp for
+// the required precession step before using this table directly.
+#ifndef SiderealConstellationBoundary_H
+#define SiderealConstellationBoundary_H
+struct SiderealConstellationBoundaryEntry {
+  float ra_low;   // hours, B1875.0, inclusive
+  float ra_high;  // hours, B1875.0, exclusive
+  float dec_low;  // degrees, B1875.0, inclusive
+  int con;        // constellationName[].num of the matching constellation
+};
+extern const SiderealConstellationBoundaryEntry constellationBoundary[];
+const unsigned int SObjectconstellationBoundary_num = 357;
+#endif
+
 // Star Types Header
 #ifndef SiderealObjectsStarType_H
 #define SiderealObjectsStarType_H
