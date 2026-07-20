@@ -15220,8 +15220,8 @@ void display_home_screen()
         home_screen,
         550,                         // width (total available width)
         550,                         // height (total available height)
-        360,                         // scope width (span X of total available width)
-        360,                         // scope height (span Y of total available height)
+        380,                         // scope width (span X of total available width)
+        380,                         // scope height (span Y of total available height)
         LV_ALIGN_CENTER,             // alignment
         0,                           // pos x
         0,                           // pos y

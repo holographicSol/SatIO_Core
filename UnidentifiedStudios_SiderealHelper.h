@@ -304,10 +304,13 @@ const char* getObjectDescription(SiderealObjectSweep *obj, int index);
  * classifies *obj's (or slot `index` of *obj's) catalog entry, for callers
  * that need the numeric type code (SiderealObjectTypeEntry::num) rather
  * than the name string getObjectType() returns -- e.g. to pick a matching
- * icon (see UnidentifiedStudios_ObjectTypeIcons.h). Only NGC, IC, Herschel400
- * and Star objects classify through objectType[]: Messier/Caldwell classify
- * through SiderealLegacyObjectTypeEntry instead, and "Other" objects have no
- * type at all, so this returns nullptr for those.
+ * icon (see UnidentifiedStudios_ObjectTypeIcons.h). NGC, IC, Herschel400 and
+ * Star objects classify through objectType[] directly. Messier/Caldwell
+ * classify through legacyOjectType[] instead, but are mapped onto their
+ * closest objectType[] equivalent (see legacyTypeToObjectTypeNum() in
+ * UnidentifiedStudios_SiderealHelper.cpp) so they still resolve here; only
+ * Asterism/Milky Way Patch (no reasonable equivalent) and "Other" objects
+ * (no type field at all) return nullptr.
  * @note IdentifyObject() must be called first.
  */
 const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj);

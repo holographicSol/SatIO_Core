@@ -350,10 +350,43 @@ static const char* objectTypeImpl(T *obj, int index)
     }
 }
 
-// Resolves the objectType[] row an NGC/IC/Herschel400/Star object's stored
-// catalog number classifies as. Messier/Caldwell/Other return nullptr:
-// Messier/Caldwell classify through legacyOjectType[] instead (see
-// SiderealObjects::printMessierType()/printCaldwellType()), not objectType[].
+// Messier/Caldwell classify through legacyOjectType[] (see messierData[]/
+// caldwellData[].type and SiderealObjects::printMessierType()/
+// printCaldwellType()), not objectType[]. Maps a legacyOjectType[] num to
+// the objectType[] num it most closely matches, so callers that only know
+// objectType[] (icon/color lookups) still get a sensible family for these
+// too, instead of falling back to "unclassified" for every Messier/Caldwell
+// object. -1 (Asterism, Milky Way Patch) means no reasonable match exists.
+static int legacyTypeToObjectTypeNum(const int legacy_num)
+{
+    int result = -1;
+    switch (legacy_num) {
+        case 0:  result = 14; break; // Asterism -> Star Group
+        case 1:  result = 11; break; // Double Star
+        case 2:  result = 2;  break; // Open Cluster
+        case 3:  result = 20; break; // Spiral Galaxy
+        case 4:  result = 3;  break; // Globular Cluster
+        case 5:  result = 20; break; // Barred Galaxy -> Spiral Galaxy
+        case 6:  result = 8;  break; // Planetary Nebula
+        case 7:  result = 17; break; // Lenticular Galaxy -> Elliptical Galaxy
+        case 8:  result = 6;  break; // Bright Nebula -> Emission Nebula
+        case 9:  result = 17; break; // Elliptical Galaxy
+        case 10: result = 5;  break; // Dark Nebula
+        case 11: result = 18; break; // Irregular Galaxy
+        case 12: result = 4;  break; // Supernova Remnant
+        case 13: result = 19; break; // Peculiar Galaxy
+        case 14: result = 20; break; // Seyfert Galaxy -> Spiral Galaxy
+        case 15: result = -1; break; // Milky Way Patch
+        case 16: result = 6;  break; // Diffuse Nebula -> Emission Nebula
+        default: result = -1; break;
+    }
+    return result;
+}
+
+// Resolves the objectType[] row an NGC/IC/Herschel400/Star/Messier/Caldwell
+// object's stored catalog number classifies as (Messier/Caldwell via
+// legacyTypeToObjectTypeNum() above). "Other" objects (no type field at
+// all) return nullptr.
 template <typename T>
 static const SiderealObjectTypeEntry* objectTypeEntryImpl(T *obj, int index)
 {
@@ -386,6 +419,16 @@ static const SiderealObjectTypeEntry* objectTypeEntryImpl(T *obj, int index)
                 for (int i = 0; (ngc_id >= 0) && (i < (int)SObjectsNGC_names_num); i++) {
                     if (ngcData[i].num == ngc_id) { catalog_type = ngcData[i].type; break; }
                 }
+            }
+            break;
+        case INDEX_SIDEREAL_MESSIER_TABLE:
+            for (int i = 0; i < (int)SObjectsmessier_names_num; i++) {
+                if (messierData[i].num == num) { catalog_type = legacyTypeToObjectTypeNum(messierData[i].type); break; }
+            }
+            break;
+        case INDEX_SIDEREAL_CALDWELL_TABLE:
+            for (int i = 0; i < (int)SObjectcaldwell_names_num; i++) {
+                if (caldwellData[i].num == num) { catalog_type = legacyTypeToObjectTypeNum(caldwellData[i].type); break; }
             }
             break;
         default:
