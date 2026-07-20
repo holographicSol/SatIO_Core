@@ -15227,9 +15227,9 @@ void display_home_screen()
         0,                           // pos y
         CELESTIAL_SPHERE_MODE_GYRO   // initial mode
     );
-    celestial_sphere_pause();
-    // Fresh screen instance: celestial_sphere_begin() always starts hidden
+    celestial_sphere_set_visible(false);
     celestial_sphere_overlay_visible = false;
+    celestial_sphere_pause();
 
     // -------------------------------- Celestial Sphere Toggle ----------------------------------- //
 

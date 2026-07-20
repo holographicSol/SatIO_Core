@@ -40,6 +40,7 @@
 #include "UnidentifiedStudios_I2C.h"
 #ifdef SatIO_DISPLAY_OPTION_LVGL
 #include "UnidentifiedStudios_SatIOLVGL.h"
+#include "UnidentifiedStudios_CelestialSphere.h"
 #endif
 #include "UnidentifiedStudios_GPIOPortExpander.h"
 
@@ -1330,7 +1331,12 @@ static void taskUniverse(void *pvParameters) {
       // set faster than TASK_MAX_FREQ_TRACKPLANETS.
       // -----------------------------------------------------------
       static int64_t starnav_last_uS = 0;
-      if ((esp_timer_get_time() - starnav_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV) {
+      #ifdef SatIO_DISPLAY_OPTION_LVGL
+      const bool starnav_ui_active = celestial_sphere_is_active();
+      #else
+      const bool starnav_ui_active = true;
+      #endif
+      if (starnav_ui_active && ((esp_timer_get_time() - starnav_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV)) {
         // setStarNav(
         //   siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
         //   siderealPlanetData.gyro_0_sidereal_attitude.ra_m,

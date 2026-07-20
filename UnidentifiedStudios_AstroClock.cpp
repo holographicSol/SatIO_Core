@@ -1505,8 +1505,8 @@ static void astro_timer_cb(lv_timer_t * timer) {
 // the function one point of exit at its closing brace.
 void astro_clock_begin(
     lv_obj_t * parent,
-    int32_t outline_w_px,
-    int32_t outline_h_px,
+    int32_t width_px,
+    int32_t height_px,
     int32_t astro_w_px,
     int32_t astro_h_px,
     lv_align_t alignment,
@@ -1521,10 +1521,10 @@ void astro_clock_begin(
     }
 
     if (ok) {
-        ok = (outline_w_px > 0) && (outline_h_px > 0);
+        ok = (width_px > 0) && (height_px > 0);
         if (!ok) {
             printf("ERROR: astro_clock_begin called with invalid outline dimensions (%ld x %ld)\n",
-                   static_cast<long>(outline_w_px), static_cast<long>(outline_h_px));
+                   static_cast<long>(width_px), static_cast<long>(height_px));
         }
     }
 
@@ -1547,8 +1547,8 @@ void astro_clock_begin(
         ASTRO_HEIGHT = astro_h_px;
 
         // Dimensions of the outline around the astro clock display
-        OUTLINE_WIDTH = outline_w_px;
-        OUTLINE_HEIGHT = outline_h_px;
+        OUTLINE_WIDTH = width_px;
+        OUTLINE_HEIGHT = height_px;
 
         // Center of astro clock display
         SOLAR_CENTER_X = OUTLINE_WIDTH / 2;

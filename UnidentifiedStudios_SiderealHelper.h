@@ -205,9 +205,9 @@ extern double starNavSweepRangeDeg; // aperture/zoom (higher = capture more of t
 extern double starNavSweepStepDeg;  // resolution degrees (lower = higher resolution, higher performance impact!)
 extern int starNavMaxObjects;       // cap on distinct objects per sweep (higher = capture more of the celestial sphere, higher performance impact!)
 
-constexpr double STARNAV_SWEEP_RANGE_DEG_MIN = 0.01;
-constexpr double STARNAV_SWEEP_RANGE_DEG_MAX = 180.0;
-constexpr double STARNAV_SWEEP_STEP_DEG_MIN  = 0.01;
+constexpr double STARNAV_SWEEP_RANGE_DEG_MIN = 1.0;
+constexpr double STARNAV_SWEEP_RANGE_DEG_MAX = 30.0;
+constexpr double STARNAV_SWEEP_STEP_DEG_MIN  = 0.1;
 constexpr double STARNAV_SWEEP_STEP_DEG_MAX  = 5.0;
 constexpr int STARNAV_MAX_OBJECTS_MIN = 1;
 constexpr int STARNAV_MAX_OBJECTS_MAX = MAX_STARNAV_OBJECTS;

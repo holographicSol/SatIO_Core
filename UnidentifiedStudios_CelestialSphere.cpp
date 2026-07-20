@@ -83,8 +83,12 @@ static int32_t current_target_index = -1;
 // Timer for celestial sphere updates.
 static lv_timer_t * sphere_timer = nullptr;
 
+// True only while the sphere is actually resumed (not paused/torn down);
+// lets taskUniverse skip starNavSweep() entirely when nothing consumes it.
+static bool sphere_active = false;
+
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
-static constexpr int32_t CROSSHAIR_LINE_WIDTH = 2;
+static constexpr int32_t CROSSHAIR_LINE_WIDTH = 3;
 static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
@@ -833,8 +837,8 @@ void celestial_sphere_begin(
         lv_obj_set_style_radius(scope_container, general_radius, LV_PART_MAIN);
 
         // Scope style: outline
-        lv_obj_set_style_outline_width(scope_container, outline_width, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(scope_container, default_outline_hue, LV_PART_MAIN);
+        lv_obj_set_style_outline_width(scope_container, 3, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(scope_container, lv_color_make(0, 255, 0), LV_PART_MAIN);
 
         // Scope style: border
         lv_obj_set_style_border_width(scope_container, border_width, LV_PART_MAIN);
@@ -1142,6 +1146,14 @@ void celestial_sphere_begin(
         lv_obj_add_flag(scope_container, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(scope_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
 
+        // Keep the crosshair above markers/selection box/target data box,
+        // which are all created (and thus stacked) after it.
+        lv_obj_move_foreground(crosshair_h);
+        lv_obj_move_foreground(crosshair_v);
+
+        // allow show once built
+        lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
+
         // Create timer for celestial sphere updates
         sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 1000, nullptr);
     }
@@ -1162,10 +1174,18 @@ void celestial_sphere_set_visible(const bool visible) {
 
 void celestial_sphere_pause(void) {
     lv_timer_pause(sphere_timer);
+    sphere_active = false;
 }
 
 void celestial_sphere_resume(void) {
     lv_timer_resume(sphere_timer);
+    sphere_active = true;
+}
+
+// True only while the sphere is resumed and visible; taskUniverse uses this
+// to skip starNavSweep() when nothing is showing its output.
+bool celestial_sphere_is_active(void) {
+    return sphere_active;
 }
 
 // Stops and releases the update timer, if one is running, and clears the
@@ -1177,5 +1197,6 @@ void celestial_sphere_end(void) {
         sphere_timer = nullptr;
     }
 
+    sphere_active = false;
     current_target_index = -1;
 }

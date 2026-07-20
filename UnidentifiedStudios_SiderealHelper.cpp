@@ -214,7 +214,7 @@ SiderealObjectSweep siderealObjectSweep = {
     .object_dist = {},
 };
 
-double starNavSweepRangeDeg = 10.0;
+double starNavSweepRangeDeg = 5.0;
 double starNavSweepStepDeg  = 1.0;
 int starNavMaxObjects       = 100;
 

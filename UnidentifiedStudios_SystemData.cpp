@@ -37,9 +37,9 @@ struct systemStruct systemData = {
   .output_stat_flag = true,
   .output_stat_datetime = true,
   .output_stat_task_rates = true,
-  .output_stat_position = true,
-  .output_stat_gyro = true,
-  .output_stat_admplex = true,
+  .output_stat_position = false,
+  .output_stat_gyro = false,
+  .output_stat_admplex = false,
   .output_stat_gpiope = false,
   .output_stat_matrix = false,
 

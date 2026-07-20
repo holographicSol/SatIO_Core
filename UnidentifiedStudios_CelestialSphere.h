@@ -70,4 +70,9 @@ void celestial_sphere_pause(void);
 
 void celestial_sphere_resume(void);
 
+// True only between a celestial_sphere_resume() and the next pause()/end();
+// independent of celestial_sphere_set_visible(). Lets callers skip feeding
+// data to the sphere (e.g. starNavSweep()) when nothing consumes it.
+bool celestial_sphere_is_active(void);
+
 #endif
