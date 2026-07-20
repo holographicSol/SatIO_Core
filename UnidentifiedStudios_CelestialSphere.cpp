@@ -105,7 +105,7 @@ static constexpr int32_t CROSSHAIR_BOX_LABEL_GAP_PX = 10;
 // right (RA/Dec) sides, wide enough for their longest formatted string so
 // growing/shrinking text never drifts the label's box-facing edge.
 static constexpr int32_t CROSSHAIR_ALTAZ_VALUE_WIDTH_PX = 80;
-static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 150;
+static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 120;
 
 // Sweep range/step/max adjuster
 static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 32;
@@ -1070,6 +1070,8 @@ void celestial_sphere_begin(
         lv_obj_set_style_text_align(crosshair_alt_value_label, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_align_to(crosshair_alt_value_label, crosshair_box, LV_ALIGN_OUT_LEFT_TOP,
                          -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+        lv_obj_set_style_bg_color(crosshair_alt_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(crosshair_alt_value_label, LV_OPA_50, LV_PART_MAIN);
 
         crosshair_az_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_az_value_label, &font_cobalt_alien_17, 0);
@@ -1078,6 +1080,8 @@ void celestial_sphere_begin(
         lv_obj_set_style_text_align(crosshair_az_value_label, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_align_to(crosshair_az_value_label, crosshair_box, LV_ALIGN_OUT_LEFT_BOTTOM,
                          -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+        lv_obj_set_style_bg_color(crosshair_az_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(crosshair_az_value_label, LV_OPA_50, LV_PART_MAIN);
 
         crosshair_ra_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_ra_value_label, &font_cobalt_alien_17, 0);
@@ -1086,6 +1090,8 @@ void celestial_sphere_begin(
         lv_obj_set_style_text_align(crosshair_ra_value_label, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_align_to(crosshair_ra_value_label, crosshair_box, LV_ALIGN_OUT_RIGHT_TOP,
                          CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+        lv_obj_set_style_bg_color(crosshair_ra_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(crosshair_ra_value_label, LV_OPA_50, LV_PART_MAIN);
 
         crosshair_dec_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_dec_value_label, &font_cobalt_alien_17, 0);
@@ -1094,6 +1100,8 @@ void celestial_sphere_begin(
         lv_obj_set_style_text_align(crosshair_dec_value_label, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_align_to(crosshair_dec_value_label, crosshair_box, LV_ALIGN_OUT_RIGHT_BOTTOM,
                          CROSSHAIR_BOX_LABEL_GAP_PX, 0);
+        lv_obj_set_style_bg_color(crosshair_dec_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(crosshair_dec_value_label, LV_OPA_50, LV_PART_MAIN);
 
         update_gyro_attitude_label(); // populate the four labels immediately
 
