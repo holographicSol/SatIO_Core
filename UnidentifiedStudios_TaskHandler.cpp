@@ -1254,43 +1254,42 @@ static void taskUniverse(void *pvParameters) {
         SatIOData.localTime.second,
         SatIOData.system_altitude);
       
-      // edit
+      // ------------------------------------------------
+      // LST
+      // ------------------------------------------------
       storeLST(siderealPlanetData.local_sidereal_time);
-
       esp_task_wdt_reset();
 
       // ------------------------------------------------
-      // Track Planets/Meteors
+      // Track Planets
       // ------------------------------------------------
-      // Gated independently of the outer taskFrequencyUniverse() period so
-      // TASK_MAX_FREQ_UNIVERSE can be set fast (for StarNav below) without
-      // forcing this heavier planet/object sweep to run every pass.
       static int64_t trackplanets_last_uS = 0;
       if ((esp_timer_get_time() - trackplanets_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_TRACKPLANETS) {
         trackPlanets();
         trackplanets_last_uS = esp_timer_get_time();
         stepFFCounter(systemData.counters_track_planets, 1);
+        esp_task_wdt_reset();
       }
-      esp_task_wdt_reset();
+      // ------------------------------------------------
+      // Track Meteors
+      // ------------------------------------------------
       static int64_t meteors_last_uS = 0;
       if ((esp_timer_get_time() - meteors_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_METEORS) {
         setMeteorShowerWarning(SatIOData.localTime.month, SatIOData.localTime.mday);
         meteors_last_uS = esp_timer_get_time();
         stepFFCounter(systemData.counters_meteors, 1);
+        esp_task_wdt_reset();
       }
-      esp_task_wdt_reset();
-      
       // ------------------------------------------------
-      // Set RA & Dec for system zenith. (add to matrix)
+      // Zenith Ra/Dec
       // ------------------------------------------------
       siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(0, 0, 0);
-        esp_task_wdt_reset();
+      esp_task_wdt_reset();
 
       #ifdef SatIO_USE_GYRO_0
       // ------------------------------------------------
-      // Set RA & Dec for system zenith +- Gyro. (add to matrix)
+      // Gyro Ra/Dec
       // ------------------------------------------------
-
       siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
         gyroData.gyro_0_ang_x,  // roll
         gyroData.gyro_0_ang_y,  // pitch
@@ -1299,36 +1298,8 @@ static void taskUniverse(void *pvParameters) {
       esp_task_wdt_reset();
       #endif
 
-      // ------------------------------------------------
-      // StarNav Test Zenith
-      // ------------------------------------------------
-      // setStarNav(
-      //   siderealPlanetData.local_sidereal_attitude.ra_h,
-      //   siderealPlanetData.local_sidereal_attitude.ra_m,
-      //   siderealPlanetData.local_sidereal_attitude.ra_s,
-      //   siderealPlanetData.local_sidereal_attitude.dec_d,
-      //   siderealPlanetData.local_sidereal_attitude.dec_m,
-      //   siderealPlanetData.local_sidereal_attitude.dec_s
-      // );
-      // esp_task_wdt_reset();
-      // printf("---------------------------------------------\n");
-      // printf("Table Index:   %d\n", siderealObjectSingle.object_table_i);
-      // printf("Table:         %s\n", siderealObjectSingle.object_table_name);
-      // printf("Number:        %d\n", siderealObjectSingle.object_number);
-      // printf("Name:          %s\n", siderealObjectSingle.object_name);
-      // printf("Type:          %s\n", siderealObjectSingle.object_type);
-      // printf("Constellation: %s\n", siderealObjectSingle.object_con);
-      // printf("Distance:      %f\n", siderealObjectSingle.object_dist);
-      // printf("Azimuth:       %f\n", siderealObjectSingle.object_az);
-      // printf("Altitude:      %f\n", siderealObjectSingle.object_alt);
-      // printf("Rise:          %f\n", siderealObjectSingle.object_r);
-      // printf("Set:           %f\n", siderealObjectSingle.object_s);
-      // printf("---------------------------------------------\n");
-
       // -----------------------------------------------------------
-      // StarNav Gyroscopic Star Navigation (SINGLE CLOSEST OBJECT +
-      // RANGE CLOSEST OBJECTS). Gated on its own frequency so it can be
-      // set faster than TASK_MAX_FREQ_TRACKPLANETS.
+      // Star Sweep
       // -----------------------------------------------------------
       static int64_t starnav_last_uS = 0;
       #ifdef SatIO_DISPLAY_OPTION_LVGL
@@ -1337,28 +1308,6 @@ static void taskUniverse(void *pvParameters) {
       const bool starnav_ui_active = true;
       #endif
       if (starnav_ui_active && ((esp_timer_get_time() - starnav_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV)) {
-        // setStarNav(
-        //   siderealPlanetData.gyro_0_sidereal_attitude.ra_h,
-        //   siderealPlanetData.gyro_0_sidereal_attitude.ra_m,
-        //   siderealPlanetData.gyro_0_sidereal_attitude.ra_s,
-        //   siderealPlanetData.gyro_0_sidereal_attitude.dec_d,
-        //   siderealPlanetData.gyro_0_sidereal_attitude.dec_m,
-        //   siderealPlanetData.gyro_0_sidereal_attitude.dec_s
-        // );
-        // esp_task_wdt_reset();
-        // printf("---------------------------------------------\n");
-        // printf("Table Index:   %d\n", siderealObjectSingle.object_table_i);
-        // printf("Table:         %s\n", siderealObjectSingle.object_table_name);
-        // printf("Number:        %d\n", siderealObjectSingle.object_number);
-        // printf("Name:          %s\n", siderealObjectSingle.object_name);
-        // printf("Type:          %s\n", siderealObjectSingle.object_type);
-        // printf("Constellation: %s\n", siderealObjectSingle.object_con);
-        // printf("Distance:      %f\n", siderealObjectSingle.object_dist);
-        // printf("Azimuth:       %f\n", siderealObjectSingle.object_az);
-        // printf("Altitude:      %f\n", siderealObjectSingle.object_alt);
-        // printf("Rise:          %f\n", siderealObjectSingle.object_r);
-        // printf("Set:           %f\n", siderealObjectSingle.object_s);
-        // printf("---------------------------------------------\n");
 
         starNavSweep();
         starNavConstellation();

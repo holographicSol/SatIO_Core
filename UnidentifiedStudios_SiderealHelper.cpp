@@ -6,6 +6,7 @@
 
 #include <Arduino.h>
 #include <math.h>
+#include <esp_task_wdt.h>
 #include <SiderealPlanets.h>  // https://github.com/DavidArmstrong/SiderealPlanets
 #include <SiderealObjects.h>  // https://github.com/DavidArmstrong/SiderealObjects
 #include "UnidentifiedStudios_SiderealHelper.h"
@@ -15,9 +16,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// SiderealPlanets::deg2rad()/rad2deg() are private, so getConstellationAtRaDec()
-// (below) needs its own; matches UnidentifiedStudios_CelestialSphere.cpp's
-// local deg2rad() for the same reason.
 static inline double deg2rad(double degrees) { return degrees * M_PI / 180.0; }
 static inline double rad2deg(double radians) { return radians * 180.0 / M_PI; }
 
@@ -25,8 +23,8 @@ static inline double rad2deg(double radians) { return radians * 180.0 / M_PI; }
 //                                                                                                               SIDEREAL PLANETS
 // ------------------------------------------------------------------------------------------------------------------------------
 
-SiderealPlanets myAstro;    // for calculating azimuth and altitude
-SiderealObjects myAstroObj; // for getting right ascension and declination of objects from star table
+SiderealPlanets myAstro;
+SiderealObjects myAstroObj;
 
 struct SiderealPlantetsStruct siderealPlanetData = {
     .track_sun = true,
@@ -226,7 +224,6 @@ SiderealObjectSweep siderealObjectSweep = {
 };
 
 double starNavSweepRangeDeg = 5.0;
-double starNavSweepStepDeg  = 1.0;
 int starNavMaxObjects       = 100;
 
 // Clamps to a closed [lo, hi] range; NaN is left as-is (clamping it either
@@ -250,10 +247,6 @@ static int clampInt(int value, int lo, int hi) {
 
 void setStarNavSweepRangeDeg(double degrees) {
     starNavSweepRangeDeg = clampDeg(degrees, STARNAV_SWEEP_RANGE_DEG_MIN, STARNAV_SWEEP_RANGE_DEG_MAX);
-}
-
-void setStarNavSweepStepDeg(double degrees) {
-    starNavSweepStepDeg = clampDeg(degrees, STARNAV_SWEEP_STEP_DEG_MIN, STARNAV_SWEEP_STEP_DEG_MAX);
 }
 
 void setStarNavMaxObjects(int count) {
@@ -309,19 +302,6 @@ static inline double& distRef(SiderealObjectSweep *obj, int index)      { return
 
 // ----------------------------------------------------------------------------------------
 // Get Object Name / Table Name / Type / Constellation / Description.
-// ----------------------------------------------------------------------------------------
-// Name and table name need no storage of their own: object_table_i +
-// object_number already say exactly which vendor-table row this object is,
-// so those two getters just resolve the matching SiderealObjects::print*()
-// call directly. Type/constellation/description are instead resolved from
-// their own stored index (object_type/object_con/object_desc, set at
-// identify-time in setStars()/setNGC()/etc. below, -1 where the property
-// doesn't apply to that object's table), so each getter only needs
-// object_table_i to pick which print*() function to call. Every lookup is
-// bounds-checked against the vendor table's own *_names_num count, falling
-// back to "Unidentified" for any table where the property doesn't apply
-// (e.g. stars have no constellation, "Other" objects have no name/type/
-// constellation, only stars have a description).
 // ----------------------------------------------------------------------------------------
 static inline bool numValid(int num, unsigned int max_num) { return (num >= 0) && (num <= (int)max_num); }
 
@@ -933,17 +913,16 @@ void clearTrackPlanets(void)
 // Useful for arbitrary identification predicated upon manual input and or attitude input.
 // ----------------------------------------------------------------------------------------
 /*
- * Shared implementation for both IdentifyObject() overloads: template so it
- * works unmodified whether *obj is a single SiderealObjectSingle (index
- * unused) or one slot of a SiderealObjectSweep (index selects the slot).
+ * Populates *obj at `index` from whatever object is currently selected on
+ * myAstroObj (via identifyObject() or select<Table>Table()). Shared by both
+ * IdentifyObject() (nearest-match search) and starNavSweep()'s cone-search
+ * candidates, so the table-index / setX() dispatch logic lives in one place.
  */
 template <typename T>
-static void identifyObjectImpl(T *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s)
+static void dispatchIdentifiedObject(T *obj, int index)
 {
     tableIRef(obj, index) = -1;
     numberRef(obj, index) = -1;
-    myAstroObj.setRAdec(myAstro.decimalDegrees(ra_hour, ra_min, ra_sec), myAstro.decimalDegrees(dec_d, dec_m, dec_s));
-    myAstroObj.identifyObject();
     clearAllObjects(obj, index);
 
     switch (myAstroObj.getIdentifiedObjectTable())
@@ -990,6 +969,19 @@ static void identifyObjectImpl(T *obj, int index, int ra_hour, int ra_min, float
                 break;
         }
     }
+}
+
+/*
+ * Shared implementation for both IdentifyObject() overloads: template so it
+ * works unmodified whether *obj is a single SiderealObjectSingle (index
+ * unused) or one slot of a SiderealObjectSweep (index selects the slot).
+ */
+template <typename T>
+static void identifyObjectImpl(T *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s)
+{
+    myAstroObj.setRAdec(myAstro.decimalDegrees(ra_hour, ra_min, ra_sec), myAstro.decimalDegrees(dec_d, dec_m, dec_s));
+    myAstroObj.identifyObject();
+    dispatchIdentifiedObject(obj, index);
 }
 
 void IdentifyObject(SiderealObjectSingle *obj, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s)
@@ -1076,19 +1068,6 @@ void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_
     // go on to build celestial sphere from identified object (centered on zenith)...
 }
 
-// ----------------------------------------------------------------------------------------
-// Decimal (hours or degrees) -> sexagesimal, matching the truncation convention
-// SiderealPlanets::getSiderealAttitude() uses (sign may land on the whole part
-// and/or the minutes part; SiderealObjects::decimalDegrees() on the receiving
-// end tolerates either).
-// ----------------------------------------------------------------------------------------
-static void decimalToSexagesimal(double decimal, int *whole, int *minutes, float *seconds)
-{
-    *whole = (int)decimal;
-    double remainder_min = (decimal - (double)(*whole)) * 60.0;
-    *minutes = (int)remainder_min;
-    *seconds = (float)((remainder_min - (double)(*minutes)) * 60.0);
-}
 
 // ----------------------------------------------------------------------------------------
 // Reset every slot of *data to its default (unidentified) state.
@@ -1115,6 +1094,40 @@ static void clearStarNavObjects(SiderealObjectSweep *data)
     }
 }
 
+// Which select<Table>Table() a sweep candidate's object number belongs to.
+enum SweepCatalogTable { SWEEP_TABLE_STAR, SWEEP_TABLE_NGC, SWEEP_TABLE_IC, SWEEP_TABLE_OTHER };
+
+static void selectSweepCandidate(SweepCatalogTable table, int number)
+{
+    switch (table)
+    {
+        case SWEEP_TABLE_STAR:  myAstroObj.selectStarTable(number); break;
+        case SWEEP_TABLE_NGC:   myAstroObj.selectNGCTable(number); break;
+        case SWEEP_TABLE_IC:    myAstroObj.selectICTable(number); break;
+        case SWEEP_TABLE_OTHER: myAstroObj.selectOtherObjectsTable(number); break;
+    }
+}
+
+// Selects and records every candidate in numbers[0..found), stopping once
+// starNavMaxObjects total have been recorded. No dedup needed here: each
+// catalog table's RA-sorted index entry is visited at most once across the
+// whole sweep (find<Table>InRadius() enumerates distinct index entries),
+// so the same (table, number) pair can never be produced twice.
+static void appendSweepCandidates(SiderealObjectSweep *sweep_data, int &count,
+                                   SweepCatalogTable table, const int *numbers, int found)
+{
+    for (int i = 0; (i < found) && (count < starNavMaxObjects); i++)
+    {
+        selectSweepCandidate(table, numbers[i]);
+        myAstroObj.checkAltCatalogs();
+        dispatchIdentifiedObject(sweep_data, count);
+        trackObject(sweep_data, count, sweep_data->object_table_i[count], sweep_data->object_number[count]);
+        sweep_data->objects_found++;
+        count++;
+        esp_task_wdt_reset(); // defensive: dense fields at large radii can still mean hundreds of matches
+    }
+}
+
 void starNavSweep() {
 
     // static: at MAX_STARNAV_OBJECTS objects this struct is tens of KB, far
@@ -1125,89 +1138,39 @@ void starNavSweep() {
     // Zero-initialized (not copied from siderealObjectSweep): every field is
     // overwritten by clearStarNavObjects() below, so there is nothing left
     // in the global worth seeding from.
-    // int64_t full_time_t0 = esp_timer_get_time();
-    // int64_t full_time_total = 0;
-    // int64_t identifyobject_total = 0;
-    // int64_t trackobject_time_total = 0; // cumulative time spent inside trackObject() (Alt/Az + rise/set), to split out from the per-point identify/transform cost
 
     static SiderealObjectSweep sweep_data{};
     clearStarNavObjects(&sweep_data);
 
-    double center_alt = siderealPlanetData.gyro_0_sidereal_attitude.alt;
-    double center_az  = siderealPlanetData.gyro_0_sidereal_attitude.az;
+    // Center of the query cone: current gyroscopic Alt/Az converted to
+    // RA/Dec once -- there is no grid to sample anymore, so this replaces
+    // what used to be ~121 (or up to ~361k) per-point conversions.
+    myAstro.setAltAz(siderealPlanetData.gyro_0_sidereal_attitude.alt,
+                      siderealPlanetData.gyro_0_sidereal_attitude.az);
+    myAstro.doAltAz2RAdec();
+    double center_ra  = myAstro.getRAdec();
+    double center_dec = myAstro.getDeclinationDec();
+
     int count = 0;
+    int numbers[MAX_STARNAV_OBJECTS];
+    int found;
 
-    // Alt outer, Az inner: every Az step gets sampled at each Alt step, so
-    // hitting the starNavMaxObjects cap partway through still leaves the
-    // whole +/- starNavSweepRangeDeg square represented in both axes.
-    for (double alt = center_alt - starNavSweepRangeDeg;
-         (alt <= (center_alt + starNavSweepRangeDeg)) && (count < starNavMaxObjects);
-         alt += starNavSweepStepDeg)
-    {
-        double clamped_alt = alt;
-        if (clamped_alt > 90.0)  { clamped_alt = 90.0; }
-        if (clamped_alt < -90.0) { clamped_alt = -90.0; }
+    // Star, NGC, IC, Other -- the same four tables identifyObject() checks,
+    // but each queried directly for every match within starNavSweepRangeDeg
+    // instead of sampling a grid and asking "what's nearest to this point?".
+    found = myAstroObj.findStarsInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
+    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_STAR, numbers, found);
 
-        for (double az = center_az - starNavSweepRangeDeg;
-             (az <= (center_az + starNavSweepRangeDeg)) && (count < starNavMaxObjects);
-             az += starNavSweepStepDeg)
-        {
-            double wrapped_az = fmod(az, 360.0);
-            if (wrapped_az < 0.0) { wrapped_az += 360.0; }
+    found = myAstroObj.findNGCInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
+    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_NGC, numbers, found);
 
-            // Alt/Az -> RA/Dec for this sweep point.
-            myAstro.setAltAz(clamped_alt, wrapped_az);
-            myAstro.doAltAz2RAdec();
+    found = myAstroObj.findICInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
+    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_IC, numbers, found);
 
-            int ra_h, ra_m, dec_d, dec_m;
-            float ra_s, dec_s;
-            decimalToSexagesimal(myAstro.getRAdec(), &ra_h, &ra_m, &ra_s);
-            decimalToSexagesimal(myAstro.getDeclinationDec(), &dec_d, &dec_m, &dec_s);
-
-            // int64_t identifyobject_t0 = esp_timer_get_time();
-            IdentifyObject(&sweep_data, count, ra_h, ra_m, ra_s, dec_d, dec_m, dec_s);
-            // identifyobject_total += esp_timer_get_time() - identifyobject_t0;
-
-            if ((sweep_data.object_table_i[count] < 0) || (sweep_data.object_number[count] < 0))
-            {
-                continue; // nothing identified at this sweep point
-            }
-
-            // Skip objects
-            bool ignore = false;
-            for (int i = 0; i < count; i++)
-            {
-                // skip objects already captured in the sweep
-                if ((sweep_data.object_table_i[i] == sweep_data.object_table_i[count]) &&
-                    (sweep_data.object_number[i] == sweep_data.object_number[count]))
-                {
-                    ignore = true;
-                    break;
-                }
-
-                // skip objects not included in the sweep
-                // if (sweep_data.object_type[i] ) {
-                // }
-
-            }
-            if (ignore == true)
-            {
-                continue;
-            }
-            
-            // int64_t trackobject_t0 = esp_timer_get_time();
-            trackObject(&sweep_data, count, sweep_data.object_table_i[count], sweep_data.object_number[count]);
-            // trackobject_time_total += esp_timer_get_time() - trackobject_t0;
-            sweep_data.objects_found++;
-            count++;
-        }
-    }
+    found = myAstroObj.findOtherInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
+    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_OTHER, numbers, found);
 
     siderealObjectSweep = sweep_data;
-
-    // full_time_total = esp_timer_get_time()-full_time_t0;
-    // printf("\n[starsweep] time=%lld  trackobject=%lld  identifyobject=%lld  found=%d\n",
-    //     full_time_total, trackobject_time_total, identifyobject_total, sweep_data.objects_found);
 }
 
 void starNavConstellation() {

@@ -634,6 +634,198 @@ void SiderealObjects::buildRAIndex(void) {
 #endif
 }
 
+#if !defined(__AVR_ATmega2560__)
+// True great-circle separation (degrees) between two RA(hours)/Dec(degrees) points.
+static double angularSeparationDeg(double ra1Hours, double dec1Deg, double ra2Hours, double dec2Deg) {
+  const double deg2radLocal = M_PI / 180.0;
+  double dec1 = dec1Deg * deg2radLocal;
+  double dec2 = dec2Deg * deg2radLocal;
+  double dra = (ra1Hours - ra2Hours) * 15.0 * deg2radLocal;
+  double cosSep = sin(dec1) * sin(dec2) + cos(dec1) * cos(dec2) * cos(dra);
+  if (cosSep > 1.0) cosSep = 1.0;
+  if (cosSep < -1.0) cosSep = -1.0;
+  return acos(cosSep) / deg2radLocal;
+}
+
+// Computes the raw Dec band [decLo, decHi] and up to two raw-RA windows
+// (each [raLo, raHi], non-wrapping) that are guaranteed to contain every
+// catalog entry within radiusDeg of (centerRAhours, centerDecDeg). A second
+// window covers wraparound through the 0h/24h RA seam -- common, not an
+// edge case, since nothing about where a user points keeps RA away from 0h.
+// The RA half-width is widened by 1/cos(dec) (RA meridians converge toward
+// the poles, so a fixed angular radius spans more RA there) using the most
+// poleward declination the cap actually reaches, which is what makes the
+// box a guaranteed superset of the true circular cap; once the cap reaches
+// a pole outright every RA is in range. Returns the number of windows (1 or 2).
+static int computeConeWindow(double centerRAhours, double centerDecDeg, double radiusDeg,
+                              int16_t &decLo, int16_t &decHi,
+                              uint16_t windows[2][2])
+{
+  const double F2to16 = 65536.0;
+  const double F2to15minus1 = 32767.0;
+  const double deg2radLocal = M_PI / 180.0;
+
+  double decLoDeg = centerDecDeg - radiusDeg;
+  double decHiDeg = centerDecDeg + radiusDeg;
+  if (decLoDeg < -90.0) decLoDeg = -90.0;
+  if (decHiDeg > 90.0) decHiDeg = 90.0;
+  decLo = static_cast<int16_t>(decLoDeg * F2to15minus1 / 90.0);
+  decHi = static_cast<int16_t>(decHiDeg * F2to15minus1 / 90.0);
+
+  bool includesPole = (fabs(centerDecDeg) + radiusDeg) >= 90.0;
+  if (includesPole) {
+    windows[0][0] = 0;
+    windows[0][1] = static_cast<uint16_t>(F2to16 - 1);
+    return 1;
+  }
+
+  double maxAbsDec = fabs(centerDecDeg) + radiusDeg; // < 90 here (includesPole handled above)
+  double raHalfWidthDeg = radiusDeg / cos(maxAbsDec * deg2radLocal);
+  if (raHalfWidthDeg > 180.0) raHalfWidthDeg = 180.0;
+  double raHalfWidthHours = raHalfWidthDeg / 15.0;
+
+  double raLoHours = centerRAhours - raHalfWidthHours;
+  double raHiHours = centerRAhours + raHalfWidthHours;
+
+  if ((raHiHours - raLoHours) >= 24.0) {
+    windows[0][0] = 0;
+    windows[0][1] = static_cast<uint16_t>(F2to16 - 1);
+    return 1;
+  }
+
+  while (raLoHours < 0.0)  { raLoHours += 24.0; raHiHours += 24.0; }
+  while (raLoHours >= 24.0) { raLoHours -= 24.0; raHiHours -= 24.0; }
+
+  uint16_t raLoRaw = static_cast<uint16_t>(raLoHours * F2to16 / 24.0);
+  if (raHiHours <= 24.0) {
+    windows[0][0] = raLoRaw;
+    windows[0][1] = static_cast<uint16_t>(raHiHours * F2to16 / 24.0);
+    return 1;
+  }
+
+  // Wraps past 24h back through 0h.
+  windows[0][0] = raLoRaw;
+  windows[0][1] = static_cast<uint16_t>(F2to16 - 1);
+  windows[1][0] = 0;
+  windows[1][1] = static_cast<uint16_t>((raHiHours - 24.0) * F2to16 / 24.0);
+  return 2;
+}
+
+// Cone-query counterpart to searchRASortedCatalog(): same RA-sorted index
+// and binary search, but enumerates every entry in [raLo, raHi] x
+// [decLo, decHi] that also passes the exact angularSeparationDeg() check
+// (the RA/Dec band is a deliberately generous box; this trims it back to
+// the true circle), instead of returning only the single closest point.
+// objectnum = byteIndex / stride + 1, matching star/NGC/IC numbering.
+static void scanConeWindowIndexed(
+    const uint16_t *order, int count, const uint8_t *table,
+    int raOffset, int decOffset, int stride,
+    uint16_t raLo, uint16_t raHi, int16_t decLo, int16_t decHi,
+    double centerRAhours, double centerDecDeg, double radiusDeg,
+    int *outNumbers, int maxOut, int *outCount)
+{
+  int lo = 0, hi = count;
+  while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (readCatalogRawRA(table, order[mid], raOffset) < raLo) { lo = mid + 1; } else { hi = mid; }
+  }
+  for (int i = lo; (i < count) && (*outCount < maxOut); i++) {
+    uint16_t ra = readCatalogRawRA(table, order[i], raOffset);
+    if (ra > raHi) break;
+    int16_t dec = readCatalogRawDec(table, order[i], decOffset);
+    if ((dec < decLo) || (dec > decHi)) continue;
+    double raHours = static_cast<double>(ra) * 24.0 / 65536.0;
+    double decDeg = static_cast<double>(dec) * 90.0 / 32767.0;
+    if (angularSeparationDeg(raHours, decDeg, centerRAhours, centerDecDeg) <= radiusDeg) {
+      outNumbers[(*outCount)++] = order[i] / stride + 1;
+    }
+  }
+}
+
+// Same as scanConeWindowIndexed(), but for the "Other" table, whose object
+// number is its own id field (2 bytes at the record's start) rather than
+// derived from byteIndex -- matches identifyObject()'s Other-table handling.
+static void scanConeWindowOther(
+    const uint16_t *order, int count, const uint8_t *table,
+    uint16_t raLo, uint16_t raHi, int16_t decLo, int16_t decHi,
+    double centerRAhours, double centerDecDeg, double radiusDeg,
+    int *outNumbers, int maxOut, int *outCount)
+{
+  int lo = 0, hi = count;
+  while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (readCatalogRawRA(table, order[mid], 2) < raLo) { lo = mid + 1; } else { hi = mid; }
+  }
+  for (int i = lo; (i < count) && (*outCount < maxOut); i++) {
+    uint16_t ra = readCatalogRawRA(table, order[i], 2);
+    if (ra > raHi) break;
+    int16_t dec = readCatalogRawDec(table, order[i], 4);
+    if ((dec < decLo) || (dec > decHi)) continue;
+    double raHours = static_cast<double>(ra) * 24.0 / 65536.0;
+    double decDeg = static_cast<double>(dec) * 90.0 / 32767.0;
+    if (angularSeparationDeg(raHours, decDeg, centerRAhours, centerDecDeg) <= radiusDeg) {
+      outNumbers[(*outCount)++] = (static_cast<uint16_t>(table[order[i]]) << 8) | table[order[i] + 1];
+    }
+  }
+}
+#endif // !__AVR_ATmega2560__
+
+int SiderealObjects::findStarsInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut) {
+  if (!raIndexBuilt) { buildRAIndex(); raIndexBuilt = true; }
+  int16_t decLo, decHi;
+  uint16_t windows[2][2];
+  int numWindows = computeConeWindow(centerRAhours, centerDecDeg, radiusDeg, decLo, decHi, windows);
+  int found = 0;
+  for (int w = 0; w < numWindows; w++) {
+    scanConeWindowIndexed(starRAOrder, NSTARS, SObjectsstars_bin, 0, 2, 5,
+                           windows[w][0], windows[w][1], decLo, decHi,
+                           centerRAhours, centerDecDeg, radiusDeg, outNumbers, maxOut, &found);
+  }
+  return found;
+}
+
+int SiderealObjects::findNGCInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut) {
+  if (!raIndexBuilt) { buildRAIndex(); raIndexBuilt = true; }
+  int16_t decLo, decHi;
+  uint16_t windows[2][2];
+  int numWindows = computeConeWindow(centerRAhours, centerDecDeg, radiusDeg, decLo, decHi, windows);
+  int found = 0;
+  for (int w = 0; w < numWindows; w++) {
+    scanConeWindowIndexed(ngcRAOrder, NGCNUM, Cngc_bin, 0, 2, 4,
+                           windows[w][0], windows[w][1], decLo, decHi,
+                           centerRAhours, centerDecDeg, radiusDeg, outNumbers, maxOut, &found);
+  }
+  return found;
+}
+
+int SiderealObjects::findICInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut) {
+  if (!raIndexBuilt) { buildRAIndex(); raIndexBuilt = true; }
+  int16_t decLo, decHi;
+  uint16_t windows[2][2];
+  int numWindows = computeConeWindow(centerRAhours, centerDecDeg, radiusDeg, decLo, decHi, windows);
+  int found = 0;
+  for (int w = 0; w < numWindows; w++) {
+    scanConeWindowIndexed(icRAOrder, ICNUM, Ic_bin, 0, 2, 4,
+                           windows[w][0], windows[w][1], decLo, decHi,
+                           centerRAhours, centerDecDeg, radiusDeg, outNumbers, maxOut, &found);
+  }
+  return found;
+}
+
+int SiderealObjects::findOtherInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut) {
+  if (!raIndexBuilt) { buildRAIndex(); raIndexBuilt = true; }
+  int16_t decLo, decHi;
+  uint16_t windows[2][2];
+  int numWindows = computeConeWindow(centerRAhours, centerDecDeg, radiusDeg, decLo, decHi, windows);
+  int found = 0;
+  for (int w = 0; w < numWindows; w++) {
+    scanConeWindowOther(otherRAOrder, OTHERNUM, Other_bin,
+                         windows[w][0], windows[w][1], decLo, decHi,
+                         centerRAhours, centerDecDeg, radiusDeg, outNumbers, maxOut, &found);
+  }
+  return found;
+}
+
 boolean SiderealObjects::identifyObject(void) {
   #if defined(__AVR_ATmega2560__)
   int64_t radiff = -1;
@@ -645,9 +837,9 @@ boolean SiderealObjects::identifyObject(void) {
   uint64_t totaldiff = UINT64_MAX;
   uint16_t targetRA = RAdec * F2to16 / 24.; //convert to integers for faster compares
   int16_t targetDec = DeclinationDec * F2to15minus1 / 90.;
+  #if defined(__AVR_ATmega2560__)
   int index;
-  uint16_t tempobjnum;
-  alttablenum = 0;
+  #endif
 
   #if !defined(__AVR_ATmega2560__)
   if (!raIndexBuilt) {
@@ -745,6 +937,14 @@ boolean SiderealObjects::identifyObject(void) {
   #endif
 
   // See if it could be Messier, Caldwell, or Hershel object
+  checkAltCatalogs();
+  return true;
+}
+
+void SiderealObjects::checkAltCatalogs(void) {
+  int index;
+  uint16_t tempobjnum;
+  alttablenum = 0;
   if (tablenum != 1) {
     // No further checks if the identified object was a star
     altobjnum = objectnum;
@@ -797,7 +997,6 @@ boolean SiderealObjects::identifyObject(void) {
       }
     }
   }
-  return true;
 }
 
 int SiderealObjects::getIdentifiedObjectTable(void) {

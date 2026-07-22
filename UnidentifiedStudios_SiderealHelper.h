@@ -200,31 +200,26 @@ extern SiderealObjectSingle siderealObjectSingle;
 // Hard compile-time cap: sizes every array below and bounds starNavMaxObjects.
 // Not itself runtime-adjustable (it fixes storage), unlike starNavMaxObjects.
 #define MAX_STARNAV_OBJECTS 500
-// starNavSweep() scans a square grid of Alt/Az points within
-// +/- starNavSweepRangeDeg (degrees, both axes) of the current gyroscopic
-// attitude's Alt/Az, stepping by starNavSweepStepDeg, and stops early once
-// starNavMaxObjects distinct objects have been found. All three are runtime-
-// adjustable (see the range/step/max-objects adjuster rows in
-// celestial_sphere_begin(), UnidentifiedStudios_CelestialSphere.cpp) via the
-// clamped setters below instead of being compile-time constants;
+// starNavSweep() queries the catalog directly for every object within
+// starNavSweepRangeDeg (degrees) of the current gyroscopic attitude's
+// Alt/Az, and stops early once starNavMaxObjects distinct objects have been
+// found. Both are runtime-adjustable (see the range/max-objects adjuster
+// rows in celestial_sphere_begin(), UnidentifiedStudios_CelestialSphere.cpp)
+// via the clamped setters below instead of being compile-time constants;
 // starNavSweep() reads them fresh at the top of each sweep, so a change
 // takes effect on the next sweep.
 extern double starNavSweepRangeDeg; // aperture/zoom (higher = capture more of the celestial sphere, higher performance impact!)
-extern double starNavSweepStepDeg;  // resolution degrees (lower = higher resolution, higher performance impact!)
 extern int starNavMaxObjects;       // cap on distinct objects per sweep (higher = capture more of the celestial sphere, higher performance impact!)
 
 constexpr double STARNAV_SWEEP_RANGE_DEG_MIN = 1.0;
 constexpr double STARNAV_SWEEP_RANGE_DEG_MAX = 30.0;
-constexpr double STARNAV_SWEEP_STEP_DEG_MIN  = 0.1;
-constexpr double STARNAV_SWEEP_STEP_DEG_MAX  = 5.0;
 constexpr int STARNAV_MAX_OBJECTS_MIN = 1;
 constexpr int STARNAV_MAX_OBJECTS_MAX = MAX_STARNAV_OBJECTS;
 
-// Sets starNavSweepRangeDeg / starNavSweepStepDeg / starNavMaxObjects,
+// Sets starNavSweepRangeDeg / starNavMaxObjects,
 // clamped to [STARNAV_SWEEP_*_DEG_MIN, STARNAV_SWEEP_*_DEG_MAX] /
 // [STARNAV_MAX_OBJECTS_MIN, STARNAV_MAX_OBJECTS_MAX] above.
 void setStarNavSweepRangeDeg(double degrees);
-void setStarNavSweepStepDeg(double degrees);
 void setStarNavMaxObjects(int count);
 
 typedef struct SiderealObjectSweep {
@@ -347,10 +342,9 @@ const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000,
 void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s);
 
 /**
- * Sweeps a square grid of Alt/Az points within +/- starNavSweepRangeDeg
- * of the current gyroscopic attitude's Alt/Az, identifying every distinct
- * object found and storing up to starNavMaxObjects of them in
- * siderealObjectSweep.
+ * Queries the catalog directly for every object within starNavSweepRangeDeg
+ * of the current gyroscopic attitude's Alt/Az, storing up to
+ * starNavMaxObjects of them in siderealObjectSweep.
  * @note siderealPlanetData.gyro_0_sidereal_attitude must already be set
  * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).
  */

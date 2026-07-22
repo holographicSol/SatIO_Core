@@ -111,7 +111,27 @@ class SiderealObjects {
 	int getIdentifiedObjectNumber(void);
 	int getAltIdentifiedObjectTable(void);
 	int getAltIdentifiedObjectNumber(void);
-	
+
+	// Cone/range queries: unlike identifyObject() (single nearest match,
+	// always finds *something*), these return every object in the table
+	// within radiusDeg of (centerRAhours, centerDecDeg) -- the exact,
+	// complete set, not a coarse sample. Output is object numbers as
+	// expected by select*Table(n). Returns the number of matches written
+	// (capped at maxOut). ESP32-only, like the RA-sorted indices they use.
+	#if !defined(__AVR_ATmega2560__)
+	int findStarsInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
+	int findNGCInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
+	int findICInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
+	int findOtherInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
+	#endif
+
+	// Cross-references the current tablenum/objectnum (as left by
+	// identifyObject() or select*Table()) against the Messier/Caldwell/
+	// Herschel400 tables, setting alttablenum/altobjnum. Factored out of
+	// identifyObject() so the cone-search path (which selects each match
+	// via select*Table() instead of identifyObject()) can reuse it.
+	void checkAltCatalogs(void);
+
   // library-accessible "private" interface
   private:
     const double F2PI = 2.0 * M_PI;

@@ -122,9 +122,8 @@ static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
 static constexpr int32_t SCOPE_OUTSIDE_GAP_PX = 10;
 static constexpr int32_t SCOPE_OUTSIDE_STEPPER_HEIGHT_PX = 32;
 
-// Amount starNavSweepRangeDeg/starNavSweepStepDeg/starNavMaxObjects change per button press.
+// Amount starNavSweepRangeDeg/starNavMaxObjects change per button press.
 static constexpr double SWEEP_RANGE_STEP_INCREMENT_DEG = 1.0;
-static constexpr double SWEEP_STEP_STEP_INCREMENT_DEG  = 0.1;
 static constexpr int    SWEEP_MAX_OBJECTS_INCREMENT    = 10;
 
 // Overall opacity of the whole overlay (container + every child, composited
@@ -289,7 +288,6 @@ static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
 
 static lv_obj_t * sweep_range_value_label = nullptr;
-static lv_obj_t * sweep_step_value_label = nullptr;
 static lv_obj_t * sweep_max_objects_value_label = nullptr;
 
 // ============================================================================
@@ -501,11 +499,6 @@ static void update_sweep_adjuster_labels(void) {
         snprintf(buf, sizeof(buf), "%.2f", starNavSweepRangeDeg);
         lv_label_set_text(sweep_range_value_label, buf);
     }
-    if (sweep_step_value_label != nullptr) {
-        char buf[24];
-        snprintf(buf, sizeof(buf), "%.2f", starNavSweepStepDeg);
-        lv_label_set_text(sweep_step_value_label, buf);
-    }
     if (sweep_max_objects_value_label != nullptr) {
         char buf[24];
         snprintf(buf, sizeof(buf), "%d", starNavMaxObjects);
@@ -527,18 +520,6 @@ static void sweep_range_plus_cb(lv_event_t * e) {
     (void)e;
     setStarNavSweepRangeDeg(starNavSweepRangeDeg + SWEEP_RANGE_STEP_INCREMENT_DEG);
     PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
-    update_sweep_adjuster_labels();
-}
-
-static void sweep_step_minus_cb(lv_event_t * e) {
-    (void)e;
-    setStarNavSweepStepDeg(starNavSweepStepDeg - SWEEP_STEP_STEP_INCREMENT_DEG);
-    update_sweep_adjuster_labels();
-}
-
-static void sweep_step_plus_cb(lv_event_t * e) {
-    (void)e;
-    setStarNavSweepStepDeg(starNavSweepStepDeg + SWEEP_STEP_STEP_INCREMENT_DEG);
     update_sweep_adjuster_labels();
 }
 
@@ -955,8 +936,8 @@ void celestial_sphere_begin(
         objects_found_value_label = objects_found_panel.label_1;
         update_objects_found_label(0);
 
-        // DEG/STEP stacked bottom-left, outside scope_container (left edges
-        // aligned with its left edge, DEG first then STEP below it).
+        // DEG bottom-left, outside scope_container (left edge aligned with
+        // its left edge).
         const stepper_panel_t sweep_range_panel = create_stepper_panel(
             celestial_sphere_container,             // parent
             outside_stepper_width_px,               // width_px
@@ -983,35 +964,6 @@ void celestial_sphere_begin(
         lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
         lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
         sweep_range_value_label = sweep_range_panel.value_label;
-
-        const stepper_panel_t sweep_step_panel = create_stepper_panel(
-            celestial_sphere_container,             // parent
-            outside_stepper_width_px,               // width_px
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
-            LV_ALIGN_TOP_LEFT,                      // alignment
-            scope_left_px,                          // pos_x
-            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX
-                + SCOPE_OUTSIDE_STEPPER_HEIGHT_PX
-                + SCOPE_OUTSIDE_GAP_PX,              // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "STEP",                         // title_text
-            ""                              // value_text
-        );
-        lv_obj_add_event_cb(sweep_step_panel.btn_minus.button, sweep_step_minus_cb, LV_EVENT_CLICKED, nullptr);
-        lv_obj_add_event_cb(sweep_step_panel.btn_plus.button, sweep_step_plus_cb, LV_EVENT_CLICKED, nullptr);
-        sweep_step_value_label = sweep_step_panel.value_label;
 
         // MAX stacked bottom-right, outside scope_container (right edge
         // aligned with its right edge, same row as DEG).
