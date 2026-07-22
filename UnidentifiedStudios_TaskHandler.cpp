@@ -1324,6 +1324,8 @@ static void taskUniverse(void *pvParameters) {
         track_target_obj.object_dec = NAN;
         track_target_obj.object_az = NAN;
         track_target_obj.object_alt = NAN;
+        track_target_obj.object_rem_alt = NAN;
+        track_target_obj.object_rem_az = NAN;
         trackObject(&track_target_obj, scan_table_i, scan_object_number);
       }
       #endif

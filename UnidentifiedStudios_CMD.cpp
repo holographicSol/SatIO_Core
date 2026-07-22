@@ -1081,6 +1081,8 @@ static void star_nav(void) {
     printf("Distance:      %f\n", cli_obj.object_dist);
     printf("Azimuth:       %f\n", cli_obj.object_az);
     printf("Altitude:      %f\n", cli_obj.object_alt);
+    printf("Rem Altitude:  %f\n", cli_obj.object_rem_alt);
+    printf("Rem Azimuth:   %f\n", cli_obj.object_rem_az);
     printf("Rise:          %f\n", cli_obj.object_r);
     printf("Set:           %f\n", cli_obj.object_s);
     printf("---------------------------------------------\n");
@@ -1704,6 +1706,8 @@ typedef struct {
     double SiderealPlantetsStruct::*dec;
     double SiderealPlantetsStruct::*az;
     double SiderealPlantetsStruct::*alt;
+    double SiderealPlantetsStruct::*rem_alt;
+    double SiderealPlantetsStruct::*rem_az;
     double SiderealPlantetsStruct::*r;
     double SiderealPlantetsStruct::*s;
     double SiderealPlantetsStruct::*helio_lat;
@@ -1718,6 +1722,7 @@ static const OuterPlanetSentenceSpec mercury_sentence_spec = {
     "$MERCURY,",
     &SiderealPlantetsStruct::mercury_ra, &SiderealPlantetsStruct::mercury_dec,
     &SiderealPlantetsStruct::mercury_az, &SiderealPlantetsStruct::mercury_alt,
+    &SiderealPlantetsStruct::mercury_rem_alt, &SiderealPlantetsStruct::mercury_rem_az,
     &SiderealPlantetsStruct::mercury_r, &SiderealPlantetsStruct::mercury_s,
     &SiderealPlantetsStruct::mercury_helio_ecliptic_lat, &SiderealPlantetsStruct::mercury_helio_ecliptic_long,
     &SiderealPlantetsStruct::mercury_radius_vector, &SiderealPlantetsStruct::mercury_distance,
@@ -1727,6 +1732,7 @@ static const OuterPlanetSentenceSpec venus_sentence_spec = {
     "$VENUS,",
     &SiderealPlantetsStruct::venus_ra, &SiderealPlantetsStruct::venus_dec,
     &SiderealPlantetsStruct::venus_az, &SiderealPlantetsStruct::venus_alt,
+    &SiderealPlantetsStruct::venus_rem_alt, &SiderealPlantetsStruct::venus_rem_az,
     &SiderealPlantetsStruct::venus_r, &SiderealPlantetsStruct::venus_s,
     &SiderealPlantetsStruct::venus_helio_ecliptic_lat, &SiderealPlantetsStruct::venus_helio_ecliptic_long,
     &SiderealPlantetsStruct::venus_radius_vector, &SiderealPlantetsStruct::venus_distance,
@@ -1736,6 +1742,7 @@ static const OuterPlanetSentenceSpec mars_sentence_spec = {
     "$MARS,",
     &SiderealPlantetsStruct::mars_ra, &SiderealPlantetsStruct::mars_dec,
     &SiderealPlantetsStruct::mars_az, &SiderealPlantetsStruct::mars_alt,
+    &SiderealPlantetsStruct::mars_rem_alt, &SiderealPlantetsStruct::mars_rem_az,
     &SiderealPlantetsStruct::mars_r, &SiderealPlantetsStruct::mars_s,
     &SiderealPlantetsStruct::mars_helio_ecliptic_lat, &SiderealPlantetsStruct::mars_helio_ecliptic_long,
     &SiderealPlantetsStruct::mars_radius_vector, &SiderealPlantetsStruct::mars_distance,
@@ -1745,6 +1752,7 @@ static const OuterPlanetSentenceSpec jupiter_sentence_spec = {
     "$JUPITER,",
     &SiderealPlantetsStruct::jupiter_ra, &SiderealPlantetsStruct::jupiter_dec,
     &SiderealPlantetsStruct::jupiter_az, &SiderealPlantetsStruct::jupiter_alt,
+    &SiderealPlantetsStruct::jupiter_rem_alt, &SiderealPlantetsStruct::jupiter_rem_az,
     &SiderealPlantetsStruct::jupiter_r, &SiderealPlantetsStruct::jupiter_s,
     &SiderealPlantetsStruct::jupiter_helio_ecliptic_lat, &SiderealPlantetsStruct::jupiter_helio_ecliptic_long,
     &SiderealPlantetsStruct::jupiter_radius_vector, &SiderealPlantetsStruct::jupiter_distance,
@@ -1754,6 +1762,7 @@ static const OuterPlanetSentenceSpec saturn_sentence_spec = {
     "$SATURN,",
     &SiderealPlantetsStruct::saturn_ra, &SiderealPlantetsStruct::saturn_dec,
     &SiderealPlantetsStruct::saturn_az, &SiderealPlantetsStruct::saturn_alt,
+    &SiderealPlantetsStruct::saturn_rem_alt, &SiderealPlantetsStruct::saturn_rem_az,
     &SiderealPlantetsStruct::saturn_r, &SiderealPlantetsStruct::saturn_s,
     &SiderealPlantetsStruct::saturn_helio_ecliptic_lat, &SiderealPlantetsStruct::saturn_helio_ecliptic_long,
     &SiderealPlantetsStruct::saturn_radius_vector, &SiderealPlantetsStruct::saturn_distance,
@@ -1763,6 +1772,7 @@ static const OuterPlanetSentenceSpec uranus_sentence_spec = {
     "$URANUS,",
     &SiderealPlantetsStruct::uranus_ra, &SiderealPlantetsStruct::uranus_dec,
     &SiderealPlantetsStruct::uranus_az, &SiderealPlantetsStruct::uranus_alt,
+    &SiderealPlantetsStruct::uranus_rem_alt, &SiderealPlantetsStruct::uranus_rem_az,
     &SiderealPlantetsStruct::uranus_r, &SiderealPlantetsStruct::uranus_s,
     &SiderealPlantetsStruct::uranus_helio_ecliptic_lat, &SiderealPlantetsStruct::uranus_helio_ecliptic_long,
     &SiderealPlantetsStruct::uranus_radius_vector, &SiderealPlantetsStruct::uranus_distance,
@@ -1772,6 +1782,7 @@ static const OuterPlanetSentenceSpec neptune_sentence_spec = {
     "$NEPTUNE,",
     &SiderealPlantetsStruct::neptune_ra, &SiderealPlantetsStruct::neptune_dec,
     &SiderealPlantetsStruct::neptune_az, &SiderealPlantetsStruct::neptune_alt,
+    &SiderealPlantetsStruct::neptune_rem_alt, &SiderealPlantetsStruct::neptune_rem_az,
     &SiderealPlantetsStruct::neptune_r, &SiderealPlantetsStruct::neptune_s,
     &SiderealPlantetsStruct::neptune_helio_ecliptic_lat, &SiderealPlantetsStruct::neptune_helio_ecliptic_long,
     &SiderealPlantetsStruct::neptune_radius_vector, &SiderealPlantetsStruct::neptune_distance,
@@ -1788,6 +1799,8 @@ static void buildOuterPlanetSentence(const OuterPlanetSentenceSpec *spec)
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->dec) + String(",")).c_str());
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->az) + String(",")).c_str());
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->alt) + String(",")).c_str());
+    serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->rem_alt) + String(",")).c_str());
+    serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->rem_az) + String(",")).c_str());
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->r) + String(",")).c_str());
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->s) + String(",")).c_str());
     serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.*(spec->helio_lat) + String(",")).c_str());
@@ -1942,6 +1955,8 @@ void outputSerialUniverse(void) {
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_dec + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_az + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_alt + String(",")).c_str());
+      serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_rem_alt + String(",")).c_str());
+      serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_rem_az + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_r + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.sun_s + String("")).c_str());
       serial0_buffer_strip_trailing_comma(TXBUF_UNI);
@@ -1973,6 +1988,8 @@ void outputSerialUniverse(void) {
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_dec + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_az + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_alt + String(",")).c_str());
+      serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_rem_alt + String(",")).c_str());
+      serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_rem_az + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_r + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_s + String(",")).c_str());
       serial0_buffer_append(TXBUF_UNI, sizeof(TXBUF_UNI), String(siderealPlanetData.luna_p + String(",")).c_str());

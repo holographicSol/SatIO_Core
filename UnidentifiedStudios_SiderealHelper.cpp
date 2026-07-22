@@ -19,6 +19,23 @@
 static inline double deg2rad(double degrees) { return degrees * M_PI / 180.0; }
 static inline double rad2deg(double radians) { return radians * 180.0 / M_PI; }
 
+// Wraps a delta angle (degrees) into the range [-180, 180], so e.g. an
+// object just west of due north (delta ~ -359) reads as 1 degree away, not
+// 359 degrees away.
+static inline double wrapDeltaDeg(double delta_deg) {
+    double wrapped = fmod(delta_deg + 180.0, 360.0);
+    if (wrapped < 0.0) { wrapped += 360.0; }
+    return wrapped - 180.0;
+}
+
+// Remaining Alt/Az (degrees) to slew from the gyro's current facing
+// (siderealPlanetData.gyro_0_sidereal_attitude) to reach (alt, az). NAN
+// propagates naturally when either side is untracked/unset.
+static void setRemainingDeg(double alt, double az, double *rem_alt, double *rem_az) {
+    *rem_alt = alt - siderealPlanetData.gyro_0_sidereal_attitude.alt;
+    *rem_az = wrapDeltaDeg(az - siderealPlanetData.gyro_0_sidereal_attitude.az);
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------
 //                                                                                                               SIDEREAL PLANETS
 // ------------------------------------------------------------------------------------------------------------------------------
@@ -45,6 +62,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .sun_dec = NAN,
     .sun_az = NAN,
     .sun_alt = NAN,
+    .sun_rem_alt = NAN,
+    .sun_rem_az = NAN,
     .sun_r = NAN,
     .sun_s = NAN,
     .sun_helio_ecliptic_lat = NAN,
@@ -57,6 +76,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .luna_dec = NAN,
     .luna_az = NAN,
     .luna_alt = NAN,
+    .luna_rem_alt = NAN,
+    .luna_rem_az = NAN,
     .luna_r = NAN,
     .luna_s = NAN,
     .luna_p = NAN,
@@ -75,6 +96,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .mercury_dec = NAN,
     .mercury_az = NAN,
     .mercury_alt = NAN,
+    .mercury_rem_alt = NAN,
+    .mercury_rem_az = NAN,
     .mercury_r = NAN,
     .mercury_s = NAN,
     .mercury_helio_ecliptic_lat = NAN,
@@ -87,6 +110,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .venus_dec = NAN,
     .venus_az = NAN,
     .venus_alt = NAN,
+    .venus_rem_alt = NAN,
+    .venus_rem_az = NAN,
     .venus_r = NAN,
     .venus_s = NAN,
     .venus_helio_ecliptic_lat = NAN,
@@ -99,6 +124,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .mars_dec = NAN,
     .mars_az = NAN,
     .mars_alt = NAN,
+    .mars_rem_alt = NAN,
+    .mars_rem_az = NAN,
     .mars_r = NAN,
     .mars_s = NAN,
     .mars_helio_ecliptic_lat = NAN,
@@ -111,6 +138,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .jupiter_dec = NAN,
     .jupiter_az = NAN,
     .jupiter_alt = NAN,
+    .jupiter_rem_alt = NAN,
+    .jupiter_rem_az = NAN,
     .jupiter_r = NAN,
     .jupiter_s = NAN,
     .jupiter_helio_ecliptic_lat = NAN,
@@ -123,6 +152,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .saturn_dec = NAN,
     .saturn_az = NAN,
     .saturn_alt = NAN,
+    .saturn_rem_alt = NAN,
+    .saturn_rem_az = NAN,
     .saturn_r = NAN,
     .saturn_s = NAN,
     .saturn_helio_ecliptic_lat = NAN,
@@ -135,6 +166,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .uranus_dec = NAN,
     .uranus_az = NAN,
     .uranus_alt = NAN,
+    .uranus_rem_alt = NAN,
+    .uranus_rem_az = NAN,
     .uranus_r = NAN,
     .uranus_s = NAN,
     .uranus_helio_ecliptic_lat = NAN,
@@ -147,6 +180,8 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     .neptune_dec = NAN,
     .neptune_az = NAN,
     .neptune_alt = NAN,
+    .neptune_rem_alt = NAN,
+    .neptune_rem_az = NAN,
     .neptune_r = NAN,
     .neptune_s = NAN,
     .neptune_helio_ecliptic_lat = NAN,
@@ -188,6 +223,7 @@ struct SiderealPlantetsStruct siderealPlanetData = {
     },
     .gyro_0_constellation = nullptr
 };
+
 SiderealObjectSingle siderealObjectSingle = {
     .object_number = 0,
     .object_table_i = 0,
@@ -199,12 +235,13 @@ SiderealObjectSingle siderealObjectSingle = {
     .object_dec = NAN,
     .object_az = NAN,
     .object_alt = NAN,
+    .object_rem_alt = NAN,
+    .object_rem_az = NAN,
     .object_mag = NAN,
     .object_r = NAN,
     .object_s = NAN,
     .object_dist = NAN,
 };
-
 SiderealObjectSweep siderealObjectSweep = {
     .objects_found = 0,
     .object_number = {},
@@ -217,6 +254,8 @@ SiderealObjectSweep siderealObjectSweep = {
     .object_dec = {},
     .object_az = {},
     .object_alt = {},
+    .object_rem_alt = {},
+    .object_rem_az = {},
     .object_mag = {},
     .object_r = {},
     .object_s = {},
@@ -293,6 +332,10 @@ static inline double& azRef(SiderealObjectSingle *obj, int)             { return
 static inline double& azRef(SiderealObjectSweep *obj, int index)        { return obj->object_az[index]; }
 static inline double& altRef(SiderealObjectSingle *obj, int)            { return obj->object_alt; }
 static inline double& altRef(SiderealObjectSweep *obj, int index)       { return obj->object_alt[index]; }
+static inline double& remAltRef(SiderealObjectSingle *obj, int)         { return obj->object_rem_alt; }
+static inline double& remAltRef(SiderealObjectSweep *obj, int index)    { return obj->object_rem_alt[index]; }
+static inline double& remAzRef(SiderealObjectSingle *obj, int)          { return obj->object_rem_az; }
+static inline double& remAzRef(SiderealObjectSweep *obj, int index)     { return obj->object_rem_az[index]; }
 static inline double& rRef(SiderealObjectSingle *obj, int)              { return obj->object_r; }
 static inline double& rRef(SiderealObjectSweep *obj, int index)         { return obj->object_r[index]; }
 static inline double& sRef(SiderealObjectSingle *obj, int)              { return obj->object_s; }
@@ -588,6 +631,8 @@ static void clearAllObjects(T *obj, int index)
     decRef(obj, index) = NAN;
     azRef(obj, index) = NAN;
     altRef(obj, index) = NAN;
+    remAltRef(obj, index) = NAN;
+    remAzRef(obj, index) = NAN;
     rRef(obj, index) = NAN;
     sRef(obj, index) = NAN;
     distRef(obj, index) = NAN;
@@ -700,6 +745,8 @@ void trackSun(void)
     myAstro.doRAdec2AltAz();
     siderealPlanetData.sun_az = myAstro.getAzimuth();
     siderealPlanetData.sun_alt = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
+    setRemainingDeg(siderealPlanetData.sun_alt, siderealPlanetData.sun_az,
+                    &siderealPlanetData.sun_rem_alt, &siderealPlanetData.sun_rem_az);
     siderealPlanetData.sun_helio_ecliptic_lat = myAstro.getHelioLat();
     siderealPlanetData.sun_helio_ecliptic_long = myAstro.getHelioLong();
     siderealPlanetData.sun_radius_vector = myAstro.getRadiusVec();
@@ -721,6 +768,8 @@ void trackLuna(void)
     myAstro.doRAdec2AltAz();
     siderealPlanetData.luna_az = myAstro.getAzimuth();
     siderealPlanetData.luna_alt = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
+    setRemainingDeg(siderealPlanetData.luna_alt, siderealPlanetData.luna_az,
+                    &siderealPlanetData.luna_rem_alt, &siderealPlanetData.luna_rem_az);
     myAstro.doMoonRiseSetTimes();
     siderealPlanetData.luna_r = myAstro.getMoonriseTime();
     siderealPlanetData.luna_s = myAstro.getMoonsetTime();
@@ -744,6 +793,8 @@ typedef struct {
     double SiderealPlantetsStruct::*dec;
     double SiderealPlantetsStruct::*az;
     double SiderealPlantetsStruct::*alt;
+    double SiderealPlantetsStruct::*rem_alt;
+    double SiderealPlantetsStruct::*rem_az;
     double SiderealPlantetsStruct::*helio_lat;
     double SiderealPlantetsStruct::*helio_long;
     double SiderealPlantetsStruct::*radius_vector;
@@ -758,6 +809,7 @@ static const OuterPlanetSpec mercury_spec = {
     &SiderealPlanets::doMercury,
     &SiderealPlantetsStruct::mercury_ra, &SiderealPlantetsStruct::mercury_dec,
     &SiderealPlantetsStruct::mercury_az, &SiderealPlantetsStruct::mercury_alt,
+    &SiderealPlantetsStruct::mercury_rem_alt, &SiderealPlantetsStruct::mercury_rem_az,
     &SiderealPlantetsStruct::mercury_helio_ecliptic_lat, &SiderealPlantetsStruct::mercury_helio_ecliptic_long,
     &SiderealPlantetsStruct::mercury_radius_vector, &SiderealPlantetsStruct::mercury_distance,
     &SiderealPlantetsStruct::mercury_ecliptic_lat, &SiderealPlantetsStruct::mercury_ecliptic_long,
@@ -767,6 +819,7 @@ static const OuterPlanetSpec venus_spec = {
     &SiderealPlanets::doVenus,
     &SiderealPlantetsStruct::venus_ra, &SiderealPlantetsStruct::venus_dec,
     &SiderealPlantetsStruct::venus_az, &SiderealPlantetsStruct::venus_alt,
+    &SiderealPlantetsStruct::venus_rem_alt, &SiderealPlantetsStruct::venus_rem_az,
     &SiderealPlantetsStruct::venus_helio_ecliptic_lat, &SiderealPlantetsStruct::venus_helio_ecliptic_long,
     &SiderealPlantetsStruct::venus_radius_vector, &SiderealPlantetsStruct::venus_distance,
     &SiderealPlantetsStruct::venus_ecliptic_lat, &SiderealPlantetsStruct::venus_ecliptic_long,
@@ -776,6 +829,7 @@ static const OuterPlanetSpec mars_spec = {
     &SiderealPlanets::doMars,
     &SiderealPlantetsStruct::mars_ra, &SiderealPlantetsStruct::mars_dec,
     &SiderealPlantetsStruct::mars_az, &SiderealPlantetsStruct::mars_alt,
+    &SiderealPlantetsStruct::mars_rem_alt, &SiderealPlantetsStruct::mars_rem_az,
     &SiderealPlantetsStruct::mars_helio_ecliptic_lat, &SiderealPlantetsStruct::mars_helio_ecliptic_long,
     &SiderealPlantetsStruct::mars_radius_vector, &SiderealPlantetsStruct::mars_distance,
     &SiderealPlantetsStruct::mars_ecliptic_lat, &SiderealPlantetsStruct::mars_ecliptic_long,
@@ -785,6 +839,7 @@ static const OuterPlanetSpec jupiter_spec = {
     &SiderealPlanets::doJupiter,
     &SiderealPlantetsStruct::jupiter_ra, &SiderealPlantetsStruct::jupiter_dec,
     &SiderealPlantetsStruct::jupiter_az, &SiderealPlantetsStruct::jupiter_alt,
+    &SiderealPlantetsStruct::jupiter_rem_alt, &SiderealPlantetsStruct::jupiter_rem_az,
     &SiderealPlantetsStruct::jupiter_helio_ecliptic_lat, &SiderealPlantetsStruct::jupiter_helio_ecliptic_long,
     &SiderealPlantetsStruct::jupiter_radius_vector, &SiderealPlantetsStruct::jupiter_distance,
     &SiderealPlantetsStruct::jupiter_ecliptic_lat, &SiderealPlantetsStruct::jupiter_ecliptic_long,
@@ -794,6 +849,7 @@ static const OuterPlanetSpec saturn_spec = {
     &SiderealPlanets::doSaturn,
     &SiderealPlantetsStruct::saturn_ra, &SiderealPlantetsStruct::saturn_dec,
     &SiderealPlantetsStruct::saturn_az, &SiderealPlantetsStruct::saturn_alt,
+    &SiderealPlantetsStruct::saturn_rem_alt, &SiderealPlantetsStruct::saturn_rem_az,
     &SiderealPlantetsStruct::saturn_helio_ecliptic_lat, &SiderealPlantetsStruct::saturn_helio_ecliptic_long,
     &SiderealPlantetsStruct::saturn_radius_vector, &SiderealPlantetsStruct::saturn_distance,
     &SiderealPlantetsStruct::saturn_ecliptic_lat, &SiderealPlantetsStruct::saturn_ecliptic_long,
@@ -803,6 +859,7 @@ static const OuterPlanetSpec uranus_spec = {
     &SiderealPlanets::doUranus,
     &SiderealPlantetsStruct::uranus_ra, &SiderealPlantetsStruct::uranus_dec,
     &SiderealPlantetsStruct::uranus_az, &SiderealPlantetsStruct::uranus_alt,
+    &SiderealPlantetsStruct::uranus_rem_alt, &SiderealPlantetsStruct::uranus_rem_az,
     &SiderealPlantetsStruct::uranus_helio_ecliptic_lat, &SiderealPlantetsStruct::uranus_helio_ecliptic_long,
     &SiderealPlantetsStruct::uranus_radius_vector, &SiderealPlantetsStruct::uranus_distance,
     &SiderealPlantetsStruct::uranus_ecliptic_lat, &SiderealPlantetsStruct::uranus_ecliptic_long,
@@ -812,6 +869,7 @@ static const OuterPlanetSpec neptune_spec = {
     &SiderealPlanets::doNeptune,
     &SiderealPlantetsStruct::neptune_ra, &SiderealPlantetsStruct::neptune_dec,
     &SiderealPlantetsStruct::neptune_az, &SiderealPlantetsStruct::neptune_alt,
+    &SiderealPlantetsStruct::neptune_rem_alt, &SiderealPlantetsStruct::neptune_rem_az,
     &SiderealPlantetsStruct::neptune_helio_ecliptic_lat, &SiderealPlantetsStruct::neptune_helio_ecliptic_long,
     &SiderealPlantetsStruct::neptune_radius_vector, &SiderealPlantetsStruct::neptune_distance,
     &SiderealPlantetsStruct::neptune_ecliptic_lat, &SiderealPlantetsStruct::neptune_ecliptic_long,
@@ -826,6 +884,8 @@ static void trackOuterPlanet(const OuterPlanetSpec *spec)
     myAstro.doRAdec2AltAz();
     siderealPlanetData.*(spec->az) = myAstro.getAzimuth();
     siderealPlanetData.*(spec->alt) = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
+    setRemainingDeg(siderealPlanetData.*(spec->alt), siderealPlanetData.*(spec->az),
+                    &(siderealPlanetData.*(spec->rem_alt)), &(siderealPlanetData.*(spec->rem_az)));
     siderealPlanetData.*(spec->helio_lat) = myAstro.getHelioLat();
     siderealPlanetData.*(spec->helio_long) = myAstro.getHelioLong();
     siderealPlanetData.*(spec->radius_vector) = myAstro.getRadiusVec();
@@ -843,6 +903,8 @@ static void clearOuterPlanet(const OuterPlanetSpec *spec)
     siderealPlanetData.*(spec->dec) = NAN;
     siderealPlanetData.*(spec->az) = NAN;
     siderealPlanetData.*(spec->alt) = NAN;
+    siderealPlanetData.*(spec->rem_alt) = NAN;
+    siderealPlanetData.*(spec->rem_az) = NAN;
     siderealPlanetData.*(spec->helio_lat) = NAN;
     siderealPlanetData.*(spec->helio_long) = NAN;
     siderealPlanetData.*(spec->radius_vector) = NAN;
@@ -870,6 +932,8 @@ void clearSun(void)
     siderealPlanetData.sun_dec = NAN;
     siderealPlanetData.sun_az = NAN;
     siderealPlanetData.sun_alt = NAN;
+    siderealPlanetData.sun_rem_alt = NAN;
+    siderealPlanetData.sun_rem_az = NAN;
     siderealPlanetData.sun_r = NAN;
     siderealPlanetData.sun_s = NAN;
 }
@@ -880,6 +944,8 @@ void clearLuna(void)
     siderealPlanetData.luna_dec = NAN;
     siderealPlanetData.luna_az = NAN;
     siderealPlanetData.luna_alt = NAN;
+    siderealPlanetData.luna_rem_alt = NAN;
+    siderealPlanetData.luna_rem_az = NAN;
     siderealPlanetData.luna_r = NAN;
     siderealPlanetData.luna_s = NAN;
     siderealPlanetData.luna_p = NAN;
@@ -1032,6 +1098,9 @@ static void trackObjectImpl(T *obj, int index, int object_table_i, int object_i)
         azRef(obj, index) = myAstro.getAzimuth();
         altRef(obj, index) = myAstro.getAltitude();
 
+        // Remaining Alt/Az to slew from the gyro's current facing.
+        setRemainingDeg(altRef(obj, index), azRef(obj, index), &remAltRef(obj, index), &remAzRef(obj, index));
+
         // Rise/set times. 0 for stars; consider non-zero values for planets, galaxies, etc.
         myAstro.doXRiseSetTimes(0.0);
         rRef(obj, index) = myAstro.getRiseTime();
@@ -1086,6 +1155,8 @@ static void clearStarNavObjects(SiderealObjectSweep *data)
         data->object_dec[i] = NAN;
         data->object_az[i] = NAN;
         data->object_alt[i] = NAN;
+        data->object_rem_alt[i] = NAN;
+        data->object_rem_az[i] = NAN;
         data->object_mag[i] = NAN;
         data->object_r[i] = NAN;
         data->object_s[i] = NAN;

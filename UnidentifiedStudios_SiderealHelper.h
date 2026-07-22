@@ -31,11 +31,15 @@ extern SiderealPlanets myAstro;
 // ----------------------------------------------------------------------------------------
 // Planet Data Structure.
 //
-// One block of ra/dec/az/alt/r/s per tracked body, plus helio_ecliptic_lat/
-// long/radius_vector/distance/ecliptic_lat/long for every body except the
-// Sun (which also mirrors its ecliptic position into earth_ecliptic_lat/
-// long) and the Moon (which instead has phase/luminance fields, having no
-// heliocentric position of its own).
+// One block of ra/dec/az/alt/rem_alt/rem_az/r/s per tracked body, plus
+// helio_ecliptic_lat/long/radius_vector/distance/ecliptic_lat/long for every
+// body except the Sun (which also mirrors its ecliptic position into
+// earth_ecliptic_lat/long) and the Moon (which instead has phase/luminance
+// fields, having no heliocentric position of its own). rem_alt/rem_az are
+// the remaining Alt/Az degrees to slew from the gyro's current facing
+// (gyro_0_sidereal_attitude) to reach the body -- refreshed by trackPlanets()
+// (see trackSun()/trackLuna()/trackOuterPlanet() in
+// UnidentifiedStudios_SiderealHelper.cpp).
 // ----------------------------------------------------------------------------------------
 struct SiderealPlantetsStruct {
     bool track_sun;
@@ -54,7 +58,9 @@ struct SiderealPlantetsStruct {
     double sun_ra;
     double sun_dec;
     double sun_az;
-    double sun_alt; 
+    double sun_alt;
+    double sun_rem_alt;
+    double sun_rem_az;
     double sun_r;
     double sun_s;
     double sun_helio_ecliptic_lat;
@@ -67,6 +73,8 @@ struct SiderealPlantetsStruct {
     double luna_dec;
     double luna_az;
     double luna_alt;
+    double luna_rem_alt;
+    double luna_rem_az;
     double luna_r;
     double luna_s;
     double luna_p;
@@ -76,6 +84,8 @@ struct SiderealPlantetsStruct {
     double mercury_dec;
     double mercury_az;
     double mercury_alt;
+    double mercury_rem_alt;
+    double mercury_rem_az;
     double mercury_r;
     double mercury_s;
     double mercury_helio_ecliptic_lat;
@@ -88,6 +98,8 @@ struct SiderealPlantetsStruct {
     double venus_dec;
     double venus_az;
     double venus_alt;
+    double venus_rem_alt;
+    double venus_rem_az;
     double venus_r;
     double venus_s;
     double venus_helio_ecliptic_lat;
@@ -100,6 +112,8 @@ struct SiderealPlantetsStruct {
     double mars_dec;
     double mars_az;
     double mars_alt;
+    double mars_rem_alt;
+    double mars_rem_az;
     double mars_r;
     double mars_s;
     double mars_helio_ecliptic_lat;
@@ -112,6 +126,8 @@ struct SiderealPlantetsStruct {
     double jupiter_dec;
     double jupiter_az;
     double jupiter_alt;
+    double jupiter_rem_alt;
+    double jupiter_rem_az;
     double jupiter_r;
     double jupiter_s;
     double jupiter_helio_ecliptic_lat;
@@ -124,6 +140,8 @@ struct SiderealPlantetsStruct {
     double saturn_dec;
     double saturn_az;
     double saturn_alt;
+    double saturn_rem_alt;
+    double saturn_rem_az;
     double saturn_r;
     double saturn_s;
     double saturn_helio_ecliptic_lat;
@@ -136,6 +154,8 @@ struct SiderealPlantetsStruct {
     double uranus_dec;
     double uranus_az;
     double uranus_alt;
+    double uranus_rem_alt;
+    double uranus_rem_az;
     double uranus_r;
     double uranus_s;
     double uranus_helio_ecliptic_lat;
@@ -148,6 +168,8 @@ struct SiderealPlantetsStruct {
     double neptune_dec;
     double neptune_az;
     double neptune_alt;
+    double neptune_rem_alt;
+    double neptune_rem_az;
     double neptune_r;
     double neptune_s;
     double neptune_helio_ecliptic_lat;
@@ -187,6 +209,11 @@ typedef struct SiderealObjectSingle {
     double object_dec;
     double object_az;
     double object_alt;
+    // Remaining Alt/Az degrees to slew from the gyro's current facing
+    // (siderealPlanetData.gyro_0_sidereal_attitude) to reach this object --
+    // refreshed by trackObject() (UnidentifiedStudios_SiderealHelper.cpp).
+    double object_rem_alt;
+    double object_rem_az;
     double object_mag;
     double object_r;
     double object_s;
@@ -238,6 +265,9 @@ typedef struct SiderealObjectSweep {
     double object_dec[MAX_STARNAV_OBJECTS];
     double object_az[MAX_STARNAV_OBJECTS];
     double object_alt[MAX_STARNAV_OBJECTS];
+    // See SiderealObjectSingle::object_rem_alt/object_rem_az above.
+    double object_rem_alt[MAX_STARNAV_OBJECTS];
+    double object_rem_az[MAX_STARNAV_OBJECTS];
     double object_mag[MAX_STARNAV_OBJECTS];
     double object_r[MAX_STARNAV_OBJECTS];
     double object_s[MAX_STARNAV_OBJECTS];
@@ -262,9 +292,10 @@ void setSiderealData(double latitude, double longitude,
     double altitude);
 
 /**
- * Computes RA/Dec, Alt/Az, and rise/set times for the object at object_i
- * within the table named by object_table_i, and stores the result in *obj
- * (or, for the SiderealObjectSweep overload, in slot `index` of *obj).
+ * Computes RA/Dec, Alt/Az, remaining Alt/Az to the gyro's current facing
+ * (rem_alt/rem_az), and rise/set times for the object at object_i within
+ * the table named by object_table_i, and stores the result in *obj (or,
+ * for the SiderealObjectSweep overload, in slot `index` of *obj).
  * @note setSiderealData() must be called first.
  */
 void trackObject(SiderealObjectSingle *obj, int object_table_i, int object_i);
