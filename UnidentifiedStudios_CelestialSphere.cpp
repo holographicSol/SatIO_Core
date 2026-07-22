@@ -375,16 +375,10 @@ struct BodyReadout {
     bool is_luna;
     double luna_lum;
     const char * luna_phase;
-    // Remaining Alt/Az (degrees) to slew from the gyro's current facing to
-    // reach this body -- see siderealPlanetData's per-body *_rem_alt/
-    // *_rem_az fields (UnidentifiedStudios_SiderealHelper.h), kept current
-    // by trackPlanets().
-    double rem_alt;
-    double rem_az;
 };
 
 static BodyReadout body_readout(const CelestialBody body) {
-    BodyReadout r{false, NAN, NAN, NAN, NAN, NAN, NAN, NAN, false, NAN, "Unidentified", NAN, NAN};
+    BodyReadout r{false, NAN, NAN, NAN, NAN, NAN, NAN, NAN, false, NAN, "Unidentified"};
     switch (body) {
         case CelestialBody::SUN:
             r.tracked = siderealPlanetData.track_sun;
@@ -392,8 +386,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.sun_dec;
             r.az = siderealPlanetData.sun_az;
             r.alt = siderealPlanetData.sun_alt;
-            r.rem_alt = siderealPlanetData.sun_rem_alt;
-            r.rem_az = siderealPlanetData.sun_rem_az;
             r.rise = siderealPlanetData.sun_r;
             r.set_time = siderealPlanetData.sun_s;
             r.distance = siderealPlanetData.sun_distance;
@@ -404,8 +396,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.luna_dec;
             r.az = siderealPlanetData.luna_az;
             r.alt = siderealPlanetData.luna_alt;
-            r.rem_alt = siderealPlanetData.luna_rem_alt;
-            r.rem_az = siderealPlanetData.luna_rem_az;
             r.rise = siderealPlanetData.luna_r;
             r.set_time = siderealPlanetData.luna_s;
             r.is_luna = true;
@@ -429,8 +419,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.mercury_dec;
             r.az = siderealPlanetData.mercury_az;
             r.alt = siderealPlanetData.mercury_alt;
-            r.rem_alt = siderealPlanetData.mercury_rem_alt;
-            r.rem_az = siderealPlanetData.mercury_rem_az;
             r.rise = siderealPlanetData.mercury_r;
             r.set_time = siderealPlanetData.mercury_s;
             r.distance = siderealPlanetData.mercury_distance;
@@ -441,8 +429,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.venus_dec;
             r.az = siderealPlanetData.venus_az;
             r.alt = siderealPlanetData.venus_alt;
-            r.rem_alt = siderealPlanetData.venus_rem_alt;
-            r.rem_az = siderealPlanetData.venus_rem_az;
             r.rise = siderealPlanetData.venus_r;
             r.set_time = siderealPlanetData.venus_s;
             r.distance = siderealPlanetData.venus_distance;
@@ -453,8 +439,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.mars_dec;
             r.az = siderealPlanetData.mars_az;
             r.alt = siderealPlanetData.mars_alt;
-            r.rem_alt = siderealPlanetData.mars_rem_alt;
-            r.rem_az = siderealPlanetData.mars_rem_az;
             r.rise = siderealPlanetData.mars_r;
             r.set_time = siderealPlanetData.mars_s;
             r.distance = siderealPlanetData.mars_distance;
@@ -465,8 +449,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.jupiter_dec;
             r.az = siderealPlanetData.jupiter_az;
             r.alt = siderealPlanetData.jupiter_alt;
-            r.rem_alt = siderealPlanetData.jupiter_rem_alt;
-            r.rem_az = siderealPlanetData.jupiter_rem_az;
             r.rise = siderealPlanetData.jupiter_r;
             r.set_time = siderealPlanetData.jupiter_s;
             r.distance = siderealPlanetData.jupiter_distance;
@@ -477,8 +459,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.saturn_dec;
             r.az = siderealPlanetData.saturn_az;
             r.alt = siderealPlanetData.saturn_alt;
-            r.rem_alt = siderealPlanetData.saturn_rem_alt;
-            r.rem_az = siderealPlanetData.saturn_rem_az;
             r.rise = siderealPlanetData.saturn_r;
             r.set_time = siderealPlanetData.saturn_s;
             r.distance = siderealPlanetData.saturn_distance;
@@ -489,8 +469,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.uranus_dec;
             r.az = siderealPlanetData.uranus_az;
             r.alt = siderealPlanetData.uranus_alt;
-            r.rem_alt = siderealPlanetData.uranus_rem_alt;
-            r.rem_az = siderealPlanetData.uranus_rem_az;
             r.rise = siderealPlanetData.uranus_r;
             r.set_time = siderealPlanetData.uranus_s;
             r.distance = siderealPlanetData.uranus_distance;
@@ -501,8 +479,6 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.dec = siderealPlanetData.neptune_dec;
             r.az = siderealPlanetData.neptune_az;
             r.alt = siderealPlanetData.neptune_alt;
-            r.rem_alt = siderealPlanetData.neptune_rem_alt;
-            r.rem_az = siderealPlanetData.neptune_rem_az;
             r.rise = siderealPlanetData.neptune_r;
             r.set_time = siderealPlanetData.neptune_s;
             r.distance = siderealPlanetData.neptune_distance;
@@ -1338,14 +1314,6 @@ void celestial_sphere_update(void) {
         } else {
             double scan_az = track_target_obj.object_az;
             double scan_alt = track_target_obj.object_alt;
-            // Remaining Alt/Az to slew from the gyro's current facing to
-            // reach the scanned target -- read straight from the tracked
-            // data (see rem_alt/rem_az in UnidentifiedStudios_SiderealHelper.h)
-            // instead of re-deriving it from center_alt/center_az below,
-            // which are view-mode-relative (gyro or zenith) rather than
-            // always gyro-relative.
-            double scan_rem_alt = track_target_obj.object_rem_alt;
-            double scan_rem_az = track_target_obj.object_rem_az;
             bool scan_valid = !isnan(scan_alt) && !isnan(scan_az);
 
             if (scan_table_i == SCAN_TABLE_BODY) {
@@ -1353,11 +1321,9 @@ void celestial_sphere_update(void) {
                 const bool body_i_in_range = (body_i >= 0) && (body_i < CELESTIAL_BODY_COUNT);
                 const BodyReadout data = body_i_in_range
                     ? body_readout(static_cast<CelestialBody>(body_i))
-                    : BodyReadout{false, NAN, NAN, NAN, NAN, NAN, NAN, NAN, false, NAN, "Unidentified", NAN, NAN};
+                    : BodyReadout{false, NAN, NAN, NAN, NAN, NAN, NAN, NAN, false, NAN, "Unidentified"};
                 scan_az = data.az;
                 scan_alt = data.alt;
-                scan_rem_alt = data.rem_alt;
-                scan_rem_az = data.rem_az;
                 scan_valid = data.tracked && !isnan(scan_alt) && !isnan(scan_az);
             }
 
@@ -1422,7 +1388,7 @@ void celestial_sphere_update(void) {
 
                     if (scan_delta_value_label != nullptr) {
                         char buf[32];
-                        snprintf(buf, sizeof(buf), "ALT %+.1f  AZ %+.1f", scan_rem_alt, scan_rem_az);
+                        snprintf(buf, sizeof(buf), "ALT %+.1f  AZ %+.1f", scan_delta_alt, scan_delta_az);
                         lv_label_set_text(scan_delta_value_label, buf);
                         const int32_t label_w = lv_obj_get_width(scan_delta_value_label);
                         const int32_t label_h = lv_obj_get_height(scan_delta_value_label);
