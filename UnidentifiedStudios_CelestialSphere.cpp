@@ -1164,7 +1164,7 @@ void celestial_sphere_begin(
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
 
         // Create timer for celestial sphere updates
-        sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 1000, nullptr);
+        sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 50, nullptr);
     }
 }
 
