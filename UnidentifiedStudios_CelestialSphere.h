@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include "lvgl.h"
+#include "UnidentifiedStudios_SiderealHelper.h"
 
 // MISRA: the enum has an explicit fixed-width underlying type and a named
 // tag, instead of relying on the compiler's implementation-defined choice
@@ -66,6 +67,17 @@ void celestial_sphere_set_target(int32_t object_index);
 // catalog table its dropdown currently selects (INDEX_SIDEREAL_* in
 // UnidentifiedStudios_SiderealHelper.h). 0 or negative clears the scan.
 void celestial_sphere_set_scan_number(int32_t number);
+
+// Scan control state: which catalog table + object number to track, and the
+// result of tracking it. Populated by taskUniverse()'s trackObject() call
+// (UnidentifiedStudios_TaskHandler.cpp), same as siderealObjectSweep is kept
+// current by its starNavSweep() calls -- celestial_sphere_update() only
+// reads track_target_obj. scan_table_i/scan_object_number are read-only from
+// outside this file; celestial_sphere_set_scan_number() and the Scan table
+// dropdown remain the only writers.
+extern int32_t scan_table_i;
+extern int32_t scan_object_number;
+extern SiderealObjectSingle track_target_obj;
 
 // Shows or hides the celestial sphere overlay; the update timer keeps running
 // either way, so the view is already current the moment it is shown again.

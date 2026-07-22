@@ -1315,6 +1315,19 @@ static void taskUniverse(void *pvParameters) {
         stepFFCounter(systemData.counters_starnav, 1);
       }
 
+      // -----------------------------------------------------------
+      // Track Celestial Sphere Object
+      // -----------------------------------------------------------
+      #ifdef SatIO_DISPLAY_OPTION_LVGL
+      if (starnav_ui_active && (scan_object_number > 0)) {
+        track_target_obj.object_ra = NAN;
+        track_target_obj.object_dec = NAN;
+        track_target_obj.object_az = NAN;
+        track_target_obj.object_alt = NAN;
+        trackObject(&track_target_obj, scan_table_i, scan_object_number);
+      }
+      #endif
+
       // --------------------------------------------
       // Task frequency counter
       // --------------------------------------------

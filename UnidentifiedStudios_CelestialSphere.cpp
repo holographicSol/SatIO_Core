@@ -64,9 +64,6 @@ static constexpr int32_t SELECTION_BOX_PADDING_PX = 8;
 // Distance a marker's center must stay from scope_container's edge
 static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX) / 2;
 
-// Distance from a marker's center to the selection box's edge
-static constexpr int32_t SELECTION_BOX_HALF_SIZE = APERTURE_EDGE_MARGIN_PX;
-
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
@@ -258,6 +255,263 @@ struct ObjectMarker {
 static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 
 // ============================================================================
+// SOLAR SYSTEM BODY MARKERS (Sun, Moon, planets from siderealPlanetData)
+// ============================================================================
+// MISRA: a named, fixed-underlying-type enum identifies each tracked body so
+// every switch below is explicit and exhaustive. Order matches trackPlanets()
+// (UnidentifiedStudios_SiderealHelper.cpp). Earth is excluded: unlike the
+// other 9 bodies it has no az/alt of its own (we observe from it).
+enum class CelestialBody : int32_t {
+    SUN = 0,
+    LUNA,
+    MERCURY,
+    VENUS,
+    MARS,
+    JUPITER,
+    SATURN,
+    URANUS,
+    NEPTUNE,
+    COUNT
+};
+
+static constexpr int32_t CELESTIAL_BODY_COUNT = static_cast<int32_t>(CelestialBody::COUNT);
+
+static ObjectMarker body_markers[CELESTIAL_BODY_COUNT];
+
+// Colors mirror each Planet.color assignment in astro_clock_begin()
+// (UnidentifiedStudios_AstroClock.cpp), so the same body reads the same tint
+// on both views.
+static const lv_color_t COLOR_BODY_SUN     = lv_color_make(255, 255,   0);
+static const lv_color_t COLOR_BODY_LUNA    = lv_color_make(128, 128, 128);
+static const lv_color_t COLOR_BODY_MERCURY = lv_color_make(255,   0, 255);
+static const lv_color_t COLOR_BODY_VENUS   = lv_color_make(180, 180,   0);
+static const lv_color_t COLOR_BODY_MARS    = lv_color_make(255,   0,   0);
+static const lv_color_t COLOR_BODY_JUPITER = lv_color_make(128, 128, 128);
+static const lv_color_t COLOR_BODY_SATURN  = lv_color_make(210, 210,   0);
+static const lv_color_t COLOR_BODY_URANUS  = lv_color_make(  0, 255, 255);
+static const lv_color_t COLOR_BODY_NEPTUNE = lv_color_make(255,   0, 255);
+
+static lv_color_t body_color(const CelestialBody body) {
+    lv_color_t result = COLOR_MARKER;
+    switch (body) {
+        case CelestialBody::SUN:     result = COLOR_BODY_SUN;     break;
+        case CelestialBody::LUNA:    result = COLOR_BODY_LUNA;    break;
+        case CelestialBody::MERCURY: result = COLOR_BODY_MERCURY; break;
+        case CelestialBody::VENUS:   result = COLOR_BODY_VENUS;   break;
+        case CelestialBody::MARS:    result = COLOR_BODY_MARS;    break;
+        case CelestialBody::JUPITER: result = COLOR_BODY_JUPITER; break;
+        case CelestialBody::SATURN:  result = COLOR_BODY_SATURN;  break;
+        case CelestialBody::URANUS:  result = COLOR_BODY_URANUS;  break;
+        case CelestialBody::NEPTUNE: result = COLOR_BODY_NEPTUNE; break;
+        case CelestialBody::COUNT:
+        default:
+            // Unreachable: every enumerator other than COUNT is handled above.
+            break;
+    }
+    return result;
+}
+
+// Marker diameter for each body -- drawn as a filled circle sized to scale
+// (like Planet.radius in UnidentifiedStudios_AstroClock.cpp) rather than the
+// fixed MARKER_ICON_SIZE dot/icon catalog objects use. Relative sizes follow
+// that file's "Sun=8, Jupiter=6, Saturn/Earth=5, Venus/Mars/Uranus/Neptune=4,
+// Mercury=3, Luna=2" scale (Earth excluded -- see CelestialBody), scaled by
+// BODY_SIZE_UNIT_PX to fit this view's aperture.
+static constexpr int32_t BODY_SIZE_UNIT_PX = 4;
+
+static int32_t body_diameter_px(const CelestialBody body) {
+    int32_t units = 4;
+    switch (body) {
+        case CelestialBody::SUN:     units = 8; break;
+        case CelestialBody::LUNA:    units = 2; break;
+        case CelestialBody::MERCURY: units = 3; break;
+        case CelestialBody::VENUS:   units = 4; break;
+        case CelestialBody::MARS:    units = 4; break;
+        case CelestialBody::JUPITER: units = 6; break;
+        case CelestialBody::SATURN:  units = 5; break;
+        case CelestialBody::URANUS:  units = 4; break;
+        case CelestialBody::NEPTUNE: units = 4; break;
+        case CelestialBody::COUNT:
+        default:
+            // Unreachable: every enumerator other than COUNT is handled above.
+            break;
+    }
+    return units * BODY_SIZE_UNIT_PX;
+}
+
+static const char * body_name(const CelestialBody body) {
+    const char * result = "Unidentified";
+    switch (body) {
+        case CelestialBody::SUN:     result = "Sun";     break;
+        case CelestialBody::LUNA:    result = "Luna";    break;
+        case CelestialBody::MERCURY: result = "Mercury"; break;
+        case CelestialBody::VENUS:   result = "Venus";   break;
+        case CelestialBody::MARS:    result = "Mars";    break;
+        case CelestialBody::JUPITER: result = "Jupiter"; break;
+        case CelestialBody::SATURN:  result = "Saturn";  break;
+        case CelestialBody::URANUS:  result = "Uranus";  break;
+        case CelestialBody::NEPTUNE: result = "Neptune"; break;
+        case CelestialBody::COUNT:
+        default:
+            // Unreachable: every enumerator other than COUNT is handled above.
+            break;
+    }
+    return result;
+}
+
+// Fields read out of siderealPlanetData for one body, gathered in one place
+// since (unlike siderealObjectSweep) siderealPlanetData isn't array-backed --
+// every body has its own dedicated fields, so positioning and the data box
+// both need this same per-body switch.
+struct BodyReadout {
+    bool tracked;
+    double ra;
+    double dec;
+    double az;
+    double alt;
+    double rise;
+    double set_time;
+    double distance;
+    bool is_luna;
+    double luna_lum;
+    const char * luna_phase;
+};
+
+static BodyReadout body_readout(const CelestialBody body) {
+    BodyReadout r{false, NAN, NAN, NAN, NAN, NAN, NAN, NAN, false, NAN, "Unidentified"};
+    switch (body) {
+        case CelestialBody::SUN:
+            r.tracked = siderealPlanetData.track_sun;
+            r.ra = siderealPlanetData.sun_ra;
+            r.dec = siderealPlanetData.sun_dec;
+            r.az = siderealPlanetData.sun_az;
+            r.alt = siderealPlanetData.sun_alt;
+            r.rise = siderealPlanetData.sun_r;
+            r.set_time = siderealPlanetData.sun_s;
+            r.distance = siderealPlanetData.sun_distance;
+            break;
+        case CelestialBody::LUNA:
+            r.tracked = siderealPlanetData.track_luna;
+            r.ra = siderealPlanetData.luna_ra;
+            r.dec = siderealPlanetData.luna_dec;
+            r.az = siderealPlanetData.luna_az;
+            r.alt = siderealPlanetData.luna_alt;
+            r.rise = siderealPlanetData.luna_r;
+            r.set_time = siderealPlanetData.luna_s;
+            r.is_luna = true;
+            r.luna_lum = siderealPlanetData.luna_lum;
+            {
+                // luna_p is NAN until the moon has been tracked at least once
+                // (see clearLuna()); (int)NAN is undefined behavior, so clamp
+                // it the same way UnidentifiedStudios_AstroClock.cpp does.
+                int32_t phase_index = isnan(siderealPlanetData.luna_p)
+                    ? 0
+                    : static_cast<int32_t>(siderealPlanetData.luna_p);
+                if ((phase_index < 0) || (phase_index > 7)) {
+                    phase_index = 0;
+                }
+                r.luna_phase = siderealPlanetData.luna_p_name[phase_index];
+            }
+            break;
+        case CelestialBody::MERCURY:
+            r.tracked = siderealPlanetData.track_mercury;
+            r.ra = siderealPlanetData.mercury_ra;
+            r.dec = siderealPlanetData.mercury_dec;
+            r.az = siderealPlanetData.mercury_az;
+            r.alt = siderealPlanetData.mercury_alt;
+            r.rise = siderealPlanetData.mercury_r;
+            r.set_time = siderealPlanetData.mercury_s;
+            r.distance = siderealPlanetData.mercury_distance;
+            break;
+        case CelestialBody::VENUS:
+            r.tracked = siderealPlanetData.track_venus;
+            r.ra = siderealPlanetData.venus_ra;
+            r.dec = siderealPlanetData.venus_dec;
+            r.az = siderealPlanetData.venus_az;
+            r.alt = siderealPlanetData.venus_alt;
+            r.rise = siderealPlanetData.venus_r;
+            r.set_time = siderealPlanetData.venus_s;
+            r.distance = siderealPlanetData.venus_distance;
+            break;
+        case CelestialBody::MARS:
+            r.tracked = siderealPlanetData.track_mars;
+            r.ra = siderealPlanetData.mars_ra;
+            r.dec = siderealPlanetData.mars_dec;
+            r.az = siderealPlanetData.mars_az;
+            r.alt = siderealPlanetData.mars_alt;
+            r.rise = siderealPlanetData.mars_r;
+            r.set_time = siderealPlanetData.mars_s;
+            r.distance = siderealPlanetData.mars_distance;
+            break;
+        case CelestialBody::JUPITER:
+            r.tracked = siderealPlanetData.track_jupiter;
+            r.ra = siderealPlanetData.jupiter_ra;
+            r.dec = siderealPlanetData.jupiter_dec;
+            r.az = siderealPlanetData.jupiter_az;
+            r.alt = siderealPlanetData.jupiter_alt;
+            r.rise = siderealPlanetData.jupiter_r;
+            r.set_time = siderealPlanetData.jupiter_s;
+            r.distance = siderealPlanetData.jupiter_distance;
+            break;
+        case CelestialBody::SATURN:
+            r.tracked = siderealPlanetData.track_saturn;
+            r.ra = siderealPlanetData.saturn_ra;
+            r.dec = siderealPlanetData.saturn_dec;
+            r.az = siderealPlanetData.saturn_az;
+            r.alt = siderealPlanetData.saturn_alt;
+            r.rise = siderealPlanetData.saturn_r;
+            r.set_time = siderealPlanetData.saturn_s;
+            r.distance = siderealPlanetData.saturn_distance;
+            break;
+        case CelestialBody::URANUS:
+            r.tracked = siderealPlanetData.track_uranus;
+            r.ra = siderealPlanetData.uranus_ra;
+            r.dec = siderealPlanetData.uranus_dec;
+            r.az = siderealPlanetData.uranus_az;
+            r.alt = siderealPlanetData.uranus_alt;
+            r.rise = siderealPlanetData.uranus_r;
+            r.set_time = siderealPlanetData.uranus_s;
+            r.distance = siderealPlanetData.uranus_distance;
+            break;
+        case CelestialBody::NEPTUNE:
+            r.tracked = siderealPlanetData.track_neptune;
+            r.ra = siderealPlanetData.neptune_ra;
+            r.dec = siderealPlanetData.neptune_dec;
+            r.az = siderealPlanetData.neptune_az;
+            r.alt = siderealPlanetData.neptune_alt;
+            r.rise = siderealPlanetData.neptune_r;
+            r.set_time = siderealPlanetData.neptune_s;
+            r.distance = siderealPlanetData.neptune_distance;
+            break;
+        case CelestialBody::COUNT:
+        default:
+            // Unreachable: every enumerator other than COUNT is handled above.
+            break;
+    }
+    return r;
+}
+
+// Body selections are encoded as index <= BODY_TARGET_ENCODE_OFFSET so
+// celestial_sphere_set_target() can share its single current_target_index/
+// selection_box/target_data_box/target_connector_line with siderealObjectSweep
+// selections instead of duplicating that geometry for a 9-object special
+// case. -1 stays "no selection"; sweep objects keep their natural
+// [0, MAX_STARNAV_OBJECTS) index.
+static constexpr int32_t BODY_TARGET_ENCODE_OFFSET = -2;
+
+static inline int32_t encode_body_target(const CelestialBody body) {
+    return BODY_TARGET_ENCODE_OFFSET - static_cast<int32_t>(body);
+}
+
+static inline bool is_body_target(const int32_t encoded_index) {
+    return encoded_index <= BODY_TARGET_ENCODE_OFFSET;
+}
+
+static inline CelestialBody decode_body_target(const int32_t encoded_index) {
+    return static_cast<CelestialBody>(BODY_TARGET_ENCODE_OFFSET - encoded_index);
+}
+
+// ============================================================================
 // LVGL OBJECTS
 // ============================================================================
 static lv_obj_t * volatile celestial_sphere_container = nullptr;
@@ -295,16 +549,19 @@ static lv_obj_t * sweep_max_objects_value_label = nullptr;
 // Object scan: tracks one arbitrary object by catalog table + number
 // (entered via the Scan control), independent of siderealObjectSweep --
 // unlike a clicked marker, the scanned object need not be within the
-// current sweep's aperture at all. Refreshed every celestial_sphere_update()
-// tick via trackObject(), same as taskUniverse() keeps siderealObjectSweep
-// current, so its Alt/Az stays accurate as time and the boresight move.
+// current sweep's aperture at all. Refreshed every taskUniverse() tick via
+// trackObject() (UnidentifiedStudios_TaskHandler.cpp), same as
+// siderealObjectSweep is kept current there, so its Alt/Az stays accurate
+// as time and the boresight move; celestial_sphere_update() only reads it.
+// Declared extern in UnidentifiedStudios_CelestialSphere.h so taskUniverse()
+// can reach them.
 // ----------------------------------------------------------------------------------------
-static int32_t scan_table_i = INDEX_SIDEREAL_MESSIER_TABLE; // dropdown default
-static int32_t scan_object_number = -1;                     // -1 = nothing entered yet
+int32_t scan_table_i = INDEX_SIDEREAL_MESSIER_TABLE; // dropdown default
+int32_t scan_object_number = -1;                     // -1 = nothing entered yet
 // Local instance, not the shared siderealObjectSingle global (see star_nav()
 // in UnidentifiedStudios_CMD.cpp): scanning must not clobber whatever
 // setStarNav() last stored there.
-static SiderealObjectSingle track_target_obj{};
+SiderealObjectSingle track_target_obj{};
 
 static lv_obj_t * scan_table_dropdown = nullptr;
 static lv_obj_t * scan_number_label = nullptr;
@@ -359,6 +616,42 @@ static lv_obj_t * create_marker(lv_obj_t * const parent, const lv_color_t color)
             lv_image_set_src(obj, &object_type_icon_fallback);
             lv_obj_set_style_image_recolor(obj, color, 0);
             lv_obj_set_style_image_recolor_opa(obj, LV_OPA_COVER, 0);
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN); // Hidden until first update positions it
+            result = obj;
+        }
+    }
+    return result;
+}
+
+// ============================================================================
+// CREATE BODY MARKER (Sun, Moon, planets)
+// ============================================================================
+// Creates a hidden, clickable filled circle representing one solar-system
+// body -- mirrors create_planet() in UnidentifiedStudios_AstroClock.cpp (a
+// solid lv_obj_t circle sized per body_diameter_px(), not the dot/icon style
+// create_marker() above uses for catalog objects), so Sun/Moon/planets read
+// the same way on both views.
+static lv_obj_t * create_body_marker(lv_obj_t * const parent, const int32_t diameter, const lv_color_t color) {
+    lv_obj_t * result = nullptr;
+    const bool parent_is_valid = (parent != nullptr) && lv_obj_is_valid(parent);
+    const bool diameter_is_valid = (diameter > 0);
+
+    if (!parent_is_valid) {
+        printf("ERROR: create_body_marker called with invalid parent (ptr=%p)\n", static_cast<const void *>(parent));
+    } else if (!diameter_is_valid) {
+        printf("ERROR: create_body_marker called with invalid diameter (%ld)\n", static_cast<long>(diameter));
+    } else {
+        lv_obj_t * const obj = lv_obj_create(parent);
+        if (obj == nullptr) {
+            printf("ERROR: create_body_marker failed to allocate an object\n");
+        } else {
+            lv_obj_remove_style_all(obj);
+            lv_obj_set_size(obj, diameter, diameter);
+            lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
+            lv_obj_set_style_bg_color(obj, color, 0);
+            lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, 0);
             lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN); // Hidden until first update positions it
@@ -457,9 +750,9 @@ static void scan_table_dropdown_cb(lv_event_t * e) {
 // SET SCAN NUMBER
 // ============================================================================
 // Sets the object number the Scan control tracks; 0 or negative clears it.
-// The actual lookup happens every celestial_sphere_update() tick (see
-// track_target_obj there), so a bad number just shows nothing rather than
-// needing a separate validity report here.
+// The actual lookup happens every taskUniverse() tick (see track_target_obj,
+// UnidentifiedStudios_TaskHandler.cpp), so a bad number just shows nothing
+// rather than needing a separate validity report here.
 void celestial_sphere_set_scan_number(const int32_t number) {
     scan_object_number = number;
     update_scan_number_label();
@@ -502,6 +795,67 @@ static void update_target_data_content(const int32_t object_index) {
             siderealObjectSweep.object_az[object_index],
             siderealObjectSweep.object_alt[object_index]
         );
+        lv_label_set_text(label, buf);
+    }
+}
+
+// ============================================================================
+// UPDATE BODY TARGET DATA BOX CONTENT
+// ============================================================================
+// Same box as update_target_data_content(), populated with siderealPlanetData
+// fields instead of siderealObjectSweep -- Luna gets Phase/Luminance in place
+// of Distance since it has no heliocentric position of its own (see
+// SiderealPlantetsStruct in UnidentifiedStudios_SiderealHelper.h).
+static void update_body_target_data_content(const CelestialBody body) {
+    if (target_data_box != nullptr) {
+        lv_obj_clean(target_data_box);
+        lv_obj_t * const label = lv_label_create(target_data_box);
+        lv_obj_set_style_text_font(label, &font_unscii_12, LV_PART_MAIN);
+        lv_obj_set_style_text_color(label, lv_color_make(0, 255, 0), LV_PART_MAIN);
+
+        const BodyReadout data = body_readout(body);
+        char buf[384];
+        if (data.is_luna) {
+            snprintf(buf, sizeof(buf),
+                "Name            %s\n\n"
+                "Rise            %.2f\n"
+                "Set             %.2f\n"
+                "Phase           %s\n"
+                "Luminance       %.2f\n"
+                "Right Ascension %.2f\n"
+                "Declination     %.2f\n"
+                "Azimuth         %.2f\n"
+                "Altitude        %.2f",
+                body_name(body),
+                data.rise,
+                data.set_time,
+                data.luna_phase,
+                data.luna_lum,
+                data.ra,
+                data.dec,
+                data.az,
+                data.alt
+            );
+        } else {
+            snprintf(buf, sizeof(buf),
+                "Name            %s\n\n"
+                "Rise            %.2f\n"
+                "Set             %.2f\n"
+                "Distance        %.2f\n"
+                "Right Ascension %.2f\n"
+                "Declination     %.2f\n"
+                "Azimuth         %.2f\n"
+                "Altitude        %.2f",
+                body_name(body),
+                data.rise,
+                data.set_time,
+                data.distance,
+                data.ra,
+                data.dec,
+                data.az,
+                data.alt
+            );
+        }
         lv_label_set_text(label, buf);
     }
 }
@@ -610,20 +964,53 @@ void celestial_sphere_set_target(const int32_t object_index) {
     if (target_data_box != nullptr) { lv_obj_add_flag(target_data_box, LV_OBJ_FLAG_HIDDEN); }
     if (target_connector_line != nullptr) { lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN); }
 
-    const bool index_in_range = (object_index >= 0) && (object_index < MAX_STARNAV_OBJECTS);
-    const bool slot_valid = index_in_range &&
-        (siderealObjectSweep.object_table_i[object_index] >= 0) &&
-        (siderealObjectSweep.object_number[object_index] >= 0) &&
-        (markers[object_index].dot != nullptr) &&
-        !lv_obj_has_flag(markers[object_index].dot, LV_OBJ_FLAG_HIDDEN);
+    // object_index is either a body (encoded, see encode_body_target()) or a
+    // plain siderealObjectSweep index -- resolve to a common ObjectMarker
+    // pointer so the geometry/positioning below doesn't need to care which.
+    const ObjectMarker * marker = nullptr;
+    bool slot_valid = false;
+
+    if (is_body_target(object_index)) {
+        const CelestialBody body = decode_body_target(object_index);
+        const int32_t body_i = static_cast<int32_t>(body);
+        slot_valid = (body_i >= 0) && (body_i < CELESTIAL_BODY_COUNT) &&
+            (body_markers[body_i].dot != nullptr) &&
+            !lv_obj_has_flag(body_markers[body_i].dot, LV_OBJ_FLAG_HIDDEN);
+        if (slot_valid) {
+            marker = &body_markers[body_i];
+        }
+    } else {
+        const bool index_in_range = (object_index >= 0) && (object_index < MAX_STARNAV_OBJECTS);
+        slot_valid = index_in_range &&
+            (siderealObjectSweep.object_table_i[object_index] >= 0) &&
+            (siderealObjectSweep.object_number[object_index] >= 0) &&
+            (markers[object_index].dot != nullptr) &&
+            !lv_obj_has_flag(markers[object_index].dot, LV_OBJ_FLAG_HIDDEN);
+        if (slot_valid) {
+            marker = &markers[object_index];
+        }
+    }
 
     current_target_index = slot_valid ? object_index : -1;
 
-    if (slot_valid) {
-        const ObjectMarker * const marker = &markers[object_index];
+    if (slot_valid && (marker != nullptr)) {
+        // Catalog markers are all MARKER_ICON_SIZE; body markers vary in
+        // diameter (see body_diameter_px()) since they're drawn as
+        // proportionally-sized filled circles like
+        // UnidentifiedStudios_AstroClock.cpp's Planet -- size the selection
+        // box/connector to whichever this target actually is.
+        const int32_t marker_half = is_body_target(object_index)
+            ? (body_diameter_px(decode_body_target(object_index)) / 2)
+            : MARKER_ICON_HALF;
+        const int32_t selection_half_size = marker_half + (SELECTION_BOX_PADDING_PX / 2);
 
         if (selection_box != nullptr) {
-            lv_obj_set_pos(selection_box, marker->x - 4, marker->y - 4);
+            lv_obj_set_size(selection_box,
+                             (marker_half * 2) + SELECTION_BOX_PADDING_PX,
+                             (marker_half * 2) + SELECTION_BOX_PADDING_PX);
+            lv_obj_set_pos(selection_box,
+                            marker->x - (SELECTION_BOX_PADDING_PX / 2),
+                            marker->y - (SELECTION_BOX_PADDING_PX / 2));
             lv_obj_clear_flag(selection_box, LV_OBJ_FLAG_HIDDEN);
         }
 
@@ -631,11 +1018,15 @@ void celestial_sphere_set_target(const int32_t object_index) {
         // are all parented to celestial_sphere_container, so no coordinate
         // conversion is needed here -- everything below is already in that
         // one shared space.
-        const int32_t obj_center_x = marker->x + MARKER_ICON_HALF;
-        const int32_t obj_center_y = marker->y + MARKER_ICON_HALF;
+        const int32_t obj_center_x = marker->x + marker_half;
+        const int32_t obj_center_y = marker->y + marker_half;
 
         // Update data box content FIRST so we can measure its size
-        update_target_data_content(object_index);
+        if (is_body_target(object_index)) {
+            update_body_target_data_content(decode_body_target(object_index));
+        } else {
+            update_target_data_content(object_index);
+        }
         lv_obj_update_layout(target_data_box); // Force layout update to calculate size
 
         // Get actual data box dimensions after content is set
@@ -659,11 +1050,11 @@ void celestial_sphere_set_target(const int32_t object_index) {
 
         // Connector start: the selection box's edge facing the data box.
         const int32_t connector_start_x = on_right_side
-            ? (obj_center_x - SELECTION_BOX_HALF_SIZE)
-            : (obj_center_x + SELECTION_BOX_HALF_SIZE);
+            ? (obj_center_x - selection_half_size)
+            : (obj_center_x + selection_half_size);
         const int32_t connector_start_y = in_top_half
-            ? (obj_center_y + SELECTION_BOX_HALF_SIZE)
-            : (obj_center_y - SELECTION_BOX_HALF_SIZE);
+            ? (obj_center_y + selection_half_size)
+            : (obj_center_y - selection_half_size);
 
         // Horizontal positioning (left/right)
         if (on_right_side) {
@@ -833,6 +1224,52 @@ void celestial_sphere_update(void) {
         update_objects_found_label(found_count);
 
         // -----------------------------------------------------------------
+        // SOLAR SYSTEM BODIES (Sun, Moon, planets)
+        // Positioned by the same Alt/Az projection as siderealObjectSweep
+        // above, but tracked directly via siderealPlanetData rather than
+        // being part of the sweep -- there are always exactly
+        // CELESTIAL_BODY_COUNT of them, so they don't count toward
+        // found_count/OBJECTS (that readout is tied to the DEG/MAX sweep
+        // controls, which don't apply to these).
+        // -----------------------------------------------------------------
+        for (int32_t i = 0; i < CELESTIAL_BODY_COUNT; i++) {
+            ObjectMarker * const marker = &body_markers[i];
+            const CelestialBody body = static_cast<CelestialBody>(i);
+            const BodyReadout data = body_readout(body);
+            const bool data_valid = data.tracked && !isnan(data.az) && !isnan(data.alt);
+            const int32_t body_half = body_diameter_px(body) / 2;
+
+            if (!data_valid) {
+                if (marker->dot != nullptr) {
+                    lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+                }
+            } else {
+                const double delta_az = wrap_delta_deg(data.az - center_az);
+                const double delta_alt = data.alt - center_alt;
+
+                const float proj_x_deg = static_cast<float>(delta_az) * cos_center_alt;
+                const float proj_y_deg = static_cast<float>(delta_alt);
+                const float radial_deg = sqrtf((proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg));
+
+                if (radial_deg > static_cast<float>(starNavSweepRangeDeg)) {
+                    // Outside the aperture.
+                    if (marker->dot != nullptr) {
+                        lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+                    }
+                } else {
+                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - body_half;
+                    // Screen Y grows downward while altitude grows upward, so invert.
+                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - body_half;
+
+                    if (marker->dot != nullptr) {
+                        lv_obj_set_pos(marker->dot, marker->x, marker->y);
+                        lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+                    }
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
         // REFRESH ACTIVE TARGET
         // Reposition the selection box/data box as the marker moves; clears
         // the selection if that slot is no longer valid or visible.
@@ -844,22 +1281,16 @@ void celestial_sphere_update(void) {
         // -----------------------------------------------------------------
         // SCAN TARGET
         // Independent of siderealObjectSweep: an arbitrary object tracked by
-        // catalog table + number (see the Scan control). Looked up fresh
-        // every tick via trackObject() so its Alt/Az stays current as
-        // sidereal time and the boresight move, same as siderealObjectSweep
-        // is kept current by taskUniverse()'s repeated starNavSweep() calls.
+        // catalog table + number (see the Scan control). Kept current by
+        // taskUniverse()'s trackObject() call into track_target_obj, same as
+        // siderealObjectSweep is kept current by its repeated starNavSweep()
+        // calls -- this function only reads it.
         // -----------------------------------------------------------------
         if (scan_object_number <= 0) {
             if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
             if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
             if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
         } else {
-            track_target_obj.object_ra = NAN;
-            track_target_obj.object_dec = NAN;
-            track_target_obj.object_az = NAN;
-            track_target_obj.object_alt = NAN;
-            trackObject(&track_target_obj, scan_table_i, scan_object_number);
-
             const bool scan_valid = !isnan(track_target_obj.object_alt) && !isnan(track_target_obj.object_az);
 
             if (!scan_valid) {
@@ -1321,6 +1752,23 @@ void celestial_sphere_begin(
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
+            }
+        }
+
+        // Body markers: Sun, Moon and planets tracked directly via
+        // siderealPlanetData rather than being part of siderealObjectSweep.
+        // Registered with the same click callback as the sweep markers above,
+        // but with an encoded index (see encode_body_target()) so
+        // celestial_sphere_set_target() can tell the two apart while still
+        // sharing its single selection box/data box.
+        for (int32_t i = 0; i < CELESTIAL_BODY_COUNT; i++) {
+            const CelestialBody body = static_cast<CelestialBody>(i);
+            body_markers[i].x = 0;
+            body_markers[i].y = 0;
+            body_markers[i].dot = create_body_marker(celestial_sphere_container, body_diameter_px(body), body_color(body));
+            if (body_markers[i].dot != nullptr) {
+                lv_obj_add_event_cb(body_markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
+                                     reinterpret_cast<void *>(static_cast<intptr_t>(encode_body_target(body))));
             }
         }
 
