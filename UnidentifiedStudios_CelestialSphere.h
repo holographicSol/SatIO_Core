@@ -65,16 +65,22 @@ void celestial_sphere_set_target(int32_t object_index);
 
 // Sets the object number the Scan control tracks, looked up in whichever
 // catalog table its dropdown currently selects (INDEX_SIDEREAL_* in
-// UnidentifiedStudios_SiderealHelper.h). 0 or negative clears the scan.
+// UnidentifiedStudios_SiderealHelper.h), or -- if the dropdown's last entry
+// (BODY) is selected -- a 1-based CelestialBody index (1=Sun ..
+// 9=Neptune) instead. 0 or negative clears the scan.
 void celestial_sphere_set_scan_number(int32_t number);
 
 // Scan control state: which catalog table + object number to track, and the
 // result of tracking it. Populated by taskUniverse()'s trackObject() call
 // (UnidentifiedStudios_TaskHandler.cpp), same as siderealObjectSweep is kept
 // current by its starNavSweep() calls -- celestial_sphere_update() only
-// reads track_target_obj. scan_table_i/scan_object_number are read-only from
-// outside this file; celestial_sphere_set_scan_number() and the Scan table
-// dropdown remain the only writers.
+// reads track_target_obj. Exception: when the Scan dropdown's BODY entry is
+// selected, trackObject() doesn't recognize that table and leaves
+// track_target_obj untouched, so celestial_sphere_update() reads the
+// selected body's live Alt/Az straight out of siderealPlanetData instead.
+// scan_table_i/scan_object_number are read-only from outside this file;
+// celestial_sphere_set_scan_number() and the Scan table dropdown remain the
+// only writers.
 extern int32_t scan_table_i;
 extern int32_t scan_object_number;
 extern SiderealObjectSingle track_target_obj;

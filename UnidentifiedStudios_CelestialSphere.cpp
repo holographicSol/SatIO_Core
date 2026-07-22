@@ -558,6 +558,18 @@ static lv_obj_t * sweep_max_objects_value_label = nullptr;
 // ----------------------------------------------------------------------------------------
 int32_t scan_table_i = INDEX_SIDEREAL_MESSIER_TABLE; // dropdown default
 int32_t scan_object_number = -1;                     // -1 = nothing entered yet
+
+// Extra Scan-dropdown entry appended after the INDEX_SIDEREAL_* catalog
+// tables (0-6): selects one of the CelestialBody solar-system bodies
+// (Sun/Moon/planets) instead of a catalog object. trackObject() doesn't
+// recognize this index -- it falls to trackObjectImpl()'s default/invalid-
+// table case (UnidentifiedStudios_SiderealHelper.cpp) and leaves
+// track_target_obj at NAN -- so celestial_sphere_update() special-cases this
+// table and reads body_readout() directly instead: those bodies are already
+// kept current every tick by trackPlanets(), not trackObject(). In this mode
+// scan_object_number doubles as a 1-based CelestialBody index (1=Sun ..
+// CELESTIAL_BODY_COUNT=Neptune).
+static constexpr int32_t SCAN_TABLE_BODY = INDEX_SIDEREAL_OTHER_OBJECTS_TABLE + 1;
 // Local instance, not the shared siderealObjectSingle global (see star_nav()
 // in UnidentifiedStudios_CMD.cpp): scanning must not clobber whatever
 // setStarNav() last stored there.
@@ -724,7 +736,11 @@ static void celestial_container_click_cb(lv_event_t * e) {
 static void update_scan_number_label(void) {
     if (scan_number_label != nullptr) {
         char buf[16];
-        if (scan_object_number > 0) {
+        const int32_t body_i = scan_object_number - 1;
+        const bool body_i_in_range = (body_i >= 0) && (body_i < CELESTIAL_BODY_COUNT);
+        if ((scan_table_i == SCAN_TABLE_BODY) && body_i_in_range) {
+            snprintf(buf, sizeof(buf), "%s", body_name(static_cast<CelestialBody>(body_i)));
+        } else if (scan_object_number > 0) {
             snprintf(buf, sizeof(buf), "%ld", static_cast<long>(scan_object_number));
         } else {
             snprintf(buf, sizeof(buf), "SCAN");
@@ -738,11 +754,13 @@ static void update_scan_number_label(void) {
 // ============================================================================
 // Dropdown option order (STAR/NGC/IC/MESSIER/CALDWELL/HERSCHEL400/OTHER)
 // matches the INDEX_SIDEREAL_* table indices exactly, so the selected index
-// *is* the table index -- no separate mapping needed.
+// *is* the table index -- no separate mapping needed. BODY is appended after
+// OTHER and maps to SCAN_TABLE_BODY the same way (see its definition above).
 static void scan_table_dropdown_cb(lv_event_t * e) {
     if ((e != nullptr) && (lv_event_get_code(e) == LV_EVENT_VALUE_CHANGED)) {
         lv_obj_t * const dd = static_cast<lv_obj_t *>(lv_event_get_target(e));
         scan_table_i = static_cast<int32_t>(lv_dropdown_get_selected(dd));
+        update_scan_number_label(); // BODY shows the body name; other tables show the raw number
     }
 }
 
@@ -1284,22 +1302,38 @@ void celestial_sphere_update(void) {
         // catalog table + number (see the Scan control). Kept current by
         // taskUniverse()'s trackObject() call into track_target_obj, same as
         // siderealObjectSweep is kept current by its repeated starNavSweep()
-        // calls -- this function only reads it.
+        // calls -- this function only reads it. Except in SCAN_TABLE_BODY
+        // mode: trackObject() doesn't recognize that table, so this function
+        // reads the selected CelestialBody's live Alt/Az straight out of
+        // siderealPlanetData (via body_readout()) instead of track_target_obj.
         // -----------------------------------------------------------------
         if (scan_object_number <= 0) {
             if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
             if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
             if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
         } else {
-            const bool scan_valid = !isnan(track_target_obj.object_alt) && !isnan(track_target_obj.object_az);
+            double scan_az = track_target_obj.object_az;
+            double scan_alt = track_target_obj.object_alt;
+            bool scan_valid = !isnan(scan_alt) && !isnan(scan_az);
+
+            if (scan_table_i == SCAN_TABLE_BODY) {
+                const int32_t body_i = scan_object_number - 1;
+                const bool body_i_in_range = (body_i >= 0) && (body_i < CELESTIAL_BODY_COUNT);
+                const BodyReadout data = body_i_in_range
+                    ? body_readout(static_cast<CelestialBody>(body_i))
+                    : BodyReadout{false, NAN, NAN, NAN, NAN, NAN, NAN, NAN, false, NAN, "Unidentified"};
+                scan_az = data.az;
+                scan_alt = data.alt;
+                scan_valid = data.tracked && !isnan(scan_alt) && !isnan(scan_az);
+            }
 
             if (!scan_valid) {
                 if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
                 if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
                 if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
             } else {
-                const double scan_delta_az = wrap_delta_deg(track_target_obj.object_az - center_az);
-                const double scan_delta_alt = track_target_obj.object_alt - center_alt;
+                const double scan_delta_az = wrap_delta_deg(scan_az - center_az);
+                const double scan_delta_alt = scan_alt - center_alt;
 
                 const float scan_proj_x_deg = static_cast<float>(scan_delta_az) * cos_center_alt;
                 const float scan_proj_y_deg = static_cast<float>(scan_delta_alt);
@@ -1570,9 +1604,12 @@ void celestial_sphere_begin(
             lv_dropdown_add_option(scan_table_dropdown, "CALDWELL", LV_DROPDOWN_POS_LAST);
             lv_dropdown_add_option(scan_table_dropdown, "HERSCHEL400", LV_DROPDOWN_POS_LAST);
             lv_dropdown_add_option(scan_table_dropdown, "OTHER", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "BODY", LV_DROPDOWN_POS_LAST);
             // Dropdown option order matches INDEX_SIDEREAL_* exactly (see
             // scan_table_dropdown_cb), so the default table doubles as the
-            // default selected index.
+            // default selected index. BODY is appended last, mapping to
+            // SCAN_TABLE_BODY -- selects a Sun/Moon/planet body instead of a
+            // catalog object (see SCAN_TABLE_BODY's definition above).
             lv_dropdown_set_selected(scan_table_dropdown, static_cast<uint32_t>(scan_table_i));
             lv_obj_add_event_cb(scan_table_dropdown, scan_table_dropdown_cb, LV_EVENT_VALUE_CHANGED, nullptr);
 
