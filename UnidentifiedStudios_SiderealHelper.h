@@ -226,7 +226,7 @@ extern SiderealObjectSingle siderealObjectSingle;
 // ----------------------------------------------------------------------------------------
 // Hard compile-time cap: sizes every array below and bounds starNavMaxObjects.
 // Not itself runtime-adjustable (it fixes storage), unlike starNavMaxObjects.
-#define MAX_STARNAV_OBJECTS 500
+#define MAX_STARNAV_OBJECTS 200
 // starNavSweep() queries the catalog directly for every object within
 // starNavSweepRangeDeg (degrees) of the current gyroscopic attitude's
 // Alt/Az, and stops early once starNavMaxObjects distinct objects have been
