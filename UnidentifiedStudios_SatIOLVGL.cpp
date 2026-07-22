@@ -268,6 +268,7 @@ typedef enum {
     KB_GPIOPE_PWM_ON,
     KB_GPIOPE_PORT_MAP,
     KB_GPIOPE_CHAN_FREQ,
+    KB_CELESTIAL_SPHERE_SCAN_NUMBER,
     /* ... add other objects as required (does not have to be a lv_textarea) */
 } kb_target_t;
 
@@ -327,6 +328,12 @@ static kb_ctx_t gpiope_pwm_on_ctx = { .target = KB_GPIOPE_PWM_ON, .strval_type =
 static kb_ctx_t gpiope_port_map_ctx = { .target = KB_GPIOPE_PORT_MAP, .strval_type = STRVAL_INT8 };
 static kb_ctx_t gpiope_chan_freq_ctx = { .target = KB_GPIOPE_CHAN_FREQ, .strval_type = STRVAL_UINT64 };
 
+/* Celestial sphere's object-scan number field (UnidentifiedStudios_
+   CelestialSphere.cpp): exposed to that file only as an opaque void*
+   (see get_celestial_sphere_scan_number_kb_ctx()), since kb_ctx_t is
+   private to this translation unit. */
+static kb_ctx_t celestial_sphere_scan_number_ctx = { .target = KB_CELESTIAL_SPHERE_SCAN_NUMBER, .strval_type = STRVAL_UINT32 };
+
 /* ... add other contexts as required (does not have to be a lv_textarea) */
 
 /** ---------------------------------------------------------------------------------------
@@ -378,6 +385,8 @@ void set_keyboard_context_cb(lv_event_t * e)
         case KB_GPIOPE_PWM_ON: kb = &kb_numdec; break;
         case KB_GPIOPE_PORT_MAP: kb = &kb_numdec; break;
         case KB_GPIOPE_CHAN_FREQ: kb = &kb_numdec; break;
+
+        case KB_CELESTIAL_SPHERE_SCAN_NUMBER: kb = &kb_numdec; break;
 
         /* ... add other cases as required */
         default: return;
@@ -664,6 +673,13 @@ void keyboard_event_cb(lv_event_t * e)
             }
             break;
 
+        case KB_CELESTIAL_SPHERE_SCAN_NUMBER:
+            if (strval_validate(ctx->strval_type, input)) {
+                int32_t val = atoi(input);
+                celestial_sphere_set_scan_number(val);
+            }
+            break;
+
         // DEFAULT
         default:
             break;
@@ -674,6 +690,18 @@ void keyboard_event_cb(lv_event_t * e)
     lv_obj_add_flag(kb_user_data->kb, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(kb_user_data->ta, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_user_data(kb_user_data->ta, NULL);  // Clear tracking
+}
+
+/** ---------------------------------------------------------------------------------------
+ * @brief Opaque accessor for celestial_sphere_scan_number_ctx.
+ *
+ * Returned as void* (not kb_ctx_t*) because kb_ctx_t is private to this
+ * translation unit; UnidentifiedStudios_CelestialSphere.cpp just needs a
+ * stable pointer to hand to lv_obj_set_user_data() on its Scan number field.
+ */
+void * get_celestial_sphere_scan_number_kb_ctx(void)
+{
+    return &celestial_sphere_scan_number_ctx;
 }
 
 /** ---------------------------------------------------------------------------------------

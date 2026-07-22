@@ -62,6 +62,11 @@ void celestial_sphere_set_mode(CelestialSphereMode mode);
 // as the active target, or -1 to clear the selection.
 void celestial_sphere_set_target(int32_t object_index);
 
+// Sets the object number the Scan control tracks, looked up in whichever
+// catalog table its dropdown currently selects (INDEX_SIDEREAL_* in
+// UnidentifiedStudios_SiderealHelper.h). 0 or negative clears the scan.
+void celestial_sphere_set_scan_number(int32_t number);
+
 // Shows or hides the celestial sphere overlay; the update timer keeps running
 // either way, so the view is already current the moment it is shown again.
 void celestial_sphere_set_visible(bool visible);

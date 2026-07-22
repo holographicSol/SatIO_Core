@@ -280,6 +280,19 @@ void IdentifyObject(SiderealObjectSingle *obj, int ra_hour, int ra_min, float ra
 void IdentifyObject(SiderealObjectSweep *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
 
 /**
+ * Looks up object `number` directly in one of the four base catalog tables
+ * (INDEX_SIDEREAL_STAR_TABLE / _NGC_TABLE / _IC_TABLE / _OTHER_OBJECTS_TABLE
+ * -- Messier/Caldwell/Herschel400 numbers aren't independently selectable
+ * this way, same restriction starNavSweep()'s catalog scan has), writing its
+ * RA/Dec on success. For callers (e.g. the celestial sphere's object-scan
+ * control) that already know exactly which object they want by number, with
+ * no need for its name/type/description.
+ * @return false (leaving ra_hours, dec_deg untouched) for an invalid table
+ * or an out-of-range/not-found object number.
+ */
+bool lookupObjectRADec(int table_i, int number, double *ra_hours, double *dec_deg);
+
+/**
  * Resolves *obj's (or, for the SiderealObjectSweep overload, slot `index`
  * of *obj's) name/table name/type/constellation/description on demand:
  * name and table name from its stored object_table_i and object_number

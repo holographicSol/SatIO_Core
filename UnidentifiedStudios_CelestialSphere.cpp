@@ -19,6 +19,7 @@
 #include "UnidentifiedStudios_CelestialSphere.h"
 #include "UnidentifiedStudios_GlobalLVGL.h" // stepper_panel_t, create_stepper_panel()
 #include "UnidentifiedStudios_ObjectTypeIcons.h"
+#include "UnidentifiedStudios_SatIOLVGL.h" // set_keyboard_context_cb(), get_celestial_sphere_scan_number_kb_ctx()
 #include "UnidentifiedStudios_SiderealHelper.h"
 
 #ifndef M_PI
@@ -290,6 +291,31 @@ static lv_point_precise_t connector_points[2];
 static lv_obj_t * sweep_range_value_label = nullptr;
 static lv_obj_t * sweep_max_objects_value_label = nullptr;
 
+// ----------------------------------------------------------------------------------------
+// Object scan: tracks one arbitrary object by catalog table + number
+// (entered via the Scan control), independent of siderealObjectSweep --
+// unlike a clicked marker, the scanned object need not be within the
+// current sweep's aperture at all. Refreshed every celestial_sphere_update()
+// tick via trackObject(), same as taskUniverse() keeps siderealObjectSweep
+// current, so its Alt/Az stays accurate as time and the boresight move.
+// ----------------------------------------------------------------------------------------
+static int32_t scan_table_i = INDEX_SIDEREAL_MESSIER_TABLE; // dropdown default
+static int32_t scan_object_number = -1;                     // -1 = nothing entered yet
+// Local instance, not the shared siderealObjectSingle global (see star_nav()
+// in UnidentifiedStudios_CMD.cpp): scanning must not clobber whatever
+// setStarNav() last stored there.
+static SiderealObjectSingle track_target_obj{};
+
+static lv_obj_t * scan_table_dropdown = nullptr;
+static lv_obj_t * scan_number_label = nullptr;
+static lv_obj_t * scan_delta_value_label = nullptr;
+// Highlights the scanned object when it's within the aperture (no data box).
+static lv_obj_t * scan_target_box = nullptr;
+// Small chevron arrowhead pointing toward the scanned object's direction,
+// drawn at the aperture's edge, when it's outside the aperture.
+static lv_obj_t * scan_pointer_line = nullptr;
+static lv_point_precise_t scan_pointer_points[3];
+
 // ============================================================================
 // TO RADIANS
 // ============================================================================
@@ -397,6 +423,46 @@ static void celestial_container_click_cb(lv_event_t * e) {
             celestial_sphere_set_target(-1);
         }
     }
+}
+
+// ============================================================================
+// UPDATE SCAN NUMBER LABEL
+// ============================================================================
+static void update_scan_number_label(void) {
+    if (scan_number_label != nullptr) {
+        char buf[16];
+        if (scan_object_number > 0) {
+            snprintf(buf, sizeof(buf), "%ld", static_cast<long>(scan_object_number));
+        } else {
+            snprintf(buf, sizeof(buf), "SCAN");
+        }
+        lv_label_set_text(scan_number_label, buf);
+    }
+}
+
+// ============================================================================
+// SCAN TABLE DROPDOWN CALLBACK
+// ============================================================================
+// Dropdown option order (STAR/NGC/IC/MESSIER/CALDWELL/HERSCHEL400/OTHER)
+// matches the INDEX_SIDEREAL_* table indices exactly, so the selected index
+// *is* the table index -- no separate mapping needed.
+static void scan_table_dropdown_cb(lv_event_t * e) {
+    if ((e != nullptr) && (lv_event_get_code(e) == LV_EVENT_VALUE_CHANGED)) {
+        lv_obj_t * const dd = static_cast<lv_obj_t *>(lv_event_get_target(e));
+        scan_table_i = static_cast<int32_t>(lv_dropdown_get_selected(dd));
+    }
+}
+
+// ============================================================================
+// SET SCAN NUMBER
+// ============================================================================
+// Sets the object number the Scan control tracks; 0 or negative clears it.
+// The actual lookup happens every celestial_sphere_update() tick (see
+// track_target_obj there), so a bad number just shows nothing rather than
+// needing a separate validity report here.
+void celestial_sphere_set_scan_number(const int32_t number) {
+    scan_object_number = number;
+    update_scan_number_label();
 }
 
 // ============================================================================
@@ -775,6 +841,101 @@ void celestial_sphere_update(void) {
             celestial_sphere_set_target(current_target_index);
         }
 
+        // -----------------------------------------------------------------
+        // SCAN TARGET
+        // Independent of siderealObjectSweep: an arbitrary object tracked by
+        // catalog table + number (see the Scan control). Looked up fresh
+        // every tick via trackObject() so its Alt/Az stays current as
+        // sidereal time and the boresight move, same as siderealObjectSweep
+        // is kept current by taskUniverse()'s repeated starNavSweep() calls.
+        // -----------------------------------------------------------------
+        if (scan_object_number <= 0) {
+            if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
+            if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
+            if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
+        } else {
+            track_target_obj.object_ra = NAN;
+            track_target_obj.object_dec = NAN;
+            track_target_obj.object_az = NAN;
+            track_target_obj.object_alt = NAN;
+            trackObject(&track_target_obj, scan_table_i, scan_object_number);
+
+            const bool scan_valid = !isnan(track_target_obj.object_alt) && !isnan(track_target_obj.object_az);
+
+            if (!scan_valid) {
+                if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
+                if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
+                if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
+            } else {
+                const double scan_delta_az = wrap_delta_deg(track_target_obj.object_az - center_az);
+                const double scan_delta_alt = track_target_obj.object_alt - center_alt;
+
+                const float scan_proj_x_deg = static_cast<float>(scan_delta_az) * cos_center_alt;
+                const float scan_proj_y_deg = static_cast<float>(scan_delta_alt);
+                const float scan_radial_deg = sqrtf((scan_proj_x_deg * scan_proj_x_deg) + (scan_proj_y_deg * scan_proj_y_deg));
+
+                if (scan_radial_deg <= static_cast<float>(starNavSweepRangeDeg)) {
+                    // Within the aperture: highlight it (no data box, no arrow/delta text).
+                    if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
+                    if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
+                    if (scan_target_box != nullptr) {
+                        const int32_t obj_x = SCOPE_CENTER_X + static_cast<int32_t>(scan_proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                        // Screen Y grows downward while altitude grows upward, so invert.
+                        const int32_t obj_y = SCOPE_CENTER_Y - static_cast<int32_t>(scan_proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                        lv_obj_set_pos(scan_target_box, obj_x - (SELECTION_BOX_PADDING_PX / 2), obj_y - (SELECTION_BOX_PADDING_PX / 2));
+                        lv_obj_clear_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN);
+                    }
+                } else {
+                    // Outside the aperture: a small arrowhead at the aperture's
+                    // edge, pointing toward it, with the Alt/Az degrees still
+                    // needed to turn labeled just past its tip.
+                    if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
+
+                    const float dx_screen = scan_proj_x_deg;
+                    const float dy_screen = -scan_proj_y_deg; // screen Y grows downward, +alt is up
+                    const float len = sqrtf((dx_screen * dx_screen) + (dy_screen * dy_screen));
+                    const float ux = dx_screen / len;
+                    const float uy = dy_screen / len;
+                    // Perpendicular to (ux, uy), for the arrowhead's two back corners.
+                    const float perp_x = -uy;
+                    const float perp_y = ux;
+
+                    constexpr float ARROW_LEN_PX = 14.0F;
+                    constexpr float ARROW_HALF_WIDTH_PX = 7.0F;
+                    const float tip_r = static_cast<float>(SCOPE_RADIUS - 4);
+                    const float back_r = tip_r - ARROW_LEN_PX;
+
+                    const int32_t tip_x = SCOPE_CENTER_X + static_cast<int32_t>(ux * tip_r);
+                    const int32_t tip_y = SCOPE_CENTER_Y + static_cast<int32_t>(uy * tip_r);
+                    const int32_t back_center_x = SCOPE_CENTER_X + static_cast<int32_t>(ux * back_r);
+                    const int32_t back_center_y = SCOPE_CENTER_Y + static_cast<int32_t>(uy * back_r);
+
+                    if (scan_pointer_line != nullptr) {
+                        scan_pointer_points[0].x = back_center_x + static_cast<int32_t>(perp_x * ARROW_HALF_WIDTH_PX);
+                        scan_pointer_points[0].y = back_center_y + static_cast<int32_t>(perp_y * ARROW_HALF_WIDTH_PX);
+                        scan_pointer_points[1].x = tip_x;
+                        scan_pointer_points[1].y = tip_y;
+                        scan_pointer_points[2].x = back_center_x - static_cast<int32_t>(perp_x * ARROW_HALF_WIDTH_PX);
+                        scan_pointer_points[2].y = back_center_y - static_cast<int32_t>(perp_y * ARROW_HALF_WIDTH_PX);
+                        lv_line_set_points(scan_pointer_line, scan_pointer_points, 3);
+                        lv_obj_clear_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN);
+                    }
+
+                    if (scan_delta_value_label != nullptr) {
+                        char buf[32];
+                        snprintf(buf, sizeof(buf), "ALT %+.1f  AZ %+.1f", scan_delta_alt, scan_delta_az);
+                        lv_label_set_text(scan_delta_value_label, buf);
+                        const int32_t label_w = lv_obj_get_width(scan_delta_value_label);
+                        const int32_t label_h = lv_obj_get_height(scan_delta_value_label);
+                        const int32_t label_center_x = SCOPE_CENTER_X + static_cast<int32_t>(ux * (tip_r + 20.0F));
+                        const int32_t label_center_y = SCOPE_CENTER_Y + static_cast<int32_t>(uy * (tip_r + 20.0F));
+                        lv_obj_set_pos(scan_delta_value_label, label_center_x - (label_w / 2), label_center_y - (label_h / 2));
+                        lv_obj_clear_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN);
+                    }
+                }
+            }
+        }
+
         lv_timer_resume(sphere_timer);
     }
 }
@@ -935,6 +1096,72 @@ void celestial_sphere_begin(
         );
         objects_found_value_label = objects_found_panel.label_1;
         update_objects_found_label(0);
+
+        // Scan control, pinned outside scope_container, just above its
+        // top-right corner (mirrors OBJECTS, top-left): a catalog-table
+        // dropdown and a clickable number field (opens the shared numeric
+        // keypad -- see get_celestial_sphere_scan_number_kb_ctx()), with a
+        // delta readout stacked above once a scan is active.
+        {
+            const int32_t scan_number_width_px = 60;
+            const int32_t scan_dropdown_width_px = 100;
+            const int32_t scan_row_width_px = scan_dropdown_width_px + SCOPE_OUTSIDE_GAP_PX + scan_number_width_px;
+            const int32_t scan_row_y = scope_top_px - 24 - SCOPE_OUTSIDE_GAP_PX;
+
+            scan_delta_value_label = create_label(
+                celestial_sphere_container,
+                scan_row_width_px, 24,
+                LV_ALIGN_TOP_LEFT,
+                scope_right_px - scan_row_width_px,
+                scan_row_y - 24 - SCOPE_OUTSIDE_GAP_PX,
+                "",
+                LV_TEXT_ALIGN_CENTER,
+                &font_cobalt_alien_17,
+                false, false, false,
+                2, general_radius, 1,
+                default_bg_hue, default_subtitle_hue
+            );
+            lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN);
+
+            scan_table_dropdown = create_dropdown_menu(
+                celestial_sphere_container,
+                nullptr, 0,
+                scan_dropdown_width_px, 24,
+                LV_ALIGN_TOP_LEFT,
+                scope_right_px - scan_row_width_px,
+                scan_row_y,
+                &font_cobalt_alien_17
+            );
+            lv_dropdown_add_option(scan_table_dropdown, "STAR", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "NGC", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "IC", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "MESSIER", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "CALDWELL", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "HERSCHEL400", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(scan_table_dropdown, "OTHER", LV_DROPDOWN_POS_LAST);
+            // Dropdown option order matches INDEX_SIDEREAL_* exactly (see
+            // scan_table_dropdown_cb), so the default table doubles as the
+            // default selected index.
+            lv_dropdown_set_selected(scan_table_dropdown, static_cast<uint32_t>(scan_table_i));
+            lv_obj_add_event_cb(scan_table_dropdown, scan_table_dropdown_cb, LV_EVENT_VALUE_CHANGED, nullptr);
+
+            scan_number_label = create_label(
+                celestial_sphere_container,
+                scan_number_width_px, 24,
+                LV_ALIGN_TOP_LEFT,
+                scope_right_px - scan_number_width_px,
+                scan_row_y,
+                "SCAN",
+                LV_TEXT_ALIGN_CENTER,
+                &font_cobalt_alien_17,
+                false, false, false,
+                2, general_radius, 1,
+                default_bg_hue, default_subtitle_hue
+            );
+            lv_obj_add_flag(scan_number_label, LV_OBJ_FLAG_CLICKABLE);
+            lv_obj_add_event_cb(scan_number_label, set_keyboard_context_cb, LV_EVENT_CLICKED, nullptr);
+            lv_obj_set_user_data(scan_number_label, get_celestial_sphere_scan_number_kb_ctx());
+        }
 
         // DEG bottom-left, outside scope_container (left edge aligned with
         // its left edge).
@@ -1139,6 +1366,25 @@ void celestial_sphere_begin(
         connector_points[1].x = 0;
         connector_points[1].y = 0;
 
+        // -----------------------------------------------------------------
+        // Scan target box (highlights the scanned object when it's within
+        // the aperture -- no data box) and pointer line (points toward it,
+        // clamped to the aperture's edge, when it's outside the aperture).
+        // -----------------------------------------------------------------
+        scan_target_box = create_selection_box(celestial_sphere_container, MARKER_ICON_SIZE);
+
+        scan_pointer_line = lv_line_create(celestial_sphere_container);
+        lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_line_color(scan_pointer_line, COLOR_TARGET, 0);
+        lv_obj_set_style_line_width(scan_pointer_line, CROSSHAIR_LINE_WIDTH, 0);
+        lv_obj_set_style_line_rounded(scan_pointer_line, true, 0);
+        scan_pointer_points[0].x = 0;
+        scan_pointer_points[0].y = 0;
+        scan_pointer_points[1].x = 0;
+        scan_pointer_points[1].y = 0;
+        scan_pointer_points[2].x = 0;
+        scan_pointer_points[2].y = 0;
+
         // Click handler to reset target when clicking background
         lv_obj_add_flag(scope_container, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(scope_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
@@ -1159,6 +1405,8 @@ void celestial_sphere_begin(
         lv_obj_move_foreground(selection_box);
         lv_obj_move_foreground(target_data_box);
         lv_obj_move_foreground(target_connector_line);
+        lv_obj_move_foreground(scan_target_box);
+        lv_obj_move_foreground(scan_pointer_line);
 
         // allow show once built
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
@@ -1208,4 +1456,5 @@ void celestial_sphere_end(void) {
 
     sphere_active = false;
     current_target_index = -1;
+    scan_object_number = -1;
 }

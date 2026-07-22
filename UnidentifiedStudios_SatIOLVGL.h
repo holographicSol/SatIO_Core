@@ -737,6 +737,7 @@ uap_t create_uap(
 void tray_close_ready_cb(lv_anim_t * a);
 void set_keyboard_context_cb(lv_event_t * e);
 void keyboard_event_cb(lv_event_t * e);
+void * get_celestial_sphere_scan_number_kb_ctx(void);
 void screen_swipe_cb(lv_event_t * e);
 void screen_tap_cb(lv_event_t * e);
 void slider_brightness_event_cb(lv_event_t * e);
