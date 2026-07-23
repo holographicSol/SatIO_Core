@@ -55,14 +55,29 @@ static int32_t CELESTIAL_SPHERE_CONTAINER_SIZE = 550;
 static int32_t SCOPE_CENTER_X = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 static int32_t SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 
-static constexpr int32_t MARKER_ICON_SIZE = 32;
-static constexpr int32_t MARKER_ICON_HALF = MARKER_ICON_SIZE / 2;
+// Native size, in px, of the two icon bitmap sets in
+// UnidentifiedStudios_ObjectTypeIcons.cpp (get_object_type_icon() /
+// get_object_type_icon_16()) -- not freely adjustable like the filled-circle
+// diameters below, since it has to match the actual bitmap assets.
+static constexpr int32_t MARKER_ICON_SIZE_32 = 32;
+static constexpr int32_t MARKER_ICON_SIZE_16 = 16;
+
+// Diameter, in px, non-body sweep-object markers are drawn at in each of the
+// "filled circle" visual modes (see MarkerVisualMode below and the
+// visual-mode dropdown created in celestial_sphere_begin()) -- adjust these
+// to resize that mode's dots. The other two modes draw each object's actual
+// type icon (at MARKER_ICON_SIZE_16 or MARKER_ICON_SIZE_32) instead and
+// aren't plain circles at all.
+static constexpr int32_t MARKER_CIRCLE_DIAMETER_4PX  = 4;
+static constexpr int32_t MARKER_CIRCLE_DIAMETER_8PX  = 8;
+static constexpr int32_t MARKER_CIRCLE_DIAMETER_16PX = 16;
+
 // create_selection_box() grows the highlight this far past the marker icon
 // on every side (see its size+SELECTION_BOX_PADDING_PX below).
 static constexpr int32_t SELECTION_BOX_PADDING_PX = 8;
 
 // Distance a marker's center must stay from scope_container's edge
-static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE + SELECTION_BOX_PADDING_PX) / 2;
+static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE_32 + SELECTION_BOX_PADDING_PX) / 2;
 
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
@@ -255,6 +270,55 @@ struct ObjectMarker {
 static ObjectMarker markers[MAX_STARNAV_OBJECTS];
 
 // ============================================================================
+// MARKER VISUAL MODE (non-body sweep objects only; solar system bodies
+// always render via body_diameter_px()/create_body_marker() below,
+// unaffected by this)
+// ============================================================================
+// Selects how each siderealObjectSweep marker is drawn: a plain filled
+// circle at one of three sizes, that object's real type icon at its native
+// 16x16 size, or -- ICON_32, the original/default behaviour -- that same
+// icon at its native 32x32 size. Lets the aperture's marker density/
+// placement be inspected at a glance, independent of icon detail. Changed
+// at runtime via the visual-mode dropdown created in celestial_sphere_begin()
+// (LV_ALIGN_LEFT_MID); set_marker_visual_mode() is the only writer. Enum
+// values match the dropdown's option order exactly (see
+// visual_mode_dropdown_cb()) -- same convention as scan_table_dropdown.
+enum class MarkerVisualMode : int32_t {
+    CIRCLE_4 = 0,
+    CIRCLE_8,
+    CIRCLE_16,
+    ICON_16,
+    ICON_32
+};
+
+static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::ICON_32;
+
+static lv_obj_t * visual_mode_dropdown = nullptr;
+
+// Marker diameter, in px, for the given visual mode.
+static int32_t marker_visual_diameter_px(const MarkerVisualMode mode) {
+    int32_t result = MARKER_ICON_SIZE_32;
+    switch (mode) {
+        case MarkerVisualMode::CIRCLE_4:  result = MARKER_CIRCLE_DIAMETER_4PX;  break;
+        case MarkerVisualMode::CIRCLE_8:  result = MARKER_CIRCLE_DIAMETER_8PX;  break;
+        case MarkerVisualMode::CIRCLE_16: result = MARKER_CIRCLE_DIAMETER_16PX; break;
+        case MarkerVisualMode::ICON_16:   result = MARKER_ICON_SIZE_16;        break;
+        case MarkerVisualMode::ICON_32:
+        default:
+            result = MARKER_ICON_SIZE_32;
+            break;
+    }
+    return result;
+}
+
+// True for the two modes that draw each object's actual type icon
+// (get_object_type_icon()/get_object_type_icon_16()) rather than a plain
+// filled circle.
+static inline bool marker_visual_mode_is_icon(const MarkerVisualMode mode) {
+    return (mode == MarkerVisualMode::ICON_16) || (mode == MarkerVisualMode::ICON_32);
+}
+
+// ============================================================================
 // SOLAR SYSTEM BODY MARKERS (Sun, Moon, planets from siderealPlanetData)
 // ============================================================================
 // MISRA: a named, fixed-underlying-type enum identifies each tracked body so
@@ -313,8 +377,9 @@ static lv_color_t body_color(const CelestialBody body) {
 
 // Marker diameter for each body -- drawn as a filled circle sized to scale
 // (like Planet.radius in UnidentifiedStudios_AstroClock.cpp) rather than the
-// fixed MARKER_ICON_SIZE dot/icon catalog objects use. Relative sizes follow
-// that file's "Sun=8, Jupiter=6, Saturn/Earth=5, Venus/Mars/Uranus/Neptune=4,
+// marker_visual_diameter_px() size catalog objects use (selectable via the
+// visual-mode dropdown). Relative sizes follow that file's
+// "Sun=8, Jupiter=6, Saturn/Earth=5, Venus/Mars/Uranus/Neptune=4,
 // Mercury=3, Luna=2" scale (Earth excluded -- see CelestialBody), scaled by
 // BODY_SIZE_UNIT_PX to fit this view's aperture.
 static constexpr int32_t BODY_SIZE_UNIT_PX = 4;
@@ -674,6 +739,21 @@ static lv_obj_t * create_body_marker(lv_obj_t * const parent, const int32_t diam
 }
 
 // ============================================================================
+// CREATE MARKER FOR VISUAL MODE (non-body sweep objects)
+// ============================================================================
+// Creates one sweep-object marker sized/shaped for the given visual mode:
+// create_marker()'s image widget for the two icon modes, or create_body_
+// marker()'s plain filled circle (color placeholder -- celestial_sphere_
+// update() sets the real per-object tint every tick) for the three circle
+// modes. Used both for the initial marker creation loop in celestial_sphere_
+// begin() and by rebuild_markers_for_mode() when the dropdown switches modes.
+static lv_obj_t * create_marker_for_mode(lv_obj_t * const parent, const MarkerVisualMode mode, const lv_color_t color) {
+    return marker_visual_mode_is_icon(mode)
+        ? create_marker(parent, color)
+        : create_body_marker(parent, marker_visual_diameter_px(mode), color);
+}
+
+// ============================================================================
 // CREATE SELECTION BOX
 // ============================================================================
 // Creates a hidden square outline used to highlight the selected marker.
@@ -714,6 +794,80 @@ static void celestial_marker_click_cb(lv_event_t * e) {
         const int32_t index = static_cast<int32_t>(
             reinterpret_cast<intptr_t>(lv_event_get_user_data(e)));
         celestial_sphere_set_target(index);
+    }
+}
+
+// ============================================================================
+// RAISE OVERLAY WIDGETS TO FOREGROUND
+// ============================================================================
+// Keeps the crosshair (and its box/Alt-Az readout) above the plain markers,
+// and the target/scan highlight boxes above the crosshair in turn. Needed
+// both right after celestial_sphere_begin() creates every widget once, and
+// again after rebuild_markers_for_mode() re-creates the sweep-object markers
+// (each freshly lv_obj_create()'d marker is appended -- and thus stacked --
+// on top of everything else, undoing this ordering).
+static void raise_overlay_widgets_to_foreground(void) {
+    lv_obj_move_foreground(crosshair_h);
+    lv_obj_move_foreground(crosshair_v);
+    lv_obj_move_foreground(crosshair_box);
+    lv_obj_move_foreground(crosshair_alt_value_label);
+    lv_obj_move_foreground(crosshair_az_value_label);
+    lv_obj_move_foreground(crosshair_ra_value_label);
+    lv_obj_move_foreground(crosshair_dec_value_label);
+    lv_obj_move_foreground(crosshair_constellation_value_label);
+
+    lv_obj_move_foreground(selection_box);
+    lv_obj_move_foreground(target_data_box);
+    lv_obj_move_foreground(target_connector_line);
+    lv_obj_move_foreground(scan_target_box);
+    lv_obj_move_foreground(scan_pointer_line);
+}
+
+// ============================================================================
+// SET MARKER VISUAL MODE
+// ============================================================================
+// Deletes and re-creates every siderealObjectSweep marker (bodies are
+// untouched) in the newly selected mode's shape/size, resizes scan_target_
+// box to match, restores z-order, then refreshes immediately so positions/
+// colors/the current selection box are all correct for the new mode without
+// waiting for the next timer tick.
+static void set_marker_visual_mode(const MarkerVisualMode mode) {
+    if (mode != current_marker_visual_mode) {
+        current_marker_visual_mode = mode;
+
+        for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
+            if (markers[i].dot != nullptr) {
+                lv_obj_del(markers[i].dot);
+                markers[i].dot = nullptr;
+            }
+            markers[i].dot = create_marker_for_mode(celestial_sphere_container, mode, COLOR_MARKER);
+            if (markers[i].dot != nullptr) {
+                lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
+                                     reinterpret_cast<void *>(static_cast<intptr_t>(i)));
+            }
+        }
+
+        if (scan_target_box != nullptr) {
+            const int32_t diameter = marker_visual_diameter_px(mode);
+            lv_obj_set_size(scan_target_box, diameter + SELECTION_BOX_PADDING_PX, diameter + SELECTION_BOX_PADDING_PX);
+        }
+
+        raise_overlay_widgets_to_foreground();
+
+        celestial_sphere_update(); // reposition/recolor every marker (and the active selection, if any) now
+    }
+}
+
+// ============================================================================
+// VISUAL MODE DROPDOWN CALLBACK
+// ============================================================================
+// Dropdown option order (4x4/8x8/16x16/16 ICON/32 ICON) matches
+// MarkerVisualMode's enumerator order exactly, same convention as
+// scan_table_dropdown_cb.
+static void visual_mode_dropdown_cb(lv_event_t * e) {
+    if ((e != nullptr) && (lv_event_get_code(e) == LV_EVENT_VALUE_CHANGED)) {
+        lv_obj_t * const dd = static_cast<lv_obj_t *>(lv_event_get_target(e));
+        set_marker_visual_mode(static_cast<MarkerVisualMode>(lv_dropdown_get_selected(dd)));
     }
 }
 
@@ -1012,14 +1166,15 @@ void celestial_sphere_set_target(const int32_t object_index) {
     current_target_index = slot_valid ? object_index : -1;
 
     if (slot_valid && (marker != nullptr)) {
-        // Catalog markers are all MARKER_ICON_SIZE; body markers vary in
-        // diameter (see body_diameter_px()) since they're drawn as
-        // proportionally-sized filled circles like
+        // Catalog markers are all marker_visual_diameter_px(current_marker_
+        // visual_mode) (the visual-mode dropdown's current selection); body
+        // markers vary in diameter (see body_diameter_px()) since they're
+        // drawn as proportionally-sized filled circles like
         // UnidentifiedStudios_AstroClock.cpp's Planet -- size the selection
         // box/connector to whichever this target actually is.
         const int32_t marker_half = is_body_target(object_index)
             ? (body_diameter_px(decode_body_target(object_index)) / 2)
-            : MARKER_ICON_HALF;
+            : (marker_visual_diameter_px(current_marker_visual_mode) / 2);
         const int32_t selection_half_size = marker_half + (SELECTION_BOX_PADDING_PX / 2);
 
         if (selection_box != nullptr) {
@@ -1195,6 +1350,10 @@ void celestial_sphere_update(void) {
         // instead of stretching objects near the zenith horizontally.
         const float cos_center_alt = cosf(deg2rad(static_cast<float>(center_alt)));
 
+        // Current visual-mode marker size, used below for every non-body
+        // sweep-object marker (bodies always use body_diameter_px()).
+        const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
+
         int32_t found_count = 0;
 
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
@@ -1223,15 +1382,25 @@ void celestial_sphere_update(void) {
                 } else {
                     found_count++;
 
-                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
                     // Screen Y grows downward while altitude grows upward, so invert.
-                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
 
                     if (marker->dot != nullptr) {
                         const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&siderealObjectSweep, i);
-                        const lv_image_dsc_t * const icon = (type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr;
-                        lv_image_set_src(marker->dot, (icon != nullptr) ? icon : &object_type_icon_fallback);
-                        lv_obj_set_style_image_recolor(marker->dot, object_type_color(type_entry), 0);
+                        const lv_color_t color = object_type_color(type_entry);
+                        if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
+                            const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                                ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
+                                : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
+                            const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                                ? &object_type_icon_fallback_16
+                                : &object_type_icon_fallback;
+                            lv_image_set_src(marker->dot, (icon != nullptr) ? icon : fallback);
+                            lv_obj_set_style_image_recolor(marker->dot, color, 0);
+                        } else {
+                            lv_obj_set_style_bg_color(marker->dot, color, 0);
+                        }
                         lv_obj_set_pos(marker->dot, marker->x, marker->y);
                         lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
@@ -1344,9 +1513,9 @@ void celestial_sphere_update(void) {
                     if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
                     if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
                     if (scan_target_box != nullptr) {
-                        const int32_t obj_x = SCOPE_CENTER_X + static_cast<int32_t>(scan_proj_x_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                        const int32_t obj_x = SCOPE_CENTER_X + static_cast<int32_t>(scan_proj_x_deg * PX_PER_DEG) - marker_half;
                         // Screen Y grows downward while altitude grows upward, so invert.
-                        const int32_t obj_y = SCOPE_CENTER_Y - static_cast<int32_t>(scan_proj_y_deg * PX_PER_DEG) - MARKER_ICON_HALF;
+                        const int32_t obj_y = SCOPE_CENTER_Y - static_cast<int32_t>(scan_proj_y_deg * PX_PER_DEG) - marker_half;
                         lv_obj_set_pos(scan_target_box, obj_x - (SELECTION_BOX_PADDING_PX / 2), obj_y - (SELECTION_BOX_PADDING_PX / 2));
                         lv_obj_clear_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN);
                     }
@@ -1631,6 +1800,34 @@ void celestial_sphere_begin(
             lv_obj_set_user_data(scan_number_label, get_celestial_sphere_scan_number_kb_ctx());
         }
 
+        // Visual-mode control: switches how non-body sweep-object markers
+        // are drawn (see MarkerVisualMode) so the aperture's marker density/
+        // placement can be inspected independent of icon detail. Pinned
+        // outside scope_container's left edge, vertically centered.
+        // This is currently a feature intended for developmental, experimental purposes.  
+        {
+            const int32_t visual_mode_dropdown_width_px = 120;
+
+            visual_mode_dropdown = create_dropdown_menu(
+                celestial_sphere_container,
+                nullptr, 0,
+                visual_mode_dropdown_width_px, 24,
+                LV_ALIGN_BOTTOM_MID,
+                0,
+                0,
+                &font_cobalt_alien_17
+            );
+            lv_dropdown_add_option(visual_mode_dropdown, "4x4", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(visual_mode_dropdown, "8x8", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(visual_mode_dropdown, "16x16", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(visual_mode_dropdown, "16 ICON", LV_DROPDOWN_POS_LAST);
+            lv_dropdown_add_option(visual_mode_dropdown, "32 ICON", LV_DROPDOWN_POS_LAST);
+            // Option order matches MarkerVisualMode exactly (see
+            // visual_mode_dropdown_cb()), same convention as scan_table_dropdown.
+            lv_dropdown_set_selected(visual_mode_dropdown, static_cast<uint32_t>(current_marker_visual_mode));
+            lv_obj_add_event_cb(visual_mode_dropdown, visual_mode_dropdown_cb, LV_EVENT_VALUE_CHANGED, nullptr);
+        }
+
         // DEG bottom-left, outside scope_container (left edge aligned with
         // its left edge).
         const stepper_panel_t sweep_range_panel = create_stepper_panel(
@@ -1781,11 +1978,14 @@ void celestial_sphere_begin(
 
         update_gyro_attitude_label(); // populate the four labels immediately
 
-        // Markers, one per possible siderealObjectSweep slot.
+        // Markers, one per possible siderealObjectSweep slot -- shaped/sized
+        // for whichever visual mode is currently selected (ICON_32 by
+        // default; persists across celestial_sphere_begin() calls, same as
+        // e.g. scan_table_i does).
         for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
             markers[i].x = 0;
             markers[i].y = 0;
-            markers[i].dot = create_marker(celestial_sphere_container, COLOR_MARKER);
+            markers[i].dot = create_marker_for_mode(celestial_sphere_container, current_marker_visual_mode, COLOR_MARKER);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
@@ -1809,7 +2009,7 @@ void celestial_sphere_begin(
             }
         }
 
-        selection_box = create_selection_box(celestial_sphere_container, MARKER_ICON_SIZE);
+        selection_box = create_selection_box(celestial_sphere_container, marker_visual_diameter_px(current_marker_visual_mode));
         ok = (selection_box != nullptr);
         if (!ok) {
             printf("ERROR: celestial_sphere_begin failed to create selection_box\n");
@@ -1856,7 +2056,7 @@ void celestial_sphere_begin(
         // the aperture -- no data box) and pointer line (points toward it,
         // clamped to the aperture's edge, when it's outside the aperture).
         // -----------------------------------------------------------------
-        scan_target_box = create_selection_box(celestial_sphere_container, MARKER_ICON_SIZE);
+        scan_target_box = create_selection_box(celestial_sphere_container, marker_visual_diameter_px(current_marker_visual_mode));
 
         scan_pointer_line = lv_line_create(celestial_sphere_container);
         lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN);
@@ -1874,24 +2074,10 @@ void celestial_sphere_begin(
         lv_obj_add_flag(scope_container, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(scope_container, celestial_container_click_cb, LV_EVENT_CLICKED, nullptr);
 
-        // Keep the crosshair (and its box/Alt-Az readout) above the plain
-        // markers, which are created (and thus stacked) after it.
-        lv_obj_move_foreground(crosshair_h);
-        lv_obj_move_foreground(crosshair_v);
-        lv_obj_move_foreground(crosshair_box);
-        lv_obj_move_foreground(crosshair_alt_value_label);
-        lv_obj_move_foreground(crosshair_az_value_label);
-        lv_obj_move_foreground(crosshair_ra_value_label);
-        lv_obj_move_foreground(crosshair_dec_value_label);
-        lv_obj_move_foreground(crosshair_constellation_value_label);
-
-        // Target boxes go last so they stay in front of the crosshair too
-        // (selecting/targeting a marker should never be hidden behind it).
-        lv_obj_move_foreground(selection_box);
-        lv_obj_move_foreground(target_data_box);
-        lv_obj_move_foreground(target_connector_line);
-        lv_obj_move_foreground(scan_target_box);
-        lv_obj_move_foreground(scan_pointer_line);
+        // Keep the crosshair and target/scan highlight boxes above the plain
+        // markers, which are created (and thus stacked) after it -- see
+        // raise_overlay_widgets_to_foreground().
+        raise_overlay_widgets_to_foreground();
 
         // allow show once built
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);

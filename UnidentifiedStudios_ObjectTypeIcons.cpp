@@ -13,9 +13,12 @@
 // anti-aliased edges below -- there is no hand-tuned pixel. Both the 16x16
 // map and the 32x32 map (suffixed _32) are independent downsamples of the
 // same high-resolution source, not one derived from the other.
-// object_type_icon_dsc/object_type_icon_fallback point at the 32x32 maps,
-// which is what actually gets drawn on screen. The 16x16 maps are kept for
-// API symmetry (not currently referenced by any descriptor).
+// object_type_icon_dsc/object_type_icon_fallback point at the 32x32 maps
+// (get_object_type_icon()/object_type_icon_fallback); object_type_icon_dsc_16/
+// object_type_icon_fallback_16 point at the 16x16 maps instead
+// (get_object_type_icon_16()/object_type_icon_fallback_16) -- see
+// UnidentifiedStudios_CelestialSphere.cpp's visual-mode dropdown, which picks
+// between the two icon sizes (or a plain filled circle).
 
 
 // [0] num=0 "Polar Ring Galaxy"
@@ -1397,6 +1400,123 @@ static const int object_type_icon_num[22] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
 };
 
+// One lv_image_dsc_t per 16x16 map above (object_type_icon_NN_..._map,
+// without the _32 suffix), same order/index as object_type_icon_dsc/
+// object_type_icon_num above -- an independent downsample of the same
+// source image, not a scaled-down copy of the 32x32 icon.
+static const lv_image_dsc_t object_type_icon_dsc_16[22] = {
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_00_polar_ring_galaxy_map),
+        .data = object_type_icon_00_polar_ring_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_01_part_of_galaxy_map),
+        .data = object_type_icon_01_part_of_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_02_open_cluster_map),
+        .data = object_type_icon_02_open_cluster_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_03_globular_cluster_map),
+        .data = object_type_icon_03_globular_cluster_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_04_supernova_remnant_map),
+        .data = object_type_icon_04_supernova_remnant_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_05_dark_nebula_map),
+        .data = object_type_icon_05_dark_nebula_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_06_emission_nebula_map),
+        .data = object_type_icon_06_emission_nebula_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_07_reflection_nebula_map),
+        .data = object_type_icon_07_reflection_nebula_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_08_planetary_nebula_map),
+        .data = object_type_icon_08_planetary_nebula_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_09_not_found_map),
+        .data = object_type_icon_09_not_found_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_10_double_star_map),
+        .data = object_type_icon_10_double_star_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_11_triple_star_map),
+        .data = object_type_icon_11_triple_star_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_12_quad_star_map),
+        .data = object_type_icon_12_quad_star_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_13_star_map),
+        .data = object_type_icon_13_star_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_14_star_group_map),
+        .data = object_type_icon_14_star_group_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_15_compact_galaxy_map),
+        .data = object_type_icon_15_compact_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_16_dwarf_galaxy_map),
+        .data = object_type_icon_16_dwarf_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_17_elliptical_galaxy_map),
+        .data = object_type_icon_17_elliptical_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_18_irregular_galaxy_map),
+        .data = object_type_icon_18_irregular_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_19_peculiar_galaxy_map),
+        .data = object_type_icon_19_peculiar_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_20_spiral_galaxy_map),
+        .data = object_type_icon_20_spiral_galaxy_map,
+    },
+    {
+        .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+        .data_size = sizeof(object_type_icon_21_ring_galaxy_map),
+        .data = object_type_icon_21_ring_galaxy_map,
+    },
+};
+
 // Plain HUD target-lock reticle (four corner brackets around a center dot)
 // for objects that don't classify through objectType[] (Messier, Caldwell,
 // Other tables).
@@ -1461,12 +1581,31 @@ const lv_image_dsc_t object_type_icon_fallback = {
     .data = object_type_icon_fallback_map_32,
 };
 
+const lv_image_dsc_t object_type_icon_fallback_16 = {
+    .header = { .cf = LV_COLOR_FORMAT_A8, .w = 16, .h = 16, .stride = 16 },
+    .data_size = sizeof(object_type_icon_fallback_map),
+    .data = object_type_icon_fallback_map,
+};
+
 const lv_image_dsc_t * get_object_type_icon(const int type_num) {
     const lv_image_dsc_t * result = nullptr;
     if (type_num >= 0) {
         for (int i = 0; i < 22; i++) {
             if (object_type_icon_num[i] == type_num) {
                 result = &object_type_icon_dsc[i];
+                break;
+            }
+        }
+    }
+    return result;
+}
+
+const lv_image_dsc_t * get_object_type_icon_16(const int type_num) {
+    const lv_image_dsc_t * result = nullptr;
+    if (type_num >= 0) {
+        for (int i = 0; i < 22; i++) {
+            if (object_type_icon_num[i] == type_num) {
+                result = &object_type_icon_dsc_16[i];
                 break;
             }
         }

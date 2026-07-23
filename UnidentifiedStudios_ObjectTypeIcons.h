@@ -10,8 +10,9 @@
     star scatters, log-spiral galaxy arms and radial glow falloffs, drawn
     at high supersampled resolution and downsampled for anti-aliasing. A
     16x16 companion bitmap (an independent downsample of the same source,
-    not an upscale of one another) is also kept in the .cpp file for API
-    symmetry, though only the 32x32 bitmap is actually returned here.
+    not an upscale of one another) is also kept in the .cpp file, returned
+    by get_object_type_icon_16() below for callers that want the smaller
+    glyph directly instead of scaling the 32x32 one down.
 */
 
 #ifndef OBJECT_TYPE_ICONS_H
@@ -19,7 +20,7 @@
 
 #include "lvgl.h"
 
-// Returns the icon whose shape encodes SiderealObjectTypeEntry.num ==
+// Returns the 32x32 icon whose shape encodes SiderealObjectTypeEntry.num ==
 // type_num (see objectType[] in SiderealObjectsTables.cpp), or nullptr if
 // type_num is negative or matches no row of that table.
 // Every icon is LV_COLOR_FORMAT_A8 (alpha-only, no color of its own): it is
@@ -33,5 +34,13 @@ const lv_image_dsc_t * get_object_type_icon(int type_num);
 // tables use their own/no type field) -- see getObjectTypeEntry() in
 // UnidentifiedStudios_SiderealHelper.h.
 extern const lv_image_dsc_t object_type_icon_fallback;
+
+// 16x16 companion to object_type_icon_fallback above.
+extern const lv_image_dsc_t object_type_icon_fallback_16;
+
+// Same lookup as get_object_type_icon(), but returns the 16x16 companion
+// bitmap instead (an independent downsample of the same source, not a
+// scaled-down copy of the 32x32 icon).
+const lv_image_dsc_t * get_object_type_icon_16(int type_num);
 
 #endif
