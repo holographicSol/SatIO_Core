@@ -17329,16 +17329,11 @@ void initSatIOUI() {
     // LVGL Initialization
     // --------------------------------------------------------------
     ESP_LOGI("LVGL", "Version: %d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
-
-    // delay(1000);
     
     // Initialize LVGL display object via BSP
     lv_display_t *disp = bsp_display_start();
     if (!disp) {ESP_LOGE("APP", "Failed to initialize display");}
     ESP_LOGI("APP", "Display initialized successfully");
-    
-    // Give BSP task time to fully initialize LVGL
-    // vTaskDelay(pdMS_TO_TICKS(1000));
 
     // Set LVGL tick period
     lv_timer_set_period(lv_timer_get_next(NULL), 40);  // ms
@@ -17350,6 +17345,14 @@ void initSatIOUI() {
     bsp_display_brightness_set(slider_brightness_value);
 
     // Create Screen Objects
+    //
+    // bsp_display_start() (above) already spun up the BSP's own LVGL task,
+    // which is concurrently calling lv_timer_handler() under bsp_display_lock().
+    // Every LVGL API call made from this task must take the same lock or it
+    // races that task (e.g. lv_scr_load() below can lose its redraw signal
+    // entirely.
+    bsp_display_lock(portMAX_DELAY);
+
     loading_screen = lv_obj_create(NULL);
     home_screen    = lv_obj_create(NULL);
     matrix_screen  = lv_obj_create(NULL);
@@ -17437,4 +17440,6 @@ void initSatIOUI() {
     // Display Loading Screen
     // --------------------------------------------------------------
     display_loading_screen();
+
+    bsp_display_unlock();
 }

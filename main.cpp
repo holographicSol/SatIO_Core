@@ -244,6 +244,7 @@ extern "C" void app_main(void)
     // ----------------------------------------------------------------------------
     // const uint32_t startup_delay_ms = 1000U; // Named so the duration is documented once.
     // delay(startup_delay_ms);
+
     /** ----------------------------------------------------------------------------
      * Watchdog Configuration.
      *
@@ -263,6 +264,7 @@ extern "C" void app_main(void)
     };
     ESP_ERROR_CHECK(esp_task_wdt_reconfigure(&wdt_config));
     // delay(5000);
+
     /** ----------------------------------------------------------------------------
      * sdcard_mount() (UnidentifiedStudios_SdCardHelper.cpp) is called on every
      * taskStorage() cycle to catch SD card hotplug events, which re-enters
@@ -271,17 +273,13 @@ extern "C" void app_main(void)
      * is expected in that case, not an error, so it's silenced at the source.
      */
     esp_log_level_set("sdmmc_periph", ESP_LOG_WARN);
+
     /** ----------------------------------------------------------------------------
      * Initialize Mutexes
      */
     initSystemTimeMutex(); // must exist before any task can touch tv_now/timeinfo
     initDataMutex();       // must exist before any task can touch SatIOData/systemData
-    /** ----------------------------------------------------------------------------
-     * LVGL Initialization
-     */
-    #ifdef SatIO_DISPLAY_OPTION_LVGL
-    initSatIOUI();
-    #endif
+
     /** ----------------------------------------------------------------------------
      * Diagnostic UART0 Setup.
      *
@@ -309,16 +307,26 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(uart_driver_install(UART0_NUM, UART0_BUF_SIZE * 2, UART0_BUF_SIZE, UART0_QUEUE_LENGTH, &uart0_queue, 0));
     (void)xTaskCreate(uart0_event_task, "uart0_event_task", UART0_TASK_STACK_SIZE, NULL, UART0_TASK_PRIORITY, NULL);
     ESP_LOGI(APP_MAIN_TAG, "UART0 ready - send data to GPIO1 (RX0)");
+
+    /** ----------------------------------------------------------------------------
+     * LVGL Initialization
+     */
+    #ifdef SatIO_DISPLAY_OPTION_LVGL
+    initSatIOUI();
+    #endif
+
     /** ----------------------------------------------------------------------------
      * Matrix Function Index Table
      */
     printMatrixFunctionIndexTable();
+
     /** ----------------------------------------------------------------------------
      * System Time
      */
-    printf("Initializing system time");
+    printf("Initializing system time\n");
     SatIOData.systemTime.sync_immediately_flag=true;
     initSystemTime();
+
     /** ----------------------------------------------------------------------------
      * I2C Bus 2.
      *
@@ -334,6 +342,7 @@ extern "C" void app_main(void)
     iic_2.setTimeOut(I2C_TIMEOUT_MS_BUS2);
     (void)iic_2.begin(IIC_BUS2_SDA, IIC_BUS2_SCL, I2C_CLOCK_Hz_BUS2);
     iic_2.setClock(I2C_CLOCK_Hz_BUS2);
+
     /** ----------------------------------------------------------------------------
      * I2C Bus 0.
      *
@@ -342,14 +351,12 @@ extern "C" void app_main(void)
      *     Rule 17.7).
      * (2) Brings up I2C bus.
      */
-    printf("Initializing I2C bus 0");
+    printf("Initializing I2C bus 0\n");
     (void)iic_0.setPins(IIC_BUS0_SDA, IIC_BUS0_SCL);
     (void)iic_0.setBufferSize(MAX_IIC_BUFFER_SIZE);
     iic_0.setTimeOut(I2C_TIMEOUT_MS_BUS0);
     (void)iic_0.begin(IIC_BUS0_SDA, IIC_BUS0_SCL, I2C_CLOCK_Hz_BUS0);
     iic_0.setClock(I2C_CLOCK_Hz_BUS0);
-
-    delay(1000);
 
     /** ----------------------------------------------------------------------------
      * Start storage task before anything else, so that we can continue with any
@@ -363,8 +370,6 @@ extern "C" void app_main(void)
     while (sdcardFlagData.load_system==true) {}
     while (sdcardFlagData.load_system || sdcardFlagData.load_matrix ||
     sdcardFlagData.load_mapping == true) {}
-
-    // delay(5000);
 
     /** ----------------------------------------------------------------------------
      * @brief Automatically setup GPIOPE devices (according to setup in GPIOPE).
@@ -387,7 +392,7 @@ extern "C" void app_main(void)
      *     perspective.
      */
     #ifdef SatIO_USE_GPS_0
-    printf("Serial1 (GPS) starting");
+    printf("Serial1 (GPS) starting\n");
     const int8_t pin_not_used               = -1;
     const int8_t gps_uart_rxd_pin           = 34;
     const int8_t gps_uart_txd_pin           = pin_not_used;
@@ -402,8 +407,8 @@ extern "C" void app_main(void)
         // Block until the UART peripheral reports ready.
     }
     Serial1.flush();
-    printf("Serial1 baud rate: %lu", (unsigned long)gps_uart_baud_rate);
-    printf("Serial1 hardware remap: RX=%d TX=%d", gps_uart_rxd_pin, gps_uart_txd_pin);
+    printf("Serial1 baud rate: %lu\n", (unsigned long)gps_uart_baud_rate);
+    printf("Serial1 hardware remap: RX=%d TX=%d\n", gps_uart_rxd_pin, gps_uart_txd_pin);
     #endif
     // Full ~0-3.3V input range; applies to every ADC channel.
     analogSetAttenuation(ADC_11db);
@@ -411,21 +416,21 @@ extern "C" void app_main(void)
     // Create Tasks.
     // ----------------------------------------------------------------------------
     // System Time
-    printf("creating system time task");
+    printf("creating system time task\n");
     createTaskSystemTime();
 
     // delay(5000);
 
     // GPS
     #ifdef SatIO_USE_GPS_0
-    printf("creating GPS task");
+    printf("creating GPS task\n");
     createTaskGPS(); // (target: 10Hz)
     #endif
 
     // Gyro
     #ifdef SatIO_USE_GYRO_0
     initWT901();
-    printf("creating gyro task");
+    printf("creating gyro task\n");
     createTaskGyro(); // (target: 200Hz)
     #endif
     
@@ -445,38 +450,38 @@ extern "C" void app_main(void)
 
     // Auxiliary Input
     #ifdef GPIOPE_USE_INPUT
-    printf("creating auxiliary input task");
+    printf("creating auxiliary input task\n");
     createTaskInputPortController(); // (target: ?) Large general input
     #endif
 
     // Matrix
     #ifdef SatIO_USE_MATRIX
-    printf("creating auxiliary output task");
+    printf("creating auxiliary output task\n");
     createTaskSwitches(); // (target: max 1KHz) Fast general calc -> output
     #endif
     
     // Universe
     #ifdef SatIO_USE_UNIVERSE
-    printf("creating universe task");
+    printf("creating universe task\n");
     myAstroBegin();
     createTaskUniverse(); // (target: +1Hz)
     #endif
 
     // SatIO Serial Tx
     #ifdef SatIO_SERIAL_TX_OPTION_NEW_TASK
-    printf("creating SatIO serial tx task");
+    printf("creating SatIO serial tx task\n");
     createTaskSatIOSerialTx(); // (target: >= 200Hz)
     #endif
 
     // Attempt to approximately synchronize tasks
-    printf("attempting to synchronize tasks");
+    printf("attempting to synchronize tasks\n");
     syncTasks();
     // ESP_LOGI(APP_MAIN_TAG, "waiting for tasks to settle");
     // const uint32_t task_settle_delay_ms = 5000U; // Gives every task time for a first pass before the UI starts.
     // delay(task_settle_delay_ms);
     // Display
     #ifdef SatIO_USE_DISPLAY
-    printf("starting SatIO UI");
+    printf("starting SatIO UI\n");
     flag_display_home_screen = true;
     createTaskDisplayUpdate();
     #endif

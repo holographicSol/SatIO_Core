@@ -11,6 +11,7 @@
 
 #include "bsp/esp32_p4_wifi6_touch_lcd_xc.h"
 #include <limits.h>
+#include <string.h>
 #include "esp_log.h"
 #include "lvgl.h"
 #include <stdlib.h>

@@ -2086,6 +2086,7 @@ sdcard_image_t * create_image_from_sdcard(
     // Allocate sdcard_image_t structure
     sdcard_image_t * sdcard_image = (sdcard_image_t *)heap_caps_malloc(sizeof(sdcard_image_t), MALLOC_CAP_SPIRAM);
     if (!sdcard_image) {
+        printf("[create_image_from_sdcard] failed to allocate image bytes in memory.\n");
         return NULL;
     }
 
@@ -2093,6 +2094,7 @@ sdcard_image_t * create_image_from_sdcard(
     sdcard_image->f_size = get_file_size(filename);
     if (sdcard_image->f_size == 0) {
         heap_caps_free(sdcard_image);
+        printf("[create_image_from_sdcard] failed to get file size.\n");
         return NULL;
     }
 
@@ -2100,21 +2102,46 @@ sdcard_image_t * create_image_from_sdcard(
     sdcard_image->bytes_in_psram = load_file_bytes_to_psram(filename, sdcard_image->f_size);
     if (!sdcard_image->bytes_in_psram) {
         heap_caps_free(sdcard_image);
+        printf("[create_image_from_sdcard] failed to load image bytes into PSRAM.\n");
         return NULL;
     }
 
-    // Create descriptor from loaded data
-    sdcard_image->dsc.header.cf = color_depth_bits == 24 ? LV_COLOR_FORMAT_RGB565A8 : LV_COLOR_FORMAT_RGB565;
-    sdcard_image->dsc.header.w = width_px;
-    sdcard_image->dsc.header.h = height_px;
-    sdcard_image->dsc.data_size = sdcard_image->f_size;
-    sdcard_image->dsc.data = sdcard_image->bytes_in_psram; // Pointer to PSRAM data
+    // Create descriptor from loaded data.
+    //
+    // Files under /sdcard are produced by LVGLImage.py --ofmt BIN (see
+    // README_LVGL.txt), which writes a 12-byte lv_image_header_t immediately
+    // before the raw pixel data. The pixel data therefore starts after that
+    // header, not at byte 0, and the header's own cf/w/h/stride/magic must be
+    // used as-is: fabricating a header here left stride/flags/magic as
+    // uninitialized heap memory, which made LVGL's bin decoder reject the
+    // image outright whenever stride * height > data_size (lv_draw_buf_init()).
+    if (sdcard_image->f_size <= sizeof(lv_image_header_t)) {
+        printf("[create_image_from_sdcard] %s too small to contain an lv_image_header_t\n", filename);
+        heap_caps_free(sdcard_image->bytes_in_psram);
+        heap_caps_free(sdcard_image);
+        return NULL;
+    }
+    memcpy(&sdcard_image->dsc.header, sdcard_image->bytes_in_psram, sizeof(lv_image_header_t));
+    if (sdcard_image->dsc.header.magic != LV_IMAGE_HEADER_MAGIC) {
+        printf("[create_image_from_sdcard] %s is not an LVGL .bin image (bad header magic)\n", filename);
+        heap_caps_free(sdcard_image->bytes_in_psram);
+        heap_caps_free(sdcard_image);
+        return NULL;
+    }
+    lv_color_format_t expected_cf = color_depth_bits == 24 ? LV_COLOR_FORMAT_RGB565A8 : LV_COLOR_FORMAT_RGB565;
+    if (sdcard_image->dsc.header.cf != expected_cf) {
+        printf("[create_image_from_sdcard] %s color format %d does not match expected %d\n",
+               filename, sdcard_image->dsc.header.cf, expected_cf);
+    }
+    sdcard_image->dsc.data = sdcard_image->bytes_in_psram + sizeof(lv_image_header_t);
+    sdcard_image->dsc.data_size = sdcard_image->f_size - sizeof(lv_image_header_t);
 
     // Create LVGL image object
     sdcard_image->lv_image_obj = lv_img_create(parent);
     if (!sdcard_image->lv_image_obj) {
         heap_caps_free(sdcard_image->bytes_in_psram);
         heap_caps_free(sdcard_image);
+        printf("[create_image_from_sdcard] failed to create LVGL image object.\n");
         return NULL;
     }
 
@@ -2133,8 +2160,10 @@ sdcard_image_t * create_image_from_sdcard(
         lv_obj_del(sdcard_image->lv_image_obj);
         heap_caps_free(sdcard_image->bytes_in_psram);
         heap_caps_free(sdcard_image);
+        printf("[create_image_from_sdcard] freeing bytes.\n");
         return NULL;  // Return NULL when discarding
     }
+    printf("[create_image_from_sdcard] returning image to caller.\n");
     return sdcard_image;  // Return full structure
 }
 
