@@ -1569,7 +1569,7 @@ void celestial_sphere_begin(
         // delta readout stacked above once a scan is active.
         {
             const int32_t scan_number_width_px = 60;
-            const int32_t scan_dropdown_width_px = 100;
+            const int32_t scan_dropdown_width_px = 120;
             const int32_t scan_row_width_px = scan_dropdown_width_px + SCOPE_OUTSIDE_GAP_PX + scan_number_width_px;
             const int32_t scan_row_y = scope_top_px - 24 - SCOPE_OUTSIDE_GAP_PX;
 
