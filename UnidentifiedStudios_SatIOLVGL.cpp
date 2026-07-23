@@ -210,6 +210,11 @@ int current_gps_panel=0;
 // Gyro
 // ---------------------------
 gyro_0_container_t gyro_0_c;
+gyro_cal_container_t gyro_cal_c;
+static lv_timer_t * gyro_cal_mag_timer = nullptr;
+static lv_timer_t * gyro_cal_acc_timer = nullptr;
+#define GYRO_CAL_MAG_DURATION_MS 15000
+#define GYRO_CAL_ACC_FLASH_MS 2000
 // ---------------------------
 // Admplex 0
 // ---------------------------
@@ -1459,6 +1464,84 @@ void current_matrix_override_off_event_cb(lv_event_t * e)
 
     if(code == LV_EVENT_CLICKED) {
         setOverrideOutputValue((int)current_matrix_i, (uint32_t)0);
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Timer callback: reverts the CAL ACC label to its idle color once
+ *        GYRO_CAL_ACC_FLASH_MS has elapsed. Runs once then auto-deletes.
+ */
+static void gyro_cal_acc_timer_cb(lv_timer_t * timer)
+{
+    (void)timer;
+    if (gyro_cal_c.btn_cal_acc.label) {
+        lv_obj_set_style_text_color(gyro_cal_c.btn_cal_acc.label, default_btn_off_value_hue, LV_PART_MAIN);
+    }
+    gyro_cal_acc_timer = nullptr;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback: one-shot accelerometer calibration. Flashes the label green
+ *        for GYRO_CAL_ACC_FLASH_MS to show the calibration is running.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void btn_cal_acc_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        WT901CalAcc();
+
+        if (gyro_cal_acc_timer != nullptr) {
+            lv_timer_delete(gyro_cal_acc_timer);
+            gyro_cal_acc_timer = nullptr;
+        }
+        if (gyro_cal_c.btn_cal_acc.label) {
+            lv_obj_set_style_text_color(gyro_cal_c.btn_cal_acc.label, default_btn_on_value_hue, LV_PART_MAIN);
+        }
+        gyro_cal_acc_timer = lv_timer_create(gyro_cal_acc_timer_cb, GYRO_CAL_ACC_FLASH_MS, NULL);
+        lv_timer_set_repeat_count(gyro_cal_acc_timer, 1);
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Timer callback: ends magnetic field calibration once GYRO_CAL_MAG_DURATION_MS
+ *        has elapsed since it was started, and reverts the CAL MAG label to its idle
+ *        color. Runs once then auto-deletes.
+ */
+static void gyro_cal_mag_timer_cb(lv_timer_t * timer)
+{
+    (void)timer;
+    WT901CalMagEnd();
+    if (gyro_cal_c.btn_cal_mag.label) {
+        lv_obj_set_style_text_color(gyro_cal_c.btn_cal_mag.label, default_btn_off_value_hue, LV_PART_MAIN);
+    }
+    gyro_cal_mag_timer = nullptr;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback: starts magnetic field calibration and arms a one-shot timer
+ *        that ends it automatically after GYRO_CAL_MAG_DURATION_MS. Turns the label
+ *        green for the duration to show calibration is running.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void btn_cal_mag_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        if (gyro_cal_mag_timer != nullptr) {
+            lv_timer_delete(gyro_cal_mag_timer);
+            gyro_cal_mag_timer = nullptr;
+        }
+        WT901CalMagStart();
+        if (gyro_cal_c.btn_cal_mag.label) {
+            lv_obj_set_style_text_color(gyro_cal_c.btn_cal_mag.label, default_btn_on_value_hue, LV_PART_MAIN);
+        }
+        gyro_cal_mag_timer = lv_timer_create(gyro_cal_mag_timer_cb, GYRO_CAL_MAG_DURATION_MS, NULL);
+        lv_timer_set_repeat_count(gyro_cal_mag_timer, 1);
     }
 }
 
@@ -9847,6 +9930,165 @@ gyro_0_container_t create_gyro_panel(
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief Create Gyro Calibration Panel Container (CAL ACC + CAL MAG buttons).
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param radius Corner radius.
+ * @param outer_pad_all Outer padding.
+ * @param inner_pad_all Inner uniform padding.
+ * @param outline_padding Padding for outline.
+ * @param main_row_padding Main row padding.
+ * @param main_column_padding Main column padding.
+ * @param sub_row_padding Sub-row padding.
+ * @param sub_column_padding Sub-column padding.
+ * @param row_height Height of each row.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @param font_title Title font.
+ * @param font_sub Subtitle/font for smaller text.
+ * @return gyro_cal_container_t structure.
+ */
+gyro_cal_container_t create_cal_gyro_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    int32_t radius,
+    int32_t outer_pad_all,
+    int32_t inner_pad_all,
+    int32_t outline_padding,
+    int32_t main_row_padding,
+    int32_t main_column_padding,
+    int32_t sub_row_padding,
+    int32_t sub_column_padding,
+    int32_t row_height,
+    bool show_scrollbar,
+    bool enable_scrolling,
+    const lv_font_t * font_title,
+    const lv_font_t * font_sub
+    )
+{
+    gyro_cal_container_t result = {};
+
+    /* --- MAIN PANEL ------------------------------------------------------------------ */
+    result.panel = lv_obj_create(parent);
+
+    // Show scrollbar
+    if (show_scrollbar) {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_AUTO);
+    } else {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_OFF);}
+
+    // Enable scrolling
+    if (enable_scrolling) {lv_obj_set_scroll_dir(result.panel, LV_DIR_ALL);
+    } else {lv_obj_set_scroll_dir(result.panel, LV_DIR_NONE);}
+
+    // Size & Position
+    lv_obj_set_size(result.panel, width_px, height_px);
+    lv_obj_align(result.panel, alignment, pos_x, pos_y);
+    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+
+    // Main Padding
+    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+
+    // Outline
+    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    // Row sizes
+    int32_t sub_row_width = width_px - (outer_pad_all*2);
+    int32_t sub_row_height = row_height-(outline_padding*2);
+
+    // Row Object sizes
+    int32_t obj_w_0 = 0;
+    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+
+    /* --- Row Buttons ------------------------------------------------------------------ */
+    lv_obj_t * row_0 = create_row(
+        result.panel,
+        sub_row_width,
+        sub_row_height,
+        inner_pad_all,
+        sub_row_padding,
+        sub_column_padding,
+        false,
+        false
+    );
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_0,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Set row object widths
+    obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+
+    // Calibrate Acceleration -> This is a oneshot function, one click calibrates acc.
+    result.btn_cal_acc = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "CAL ACC",
+        LV_TEXT_ALIGN_CENTER,
+        false,
+        false,
+        &font_cobalt_alien_17,
+        radius_rounded,
+        default_btn_bg,
+        default_btn_off_value_hue
+    );
+    lv_obj_add_event_cb(result.btn_cal_acc.button, btn_cal_acc_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // Calibrate Magnetic Field -> Button starts timer -> calibration ends on timeout.
+    result.btn_cal_mag = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "CAL MAG",
+        LV_TEXT_ALIGN_CENTER,
+        false,
+        false,
+        &font_cobalt_alien_17,
+        radius_rounded,
+        default_btn_bg,
+        default_btn_off_value_hue
+    );
+    lv_obj_add_event_cb(result.btn_cal_mag.button, btn_cal_mag_event_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_set_size(result.btn_cal_acc.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.btn_cal_mag.panel, obj_w_0, obj_height);
+
+    return result;
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Create Analog/Digital Multiplexer Panel Container.
  *
  * @param parent Specify parent object.
@@ -15712,15 +15954,34 @@ void display_gyro_screen()
         2,                // sub_row_padding
         8,                // sub_column_padding
         general_menu_row_h_px, // row height
-        true,             // show scrollbar
-        true,             // enable scrolling
+        false,             // show scrollbar
+        false,             // enable scrolling
         &font_cobalt_alien_25, // font for titles,
         &font_cobalt_alien_17  // font for text,
     );
 
-    // Calibrate Gyro -> Button starts timer -> calibration ends on timeout.
-
-    // Calibrate Magnetic Field -> Button starts timer -> calibration ends on timeout.
+    // Calibration buttons (CAL ACC + CAL MAG)
+    gyro_cal_c = create_cal_gyro_panel(
+        gyro_screen,      // parent
+        200,              // width px
+        42,               // height px
+        LV_ALIGN_BOTTOM_MID,  // alignment
+        0,                // pos x
+        -100,              // pos y
+        radius_rounded,   // radius
+        2,                // outer_pad_all
+        4,                // inner_pad_all
+        2,                // outline_padding
+        2,                // main_row_padding
+        4,                // main_column_padding
+        2,                // sub_row_padding
+        8,                // sub_column_padding
+        general_menu_row_h_px, // row height
+        false,            // show scrollbar
+        false,            // enable scrolling
+        &font_cobalt_alien_25, // font for titles,
+        &font_cobalt_alien_17  // font for text,
+    );
 }
 
 /** -------------------------------------------------------------------------------------
