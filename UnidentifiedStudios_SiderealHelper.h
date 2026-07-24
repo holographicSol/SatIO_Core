@@ -16,6 +16,7 @@
 // ::num) already need the full definition and include that header directly.
 struct SiderealObjectTypeEntry;
 struct SiderealConstellationEntry;
+class SiderealObjects; // for myAstroObj below
 
 #define INDEX_SIDEREAL_STAR_TABLE          0          
 #define INDEX_SIDEREAL_NGC_TABLE           1 // New General Catalogue
@@ -27,6 +28,7 @@ struct SiderealConstellationEntry;
 
 // External instance of SiderealPlanets
 extern SiderealPlanets myAstro;
+extern SiderealObjects myAstroObj;
 
 // ----------------------------------------------------------------------------------------
 // Planet Data Structure.
@@ -161,12 +163,7 @@ struct SiderealPlantetsStruct {
     double local_sidereal_time;
     SiderealAttitudeData local_sidereal_attitude;
     SiderealAttitudeData gyro_0_sidereal_attitude;
-    // Constellation at gyro_0_sidereal_attitude's RA/Dec, resolved by
-    // taskUniverse() (UnidentifiedStudios_TaskHandler.cpp) alongside
-    // starNavSweep() via getConstellationAtRaDec() -- nullptr until the
-    // first sweep, or if no boundary row matched. Pointer into
-    // constellationName[] (SiderealObjectsTables.h), so it's valid for
-    // the life of the program once set; readers just dereference ::name.
+
     const SiderealConstellationEntry* gyro_0_constellation;
 };
 extern struct SiderealPlantetsStruct siderealPlanetData;
@@ -194,57 +191,6 @@ typedef struct SiderealObjectSingle {
 } SiderealObjectSingle;
 extern SiderealObjectSingle siderealObjectSingle;
 
-// ----------------------------------------------------------------------------------------
-// StarNav Sweep Object Data Structure.
-// ----------------------------------------------------------------------------------------
-// Hard compile-time cap: sizes every array below and bounds starNavMaxObjects.
-// Not itself runtime-adjustable (it fixes storage), unlike starNavMaxObjects.
-#define MAX_STARNAV_OBJECTS 500
-// starNavSweep() queries the catalog directly for every object within
-// starNavSweepRangeDeg (degrees) of the current gyroscopic attitude's
-// Alt/Az, and stops early once starNavMaxObjects distinct objects have been
-// found. Both are runtime-adjustable (see the range/max-objects adjuster
-// rows in celestial_sphere_begin(), UnidentifiedStudios_CelestialSphere.cpp)
-// via the clamped setters below instead of being compile-time constants;
-// starNavSweep() reads them fresh at the top of each sweep, so a change
-// takes effect on the next sweep.
-extern double starNavSweepRangeDeg; // aperture/zoom (higher = capture more of the celestial sphere, higher performance impact!)
-extern int starNavMaxObjects;       // cap on distinct objects per sweep (higher = capture more of the celestial sphere, higher performance impact!)
-
-constexpr double STARNAV_SWEEP_RANGE_DEG_MIN = 1.0;
-constexpr double STARNAV_SWEEP_RANGE_DEG_MAX = 90;
-constexpr int STARNAV_MAX_OBJECTS_MIN = 1;
-constexpr int STARNAV_MAX_OBJECTS_MAX = MAX_STARNAV_OBJECTS;
-
-// Sets starNavSweepRangeDeg / starNavMaxObjects,
-// clamped to [STARNAV_SWEEP_*_DEG_MIN, STARNAV_SWEEP_*_DEG_MAX] /
-// [STARNAV_MAX_OBJECTS_MIN, STARNAV_MAX_OBJECTS_MAX] above.
-void setStarNavSweepRangeDeg(double degrees);
-void setStarNavMaxObjects(int count);
-
-typedef struct SiderealObjectSweep {
-    // ADD SCAN BY OBJECT TYPE 
-    int objects_found;
-
-    signed int object_number[MAX_STARNAV_OBJECTS];
-    signed int object_table_i[MAX_STARNAV_OBJECTS];
-
-    signed int object_type[MAX_STARNAV_OBJECTS];
-    signed int object_con[MAX_STARNAV_OBJECTS];
-    signed int object_desc[MAX_STARNAV_OBJECTS];
-
-    int object_s_value[MAX_STARNAV_OBJECTS];
-    double object_ra[MAX_STARNAV_OBJECTS];
-    double object_dec[MAX_STARNAV_OBJECTS];
-    double object_az[MAX_STARNAV_OBJECTS];
-    double object_alt[MAX_STARNAV_OBJECTS];
-    double object_mag[MAX_STARNAV_OBJECTS];
-    double object_r[MAX_STARNAV_OBJECTS];
-    double object_s[MAX_STARNAV_OBJECTS];
-    double object_dist[MAX_STARNAV_OBJECTS];
-} SiderealObjectSweep;
-extern SiderealObjectSweep siderealObjectSweep;
-
 
 // ----------------------------------------------------------------------------------------
 // Function Prototypes.
@@ -261,59 +207,17 @@ void setSiderealData(double latitude, double longitude,
     double local_hour, double local_minute, double local_second,
     double altitude);
 
-/**
- * Computes RA/Dec, Alt/Az, and rise/set times for the object at object_i
- * within the table named by object_table_i, and stores the result in *obj
- * (or, for the SiderealObjectSweep overload, in slot `index` of *obj).
- * @note setSiderealData() must be called first.
- */
+
 void trackObject(SiderealObjectSingle *obj, int object_table_i, int object_i);
-void trackObject(SiderealObjectSweep *obj, int index, int object_table_i, int object_i);
 
-/**
- * Identifies the object nearest the given RA/Dec coordinates across every
- * object table, and populates *obj (or slot `index` of *obj, for the
- * SiderealObjectSweep overload) with its identity (but not yet its Alt/Az
- * or rise/set times — see trackObject()).
- */
 void IdentifyObject(SiderealObjectSingle *obj, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
-void IdentifyObject(SiderealObjectSweep *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s);
 
-/**
- * Looks up object `number` directly in one of the four base catalog tables
- * (INDEX_SIDEREAL_STAR_TABLE / _NGC_TABLE / _IC_TABLE / _OTHER_OBJECTS_TABLE
- * -- Messier/Caldwell/Herschel400 numbers aren't independently selectable
- * this way, same restriction starNavSweep()'s catalog scan has), writing its
- * RA/Dec on success. For callers (e.g. the celestial sphere's object-scan
- * control) that already know exactly which object they want by number, with
- * no need for its name/type/description.
- * @return false (leaving ra_hours, dec_deg untouched) for an invalid table
- * or an out-of-range/not-found object number.
- */
 bool lookupObjectRADec(int table_i, int number, double *ra_hours, double *dec_deg);
 
-/**
- * Resolves *obj's (or, for the SiderealObjectSweep overload, slot `index`
- * of *obj's) name/table name/type/constellation/description on demand:
- * name and table name from its stored object_table_i and object_number
- * indices, type/constellation/description from their own stored indices
- * (object_type/object_con/object_desc), each looked up in the vendor table
- * selected by object_table_i. Returns "Unidentified" wherever the property
- * doesn't apply to the object's table (e.g. stars have no constellation,
- * "Other" objects have no name/type/constellation, only stars have a
- * description).
- * @note IdentifyObject() must be called first.
- */
 const char* getObjectName(SiderealObjectSingle *obj);
-const char* getObjectName(SiderealObjectSweep *obj, int index);
 const char* getObjectTableName(SiderealObjectSingle *obj);
-const char* getObjectTableName(SiderealObjectSweep *obj, int index);
 const char* getObjectType(SiderealObjectSingle *obj);
-const char* getObjectType(SiderealObjectSweep *obj, int index);
 const char* getObjectConstellation(SiderealObjectSingle *obj);
-const char* getObjectConstellation(SiderealObjectSweep *obj, int index);
-const char* getObjectDescription(SiderealObjectSingle *obj);
-const char* getObjectDescription(SiderealObjectSweep *obj, int index);
 
 /**
  * Resolves the SiderealObjectTypeEntry (see SiderealObjectsTables.h) that
@@ -330,24 +234,10 @@ const char* getObjectDescription(SiderealObjectSweep *obj, int index);
  * @note IdentifyObject() must be called first.
  */
 const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj);
-const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSweep *obj, int index);
 
-/**
- * Resolves the constellation containing an arbitrary RA/Dec, via the IAU
- * boundaries (Delporte 1930 / Roman 1987; see constellationBoundary[] in
- * SiderealObjectsTables.h). Unlike getObjectConstellation(), this takes a
- * raw coordinate rather than a tracked catalog object, so no
- * SiderealObjectSingle/Sweep overloads are needed.
- * @param ra_hours_j2000 Right ascension, decimal hours [0,24), mean equinox J2000.0.
- * @param dec_deg_j2000  Declination, decimal degrees [-90,90], mean equinox J2000.0.
- * @return Pointer into constellationName[], or nullptr if no boundary row matched.
- * @note Input must already be J2000; this precesses internally to B1875
- *       (the boundaries' native equinox) before matching. Callers with
- *       epoch-of-date RA/Dec (e.g. a live gyro boresight) must precess to
- *       J2000 first themselves -- not done here.
- */
 const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000);
 
+const char* getObjectDescription(SiderealObjectSingle *obj);
 /**
  * Identifies the object nearest the given RA/Dec coordinates, then tracks
  * it (Alt/Az and rise/set times).
@@ -355,22 +245,21 @@ const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000,
 void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s);
 
 /**
- * Queries the catalog directly for every object within starNavSweepRangeDeg
- * of the current gyroscopic attitude's Alt/Az, storing up to
- * starNavMaxObjects of them in siderealObjectSweep.
- * @note siderealPlanetData.gyro_0_sidereal_attitude must already be set
- * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).
+ * Resolves *obj's identity fields (type/con/desc/dist) for an already-known
+ * (table_i, number) pair -- e.g. a SiderealSphereEntry (SiderealObjects.h)
+ * the celestial sphere already has RA/Dec for and just needs full details on
+ * demand (see UnidentifiedStudios_CelestialSphere.cpp's on-click lookup).
+ * Unlike IdentifyObject(), this skips the nearest-RA/Dec search since the
+ * catalog entry is already known. table_i must be one of the four base
+ * tables buildSphere() (SiderealObjects.h) enumerates: INDEX_SIDEREAL_
+ * STAR_TABLE / _NGC_TABLE / _IC_TABLE / _OTHER_OBJECTS_TABLE.
+ * @note Caller still calls trackObject() separately for Alt/Az/rise-set.
  */
-void starNavSweep();
+void identifyKnownObject(SiderealObjectSingle *obj, int table_i, int number);
 
 /**
  * Resolves the constellation at siderealPlanetData.gyro_0_sidereal_attitude's
- * RA/Dec via getConstellationAtRaDec(), storing the result in
- * siderealPlanetData.gyro_0_constellation. Called alongside starNavSweep()
- * (same cadence/gating) rather than per UI refresh -- consumers (e.g.
- * UnidentifiedStudios_CelestialSphere.cpp) just read the stored pointer.
- * @note siderealPlanetData.gyro_0_sidereal_attitude must already be set
- * (see taskUniverse() in UnidentifiedStudios_TaskHandler.cpp).
+ * RA/Dec via getConstellationAtRaDec()
  */
 void starNavConstellation();
 

@@ -1304,10 +1304,6 @@ static void taskUniverse(void *pvParameters) {
       static int64_t starnav_last_uS = 0;
       if ( (esp_timer_get_time() - starnav_last_uS) >= ((int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV) ) {
         // -----------------------------------------------------------
-        // Object Sweep
-        // -----------------------------------------------------------
-        starNavSweep();
-        // -----------------------------------------------------------
         // Constellation
         // -----------------------------------------------------------
         starNavConstellation();

@@ -4,10 +4,11 @@
     A scalable Alt/Az sky viewfinder that runs on a timer, in a specified
     parent object, in the fashion of UnidentifiedStudios_AstroClock.
 
-    Displays every object currently held in siderealObjectSweep (see
-    UnidentifiedStudios_SiderealHelper.h), positioned relative to a boresight
-    (the container's center) whose Alt/Az is supplied by the current
-    CelestialSphereMode.
+    Displays the full Star/NGC/IC/Other catalog, built once into an internal
+    RA/Dec sphere, windowed each tick by RA/Dec around a boresight (the
+    container's center) whose attitude is supplied by the current
+    CelestialSphereMode. Solar-system bodies (Sun/Moon/planets) genuinely
+    move over time, so they're still positioned by the boresight's Alt/Az.
 
     Intended to be MISRA Compliant (untested, unverified, in-progress).
 */
@@ -53,14 +54,15 @@ void celestial_sphere_begin(
 // Stops the update timer and releases the resources celestial_sphere_begin created.
 void celestial_sphere_end(void);
 
-// Recomputes and redraws every object in siderealObjectSweep for the current boresight.
+// Recomputes and redraws every visible marker for the current boresight.
 void celestial_sphere_update(void);
 
-// Switches which attitude supplies the boresight Alt/Az, and refreshes immediately.
+// Switches which attitude supplies the boresight, and refreshes immediately.
 void celestial_sphere_set_mode(CelestialSphereMode mode);
 
-// Selects one swept object (index into siderealObjectSweep, [0, MAX_STARNAV_OBJECTS))
-// as the active target, or -1 to clear the selection.
+// Selects one currently-visible marker slot as the active target, or -1 to
+// clear the selection (or an encoded body index -- see encode_body_target()
+// in UnidentifiedStudios_CelestialSphere.cpp).
 void celestial_sphere_set_target(int32_t object_index);
 
 // Sets the object number the Scan control tracks, looked up in whichever
@@ -70,17 +72,7 @@ void celestial_sphere_set_target(int32_t object_index);
 // 9=Neptune) instead. 0 or negative clears the scan.
 void celestial_sphere_set_scan_number(int32_t number);
 
-// Scan control state: which catalog table + object number to track, and the
-// result of tracking it. Populated by taskUniverse()'s trackObject() call
-// (UnidentifiedStudios_TaskHandler.cpp), same as siderealObjectSweep is kept
-// current by its starNavSweep() calls -- celestial_sphere_update() only
-// reads track_target_obj. Exception: when the Scan dropdown's BODY entry is
-// selected, trackObject() doesn't recognize that table and leaves
-// track_target_obj untouched, so celestial_sphere_update() reads the
-// selected body's live Alt/Az straight out of siderealPlanetData instead.
-// scan_table_i/scan_object_number are read-only from outside this file;
-// celestial_sphere_set_scan_number() and the Scan table dropdown remain the
-// only writers.
+
 extern int32_t scan_table_i;
 extern int32_t scan_object_number;
 extern SiderealObjectSingle track_target_obj;
@@ -93,9 +85,6 @@ void celestial_sphere_pause(void);
 
 void celestial_sphere_resume(void);
 
-// True only between a celestial_sphere_resume() and the next pause()/end();
-// independent of celestial_sphere_set_visible(). Lets callers skip feeding
-// data to the sphere (e.g. starNavSweep()) when nothing consumes it.
 bool celestial_sphere_is_active(void);
 
 #endif

@@ -206,27 +206,6 @@ SiderealObjectSingle siderealObjectSingle = {
     .object_dist = NAN,
 };
 
-SiderealObjectSweep siderealObjectSweep = {
-    .objects_found = 0,
-    .object_number = {},
-    .object_table_i = {},
-    .object_type = {},
-    .object_con = {},
-    .object_desc = {},
-    .object_s_value = {},
-    .object_ra = {},
-    .object_dec = {},
-    .object_az = {},
-    .object_alt = {},
-    .object_mag = {},
-    .object_r = {},
-    .object_s = {},
-    .object_dist = {},
-};
-
-double starNavSweepRangeDeg = 1.0;
-int starNavMaxObjects       = 500;
-
 // Clamps to a closed [lo, hi] range; NaN is left as-is (clamping it either
 // direction would silently manufacture a bogus finite value).
 static double clampDeg(double value, double lo, double hi) {
@@ -246,14 +225,6 @@ static int clampInt(int value, int lo, int hi) {
     return result;
 }
 
-void setStarNavSweepRangeDeg(double degrees) {
-    starNavSweepRangeDeg = clampDeg(degrees, STARNAV_SWEEP_RANGE_DEG_MIN, STARNAV_SWEEP_RANGE_DEG_MAX);
-}
-
-void setStarNavMaxObjects(int count) {
-    starNavMaxObjects = clampInt(count, STARNAV_MAX_OBJECTS_MIN, STARNAV_MAX_OBJECTS_MAX);
-}
-
 /*
  * Object distance fields have no "Unidentified" fallback: if num is out of
  * range, *dest is left exactly as the caller (always clearAllObjects()
@@ -269,37 +240,18 @@ static void setObjectDistField(double *dest, int num, int max_num, ObjectDistFn 
     }
 }
 
-/*
- * Field accessors: same named field, either a scalar member of
- * SiderealObjectSingle or one element of a MAX_STARNAV_OBJECTS array in
- * SiderealObjectSweep (index ignored for the scalar overload). These let
- * every function below be written once, as a template, and reused for both
- * the single-object path (setStarNav()/the CLI) and the StarNav sweep.
- */
 static inline int&    numberRef(SiderealObjectSingle *obj, int)          { return obj->object_number; }
-static inline int&    numberRef(SiderealObjectSweep *obj, int index)     { return obj->object_number[index]; }
 static inline int&    tableIRef(SiderealObjectSingle *obj, int)          { return obj->object_table_i; }
-static inline int&    tableIRef(SiderealObjectSweep *obj, int index)     { return obj->object_table_i[index]; }
 static inline int&    typeRef(SiderealObjectSingle *obj, int)            { return obj->object_type; }
-static inline int&    typeRef(SiderealObjectSweep *obj, int index)       { return obj->object_type[index]; }
 static inline int&    conRef(SiderealObjectSingle *obj, int)             { return obj->object_con; }
-static inline int&    conRef(SiderealObjectSweep *obj, int index)        { return obj->object_con[index]; }
 static inline int&    descRef(SiderealObjectSingle *obj, int)            { return obj->object_desc; }
-static inline int&    descRef(SiderealObjectSweep *obj, int index)       { return obj->object_desc[index]; }
 static inline double& raRef(SiderealObjectSingle *obj, int)              { return obj->object_ra; }
-static inline double& raRef(SiderealObjectSweep *obj, int index)        { return obj->object_ra[index]; }
 static inline double& decRef(SiderealObjectSingle *obj, int)            { return obj->object_dec; }
-static inline double& decRef(SiderealObjectSweep *obj, int index)       { return obj->object_dec[index]; }
 static inline double& azRef(SiderealObjectSingle *obj, int)             { return obj->object_az; }
-static inline double& azRef(SiderealObjectSweep *obj, int index)        { return obj->object_az[index]; }
 static inline double& altRef(SiderealObjectSingle *obj, int)            { return obj->object_alt; }
-static inline double& altRef(SiderealObjectSweep *obj, int index)       { return obj->object_alt[index]; }
 static inline double& rRef(SiderealObjectSingle *obj, int)              { return obj->object_r; }
-static inline double& rRef(SiderealObjectSweep *obj, int index)         { return obj->object_r[index]; }
 static inline double& sRef(SiderealObjectSingle *obj, int)              { return obj->object_s; }
-static inline double& sRef(SiderealObjectSweep *obj, int index)         { return obj->object_s[index]; }
 static inline double& distRef(SiderealObjectSingle *obj, int)           { return obj->object_dist; }
-static inline double& distRef(SiderealObjectSweep *obj, int index)      { return obj->object_dist[index]; }
 
 // ----------------------------------------------------------------------------------------
 // Get Object Name / Table Name / Type / Constellation / Description.
@@ -534,17 +486,11 @@ static const char* objectDescriptionImpl(T *obj, int index)
 }
 
 const char* getObjectName(SiderealObjectSingle *obj)            { return objectNameImpl(obj, 0); }
-const char* getObjectName(SiderealObjectSweep *obj, int index)  { return objectNameImpl(obj, index); }
 const char* getObjectTableName(SiderealObjectSingle *obj)           { return objectTableNameImpl(obj, 0); }
-const char* getObjectTableName(SiderealObjectSweep *obj, int index) { return objectTableNameImpl(obj, index); }
 const char* getObjectType(SiderealObjectSingle *obj)            { return objectTypeImpl(obj, 0); }
-const char* getObjectType(SiderealObjectSweep *obj, int index)  { return objectTypeImpl(obj, index); }
 const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj)           { return objectTypeEntryImpl(obj, 0); }
-const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSweep *obj, int index) { return objectTypeEntryImpl(obj, index); }
 const char* getObjectConstellation(SiderealObjectSingle *obj)           { return objectConstellationImpl(obj, 0); }
-const char* getObjectConstellation(SiderealObjectSweep *obj, int index) { return objectConstellationImpl(obj, index); }
 const char* getObjectDescription(SiderealObjectSingle *obj)           { return objectDescriptionImpl(obj, 0); }
-const char* getObjectDescription(SiderealObjectSweep *obj, int index) { return objectDescriptionImpl(obj, index); }
 
 // ----------------------------------------------------------------------------------------
 // Set Object Distance.
@@ -913,12 +859,6 @@ void clearTrackPlanets(void)
 // ----------------------------------------------------------------------------------------
 // Useful for arbitrary identification predicated upon manual input and or attitude input.
 // ----------------------------------------------------------------------------------------
-/*
- * Populates *obj at `index` from whatever object is currently selected on
- * myAstroObj (via identifyObject() or select<Table>Table()). Shared by both
- * IdentifyObject() (nearest-match search) and starNavSweep()'s cone-search
- * candidates, so the table-index / setX() dispatch logic lives in one place.
- */
 template <typename T>
 static void dispatchIdentifiedObject(T *obj, int index)
 {
@@ -972,11 +912,6 @@ static void dispatchIdentifiedObject(T *obj, int index)
     }
 }
 
-/*
- * Shared implementation for both IdentifyObject() overloads: template so it
- * works unmodified whether *obj is a single SiderealObjectSingle (index
- * unused) or one slot of a SiderealObjectSweep (index selects the slot).
- */
 template <typename T>
 static void identifyObjectImpl(T *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s)
 {
@@ -988,10 +923,6 @@ static void identifyObjectImpl(T *obj, int index, int ra_hour, int ra_min, float
 void IdentifyObject(SiderealObjectSingle *obj, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s)
 {
     identifyObjectImpl(obj, 0, ra_hour, ra_min, ra_sec, dec_d, dec_m, dec_s);
-}
-void IdentifyObject(SiderealObjectSweep *obj, int index, int ra_hour, int ra_min, float ra_sec, int dec_d, int dec_m, float dec_s)
-{
-    identifyObjectImpl(obj, index, ra_hour, ra_min, ra_sec, dec_d, dec_m, dec_s);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -1044,10 +975,6 @@ void trackObject(SiderealObjectSingle *obj, int object_table_i, int object_i)
 {
     trackObjectImpl(obj, 0, object_table_i, object_i);
 }
-void trackObject(SiderealObjectSweep *obj, int index, int object_table_i, int object_i)
-{
-    trackObjectImpl(obj, index, object_table_i, object_i);
-}
 
 /**
  * @brief A prototype function that initially identifies closest object to
@@ -1070,115 +997,19 @@ void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_
 }
 
 
-// ----------------------------------------------------------------------------------------
-// Reset every slot of *data to its default (unidentified) state.
-// ----------------------------------------------------------------------------------------
-static void clearStarNavObjects(SiderealObjectSweep *data)
+
+void identifyKnownObject(SiderealObjectSingle *obj, int table_i, int number)
 {
-    data->objects_found = 0;
-    for (int i = 0; i < MAX_STARNAV_OBJECTS; i++)
+    switch (table_i)
     {
-        data->object_number[i] = -1;
-        data->object_table_i[i] = -1;
-        data->object_type[i] = -1;
-        data->object_con[i] = -1;
-        data->object_desc[i] = -1;
-        data->object_ra[i] = NAN;
-        data->object_dec[i] = NAN;
-        data->object_az[i] = NAN;
-        data->object_alt[i] = NAN;
-        data->object_mag[i] = NAN;
-        data->object_r[i] = NAN;
-        data->object_s[i] = NAN;
-        data->object_s_value[i] = -1;
-        data->object_dist[i] = NAN;
+        case INDEX_SIDEREAL_STAR_TABLE:          myAstroObj.selectStarTable(number); break;
+        case INDEX_SIDEREAL_NGC_TABLE:            myAstroObj.selectNGCTable(number); break;
+        case INDEX_SIDEREAL_IC_TABLE:              myAstroObj.selectICTable(number); break;
+        case INDEX_SIDEREAL_OTHER_OBJECTS_TABLE:   myAstroObj.selectOtherObjectsTable(number); break;
+        default: break; // not one of buildSphere()'s four base tables
     }
-}
-
-// Which select<Table>Table() a sweep candidate's object number belongs to.
-enum SweepCatalogTable { SWEEP_TABLE_STAR, SWEEP_TABLE_NGC, SWEEP_TABLE_IC, SWEEP_TABLE_OTHER };
-
-static void selectSweepCandidate(SweepCatalogTable table, int number)
-{
-    switch (table)
-    {
-        case SWEEP_TABLE_STAR:  myAstroObj.selectStarTable(number); break;
-        case SWEEP_TABLE_NGC:   myAstroObj.selectNGCTable(number); break;
-        case SWEEP_TABLE_IC:    myAstroObj.selectICTable(number); break;
-        case SWEEP_TABLE_OTHER: myAstroObj.selectOtherObjectsTable(number); break;
-    }
-}
-
-// Selects and records every candidate in numbers[0..found), stopping once
-// starNavMaxObjects total have been recorded. No dedup needed here: each
-// catalog table's RA-sorted index entry is visited at most once across the
-// whole sweep (find<Table>InRadius() enumerates distinct index entries),
-// so the same (table, number) pair can never be produced twice.
-static void appendSweepCandidates(SiderealObjectSweep *sweep_data, int &count,
-                                   SweepCatalogTable table, const int *numbers, int found)
-{
-    for (int i = 0; (i < found) && (count < starNavMaxObjects); i++)
-    {
-        selectSweepCandidate(table, numbers[i]);
-        myAstroObj.checkAltCatalogs();
-        dispatchIdentifiedObject(sweep_data, count);
-        trackObject(sweep_data, count, sweep_data->object_table_i[count], sweep_data->object_number[count]);
-        sweep_data->objects_found++;
-        count++;
-        esp_task_wdt_reset(); // defensive: dense fields at large radii can still mean hundreds of matches
-    }
-}
-
-void starNavSweep() {
-
-    // static: at MAX_STARNAV_OBJECTS objects this struct is tens of KB, far
-    // too large for TaskUniverse's stack (only starNavSweep() ever touches
-    // this, so a function-local static is safe -- no reentrancy concern).
-    // Built up here and published to siderealObjectSweep in one assignment
-    // at the end, so nothing observing the global sees a partial sweep.
-    // Zero-initialized (not copied from siderealObjectSweep): every field is
-    // overwritten by clearStarNavObjects() below, so there is nothing left
-    // in the global worth seeding from.
-    // EXT_RAM_BSS_ATTR: this duplicates siderealObjectSweep's own ~43KB, and
-    // internal SRAM on this target is scarce enough that reserving both
-    // copies there pushed other things (e.g. task stacks, since
-    // CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY lets FreeRTOS fall back to
-    // PSRAM once internal SRAM is tight) into PSRAM, slowing the whole
-    // system down -- not just this function. Only starNavSweep() (taskUniverse,
-    // not latency-critical) touches this buffer, so it can safely live in the
-    // slower memory instead.
-    EXT_RAM_BSS_ATTR static SiderealObjectSweep sweep_data{};
-    clearStarNavObjects(&sweep_data);
-
-    // Center of the query cone: current gyroscopic Alt/Az converted to
-    // RA/Dec once -- there is no grid to sample anymore, so this replaces
-    // what used to be ~121 (or up to ~361k) per-point conversions.
-    myAstro.setAltAz(siderealPlanetData.gyro_0_sidereal_attitude.alt,
-                      siderealPlanetData.gyro_0_sidereal_attitude.az);
-    myAstro.doAltAz2RAdec();
-    double center_ra  = myAstro.getRAdec();
-    double center_dec = myAstro.getDeclinationDec();
-
-    int count = 0;
-    int numbers[MAX_STARNAV_OBJECTS];
-    int found;
-
-    // Star, NGC, IC, Other -- the same four tables identifyObject() checks,
-    // but each queried directly for every match within starNavSweepRangeDeg
-    // instead of sampling a grid and asking "what's nearest to this point?".
-    found = myAstroObj.findStarsInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
-    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_STAR, numbers, found);
-
-    found = myAstroObj.findNGCInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
-    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_NGC, numbers, found);
-
-    found = myAstroObj.findICInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
-    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_IC, numbers, found);
-
-    found = myAstroObj.findOtherInRadius(center_ra, center_dec, starNavSweepRangeDeg, numbers, starNavMaxObjects - count);
-    appendSweepCandidates(&sweep_data, count, SWEEP_TABLE_OTHER, numbers, found);
-
-    siderealObjectSweep = sweep_data;
+    myAstroObj.checkAltCatalogs();
+    dispatchIdentifiedObject(obj, 0);
 }
 
 void starNavConstellation() {

@@ -59,6 +59,21 @@ struct SiderealObjectsData {
 	int objectNumber;
 };
 
+// One catalog entry's static identity + RA/Dec, with no Alt/Az or rise/set --
+// see SiderealObjects::buildSphere() below. table_i matches INDEX_SIDEREAL_STAR_TABLE (0) /
+// _NGC_TABLE (1) / _IC_TABLE (2) / _OTHER_OBJECTS_TABLE (6) in UnidentifiedStudios_SiderealHelper.h
+// (not referenced by name here to avoid this lower-level file depending on that higher-level one).
+struct SiderealSphereEntry {
+    uint8_t  table_i;
+    uint16_t number;   // 1-based, matches trackObject()/select*Table() numbering
+    float    ra_hours;
+    float    dec_deg;
+};
+
+// NSTARS+NGCNUM+ICNUM+OTHERNUM (below) as a free constant: those are non-static data members, so
+// they aren't usable in a constant expression (e.g. to size an array) without an instance.
+constexpr int SIDEREAL_SPHERE_TOTAL_OBJECTS = 609 + 7840 + 5386 + 567;
+
 // Sidereal_Planets library description
 class SiderealObjects {
   // user-accessible "public" interface
@@ -123,6 +138,13 @@ class SiderealObjects {
 	int findNGCInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
 	int findICInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
 	int findOtherInRadius(double centerRAhours, double centerDecDeg, double radiusDeg, int *outNumbers, int maxOut);
+
+	// Fills out[0..returned) with every Star/NGC/IC/Other entry's identity + RA/Dec, decoded
+	// directly from the packed tables (no select*Table()/identifyObject(), no Alt/Az, no rise/
+	// set) -- unlike findXInRadius() above, this returns the whole catalog, not a cone-limited
+	// subset. Meant to be called once: the result never goes stale, since catalog RA/Dec is
+	// static. Returns the number of entries written (capped at maxOut).
+	int buildSphere(SiderealSphereEntry *out, int maxOut);
 	#endif
 
 	// Cross-references the current tablenum/objectnum (as left by

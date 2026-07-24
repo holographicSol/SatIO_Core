@@ -742,6 +742,22 @@ static void scanConeWindowIndexed(
   }
 }
 
+// Decodes one candidate's raw RA/Dec and derives its catalog number, exactly like
+// scanConeWindowIndexed()/scanConeWindowOther() do per match -- factored out so buildSphere()
+// below can walk every entry in a table instead of only a cone-matched subset.
+static void decodeCatalogEntry(
+    const uint8_t *table, int byteIndex, int raOffset, int decOffset, int stride,
+    bool isOtherTable, uint16_t &outNumber, double &outRAhours, double &outDecDeg)
+{
+  uint16_t ra = readCatalogRawRA(table, byteIndex, raOffset);
+  int16_t dec = readCatalogRawDec(table, byteIndex, decOffset);
+  outRAhours = static_cast<double>(ra) * 24.0 / 65536.0;
+  outDecDeg = static_cast<double>(dec) * 90.0 / 32767.0;
+  outNumber = isOtherTable
+      ? ((static_cast<uint16_t>(table[byteIndex]) << 8) | table[byteIndex + 1])
+      : static_cast<uint16_t>((byteIndex / stride) + 1);
+}
+
 // Same as scanConeWindowIndexed(), but for the "Other" table, whose object
 // number is its own id field (2 bytes at the record's start) rather than
 // derived from byteIndex -- matches identifyObject()'s Other-table handling.
@@ -824,6 +840,50 @@ int SiderealObjects::findOtherInRadius(double centerRAhours, double centerDecDeg
                          centerRAhours, centerDecDeg, radiusDeg, outNumbers, maxOut, &found);
   }
   return found;
+}
+
+int SiderealObjects::buildSphere(SiderealSphereEntry *out, int maxOut) {
+  if (!raIndexBuilt) { buildRAIndex(); raIndexBuilt = true; }
+  int count = 0;
+
+  for (int i = 0; (i < NSTARS) && (count < maxOut); i++) {
+    uint16_t number; double raHours, decDeg;
+    decodeCatalogEntry(SObjectsstars_bin, starRAOrder[i], 0, 2, 5, false, number, raHours, decDeg);
+    out[count].table_i = 0; // INDEX_SIDEREAL_STAR_TABLE
+    out[count].number = number;
+    out[count].ra_hours = static_cast<float>(raHours);
+    out[count].dec_deg = static_cast<float>(decDeg);
+    count++;
+  }
+  for (int i = 0; (i < NGCNUM) && (count < maxOut); i++) {
+    uint16_t number; double raHours, decDeg;
+    decodeCatalogEntry(Cngc_bin, ngcRAOrder[i], 0, 2, 4, false, number, raHours, decDeg);
+    out[count].table_i = 1; // INDEX_SIDEREAL_NGC_TABLE
+    out[count].number = number;
+    out[count].ra_hours = static_cast<float>(raHours);
+    out[count].dec_deg = static_cast<float>(decDeg);
+    count++;
+  }
+  for (int i = 0; (i < ICNUM) && (count < maxOut); i++) {
+    uint16_t number; double raHours, decDeg;
+    decodeCatalogEntry(Ic_bin, icRAOrder[i], 0, 2, 4, false, number, raHours, decDeg);
+    out[count].table_i = 2; // INDEX_SIDEREAL_IC_TABLE
+    out[count].number = number;
+    out[count].ra_hours = static_cast<float>(raHours);
+    out[count].dec_deg = static_cast<float>(decDeg);
+    count++;
+  }
+  for (int i = 0; (i < OTHERNUM) && (count < maxOut); i++) {
+    uint16_t number; double raHours, decDeg;
+    decodeCatalogEntry(Other_bin, otherRAOrder[i], 2, 4, 6, true, number, raHours, decDeg);
+    out[count].table_i = 6; // INDEX_SIDEREAL_OTHER_OBJECTS_TABLE
+    out[count].number = number;
+    out[count].ra_hours = static_cast<float>(raHours);
+    out[count].dec_deg = static_cast<float>(decDeg);
+    count++;
+  }
+
+  return count;
 }
 
 boolean SiderealObjects::identifyObject(void) {

@@ -1052,8 +1052,6 @@ static void star_nav(void) {
     )
   {
     printf("attempting to identify object..\n");
-    // Local instance, not the shared siderealObjectSingle global: a CLI-triggered
-    // identify must not clobber whatever setStarNav()/starNavSweep() last stored there.
     SiderealObjectSingle cli_obj = siderealObjectSingle;
     // this is identify (so first identify object)
     IdentifyObject(
@@ -3669,8 +3667,6 @@ void outputSerialGPIOPEnput(void) {
 #define STAT_GYRO_COL_FORMAT_S  "%-30s"
 #define STAT_GYRO_COL_FORMAT_F  "%-30.2f"
 #define STAT_GYRO_COL_FORMAT_LD "%-30ld"
-// StarNav Sweep table: Table needs 1 extra char over STAT_WIDE_COL_WIDTH, and
-// Name/Type/Constellation need 8 extra, to fit their longer catalog strings.
 #define STAT_STARNAV_TABLE_COL_WIDTH 21
 #define STAT_STARNAV_TABLE_COL_FORMAT_S "%-21s"
 #define STAT_STARNAV_WIDE_COL_WIDTH 28
@@ -3883,52 +3879,6 @@ void outputStat(void) {
         printf(STAT_LABEL_FMT, "Alt");
         for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_F, sources[i].alt);}
         printf("\n");
-      }
-      // StarNav Sweep: one row per identified object, in the order the sweep
-      // found them. Slots fill contiguously from 0 (see starNavSweep()), so
-      // the first invalid slot marks the end of the results.
-      {
-          // const char* columns[] = {"Table Index", "Table", "Number", "Name", "Type", "Constellation", "Distance", "Azimuth", "Altitude", "Rise", "Set"};
-          // const char* colFormats[] = {
-          //     STAT_WIDE_COL_FORMAT_S,          // Table Index
-          //     STAT_STARNAV_TABLE_COL_FORMAT_S, // Table (+1 char)
-          //     STAT_WIDE_COL_FORMAT_S,          // Number
-          //     STAT_STARNAV_WIDE_COL_FORMAT_S,  // Name (+8 chars)
-          //     STAT_STARNAV_WIDE_COL_FORMAT_S,  // Type (+8 chars)
-          //     STAT_STARNAV_WIDE_COL_FORMAT_S,  // Constellation (+8 chars)
-          //     STAT_WIDE_COL_FORMAT_S,          // Distance
-          //     STAT_WIDE_COL_FORMAT_S,          // Azimuth
-          //     STAT_WIDE_COL_FORMAT_S,          // Altitude
-          //     STAT_WIDE_COL_FORMAT_S,          // Rise
-          //     STAT_WIDE_COL_FORMAT_S,          // Set
-          // };
-          // const int numColumns = sizeof(columns) / sizeof(columns[0]);
-
-          // printStatSeparator();
-          // printf(STAT_LABEL_BLANK_FMT, "");
-          // for (int i = 0; i < numColumns; i++) {printf(colFormats[i], columns[i]);}
-          // printf("\n");
-          // printStatSeparator();
-          // for (int i = 0; i < MAX_STARNAV_OBJECTS; i++) {
-          //     if ((siderealObjectSweep.object_table_i[i] < 0) || (siderealObjectSweep.object_number[i] < 0)) {
-          //         break;
-          //     }
-          //     char label[STAT_LABEL_WIDTH];
-          //     (void)snprintf(label, sizeof(label), "StarNav%d", i);
-          //     printf(STAT_LABEL_FMT, label);
-          //     printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_table_i[i]);
-          //     printf(STAT_STARNAV_TABLE_COL_FORMAT_S, getObjectTableName(&siderealObjectSweep, i));
-          //     printf(STAT_WIDE_COL_FORMAT_LD, (long)siderealObjectSweep.object_number[i]);
-          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, getObjectName(&siderealObjectSweep, i));
-          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, getObjectType(&siderealObjectSweep, i));
-          //     printf(STAT_STARNAV_WIDE_COL_FORMAT_S, getObjectConstellation(&siderealObjectSweep, i));
-          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_dist[i]);
-          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_az[i]);
-          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_alt[i]);
-          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_r[i]);
-          //     printf(STAT_WIDE_COL_FORMAT_F,  siderealObjectSweep.object_s[i]);
-          //     printf("\n");
-          // }
       }
     #endif // SatIO_USE_UNIVERSE
   }

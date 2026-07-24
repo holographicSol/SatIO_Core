@@ -15,11 +15,13 @@
 #include <cstring>
 #include "lvgl.h"
 #include <math.h>
-#include "SiderealObjectsTables.h" // SiderealObjectTypeEntry (getObjectTypeEntry() return type)
+#include <esp_attr.h> // EXT_RAM_BSS_ATTR
+#include <SiderealObjects.h>
+#include "SiderealObjectsTables.h"
 #include "UnidentifiedStudios_CelestialSphere.h"
-#include "UnidentifiedStudios_GlobalLVGL.h" // stepper_panel_t, create_stepper_panel()
+#include "UnidentifiedStudios_GlobalLVGL.h"
 #include "UnidentifiedStudios_ObjectTypeIcons.h"
-#include "UnidentifiedStudios_SatIOLVGL.h" // set_keyboard_context_cb(), get_celestial_sphere_scan_number_kb_ctx()
+#include "UnidentifiedStudios_SatIOLVGL.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
 
 #ifndef M_PI
@@ -62,12 +64,6 @@ static int32_t SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 static constexpr int32_t MARKER_ICON_SIZE_32 = 32;
 static constexpr int32_t MARKER_ICON_SIZE_16 = 16;
 
-// Diameter, in px, non-body sweep-object markers are drawn at in each of the
-// "filled circle" visual modes (see MarkerVisualMode below and the
-// visual-mode dropdown created in celestial_sphere_begin()) -- adjust these
-// to resize that mode's dots. The other two modes draw each object's actual
-// type icon (at MARKER_ICON_SIZE_16 or MARKER_ICON_SIZE_32) instead and
-// aren't plain circles at all.
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_4PX  = 4;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_8PX  = 8;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_16PX = 16;
@@ -82,22 +78,34 @@ static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE_32 + SELECT
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
-// Pixels drawn per degree of Alt/Az offset from the boresight, derived from
-// the same aperture that populates siderealObjectSweep (see starNavSweep()
-// in UnidentifiedStudios_SiderealHelper.cpp).
-static float PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
+#define MAX_CELESTIAL_SPHERE_OBJECTS 3000
+static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
+static constexpr double VIEW_RANGE_DEG_MAX = 90.0;
+static double celestial_sphere_view_range_deg = 10.0;
+
+// Pixels drawn per degree of RA/Dec (or Alt/Az, for solar system bodies)
+// offset from the boresight, derived from celestial_sphere_view_range_deg.
+static float PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(celestial_sphere_view_range_deg);
+
+// Clamps and sets celestial_sphere_view_range_deg, keeping PX_PER_DEG in
+// sync so callers don't have to remember to.
+static void set_celestial_sphere_view_range_deg(double degrees) {
+    if (degrees < VIEW_RANGE_DEG_MIN) { degrees = VIEW_RANGE_DEG_MIN; }
+    if (degrees > VIEW_RANGE_DEG_MAX) { degrees = VIEW_RANGE_DEG_MAX; }
+    celestial_sphere_view_range_deg = degrees;
+    PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(celestial_sphere_view_range_deg);
+}
 
 // Currently selected boresight source.
 static CelestialSphereMode current_mode = CELESTIAL_SPHERE_MODE_GYRO;
 
-// Currently selected object (index into siderealObjectSweep), -1 = none.
+// Currently selected object -- either a markers[]/marker_sphere_index[] slot
+// or an encoded body index (see encode_body_target()), -1 = none.
 static int32_t current_target_index = -1;
 
 // Timer for celestial sphere updates.
 static lv_timer_t * sphere_timer = nullptr;
 
-// True only while the sphere is actually resumed (not paused/torn down);
-// lets taskUniverse skip starNavSweep() entirely when nothing consumes it.
 static bool sphere_active = false;
 
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
@@ -123,21 +131,15 @@ static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 140;
 // enough for the longest constellationName[] entry ("Triangulum Australe").
 static constexpr int32_t CROSSHAIR_CONSTELLATION_VALUE_WIDTH_PX = 260;
 
-// Sweep range/step/max adjuster
-static constexpr int32_t SWEEP_ADJUSTER_BTN_SIZE = 32;
-static constexpr int32_t SWEEP_ADJUSTER_GAP_PX = 4;
-static constexpr int32_t SWEEP_ADJUSTER_ROW_HEIGHT_PX = SWEEP_ADJUSTER_BTN_SIZE;
-
 // Gap between scope_container's rim and any readout/panel pinned outside it
-// (objects-found, DEG/STEP/MAX). Height for the DEG/STEP/MAX panels; their
-// width is computed from SCOPE_WIDTH at runtime (see celestial_sphere_begin),
-// since SCOPE_WIDTH itself isn't known until then.
+// (objects-found, DEG). Height for the DEG panel; its width is computed from
+// SCOPE_WIDTH at runtime (see celestial_sphere_begin), since SCOPE_WIDTH
+// itself isn't known until then.
 static constexpr int32_t SCOPE_OUTSIDE_GAP_PX = 10;
 static constexpr int32_t SCOPE_OUTSIDE_STEPPER_HEIGHT_PX = 32;
 
-// Amount starNavSweepRangeDeg/starNavMaxObjects change per button press.
-static constexpr double SWEEP_RANGE_STEP_INCREMENT_DEG = 1.0;
-static constexpr int    SWEEP_MAX_OBJECTS_INCREMENT    = 10;
+// Amount celestial_sphere_view_range_deg changes per button press.
+static constexpr double VIEW_RANGE_STEP_INCREMENT_DEG = 1.0;
 
 // Overall opacity of the whole overlay (container + every child, composited
 // as one layer), so whatever sits behind it -- e.g. the astro clock -- stays
@@ -260,29 +262,59 @@ static lv_color_t mode_color(const CelestialSphereMode mode) {
 // OBJECT MARKER DATA STRUCTURE
 // ============================================================================
 // MISRA: a named struct is declared directly (no typedef-of-anonymous-struct).
-// Runtime position and LVGL object handle for one plotted sweep object.
+// Runtime position and LVGL object handle for one plotted object.
 struct ObjectMarker {
     int32_t x;
     int32_t y;
     lv_obj_t * dot;
 };
 
-static ObjectMarker markers[MAX_STARNAV_OBJECTS];
+static ObjectMarker markers[MAX_CELESTIAL_SPHERE_OBJECTS];
+
+static int32_t marker_sphere_index[MAX_CELESTIAL_SPHERE_OBJECTS];
 
 // ============================================================================
-// MARKER VISUAL MODE (non-body sweep objects only; solar system bodies
-// always render via body_diameter_px()/create_body_marker() below,
-// unaffected by this)
+// CELESTIAL SPHERE (full Star/NGC/IC/Other catalog, built once)
 // ============================================================================
-// Selects how each siderealObjectSweep marker is drawn: a plain filled
-// circle at one of three sizes, that object's real type icon at its native
-// 16x16 size, or -- ICON_32, the original/default behaviour -- that same
-// icon at its native 32x32 size. Lets the aperture's marker density/
-// placement be inspected at a glance, independent of icon detail. Changed
-// at runtime via the visual-mode dropdown created in celestial_sphere_begin()
-// (LV_ALIGN_LEFT_MID); set_marker_visual_mode() is the only writer. Enum
-// values match the dropdown's option order exactly (see
-// visual_mode_dropdown_cb()) -- same convention as scan_table_dropdown.
+EXT_RAM_BSS_ATTR static SiderealSphereEntry sphere_entries[SIDEREAL_SPHERE_TOTAL_OBJECTS];
+static int32_t sphere_entry_count = 0;
+static bool sphere_built = false;
+
+// Builds sphere_entries[] exactly once per program lifetime -- catalog (siderealObjects)
+// RA/Dec are static, so the results never goes stale and never needs rebuilding
+// (celestial_sphere_begin() may run this again across repeated screen opens;
+// the sphere_built guard makes every call after the first a no-op).
+static void build_celestial_sphere(void) {
+    if (!sphere_built) {
+        sphere_entry_count = myAstroObj.buildSphere(sphere_entries, SIDEREAL_SPHERE_TOTAL_OBJECTS);
+        sphere_built = true;
+    }
+}
+
+// Converts whichever attitude current_mode selects (local_sidereal_attitude
+// for ZENITH, gyro_0_sidereal_attitude for GYRO) from its ra_h/ra_m/ra_s /
+// dec_d/dec_m/dec_s fields to decimal hours/degrees -- the same arithmetic
+// starNavConstellation() uses (UnidentifiedStudios_SiderealHelper.cpp) to
+// turn the boresight's already-tracked sexagesimal RA/Dec into decimal, no
+// trig involved.
+static void boresight_ra_dec_deg(double &ra_hours, double &dec_deg) {
+    const SiderealAttitudeData &attitude = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
+        ? siderealPlanetData.local_sidereal_attitude
+        : siderealPlanetData.gyro_0_sidereal_attitude;
+
+    ra_hours = static_cast<double>(attitude.ra_h)
+        + (static_cast<double>(attitude.ra_m) / 60.0)
+        + (static_cast<double>(attitude.ra_s) / 3600.0);
+
+    const double dec_sign = (attitude.dec_d < 0) ? -1.0 : 1.0;
+    dec_deg = dec_sign * (fabs(static_cast<double>(attitude.dec_d))
+        + (static_cast<double>(attitude.dec_m) / 60.0)
+        + (static_cast<double>(attitude.dec_s) / 3600.0));
+}
+
+// ============================================================================
+// MARKER VISUAL MODE
+// ============================================================================
 enum class MarkerVisualMode : int32_t {
     CIRCLE_4 = 0,
     CIRCLE_8,
@@ -423,11 +455,6 @@ static const char * body_name(const CelestialBody body) {
     }
     return result;
 }
-
-// Fields read out of siderealPlanetData for one body, gathered in one place
-// since (unlike siderealObjectSweep) siderealPlanetData isn't array-backed --
-// every body has its own dedicated fields, so positioning and the data box
-// both need this same per-body switch.
 struct BodyReadout {
     bool tracked;
     double ra;
@@ -558,10 +585,10 @@ static BodyReadout body_readout(const CelestialBody body) {
 
 // Body selections are encoded as index <= BODY_TARGET_ENCODE_OFFSET so
 // celestial_sphere_set_target() can share its single current_target_index/
-// selection_box/target_data_box/target_connector_line with siderealObjectSweep
+// selection_box/target_data_box/target_connector_line with catalog marker
 // selections instead of duplicating that geometry for a 9-object special
-// case. -1 stays "no selection"; sweep objects keep their natural
-// [0, MAX_STARNAV_OBJECTS) index.
+// case. -1 stays "no selection"; catalog markers keep their natural
+// [0, MAX_CELESTIAL_SPHERE_OBJECTS) markers[]/marker_sphere_index[] slot.
 static constexpr int32_t BODY_TARGET_ENCODE_OFFSET = -2;
 
 static inline int32_t encode_body_target(const CelestialBody body) {
@@ -608,18 +635,7 @@ static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
 
 static lv_obj_t * sweep_range_value_label = nullptr;
-static lv_obj_t * sweep_max_objects_value_label = nullptr;
 
-// ----------------------------------------------------------------------------------------
-// Object scan: tracks one arbitrary object by catalog table + number
-// (entered via the Scan control), independent of siderealObjectSweep --
-// unlike a clicked marker, the scanned object need not be within the
-// current sweep's aperture at all. Refreshed every taskUniverse() tick via
-// trackObject() (UnidentifiedStudios_TaskHandler.cpp), same as
-// siderealObjectSweep is kept current there, so its Alt/Az stays accurate
-// as time and the boresight move; celestial_sphere_update() only reads it.
-// Declared extern in UnidentifiedStudios_CelestialSphere.h so taskUniverse()
-// can reach them.
 // ----------------------------------------------------------------------------------------
 int32_t scan_table_i = INDEX_SIDEREAL_MESSIER_TABLE; // dropdown default
 int32_t scan_object_number = -1;                     // -1 = nothing entered yet
@@ -739,14 +755,8 @@ static lv_obj_t * create_body_marker(lv_obj_t * const parent, const int32_t diam
 }
 
 // ============================================================================
-// CREATE MARKER FOR VISUAL MODE (non-body sweep objects)
+// CREATE MARKER FOR VISUAL MODE
 // ============================================================================
-// Creates one sweep-object marker sized/shaped for the given visual mode:
-// create_marker()'s image widget for the two icon modes, or create_body_
-// marker()'s plain filled circle (color placeholder -- celestial_sphere_
-// update() sets the real per-object tint every tick) for the three circle
-// modes. Used both for the initial marker creation loop in celestial_sphere_
-// begin() and by rebuild_markers_for_mode() when the dropdown switches modes.
 static lv_obj_t * create_marker_for_mode(lv_obj_t * const parent, const MarkerVisualMode mode, const lv_color_t color) {
     return marker_visual_mode_is_icon(mode)
         ? create_marker(parent, color)
@@ -800,12 +810,6 @@ static void celestial_marker_click_cb(lv_event_t * e) {
 // ============================================================================
 // RAISE OVERLAY WIDGETS TO FOREGROUND
 // ============================================================================
-// Keeps the crosshair (and its box/Alt-Az readout) above the plain markers,
-// and the target/scan highlight boxes above the crosshair in turn. Needed
-// both right after celestial_sphere_begin() creates every widget once, and
-// again after rebuild_markers_for_mode() re-creates the sweep-object markers
-// (each freshly lv_obj_create()'d marker is appended -- and thus stacked --
-// on top of everything else, undoing this ordering).
 static void raise_overlay_widgets_to_foreground(void) {
     lv_obj_move_foreground(crosshair_h);
     lv_obj_move_foreground(crosshair_v);
@@ -826,7 +830,7 @@ static void raise_overlay_widgets_to_foreground(void) {
 // ============================================================================
 // SET MARKER VISUAL MODE
 // ============================================================================
-// Deletes and re-creates every siderealObjectSweep marker (bodies are
+// Deletes and re-creates every catalog (sphere_entries[]) marker (bodies are
 // untouched) in the newly selected mode's shape/size, resizes scan_target_
 // box to match, restores z-order, then refreshes immediately so positions/
 // colors/the current selection box are all correct for the new mode without
@@ -835,7 +839,7 @@ static void set_marker_visual_mode(const MarkerVisualMode mode) {
     if (mode != current_marker_visual_mode) {
         current_marker_visual_mode = mode;
 
-        for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
+        for (int32_t i = 0; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
             if (markers[i].dot != nullptr) {
                 lv_obj_del(markers[i].dot);
                 markers[i].dot = nullptr;
@@ -934,7 +938,20 @@ void celestial_sphere_set_scan_number(const int32_t number) {
 // UPDATE TARGET DATA BOX CONTENT
 // ============================================================================
 static void update_target_data_content(const int32_t object_index) {
-    if ((target_data_box != nullptr) && (object_index >= 0) && (object_index < MAX_STARNAV_OBJECTS)) {
+    const bool index_in_range = (target_data_box != nullptr) && (object_index >= 0) && (object_index < MAX_CELESTIAL_SPHERE_OBJECTS);
+    const int32_t sphere_idx = index_in_range ? marker_sphere_index[object_index] : -1;
+
+    if (index_in_range && (sphere_idx >= 0) && (sphere_idx < sphere_entry_count)) {
+        const SiderealSphereEntry &entry = sphere_entries[sphere_idx];
+
+        // Full details resolved on demand for this one clicked object only --
+        // the per-tick marker loop only ever resolves type (see
+        // celestial_sphere_update()), never name/description/Alt-Az/rise-set.
+        SiderealObjectSingle detail{};
+        detail.object_mag = NAN; // never populated by identifyKnownObject()/trackObject() (pre-existing gap)
+        identifyKnownObject(&detail, entry.table_i, entry.number);
+        trackObject(&detail, entry.table_i, entry.number);
+
         lv_obj_clean(target_data_box);
         lv_obj_t * const label = lv_label_create(target_data_box);
         lv_obj_set_style_text_font(label, &font_unscii_12, LV_PART_MAIN);
@@ -954,18 +971,18 @@ static void update_target_data_content(const int32_t object_index) {
             "Set             %.2f\n"
             "Azimuth         %.2f\n"
             "Altitude        %.2f",
-            getObjectName(&siderealObjectSweep, object_index),
-            getObjectTableName(&siderealObjectSweep, object_index),
-            siderealObjectSweep.object_number[object_index],
-            getObjectType(&siderealObjectSweep, object_index),
-            getObjectDescription(&siderealObjectSweep, object_index),
-            getObjectConstellation(&siderealObjectSweep, object_index),
-            siderealObjectSweep.object_dist[object_index],
-            siderealObjectSweep.object_mag[object_index],
-            siderealObjectSweep.object_r[object_index],
-            siderealObjectSweep.object_s[object_index],
-            siderealObjectSweep.object_az[object_index],
-            siderealObjectSweep.object_alt[object_index]
+            getObjectName(&detail),
+            getObjectTableName(&detail),
+            detail.object_number,
+            getObjectType(&detail),
+            getObjectDescription(&detail),
+            getObjectConstellation(&detail),
+            detail.object_dist,
+            detail.object_mag,
+            detail.object_r,
+            detail.object_s,
+            detail.object_az,
+            detail.object_alt
         );
         lv_label_set_text(label, buf);
     }
@@ -974,10 +991,6 @@ static void update_target_data_content(const int32_t object_index) {
 // ============================================================================
 // UPDATE BODY TARGET DATA BOX CONTENT
 // ============================================================================
-// Same box as update_target_data_content(), populated with siderealPlanetData
-// fields instead of siderealObjectSweep -- Luna gets Phase/Luminance in place
-// of Distance since it has no heliocentric position of its own (see
-// SiderealPlantetsStruct in UnidentifiedStudios_SiderealHelper.h).
 static void update_body_target_data_content(const CelestialBody body) {
     if (target_data_box != nullptr) {
         lv_obj_clean(target_data_box);
@@ -1061,9 +1074,6 @@ static void update_gyro_attitude_label(void) {
     }
 
     if (crosshair_constellation_value_label != nullptr) {
-        // Read-only here: siderealPlanetData.gyro_0_constellation is
-        // computed by starNavConstellation() (UnidentifiedStudios_SiderealHelper.cpp),
-        // called from taskUniverse() alongside starNavSweep(), not on every UI refresh.
         const char* name = (siderealPlanetData.gyro_0_constellation != nullptr)
             ? siderealPlanetData.gyro_0_constellation->name
             : "Unidentified";
@@ -1083,47 +1093,28 @@ static void update_objects_found_label(const int32_t count) {
 }
 
 // ============================================================================
-// UPDATE SWEEP ADJUSTER LABELS
+// UPDATE VIEW RANGE LABEL
 // ============================================================================
 static void update_sweep_adjuster_labels(void) {
     if (sweep_range_value_label != nullptr) {
         char buf[24];
-        snprintf(buf, sizeof(buf), "%.2f", starNavSweepRangeDeg);
+        snprintf(buf, sizeof(buf), "%.2f", celestial_sphere_view_range_deg);
         lv_label_set_text(sweep_range_value_label, buf);
-    }
-    if (sweep_max_objects_value_label != nullptr) {
-        char buf[24];
-        snprintf(buf, sizeof(buf), "%d", starNavMaxObjects);
-        lv_label_set_text(sweep_max_objects_value_label, buf);
     }
 }
 
 // ============================================================================
-// SWEEP ADJUSTER BUTTON CALLBACKS
+// VIEW RANGE ADJUSTER BUTTON CALLBACKS
 // ============================================================================
 static void sweep_range_minus_cb(lv_event_t * e) {
     (void)e;
-    setStarNavSweepRangeDeg(starNavSweepRangeDeg - SWEEP_RANGE_STEP_INCREMENT_DEG);
-    PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
+    set_celestial_sphere_view_range_deg(celestial_sphere_view_range_deg - VIEW_RANGE_STEP_INCREMENT_DEG);
     update_sweep_adjuster_labels();
 }
 
 static void sweep_range_plus_cb(lv_event_t * e) {
     (void)e;
-    setStarNavSweepRangeDeg(starNavSweepRangeDeg + SWEEP_RANGE_STEP_INCREMENT_DEG);
-    PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
-    update_sweep_adjuster_labels();
-}
-
-static void sweep_max_objects_minus_cb(lv_event_t * e) {
-    (void)e;
-    setStarNavMaxObjects(starNavMaxObjects - SWEEP_MAX_OBJECTS_INCREMENT);
-    update_sweep_adjuster_labels();
-}
-
-static void sweep_max_objects_plus_cb(lv_event_t * e) {
-    (void)e;
-    setStarNavMaxObjects(starNavMaxObjects + SWEEP_MAX_OBJECTS_INCREMENT);
+    set_celestial_sphere_view_range_deg(celestial_sphere_view_range_deg + VIEW_RANGE_STEP_INCREMENT_DEG);
     update_sweep_adjuster_labels();
 }
 
@@ -1137,8 +1128,9 @@ void celestial_sphere_set_target(const int32_t object_index) {
     if (target_connector_line != nullptr) { lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN); }
 
     // object_index is either a body (encoded, see encode_body_target()) or a
-    // plain siderealObjectSweep index -- resolve to a common ObjectMarker
-    // pointer so the geometry/positioning below doesn't need to care which.
+    // plain markers[]/marker_sphere_index[] slot -- resolve to a common
+    // ObjectMarker pointer so the geometry/positioning below doesn't need to
+    // care which.
     const ObjectMarker * marker = nullptr;
     bool slot_valid = false;
 
@@ -1152,10 +1144,10 @@ void celestial_sphere_set_target(const int32_t object_index) {
             marker = &body_markers[body_i];
         }
     } else {
-        const bool index_in_range = (object_index >= 0) && (object_index < MAX_STARNAV_OBJECTS);
+        const bool index_in_range = (object_index >= 0) && (object_index < MAX_CELESTIAL_SPHERE_OBJECTS);
+        const int32_t sphere_idx = index_in_range ? marker_sphere_index[object_index] : -1;
         slot_valid = index_in_range &&
-            (siderealObjectSweep.object_table_i[object_index] >= 0) &&
-            (siderealObjectSweep.object_number[object_index] >= 0) &&
+            (sphere_idx >= 0) && (sphere_idx < sphere_entry_count) &&
             (markers[object_index].dot != nullptr) &&
             !lv_obj_has_flag(markers[object_index].dot, LV_OBJ_FLAG_HIDDEN);
         if (slot_valid) {
@@ -1328,8 +1320,13 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
 // ============================================================================
 // UPDATE CELESTIAL SPHERE
 // ============================================================================
-// Recomputes every marker's screen position from siderealObjectSweep,
-// relative to the boresight Alt/Az selected by current_mode.
+// Recomputes every catalog marker's screen position by windowing into the
+// pre-built sphere_entries[] (see build_celestial_sphere()) by RA/Dec around
+// the live boresight -- no catalog re-query, no Alt/Az/rise-set trig, since
+// a catalog object's RA/Dec never changes. Solar-system bodies below still
+// use the boresight's Alt/Az (current_mode-selected), since their own
+// Alt/Az/RA/Dec genuinely changes over time and is already tracked live via
+// trackPlanets() (UnidentifiedStudios_SiderealHelper.cpp).
 // MISRA: the whole body is wrapped in the scope_container guard below
 // instead of returning early, giving the function a single point of exit.
 void celestial_sphere_update(void) {
@@ -1350,61 +1347,77 @@ void celestial_sphere_update(void) {
         // instead of stretching objects near the zenith horizontally.
         const float cos_center_alt = cosf(deg2rad(static_cast<float>(center_alt)));
 
-        // Current visual-mode marker size, used below for every non-body
-        // sweep-object marker (bodies always use body_diameter_px()).
+        // Boresight RA/Dec (decimal) -- the catalog markers below are windowed
+        // by RA/Dec instead of Alt/Az, since a catalog object's RA/Dec never
+        // changes while its Alt/Az drifts with sidereal time; only the live
+        // boresight needs converting, once, right here (plain arithmetic, no
+        // trig -- see boresight_ra_dec_deg()).
+        double center_ra_hours = 0.0;
+        double center_dec_deg = 0.0;
+        boresight_ra_dec_deg(center_ra_hours, center_dec_deg);
+        // Right-ascension circles shrink toward the pole exactly like azimuth
+        // does above; scaled the same way.
+        const float cos_center_dec = cosf(deg2rad(static_cast<float>(center_dec_deg)));
+
+        // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
 
         int32_t found_count = 0;
 
-        for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
-            ObjectMarker * const marker = &markers[i];
-            const bool slot_valid =
-                (siderealObjectSweep.object_table_i[i] >= 0) &&
-                (siderealObjectSweep.object_number[i] >= 0);
+        for (int32_t i = 0; (i < sphere_entry_count) && (found_count < MAX_CELESTIAL_SPHERE_OBJECTS); i++) {
+            const SiderealSphereEntry &entry = sphere_entries[i];
 
-            if (!slot_valid) {
+            const double delta_ra_deg = wrap_delta_deg((static_cast<double>(entry.ra_hours) - center_ra_hours) * 15.0);
+            const double delta_dec_deg = static_cast<double>(entry.dec_deg) - center_dec_deg;
+
+            const float proj_x_deg = static_cast<float>(delta_ra_deg) * cos_center_dec;
+            const float proj_y_deg = static_cast<float>(delta_dec_deg);
+            const float radial_deg = sqrtf((proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg));
+
+            if (radial_deg <= static_cast<float>(celestial_sphere_view_range_deg)) {
+                ObjectMarker * const marker = &markers[found_count];
+                marker_sphere_index[found_count] = i;
+
+                marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
+                // Screen Y grows downward while declination grows "up" (north), so invert.
+                marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
+
                 if (marker->dot != nullptr) {
-                    lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
-                }
-            } else {
-                const double delta_az = wrap_delta_deg(siderealObjectSweep.object_az[i] - center_az);
-                const double delta_alt = siderealObjectSweep.object_alt[i] - center_alt;
-
-                const float proj_x_deg = static_cast<float>(delta_az) * cos_center_alt;
-                const float proj_y_deg = static_cast<float>(delta_alt);
-                const float radial_deg = sqrtf((proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg));
-
-                if (radial_deg > static_cast<float>(starNavSweepRangeDeg)) {
-                    // Outside the aperture that populated this sweep slot.
-                    if (marker->dot != nullptr) {
-                        lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+                    // Type-only identify for coloring/iconography -- cheap table
+                    // lookups (no trig), repeated on click for the full data box
+                    // (see celestial_sphere_set_target()). Bounded by how many
+                    // markers are actually on screen this tick, not the whole
+                    // catalog.
+                    SiderealObjectSingle type_lookup{};
+                    identifyKnownObject(&type_lookup, entry.table_i, entry.number);
+                    const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&type_lookup);
+                    const lv_color_t color = object_type_color(type_entry);
+                    if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
+                        const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                            ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
+                            : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
+                        const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                            ? &object_type_icon_fallback_16
+                            : &object_type_icon_fallback;
+                        lv_image_set_src(marker->dot, (icon != nullptr) ? icon : fallback);
+                        lv_obj_set_style_image_recolor(marker->dot, color, 0);
+                    } else {
+                        lv_obj_set_style_bg_color(marker->dot, color, 0);
                     }
-                } else {
-                    found_count++;
-
-                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
-                    // Screen Y grows downward while altitude grows upward, so invert.
-                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
-
-                    if (marker->dot != nullptr) {
-                        const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&siderealObjectSweep, i);
-                        const lv_color_t color = object_type_color(type_entry);
-                        if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
-                            const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
-                                ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
-                                : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
-                            const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
-                                ? &object_type_icon_fallback_16
-                                : &object_type_icon_fallback;
-                            lv_image_set_src(marker->dot, (icon != nullptr) ? icon : fallback);
-                            lv_obj_set_style_image_recolor(marker->dot, color, 0);
-                        } else {
-                            lv_obj_set_style_bg_color(marker->dot, color, 0);
-                        }
-                        lv_obj_set_pos(marker->dot, marker->x, marker->y);
-                        lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
-                    }
+                    lv_obj_set_pos(marker->dot, marker->x, marker->y);
+                    lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                 }
+
+                found_count++;
+            }
+        }
+
+        // Hide every marker slot beyond found_count -- either never matched
+        // this tick, or dropped once MAX_CELESTIAL_SPHERE_OBJECTS was reached above.
+        for (int32_t i = found_count; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
+            marker_sphere_index[i] = -1;
+            if (markers[i].dot != nullptr) {
+                lv_obj_add_flag(markers[i].dot, LV_OBJ_FLAG_HIDDEN);
             }
         }
 
@@ -1412,12 +1425,13 @@ void celestial_sphere_update(void) {
 
         // -----------------------------------------------------------------
         // SOLAR SYSTEM BODIES (Sun, Moon, planets)
-        // Positioned by the same Alt/Az projection as siderealObjectSweep
-        // above, but tracked directly via siderealPlanetData rather than
-        // being part of the sweep -- there are always exactly
+        // Unlike the catalog markers above, bodies genuinely move over time,
+        // so they're still positioned via the boresight's live Alt/Az,
+        // tracked directly via siderealPlanetData (trackPlanets()) rather
+        // than sphere_entries[] -- there are always exactly
         // CELESTIAL_BODY_COUNT of them, so they don't count toward
-        // found_count/OBJECTS (that readout is tied to the DEG/MAX sweep
-        // controls, which don't apply to these).
+        // found_count/OBJECTS (that readout is tied to the DEG control,
+        // which doesn't apply to these).
         // -----------------------------------------------------------------
         for (int32_t i = 0; i < CELESTIAL_BODY_COUNT; i++) {
             ObjectMarker * const marker = &body_markers[i];
@@ -1438,7 +1452,7 @@ void celestial_sphere_update(void) {
                 const float proj_y_deg = static_cast<float>(delta_alt);
                 const float radial_deg = sqrtf((proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg));
 
-                if (radial_deg > static_cast<float>(starNavSweepRangeDeg)) {
+                if (radial_deg > static_cast<float>(celestial_sphere_view_range_deg)) {
                     // Outside the aperture.
                     if (marker->dot != nullptr) {
                         lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
@@ -1467,14 +1481,6 @@ void celestial_sphere_update(void) {
 
         // -----------------------------------------------------------------
         // SCAN TARGET
-        // Independent of siderealObjectSweep: an arbitrary object tracked by
-        // catalog table + number (see the Scan control). Kept current by
-        // taskUniverse()'s trackObject() call into track_target_obj, same as
-        // siderealObjectSweep is kept current by its repeated starNavSweep()
-        // calls -- this function only reads it. Except in SCAN_TABLE_BODY
-        // mode: trackObject() doesn't recognize that table, so this function
-        // reads the selected CelestialBody's live Alt/Az straight out of
-        // siderealPlanetData (via body_readout()) instead of track_target_obj.
         // -----------------------------------------------------------------
         if (scan_object_number <= 0) {
             if (scan_target_box != nullptr) { lv_obj_add_flag(scan_target_box, LV_OBJ_FLAG_HIDDEN); }
@@ -1508,7 +1514,7 @@ void celestial_sphere_update(void) {
                 const float scan_proj_y_deg = static_cast<float>(scan_delta_alt);
                 const float scan_radial_deg = sqrtf((scan_proj_x_deg * scan_proj_x_deg) + (scan_proj_y_deg * scan_proj_y_deg));
 
-                if (scan_radial_deg <= static_cast<float>(starNavSweepRangeDeg)) {
+                if (scan_radial_deg <= static_cast<float>(celestial_sphere_view_range_deg)) {
                     // Within the aperture: highlight it (no data box, no arrow/delta text).
                     if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
                     if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
@@ -1625,6 +1631,8 @@ void celestial_sphere_begin(
     if (ok) {
         celestial_sphere_end();
 
+        build_celestial_sphere(); // once ever; no-op on repeated screen opens (see sphere_built)
+
         CELESTIAL_SPHERE_CONTAINER_SIZE = (width_px < height_px) ? width_px : height_px;
 
         SCOPE_WIDTH = scope_w_px;
@@ -1634,7 +1642,7 @@ void celestial_sphere_begin(
         SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 
         SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
-        PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(starNavSweepRangeDeg);
+        PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(celestial_sphere_view_range_deg);
 
         current_mode = initial_mode;
         current_target_index = -1;
@@ -1699,8 +1707,7 @@ void celestial_sphere_begin(
         const int32_t scope_right_px  = SCOPE_CENTER_X + (SCOPE_WIDTH / 2);
         const int32_t scope_top_px    = SCOPE_CENTER_Y - (SCOPE_HEIGHT / 2);
         const int32_t scope_bottom_px = SCOPE_CENTER_Y + (SCOPE_HEIGHT / 2);
-        // A little under half of SCOPE_WIDTH, so the DEG/STEP column (left)
-        // and the MAX column (right) sit side by side without touching.
+        // Width of the DEG stepper panel below the scope.
         const int32_t outside_stepper_width_px = (SCOPE_WIDTH / 2) - 10;
 
         // Objects-found readout, pinned outside scope_container, just above
@@ -1828,7 +1835,7 @@ void celestial_sphere_begin(
         //     lv_obj_add_event_cb(visual_mode_dropdown, visual_mode_dropdown_cb, LV_EVENT_VALUE_CHANGED, nullptr);
         // }
         // ------------------------------------------------------------------------
-        // Degrees Sweep control
+        // Degrees control
         // ------------------------------------------------------------------------
         const stepper_panel_t sweep_range_panel = create_stepper_panel(
             celestial_sphere_container,             // parent
@@ -1856,35 +1863,6 @@ void celestial_sphere_begin(
         lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
         lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
         sweep_range_value_label = sweep_range_panel.value_label;
-        // ------------------------------------------------------------------------
-        // Max Objects control
-        // ------------------------------------------------------------------------
-        const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
-            celestial_sphere_container,             // parent
-            outside_stepper_width_px,               // width_px
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
-            LV_ALIGN_TOP_MID,                      // alignment
-            0, // pos_x
-            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX + SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "MAX",                          // title_text
-            ""                              // value_text
-        );
-        lv_obj_add_event_cb(sweep_max_objects_panel.btn_minus.button, sweep_max_objects_minus_cb, LV_EVENT_CLICKED, nullptr);
-        lv_obj_add_event_cb(sweep_max_objects_panel.btn_plus.button, sweep_max_objects_plus_cb, LV_EVENT_CLICKED, nullptr);
-        sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
 
         update_sweep_adjuster_labels();
     }
@@ -1978,13 +1956,11 @@ void celestial_sphere_begin(
 
         update_gyro_attitude_label(); // populate the four labels immediately
 
-        // Markers, one per possible siderealObjectSweep slot -- shaped/sized
-        // for whichever visual mode is currently selected (ICON_32 by
-        // default; persists across celestial_sphere_begin() calls, same as
-        // e.g. scan_table_i does).
-        for (int32_t i = 0; i < MAX_STARNAV_OBJECTS; i++) {
+        // Markers, one per possible visible-catalog-marker slot
+        for (int32_t i = 0; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
             markers[i].x = 0;
             markers[i].y = 0;
+            marker_sphere_index[i] = -1;
             markers[i].dot = create_marker_for_mode(celestial_sphere_container, current_marker_visual_mode, COLOR_MARKER);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
@@ -1992,12 +1968,7 @@ void celestial_sphere_begin(
             }
         }
 
-        // Body markers: Sun, Moon and planets tracked directly via
-        // siderealPlanetData rather than being part of siderealObjectSweep.
-        // Registered with the same click callback as the sweep markers above,
-        // but with an encoded index (see encode_body_target()) so
-        // celestial_sphere_set_target() can tell the two apart while still
-        // sharing its single selection box/data box.
+        // Body markers: Sun, Moon and planets
         for (int32_t i = 0; i < CELESTIAL_BODY_COUNT; i++) {
             const CelestialBody body = static_cast<CelestialBody>(i);
             body_markers[i].x = 0;
@@ -2111,8 +2082,6 @@ void celestial_sphere_resume(void) {
     sphere_active = true;
 }
 
-// True only while the sphere is resumed and visible; taskUniverse uses this
-// to skip starNavSweep() when nothing is showing its output.
 bool celestial_sphere_is_active(void) {
     return sphere_active;
 }
