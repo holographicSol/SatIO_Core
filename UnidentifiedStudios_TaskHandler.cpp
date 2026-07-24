@@ -1318,7 +1318,10 @@ static void taskUniverse(void *pvParameters) {
         track_target_obj.object_dec = NAN;
         track_target_obj.object_az = NAN;
         track_target_obj.object_alt = NAN;
-        trackObject(&track_target_obj, scan_table_i, scan_object_number);
+        // add to common cli command and sentence output (track_target_obj celest.sphere independant)
+        if (scan_object_number > 0) {
+          trackObject(&track_target_obj, scan_table_i, scan_object_number);
+        }
         // --------------------------------------------
         // Task frequency counter
         // --------------------------------------------

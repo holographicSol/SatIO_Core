@@ -291,7 +291,7 @@ enum class MarkerVisualMode : int32_t {
     ICON_32
 };
 
-static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::ICON_32;
+static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::CIRCLE_4;
 
 static lv_obj_t * visual_mode_dropdown = nullptr;
 
@@ -1710,7 +1710,7 @@ void celestial_sphere_begin(
             168,                                            // width_px
             24,                                             // height_px
             LV_ALIGN_TOP_LEFT,                              // alignment
-            scope_left_px,                                  // pos_x
+            scope_left_px+40,                                  // pos_x
             scope_top_px - 24 - SCOPE_OUTSIDE_GAP_PX,        // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
@@ -1746,7 +1746,7 @@ void celestial_sphere_begin(
                 celestial_sphere_container,
                 scan_row_width_px, 24,
                 LV_ALIGN_TOP_LEFT,
-                scope_right_px - scan_row_width_px,
+                scope_right_px - scan_row_width_px - 40,
                 scan_row_y - 24 - SCOPE_OUTSIDE_GAP_PX,
                 "",
                 LV_TEXT_ALIGN_CENTER,
@@ -1762,7 +1762,7 @@ void celestial_sphere_begin(
                 nullptr, 0,
                 scan_dropdown_width_px, 24,
                 LV_ALIGN_TOP_LEFT,
-                scope_right_px - scan_row_width_px,
+                scope_right_px - scan_row_width_px - 20,
                 scan_row_y,
                 &font_cobalt_alien_17
             );
@@ -1786,7 +1786,7 @@ void celestial_sphere_begin(
                 celestial_sphere_container,
                 scan_number_width_px, 24,
                 LV_ALIGN_TOP_LEFT,
-                scope_right_px - scan_number_width_px,
+                scope_right_px - scan_number_width_px - 40,
                 scan_row_y,
                 "SCAN",
                 LV_TEXT_ALIGN_CENTER,
@@ -1800,91 +1800,95 @@ void celestial_sphere_begin(
             lv_obj_set_user_data(scan_number_label, get_celestial_sphere_scan_number_kb_ctx());
         }
 
-        // Visual-mode control: switches how non-body sweep-object markers
-        // are drawn (see MarkerVisualMode) so the aperture's marker density/
-        // placement can be inspected independent of icon detail. Pinned
-        // outside scope_container's left edge, vertically centered.
-        // This is currently a feature intended for developmental, experimental purposes.  
-        {
-            const int32_t visual_mode_dropdown_width_px = 120;
-
-            visual_mode_dropdown = create_dropdown_menu(
-                celestial_sphere_container,
-                nullptr, 0,
-                visual_mode_dropdown_width_px, 24,
-                LV_ALIGN_BOTTOM_MID,
-                0,
-                0,
-                &font_cobalt_alien_17
-            );
-            lv_dropdown_add_option(visual_mode_dropdown, "4x4", LV_DROPDOWN_POS_LAST);
-            lv_dropdown_add_option(visual_mode_dropdown, "8x8", LV_DROPDOWN_POS_LAST);
-            lv_dropdown_add_option(visual_mode_dropdown, "16x16", LV_DROPDOWN_POS_LAST);
-            lv_dropdown_add_option(visual_mode_dropdown, "16 ICON", LV_DROPDOWN_POS_LAST);
-            lv_dropdown_add_option(visual_mode_dropdown, "32 ICON", LV_DROPDOWN_POS_LAST);
-            // Option order matches MarkerVisualMode exactly (see
-            // visual_mode_dropdown_cb()), same convention as scan_table_dropdown.
-            lv_dropdown_set_selected(visual_mode_dropdown, static_cast<uint32_t>(current_marker_visual_mode));
-            lv_obj_add_event_cb(visual_mode_dropdown, visual_mode_dropdown_cb, LV_EVENT_VALUE_CHANGED, nullptr);
-        }
-
-        // DEG bottom-left, outside scope_container (left edge aligned with
-        // its left edge).
-        const stepper_panel_t sweep_range_panel = create_stepper_panel(
-            celestial_sphere_container,             // parent
-            outside_stepper_width_px,               // width_px
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
-            LV_ALIGN_TOP_LEFT,                      // alignment
-            scope_left_px,                          // pos_x
-            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "DEG",                          // title_text
-            ""                              // value_text
-        );
-        lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
-        lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
-        sweep_range_value_label = sweep_range_panel.value_label;
-
-        // MAX stacked bottom-right, outside scope_container (right edge
-        // aligned with its right edge, same row as DEG).
-        const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
-            celestial_sphere_container,             // parent
-            outside_stepper_width_px,               // width_px
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
-            LV_ALIGN_TOP_LEFT,                      // alignment
-            scope_right_px - outside_stepper_width_px, // pos_x
-            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
-            radius_rounded,                 // radius
-            1,                              // outer_pad_all
-            1,                              // inner_pad_all
-            1,                              // outline_padding
-            1,                              // main_row_padding
-            1,                              // main_column_padding
-            1,                              // sub_row_padding
-            4,                              // sub_column_padding
-            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
-            false,                          // show_scrollbar
-            false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
-            "MAX",                          // title_text
-            ""                              // value_text
-        );
-        lv_obj_add_event_cb(sweep_max_objects_panel.btn_minus.button, sweep_max_objects_minus_cb, LV_EVENT_CLICKED, nullptr);
-        lv_obj_add_event_cb(sweep_max_objects_panel.btn_plus.button, sweep_max_objects_plus_cb, LV_EVENT_CLICKED, nullptr);
-        sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
+        // -----------------------------------------------------------------------------------------------------------
+        // DEVELOPER OPTIONS (+- PERF/QUALITY)
+        // -----------------------------------------------------------------------------------------------------------
+        // ------------------------------------------------------------------------
+        // Visual-mode control
+        // ------------------------------------------------------------------------
+        // {
+        //     const int32_t visual_mode_dropdown_width_px = 120;
+        //     visual_mode_dropdown = create_dropdown_menu(
+        //         celestial_sphere_container,
+        //         nullptr, 0,
+        //         visual_mode_dropdown_width_px, 24,
+        //         LV_ALIGN_BOTTOM_MID,
+        //         0,
+        //         0,
+        //         &font_cobalt_alien_17
+        //     );
+        //     lv_dropdown_add_option(visual_mode_dropdown, "4x4", LV_DROPDOWN_POS_LAST);
+        //     lv_dropdown_add_option(visual_mode_dropdown, "8x8", LV_DROPDOWN_POS_LAST);
+        //     lv_dropdown_add_option(visual_mode_dropdown, "16x16", LV_DROPDOWN_POS_LAST);
+        //     lv_dropdown_add_option(visual_mode_dropdown, "16 ICON", LV_DROPDOWN_POS_LAST);
+        //     lv_dropdown_add_option(visual_mode_dropdown, "32 ICON", LV_DROPDOWN_POS_LAST);
+        //     // Option order matches MarkerVisualMode exactly (see
+        //     // visual_mode_dropdown_cb()), same convention as scan_table_dropdown.
+        //     lv_dropdown_set_selected(visual_mode_dropdown, static_cast<uint32_t>(current_marker_visual_mode));
+        //     lv_obj_add_event_cb(visual_mode_dropdown, visual_mode_dropdown_cb, LV_EVENT_VALUE_CHANGED, nullptr);
+        // }
+        // ------------------------------------------------------------------------
+        // Degrees Sweep control
+        // ------------------------------------------------------------------------
+        // // DEG bottom-left, outside scope_container (left edge aligned with
+        // // its left edge).
+        // const stepper_panel_t sweep_range_panel = create_stepper_panel(
+        //     celestial_sphere_container,             // parent
+        //     outside_stepper_width_px,               // width_px
+        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+        //     LV_ALIGN_TOP_LEFT,                      // alignment
+        //     scope_left_px,                          // pos_x
+        //     scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
+        //     radius_rounded,                 // radius
+        //     1,                              // outer_pad_all
+        //     1,                              // inner_pad_all
+        //     1,                              // outline_padding
+        //     1,                              // main_row_padding
+        //     1,                              // main_column_padding
+        //     1,                              // sub_row_padding
+        //     4,                              // sub_column_padding
+        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
+        //     false,                          // show_scrollbar
+        //     false,                          // enable_scrolling
+        //     &font_cobalt_alien_17,          // font_title
+        //     &font_cobalt_alien_17,          // font_sub
+        //     "DEG",                          // title_text
+        //     ""                              // value_text
+        // );
+        // lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
+        // lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
+        // sweep_range_value_label = sweep_range_panel.value_label;
+        // ------------------------------------------------------------------------
+        // Max Objects control
+        // ------------------------------------------------------------------------
+        // // MAX stacked bottom-right, outside scope_container (right edge
+        // // aligned with its right edge, same row as DEG).
+        // const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
+        //     celestial_sphere_container,             // parent
+        //     outside_stepper_width_px,               // width_px
+        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+        //     LV_ALIGN_TOP_LEFT,                      // alignment
+        //     scope_right_px - outside_stepper_width_px, // pos_x
+        //     scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
+        //     radius_rounded,                 // radius
+        //     1,                              // outer_pad_all
+        //     1,                              // inner_pad_all
+        //     1,                              // outline_padding
+        //     1,                              // main_row_padding
+        //     1,                              // main_column_padding
+        //     1,                              // sub_row_padding
+        //     4,                              // sub_column_padding
+        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
+        //     false,                          // show_scrollbar
+        //     false,                          // enable_scrolling
+        //     &font_cobalt_alien_17,          // font_title
+        //     &font_cobalt_alien_17,          // font_sub
+        //     "MAX",                          // title_text
+        //     ""                              // value_text
+        // );
+        // lv_obj_add_event_cb(sweep_max_objects_panel.btn_minus.button, sweep_max_objects_minus_cb, LV_EVENT_CLICKED, nullptr);
+        // lv_obj_add_event_cb(sweep_max_objects_panel.btn_plus.button, sweep_max_objects_plus_cb, LV_EVENT_CLICKED, nullptr);
+        // sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
 
         update_sweep_adjuster_labels();
     }
