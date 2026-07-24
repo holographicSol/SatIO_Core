@@ -81,7 +81,7 @@ lv_obj_t * gyro_screen;
 lv_obj_t * serial_screen;
 lv_obj_t * mplex0_screen;
 lv_obj_t * uap_screen;
-lv_obj_t * baseline_screen;
+lv_obj_t * celestial_sphere_screen;
 
 int32_t current_screen_number = -1;
 #define LOAD_SCREEN    -1
@@ -93,7 +93,7 @@ int32_t current_screen_number = -1;
 #define SERIAL_SCREEN  5
 #define UAP_SCREEN     6
 
-#define BASELINE_SCREEN 600
+#define CELESTIAL_SPHERE_SCREEN 600
 #define DEV_SCREEN_1 601
 #define DEV_SCREEN_2 602
 #define DEV_SCREEN_3 603
@@ -109,7 +109,7 @@ bool flag_display_gyro_screen = false;
 bool flag_display_mplex0_screen = false;
 bool flag_display_serial_screen = false;
 bool flag_display_uap_screen = false;
-bool flag_display_baseline_screen = false;
+bool flag_display_celestial_sphere_screen = false;
 
 /** ---------------------------------------------------------------------------------------
  * @brief Global Objects
@@ -857,7 +857,7 @@ void system_tray_grid_menu_2_event_cb(lv_event_t * e)
         
         // Switch logic
         switch(btn_index+600) {
-            case BASELINE_SCREEN: flag_display_baseline_screen=true; break;
+            case CELESTIAL_SPHERE_SCREEN: flag_display_celestial_sphere_screen=true; break;
             default: break;
         }
     }
@@ -15369,7 +15369,7 @@ void create_default_screen_objects(
         if(label && lv_obj_has_class(label, &lv_label_class)) {
             // Set label text
             switch (i+600) {
-                case BASELINE_SCREEN:   lv_label_set_text(label, "BAS"); break;
+                case CELESTIAL_SPHERE_SCREEN: lv_label_set_text(label, "SPH"); break;
                 case DEV_SCREEN_1:      lv_label_set_text(label, ""); break;
                 case DEV_SCREEN_2:      lv_label_set_text(label, ""); break;
                 case DEV_SCREEN_3:      lv_label_set_text(label, ""); break;
@@ -15403,42 +15403,6 @@ void display_loading_screen() {
     );
 
     current_screen_number = LOAD_SCREEN;
-}
-
-/** -------------------------------------------------------------------------------------
- * @brief Tracks whether the celestial sphere overlay is currently shown on
- * the home screen; toggled by celestial_sphere_toggle_btn_event_cb().
- */
-static bool celestial_sphere_overlay_visible = false;
-
-/** -------------------------------------------------------------------------------------
- * @brief Toggles the celestial sphere overlay on/off. While shown, it sits on
- * top of (and is made semi-transparent over) the astro clock, and the astro
- * clock's own click handling is disabled so the two don't fight over clicks.
- */
-static void celestial_sphere_toggle_btn_event_cb(lv_event_t * e) {
-    celestial_sphere_overlay_visible = !celestial_sphere_overlay_visible;
-
-    if (celestial_sphere_overlay_visible == true) {
-        astroclock_set_visible(false);
-        astro_clock_pause();
-
-        celestial_sphere_resume();
-        celestial_sphere_set_visible(true);
-    }
-    else if (celestial_sphere_overlay_visible == false) {
-        celestial_sphere_set_visible(false);
-        celestial_sphere_pause();
-
-        astroclock_set_visible(true);
-        astro_clock_resume();
-    }
-    // astro_clock_set_clickable(!celestial_sphere_overlay_visible);
-
-    lv_obj_t * const label = static_cast<lv_obj_t *>(lv_event_get_user_data(e));
-    if (label != nullptr) {
-        lv_label_set_text(label, celestial_sphere_overlay_visible ? "Sphere: ON" : "Sphere: OFF");
-    }
 }
 
 /** -------------------------------------------------------------------------------------
@@ -15481,46 +15445,6 @@ void display_home_screen()
         90               // angle offset
     );
 
-    // -------------------------------- Celestial Sphere ----------------------------------- //
-
-    /* (IN EARLY DEVELOPMENT) */
-
-    // Initialize celestial sphere on main screen
-    celestial_sphere_begin(
-        home_screen,
-        550,                         // width (total available width)
-        550,                         // height (total available height)
-        380,                         // scope width (span X of total available width)
-        380,                         // scope height (span Y of total available height)
-        LV_ALIGN_CENTER,             // alignment
-        0,                           // pos x
-        0,                           // pos y
-        CELESTIAL_SPHERE_MODE_GYRO   // initial mode
-    );
-    celestial_sphere_set_visible(false);
-    celestial_sphere_overlay_visible = false;
-    celestial_sphere_pause();
-
-    // -------------------------------- Celestial Sphere Toggle ----------------------------------- //
-
-    button_t celestial_sphere_toggle_btn = create_button(
-        home_screen,
-        140,                   // width px
-        40,                    // height px
-        LV_ALIGN_BOTTOM_MID,   // alignment
-        10,                    // pos x
-        -20,                   // pos y
-        "Sphere: OFF",
-        LV_TEXT_ALIGN_CENTER,
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
-    );
-    lv_obj_add_event_cb(celestial_sphere_toggle_btn.button, celestial_sphere_toggle_btn_event_cb,
-                         LV_EVENT_CLICKED, celestial_sphere_toggle_btn.label);
 }
 
 /** -------------------------------------------------------------------------------------
@@ -16120,28 +16044,45 @@ void display_uap_screen()
 }
 
 /** -------------------------------------------------------------------------------------
- * @brief Blank diagnostic screen: title bar + system tray only, no other content.
- *        Use this screen to measure baseline FPS with minimal rendering overhead.
+ * @brief Show Celestial Sphere Screen: a scalable Alt/Az sky viewfinder,
+ *        as its own dedicated screen (formerly a toggleable overlay on the
+ *        home screen, and before that a blank screen used to measure
+ *        baseline FPS with minimal rendering overhead).
  */
-void display_baseline_screen() {
+void display_celestial_sphere_screen() {
 
     // Set Display Flag
-    flag_display_baseline_screen = false;
+    flag_display_celestial_sphere_screen = false;
 
     // Check Current Screen
     lv_obj_t * current_screen = lv_scr_act();
-    if (current_screen == baseline_screen) {
+    if (current_screen == celestial_sphere_screen) {
         return;
     }
 
-    current_screen_number = BASELINE_SCREEN;
+    current_screen_number = CELESTIAL_SPHERE_SCREEN;
 
     // Always create a fresh screen
-    baseline_screen = lv_obj_create(NULL);
+    celestial_sphere_screen = lv_obj_create(NULL);
 
     // Load screen
-    lv_scr_load_anim(baseline_screen, SCR_LOAD_ANIM, SCR_LOAD_ANIM_TIME, SCR_LOAD_ANIM_DELAY, SCR_LOAD_ANIM_AUTO_DEL);
-    create_default_screen_objects(baseline_screen);
+    lv_scr_load_anim(celestial_sphere_screen, SCR_LOAD_ANIM, SCR_LOAD_ANIM_TIME, SCR_LOAD_ANIM_DELAY, SCR_LOAD_ANIM_AUTO_DEL);
+    create_default_screen_objects(celestial_sphere_screen);
+
+    // -------------------------------- Celestial Sphere ----------------------------------- //
+
+    celestial_sphere_begin(
+        celestial_sphere_screen,
+        550,                         // width (total available width)
+        550,                         // height (total available height)
+        380,                         // scope width (span X of total available width)
+        380,                         // scope height (span Y of total available height)
+        LV_ALIGN_CENTER,             // alignment
+        0,                           // pos x
+        0,                           // pos y
+        CELESTIAL_SPHERE_MODE_GYRO   // initial mode
+    );
+    celestial_sphere_set_visible(true);
 }
 
 /** -------------------------------------------------------------------------------------
@@ -16209,7 +16150,7 @@ void update_display_lvgl()
     else if (flag_display_mplex0_screen==true) {display_mplex0_screen();}
     else if (flag_display_serial_screen==true) {display_serial_screen();}
     else if (flag_display_uap_screen==true) {display_uap_screen();}
-    else if (flag_display_baseline_screen==true) {display_baseline_screen();}
+    else if (flag_display_celestial_sphere_screen==true) {display_celestial_sphere_screen();}
     
     // ---------------------
     // KB Alnumsym
@@ -17576,9 +17517,9 @@ void update_display_lvgl()
     }
 
     // ---------------------
-    // baseline screen
+    // celestial sphere screen
     // ---------------------
-    else if (current_screen_number == BASELINE_SCREEN) {
+    else if (current_screen_number == CELESTIAL_SPHERE_SCREEN) {
     }
 }
 
@@ -17622,7 +17563,7 @@ void initSatIOUI() {
     serial_screen  = lv_obj_create(NULL);
     mplex0_screen  = lv_obj_create(NULL);
     uap_screen      = lv_obj_create(NULL);
-    baseline_screen = lv_obj_create(NULL);
+    celestial_sphere_screen = lv_obj_create(NULL);
 
     // Default
     default_bg_hue                  = lv_color_make(0,0,0);

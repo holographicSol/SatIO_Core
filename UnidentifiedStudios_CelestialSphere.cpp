@@ -2084,6 +2084,7 @@ void celestial_sphere_begin(
 
         // Create timer for celestial sphere updates
         sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 50, nullptr);
+        sphere_active = true;
     }
 }
 

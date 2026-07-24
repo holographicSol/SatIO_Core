@@ -6,6 +6,7 @@
 
 #include <Arduino.h>
 #include <math.h>
+#include <esp_attr.h>
 #include <esp_task_wdt.h>
 #include <SiderealPlanets.h>  // https://github.com/DavidArmstrong/SiderealPlanets
 #include <SiderealObjects.h>  // https://github.com/DavidArmstrong/SiderealObjects
@@ -1138,8 +1139,15 @@ void starNavSweep() {
     // Zero-initialized (not copied from siderealObjectSweep): every field is
     // overwritten by clearStarNavObjects() below, so there is nothing left
     // in the global worth seeding from.
-
-    static SiderealObjectSweep sweep_data{};
+    // EXT_RAM_BSS_ATTR: this duplicates siderealObjectSweep's own ~43KB, and
+    // internal SRAM on this target is scarce enough that reserving both
+    // copies there pushed other things (e.g. task stacks, since
+    // CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY lets FreeRTOS fall back to
+    // PSRAM once internal SRAM is tight) into PSRAM, slowing the whole
+    // system down -- not just this function. Only starNavSweep() (taskUniverse,
+    // not latency-critical) touches this buffer, so it can safely live in the
+    // slower memory instead.
+    EXT_RAM_BSS_ATTR static SiderealObjectSweep sweep_data{};
     clearStarNavObjects(&sweep_data);
 
     // Center of the query cone: current gyroscopic Alt/Az converted to

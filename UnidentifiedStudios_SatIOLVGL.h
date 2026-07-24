@@ -1329,10 +1329,10 @@ void display_serial_screen();
 void display_uap_screen();
 
 /** -------------------------------------------------------------------------------------
- * @brief Show Baseline Screen (title bar + system tray only; no content).
- *        Navigate here to measure FPS with minimal rendering overhead.
+ * @brief Show Celestial Sphere Screen: a scalable Alt/Az sky viewfinder,
+ *        as its own dedicated screen.
  */
-void display_baseline_screen();
+void display_celestial_sphere_screen();
 
 /** -------------------------------------------------------------------------------------
  * @brief Flags to trigger screen loading.
@@ -1344,7 +1344,7 @@ extern bool flag_display_gps_screen;
 extern bool flag_display_gyro_screen;
 extern bool flag_display_disp_screen;
 extern bool flag_display_uap_screen;
-extern bool flag_display_baseline_screen;
+extern bool flag_display_celestial_sphere_screen;
 
 /** -------------------------------------------------------------------------------------
  * @brief Main function to update screen objects and load screens.

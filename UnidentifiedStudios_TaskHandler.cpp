@@ -1307,8 +1307,8 @@ static void taskUniverse(void *pvParameters) {
       #else
       const bool starnav_ui_active = true;
       #endif
-      if (starnav_ui_active && ((esp_timer_get_time() - starnav_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV)) {
 
+      if ((starnav_ui_active == true) && ( (esp_timer_get_time() - starnav_last_uS) >= ((int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV) )) {
         starNavSweep();
         starNavConstellation();
         starnav_last_uS = esp_timer_get_time();
@@ -1319,7 +1319,7 @@ static void taskUniverse(void *pvParameters) {
       // Track Celestial Sphere Object
       // -----------------------------------------------------------
       #ifdef SatIO_DISPLAY_OPTION_LVGL
-      if (starnav_ui_active && (scan_object_number > 0)) {
+      if ((starnav_ui_active == true) && (scan_object_number > 0)) {
         track_target_obj.object_ra = NAN;
         track_target_obj.object_dec = NAN;
         track_target_obj.object_az = NAN;
@@ -1434,10 +1434,15 @@ void createTaskSatIOSerialTx() {
  * @brief Drives LVGL screen updates at the lowest user-task priority so it is
  *        preempted by every other task regardless of how long a frame takes.
  *
- *        Acquires the BSP display lock before calling update_display() so all
- *        LVGL API calls are thread-safe.  The lock is released between frames
- *        so the BSP LVGL task can service touch events and DMA completions
- *        during the idle window.
+ *        Acquires the BSP display lock before dataMutex (not the reverse --
+ *        that was tried and made things worse: the BSP's own LVGL task can
+ *        hold the display lock for a while doing real rendering work, and
+ *        taking dataMutex first meant this task sat on dataMutex the whole
+ *        time it waited on that -- dataMutex is grabbed by nearly every task
+ *        in the system just to bump its own frequency counter, so that stall
+ *        went system-wide instead of staying local to the display/touch
+ *        path). The lock is released between frames so the BSP LVGL task can
+ *        service touch events and DMA completions during the idle window.
  */
 static void taskDisplayUpdate(void *pvParameters) {
   bool locked = false;
@@ -1453,9 +1458,9 @@ static void taskDisplayUpdate(void *pvParameters) {
         xSemaphoreTake(dataMutex, portMAX_DELAY);
         update_display_lvgl();
         xSemaphoreGive(dataMutex);
-        bsp_display_unlock();
         #endif
-        
+        bsp_display_unlock();
+
       }
       // --------------------------------------------
       // Task frequency counter
