@@ -1299,34 +1299,32 @@ static void taskUniverse(void *pvParameters) {
       #endif
 
       // -----------------------------------------------------------
-      // Star Sweep
+      // StarNav
       // -----------------------------------------------------------
       static int64_t starnav_last_uS = 0;
-      #ifdef SatIO_DISPLAY_OPTION_LVGL
-      const bool starnav_ui_active = celestial_sphere_is_active();
-      #else
-      const bool starnav_ui_active = true;
-      #endif
-
-      if ((starnav_ui_active == true) && ( (esp_timer_get_time() - starnav_last_uS) >= ((int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV) )) {
+      if ( (esp_timer_get_time() - starnav_last_uS) >= ((int64_t)pwrConfigCurrent.TASK_MAX_FREQ_STARNAV) ) {
+        // -----------------------------------------------------------
+        // Object Sweep
+        // -----------------------------------------------------------
         starNavSweep();
+        // -----------------------------------------------------------
+        // Constellation
+        // -----------------------------------------------------------
         starNavConstellation();
-        starnav_last_uS = esp_timer_get_time();
-        stepFFCounter(systemData.counters_starnav, 1);
-      }
-
-      // -----------------------------------------------------------
-      // Track Celestial Sphere Object
-      // -----------------------------------------------------------
-      #ifdef SatIO_DISPLAY_OPTION_LVGL
-      if ((starnav_ui_active == true) && (scan_object_number > 0)) {
+        // -----------------------------------------------------------
+        // Track Object
+        // -----------------------------------------------------------
         track_target_obj.object_ra = NAN;
         track_target_obj.object_dec = NAN;
         track_target_obj.object_az = NAN;
         track_target_obj.object_alt = NAN;
         trackObject(&track_target_obj, scan_table_i, scan_object_number);
+        // --------------------------------------------
+        // Task frequency counter
+        // --------------------------------------------
+        starnav_last_uS = esp_timer_get_time();
+        stepFFCounter(systemData.counters_starnav, 1);
       }
-      #endif
 
       // --------------------------------------------
       // Task frequency counter
