@@ -1830,65 +1830,61 @@ void celestial_sphere_begin(
         // ------------------------------------------------------------------------
         // Degrees Sweep control
         // ------------------------------------------------------------------------
-        // // DEG bottom-left, outside scope_container (left edge aligned with
-        // // its left edge).
-        // const stepper_panel_t sweep_range_panel = create_stepper_panel(
-        //     celestial_sphere_container,             // parent
-        //     outside_stepper_width_px,               // width_px
-        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
-        //     LV_ALIGN_TOP_LEFT,                      // alignment
-        //     scope_left_px,                          // pos_x
-        //     scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
-        //     radius_rounded,                 // radius
-        //     1,                              // outer_pad_all
-        //     1,                              // inner_pad_all
-        //     1,                              // outline_padding
-        //     1,                              // main_row_padding
-        //     1,                              // main_column_padding
-        //     1,                              // sub_row_padding
-        //     4,                              // sub_column_padding
-        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
-        //     false,                          // show_scrollbar
-        //     false,                          // enable_scrolling
-        //     &font_cobalt_alien_17,          // font_title
-        //     &font_cobalt_alien_17,          // font_sub
-        //     "DEG",                          // title_text
-        //     ""                              // value_text
-        // );
-        // lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
-        // lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
-        // sweep_range_value_label = sweep_range_panel.value_label;
+        const stepper_panel_t sweep_range_panel = create_stepper_panel(
+            celestial_sphere_container,             // parent
+            outside_stepper_width_px,               // width_px
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+            LV_ALIGN_TOP_MID,                      // alignment
+            0,                          // pos_x
+            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "DEG",                          // title_text
+            ""                              // value_text
+        );
+        lv_obj_add_event_cb(sweep_range_panel.btn_minus.button, sweep_range_minus_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(sweep_range_panel.btn_plus.button, sweep_range_plus_cb, LV_EVENT_CLICKED, nullptr);
+        sweep_range_value_label = sweep_range_panel.value_label;
         // ------------------------------------------------------------------------
         // Max Objects control
         // ------------------------------------------------------------------------
-        // // MAX stacked bottom-right, outside scope_container (right edge
-        // // aligned with its right edge, same row as DEG).
-        // const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
-        //     celestial_sphere_container,             // parent
-        //     outside_stepper_width_px,               // width_px
-        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
-        //     LV_ALIGN_TOP_LEFT,                      // alignment
-        //     scope_right_px - outside_stepper_width_px, // pos_x
-        //     scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
-        //     radius_rounded,                 // radius
-        //     1,                              // outer_pad_all
-        //     1,                              // inner_pad_all
-        //     1,                              // outline_padding
-        //     1,                              // main_row_padding
-        //     1,                              // main_column_padding
-        //     1,                              // sub_row_padding
-        //     4,                              // sub_column_padding
-        //     SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
-        //     false,                          // show_scrollbar
-        //     false,                          // enable_scrolling
-        //     &font_cobalt_alien_17,          // font_title
-        //     &font_cobalt_alien_17,          // font_sub
-        //     "MAX",                          // title_text
-        //     ""                              // value_text
-        // );
-        // lv_obj_add_event_cb(sweep_max_objects_panel.btn_minus.button, sweep_max_objects_minus_cb, LV_EVENT_CLICKED, nullptr);
-        // lv_obj_add_event_cb(sweep_max_objects_panel.btn_plus.button, sweep_max_objects_plus_cb, LV_EVENT_CLICKED, nullptr);
-        // sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
+        const stepper_panel_t sweep_max_objects_panel = create_stepper_panel(
+            celestial_sphere_container,             // parent
+            outside_stepper_width_px,               // width_px
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX,        // height_px
+            LV_ALIGN_TOP_MID,                      // alignment
+            0, // pos_x
+            scope_bottom_px + SCOPE_OUTSIDE_GAP_PX + SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // pos_y
+            radius_rounded,                 // radius
+            1,                              // outer_pad_all
+            1,                              // inner_pad_all
+            1,                              // outline_padding
+            1,                              // main_row_padding
+            1,                              // main_column_padding
+            1,                              // sub_row_padding
+            4,                              // sub_column_padding
+            SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
+            false,                          // show_scrollbar
+            false,                          // enable_scrolling
+            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_17,          // font_sub
+            "MAX",                          // title_text
+            ""                              // value_text
+        );
+        lv_obj_add_event_cb(sweep_max_objects_panel.btn_minus.button, sweep_max_objects_minus_cb, LV_EVENT_CLICKED, nullptr);
+        lv_obj_add_event_cb(sweep_max_objects_panel.btn_plus.button, sweep_max_objects_plus_cb, LV_EVENT_CLICKED, nullptr);
+        sweep_max_objects_value_label = sweep_max_objects_panel.value_label;
 
         update_sweep_adjuster_labels();
     }

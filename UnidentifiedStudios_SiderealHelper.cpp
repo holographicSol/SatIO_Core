@@ -225,7 +225,7 @@ SiderealObjectSweep siderealObjectSweep = {
 };
 
 double starNavSweepRangeDeg = 1.0;
-int starNavMaxObjects       = 200;
+int starNavMaxObjects       = 500;
 
 // Clamps to a closed [lo, hi] range; NaN is left as-is (clamping it either
 // direction would silently manufacture a bogus finite value).
