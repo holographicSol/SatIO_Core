@@ -39,17 +39,6 @@ LV_FONT_DECLARE(font_unscii_12);
 // and celestial_sphere_set_target are part of the public interface declared
 // in UnidentifiedStudios_CelestialSphere.h.
 
-#define MAX_CELESTIAL_SPHERE_OBJECTS 1000
-static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
-static constexpr double VIEW_RANGE_DEG_MAX = 90.0;
-static double celestial_sphere_view_range_deg = 10.0;
-
-// Set to false to disable automatic marker-size switching
-// (marker_visual_mode_for_view_range_deg(), applied by sweep_range_minus_cb/
-// sweep_range_plus_cb) and leave current_marker_visual_mode's initial value
-// as the fixed size for every view range. Flip before building.
-static constexpr bool MARKER_AUTO_VISUAL_MODE_ENABLED = true;
-
 // Dimensions of the scope
 static int32_t SCOPE_WIDTH  = 480;
 static int32_t SCOPE_HEIGHT = 480;
@@ -75,7 +64,6 @@ static int32_t SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 static constexpr int32_t MARKER_ICON_SIZE_32 = 32;
 static constexpr int32_t MARKER_ICON_SIZE_16 = 16;
 
-static constexpr int32_t MARKER_CIRCLE_DIAMETER_2PX  = 2;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_4PX  = 4;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_8PX  = 8;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_16PX = 16;
@@ -90,9 +78,32 @@ static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE_32 + SELECT
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
-// Pixels drawn per degree of RA/Dec (or Alt/Az, for solar system bodies)
-// offset from the boresight, derived from celestial_sphere_view_range_deg.
-static float PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(celestial_sphere_view_range_deg);
+#define MAX_CELESTIAL_SPHERE_OBJECTS 3000
+static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
+static constexpr double VIEW_RANGE_DEG_MAX = 90.0;
+static double celestial_sphere_view_range_deg = 10.0;
+
+// Converts an angular half-width (degrees) into the matching
+// project_lonlat_deg()-space "projected degree" value along a cardinal
+// direction from the boresight -- i.e. what a point exactly that many
+// degrees off boresight (along a pure lat or pure lon offset) projects to
+// under the stereographic projection those functions use (see the
+// "SPHERICAL PROJECTION" section below for the full formula and why
+// stereographic, not the simpler gnomonic/rectilinear projection, was
+// chosen). PX_PER_DEG is calibrated from this -- not a plain 1:1 degree
+// scale -- so it stays correct up to VIEW_RANGE_DEG_MAX (90 deg), where a
+// plain linear scale would already have diverged from the true projected
+// geometry. Needed as early as PX_PER_DEG's very first initializer below
+// (which runs before any other function in this file) and again every time
+// the view range or SCOPE_RADIUS changes, so it is factored out once here
+// instead of repeating the formula at each call site.
+static inline double stereographic_edge_projected_deg(const double view_range_deg) {
+    return 2.0 * tan(view_range_deg * M_PI / 360.0) * (180.0 / M_PI);
+}
+
+// Pixels drawn per projected degree of RA/Dec (or Alt/Az, for solar system
+// bodies) offset from the boresight, derived from celestial_sphere_view_range_deg.
+static float PX_PER_DEG = static_cast<float>(static_cast<double>(SCOPE_RADIUS) / stereographic_edge_projected_deg(celestial_sphere_view_range_deg));
 
 // Clamps and sets celestial_sphere_view_range_deg, keeping PX_PER_DEG in
 // sync so callers don't have to remember to.
@@ -100,7 +111,7 @@ static void set_celestial_sphere_view_range_deg(double degrees) {
     if (degrees < VIEW_RANGE_DEG_MIN) { degrees = VIEW_RANGE_DEG_MIN; }
     if (degrees > VIEW_RANGE_DEG_MAX) { degrees = VIEW_RANGE_DEG_MAX; }
     celestial_sphere_view_range_deg = degrees;
-    PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(celestial_sphere_view_range_deg);
+    PX_PER_DEG = static_cast<float>(static_cast<double>(SCOPE_RADIUS) / stereographic_edge_projected_deg(celestial_sphere_view_range_deg));
 }
 
 // Currently selected boresight source.
@@ -143,7 +154,7 @@ static constexpr int32_t CROSSHAIR_CONSTELLATION_VALUE_WIDTH_PX = 260;
 // SCOPE_WIDTH at runtime (see celestial_sphere_begin), since SCOPE_WIDTH
 // itself isn't known until then.
 static constexpr int32_t SCOPE_OUTSIDE_GAP_PX = 10;
-static constexpr int32_t SCOPE_OUTSIDE_STEPPER_HEIGHT_PX = 48;
+static constexpr int32_t SCOPE_OUTSIDE_STEPPER_HEIGHT_PX = 32;
 
 // Amount celestial_sphere_view_range_deg changes per button press.
 static constexpr double VIEW_RANGE_STEP_INCREMENT_DEG = 1.0;
@@ -323,36 +334,14 @@ static void boresight_ra_dec_deg(double &ra_hours, double &dec_deg) {
 // MARKER VISUAL MODE
 // ============================================================================
 enum class MarkerVisualMode : int32_t {
-    CIRCLE_2 = 0,
-    CIRCLE_4,
+    CIRCLE_4 = 0,
     CIRCLE_8,
     CIRCLE_16,
     ICON_16,
     ICON_32
 };
 
-// Automatic marker size for the current view range: wider view ranges pack
-// more catalog entries into the same aperture, so a fixed marker size would
-// start overlapping as celestial_sphere_view_range_deg grows -- stepping
-// down to a smaller circle keeps them visually distinct.
-//   < 5 deg  -> CIRCLE_8 (zoomed in, few objects on screen, room for detail)
-//   < 10 deg -> CIRCLE_4
-//   >= 10 deg -> CIRCLE_2 (zoomed out, most objects on screen)
-static MarkerVisualMode marker_visual_mode_for_view_range_deg(const double degrees) {
-    MarkerVisualMode result = MarkerVisualMode::CIRCLE_2;
-    if (degrees < 5.0) {
-        result = MarkerVisualMode::CIRCLE_8;
-    } else if (degrees < 10.0) {
-        result = MarkerVisualMode::CIRCLE_4;
-    } else {
-        result = MarkerVisualMode::CIRCLE_2;
-    }
-    return result;
-}
-
-static MarkerVisualMode current_marker_visual_mode = MARKER_AUTO_VISUAL_MODE_ENABLED
-    ? marker_visual_mode_for_view_range_deg(celestial_sphere_view_range_deg)
-    : MarkerVisualMode::CIRCLE_4;
+static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::CIRCLE_4;
 
 static lv_obj_t * visual_mode_dropdown = nullptr;
 
@@ -360,7 +349,6 @@ static lv_obj_t * visual_mode_dropdown = nullptr;
 static int32_t marker_visual_diameter_px(const MarkerVisualMode mode) {
     int32_t result = MARKER_ICON_SIZE_32;
     switch (mode) {
-        case MarkerVisualMode::CIRCLE_2:  result = MARKER_CIRCLE_DIAMETER_2PX;  break;
         case MarkerVisualMode::CIRCLE_4:  result = MARKER_CIRCLE_DIAMETER_4PX;  break;
         case MarkerVisualMode::CIRCLE_8:  result = MARKER_CIRCLE_DIAMETER_8PX;  break;
         case MarkerVisualMode::CIRCLE_16: result = MARKER_CIRCLE_DIAMETER_16PX; break;
@@ -717,17 +705,89 @@ static inline double wrap_delta_deg(const double delta_deg) {
     return wrapped - 180.0;
 }
 
-// Same as wrap_delta_deg() but single-precision throughout -- used in the
-// per-catalog-entry hot loop (celestial_sphere_update(), up to
-// SIDEREAL_SPHERE_TOTAL_OBJECTS iterations/tick) so it stays on the MCU's
-// hardware float unit instead of falling into software double-precision
-// fmod().
-static inline float wrap_delta_deg_f(const float delta_deg) {
-    float wrapped = fmodf(delta_deg + 180.0F, 360.0F);
-    if (wrapped < 0.0F) {
-        wrapped += 360.0F;
+// ============================================================================
+// SPHERICAL PROJECTION
+// ============================================================================
+// Shared by every plotted thing in this file -- catalog markers (lon=RA*15
+// deg, lat=Dec), solar-system bodies and the scan pointer (lon=Az, lat=Alt),
+// and the grid reticle lines below -- since all of them are really just
+// "where does this lon/lat point land on a flat window centered on the
+// boresight", the same question a real telescope/camera answers optically
+// by projecting the sky onto a flat sensor. Both RA/Dec and Az/Alt are
+// spherical lon/lat pairs, so one function serves both.
+//
+// Stereographic (not the more familiar gnomonic/rectilinear) projection was
+// chosen deliberately: gnomonic only stays finite up to just under 90 deg
+// off boresight and already diverges toward infinity well before that,
+// while celestial_sphere_view_range_deg is allowed up to VIEW_RANGE_DEG_MAX
+// (90 deg) -- stereographic stays finite and well-behaved all the way out
+// to a full 90 deg (only its true singularity, 180 deg, is unreachable
+// here). Both reduce to the same plain linear-degree approximation this
+// file used to use at small offsets; stereographic just keeps working at
+// the wide end instead of blowing up.
+
+// Great-circle angular separation (degrees) between two lon/lat points.
+// This is the correct field-of-view cutoff test -- NOT the projected
+// x/y from project_lonlat_deg() below, whose radius from center diverges
+// from the true angular distance away from the boresight by design (that
+// divergence is exactly the curvature the reticle lines are meant to show).
+static double angular_separation_deg(const double center_lon_deg, const double center_lat_deg,
+                                      const double point_lon_deg, const double point_lat_deg) {
+    const double center_lat_rad = center_lat_deg * (M_PI / 180.0);
+    const double point_lat_rad = point_lat_deg * (M_PI / 180.0);
+    const double delta_lon_rad = wrap_delta_deg(point_lon_deg - center_lon_deg) * (M_PI / 180.0);
+
+    double cos_sep = (sin(center_lat_rad) * sin(point_lat_rad))
+        + (cos(center_lat_rad) * cos(point_lat_rad) * cos(delta_lon_rad));
+    // Clamp against float/double rounding right at (or past) +-1, where
+    // acos() would otherwise return NaN.
+    if (cos_sep > 1.0) {
+        cos_sep = 1.0;
     }
-    return wrapped - 180.0F;
+    if (cos_sep < -1.0) {
+        cos_sep = -1.0;
+    }
+    return acos(cos_sep) * (180.0 / M_PI);
+}
+
+// Stereographic projection of (point_lon_deg, point_lat_deg) onto the plane
+// tangent to the sphere at (center_lon_deg, center_lat_deg). x_deg/y_deg are
+// in the same "projected degree" units PX_PER_DEG converts to pixels (see
+// stereographic_edge_projected_deg()): they match plain degree offsets at
+// small angles and grow faster than the true angular offset near the edge
+// of a wide view range -- the projected image of a curved sphere bulging
+// toward the viewer, same as a real wide lens.
+static void project_lonlat_deg(const double center_lon_deg, const double center_lat_deg,
+                                const double point_lon_deg, const double point_lat_deg,
+                                float &x_deg, float &y_deg) {
+    const double center_lat_rad = center_lat_deg * (M_PI / 180.0);
+    const double point_lat_rad = point_lat_deg * (M_PI / 180.0);
+    const double delta_lon_rad = wrap_delta_deg(point_lon_deg - center_lon_deg) * (M_PI / 180.0);
+
+    const double sin_center_lat = sin(center_lat_rad);
+    const double cos_center_lat = cos(center_lat_rad);
+    const double sin_point_lat = sin(point_lat_rad);
+    const double cos_point_lat = cos(point_lat_rad);
+    const double sin_delta_lon = sin(delta_lon_rad);
+    const double cos_delta_lon = cos(delta_lon_rad);
+
+    // cos_c: cosine of the true angular separation (see angular_separation_deg()).
+    const double cos_c = (sin_center_lat * sin_point_lat) + (cos_center_lat * cos_point_lat * cos_delta_lon);
+    // k: stereographic's radial scale factor, 2/(1+cos_c). Its only
+    // singularity is cos_c = -1 (the antipodal point, 180 deg away), never
+    // reached within VIEW_RANGE_DEG_MAX; clamped defensively anyway.
+    constexpr double ONE_PLUS_COS_C_MIN = 1.0e-6;
+    double one_plus_cos_c = 1.0 + cos_c;
+    if (one_plus_cos_c < ONE_PLUS_COS_C_MIN) {
+        one_plus_cos_c = ONE_PLUS_COS_C_MIN;
+    }
+    const double k = 2.0 / one_plus_cos_c;
+
+    const double x_rad = k * cos_point_lat * sin_delta_lon;
+    const double y_rad = k * ((cos_center_lat * sin_point_lat) - (sin_center_lat * cos_point_lat * cos_delta_lon));
+
+    x_deg = static_cast<float>(x_rad * (180.0 / M_PI));
+    y_deg = static_cast<float>(y_rad * (180.0 / M_PI));
 }
 
 // ============================================================================
@@ -1152,18 +1212,12 @@ static void update_sweep_adjuster_labels(void) {
 static void sweep_range_minus_cb(lv_event_t * e) {
     (void)e;
     set_celestial_sphere_view_range_deg(celestial_sphere_view_range_deg - VIEW_RANGE_STEP_INCREMENT_DEG);
-    if (MARKER_AUTO_VISUAL_MODE_ENABLED) {
-        set_marker_visual_mode(marker_visual_mode_for_view_range_deg(celestial_sphere_view_range_deg));
-    }
     update_sweep_adjuster_labels();
 }
 
 static void sweep_range_plus_cb(lv_event_t * e) {
     (void)e;
     set_celestial_sphere_view_range_deg(celestial_sphere_view_range_deg + VIEW_RANGE_STEP_INCREMENT_DEG);
-    if (MARKER_AUTO_VISUAL_MODE_ENABLED) {
-        set_marker_visual_mode(marker_visual_mode_for_view_range_deg(celestial_sphere_view_range_deg));
-    }
     update_sweep_adjuster_labels();
 }
 
@@ -1391,11 +1445,6 @@ void celestial_sphere_update(void) {
             ? siderealPlanetData.local_sidereal_attitude.az
             : siderealPlanetData.gyro_0_sidereal_attitude.az;
 
-        // Azimuth circles shrink toward the pole; scaling the azimuth delta
-        // by cos(center_alt) keeps the projection spatially consistent
-        // instead of stretching objects near the zenith horizontally.
-        const float cos_center_alt = cosf(deg2rad(static_cast<float>(center_alt)));
-
         // Boresight RA/Dec (decimal) -- the catalog markers below are windowed
         // by RA/Dec instead of Alt/Az, since a catalog object's RA/Dec never
         // changes while its Alt/Az drifts with sidereal time; only the live
@@ -1404,108 +1453,78 @@ void celestial_sphere_update(void) {
         double center_ra_hours = 0.0;
         double center_dec_deg = 0.0;
         boresight_ra_dec_deg(center_ra_hours, center_dec_deg);
-        // Right-ascension circles shrink toward the pole exactly like azimuth
-        // does above; scaled the same way.
-        const float cos_center_dec = cosf(deg2rad(static_cast<float>(center_dec_deg)));
+        const double center_ra_deg = center_ra_hours * 15.0;
 
         // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
 
         int32_t found_count = 0;
 
-        // Every slot starts unclaimed this tick; a match below claims
-        // markers[i % MAX_CELESTIAL_SPHERE_OBJECTS] -- a STABLE slot keyed by
-        // the object's own sphere_entries index, not by scan order. Scanning
-        // sphere_entries[] in the same order every tick and assigning by
-        // *found order* (markers[found_count]) instead would reshuffle which
-        // slot every visible object lives in whenever the found-set changes
-        // even slightly (an object at the DEG boundary flickering in/out from
-        // gyro jitter shifts every later object's slot) -- since a click's
-        // hit-test (against last tick's widget position) and its callback
-        // (reading this tick's marker_sphere_index) can straddle exactly such
-        // a reshuffle, that made the target/data box appear only
-        // intermittently. Keying by i % MAX_CELESTIAL_SPHERE_OBJECTS instead
-        // means a given catalog object keeps the same slot for as long as it
-        // stays in view, so a click's hit-test and its callback always agree.
-        for (int32_t i = 0; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
-            marker_sphere_index[i] = -1;
-        }
-
-        // Single-precision copies of the boresight and the view-range cutoff,
-        // computed once outside the loop below: the catalog loop runs up to
-        // SIDEREAL_SPHERE_TOTAL_OBJECTS times/tick, so keeping it in float
-        // (vs. re-promoting to double per entry) and comparing squared
-        // radii (vs. calling sqrtf per entry) matters here.
-        const float center_ra_hours_f = static_cast<float>(center_ra_hours);
-        const float center_dec_deg_f = static_cast<float>(center_dec_deg);
-        const float view_range_deg_f = static_cast<float>(celestial_sphere_view_range_deg);
-        const float view_range_deg_sq = view_range_deg_f * view_range_deg_f;
-
-        for (int32_t i = 0; i < sphere_entry_count; i++) {
+        for (int32_t i = 0; (i < sphere_entry_count) && (found_count < MAX_CELESTIAL_SPHERE_OBJECTS); i++) {
             const SiderealSphereEntry &entry = sphere_entries[i];
+            const double point_dec_deg = static_cast<double>(entry.dec_deg);
 
-            // Declination never wraps (-90..90), so this cheap check alone
-            // -- no RA wrap, no trig -- already rejects most of the catalog
-            // (anything more than the view range above/below the boresight)
-            // before the more expensive RA-wrap below ever runs.
-            const float proj_y_deg = entry.dec_deg - center_dec_deg_f;
-            if (fabsf(proj_y_deg) > view_range_deg_f) {
-                continue;
-            }
+            // Cheap reject before paying for angular_separation_deg()'s trig:
+            // true angular separation is always >= |Dec delta| alone (moving
+            // along the sphere can't change declination faster than the
+            // great-circle distance travelled), so this can never wrongly
+            // reject an object that's actually in view. With up to ~14000
+            // catalog entries scanned every 50 ms tick, most of them get
+            // rejected right here for anything but the widest view ranges,
+            // which is what keeps this loop's per-entry cost close to what
+            // it was before this file used real spherical trig.
+            if (fabs(point_dec_deg - center_dec_deg) <= celestial_sphere_view_range_deg) {
+                const double point_ra_deg = static_cast<double>(entry.ra_hours) * 15.0;
+                const double radial_deg = angular_separation_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg);
 
-            const float delta_ra_deg = wrap_delta_deg_f((entry.ra_hours - center_ra_hours_f) * 15.0F);
-            const float proj_x_deg = delta_ra_deg * cos_center_dec;
-            const float radial_deg_sq = (proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg);
+                if (radial_deg <= celestial_sphere_view_range_deg) {
+                    float proj_x_deg = 0.0F;
+                    float proj_y_deg = 0.0F;
+                    project_lonlat_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg, proj_x_deg, proj_y_deg);
 
-            if (radial_deg_sq <= view_range_deg_sq) {
-                found_count++;
+                    ObjectMarker * const marker = &markers[found_count];
+                    marker_sphere_index[found_count] = i;
 
-                const int32_t slot = i % MAX_CELESTIAL_SPHERE_OBJECTS;
-                if (marker_sphere_index[slot] != -1) {
-                    // Extremely rare: two entries this far apart in catalog
-                    // order share a slot and are both in view at once. The
-                    // lower sphere_entries index (processed first) keeps it;
-                    // this one just doesn't get a marker this tick.
-                    continue;
-                }
-                marker_sphere_index[slot] = i;
+                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
+                    // Screen Y grows downward while declination grows "up" (north), so invert.
+                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
 
-                ObjectMarker * const marker = &markers[slot];
-                marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
-                // Screen Y grows downward while declination grows "up" (north), so invert.
-                marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
-
-                if (marker->dot != nullptr) {
-                    // Type-only identify for coloring/iconography -- cheap table
-                    // lookups (no trig), repeated on click for the full data box
-                    // (see celestial_sphere_set_target()). Bounded by how many
-                    // markers are actually on screen this tick, not the whole
-                    // catalog.
-                    SiderealObjectSingle type_lookup{};
-                    identifyKnownObject(&type_lookup, entry.table_i, entry.number);
-                    const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&type_lookup);
-                    const lv_color_t color = object_type_color(type_entry);
-                    if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
-                        const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
-                            ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
-                            : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
-                        const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
-                            ? &object_type_icon_fallback_16
-                            : &object_type_icon_fallback;
-                        lv_image_set_src(marker->dot, (icon != nullptr) ? icon : fallback);
-                        lv_obj_set_style_image_recolor(marker->dot, color, 0);
-                    } else {
-                        lv_obj_set_style_bg_color(marker->dot, color, 0);
+                    if (marker->dot != nullptr) {
+                        // Type-only identify for coloring/iconography -- cheap table
+                        // lookups (no trig), repeated on click for the full data box
+                        // (see celestial_sphere_set_target()). Bounded by how many
+                        // markers are actually on screen this tick, not the whole
+                        // catalog.
+                        SiderealObjectSingle type_lookup{};
+                        identifyKnownObject(&type_lookup, entry.table_i, entry.number);
+                        const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&type_lookup);
+                        const lv_color_t color = object_type_color(type_entry);
+                        if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
+                            const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                                ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
+                                : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
+                            const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                                ? &object_type_icon_fallback_16
+                                : &object_type_icon_fallback;
+                            lv_image_set_src(marker->dot, (icon != nullptr) ? icon : fallback);
+                            lv_obj_set_style_image_recolor(marker->dot, color, 0);
+                        } else {
+                            lv_obj_set_style_bg_color(marker->dot, color, 0);
+                        }
+                        lv_obj_set_pos(marker->dot, marker->x, marker->y);
+                        lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
-                    lv_obj_set_pos(marker->dot, marker->x, marker->y);
-                    lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+
+                    found_count++;
                 }
             }
         }
 
-        // Hide every slot nothing claimed this tick.
-        for (int32_t i = 0; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
-            if ((marker_sphere_index[i] == -1) && (markers[i].dot != nullptr)) {
+        // Hide every marker slot beyond found_count -- either never matched
+        // this tick, or dropped once MAX_CELESTIAL_SPHERE_OBJECTS was reached above.
+        for (int32_t i = found_count; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
+            marker_sphere_index[i] = -1;
+            if (markers[i].dot != nullptr) {
                 lv_obj_add_flag(markers[i].dot, LV_OBJ_FLAG_HIDDEN);
             }
         }
@@ -1534,19 +1553,18 @@ void celestial_sphere_update(void) {
                     lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                 }
             } else {
-                const double delta_az = wrap_delta_deg(data.az - center_az);
-                const double delta_alt = data.alt - center_alt;
+                const double radial_deg = angular_separation_deg(center_az, center_alt, data.az, data.alt);
 
-                const float proj_x_deg = static_cast<float>(delta_az) * cos_center_alt;
-                const float proj_y_deg = static_cast<float>(delta_alt);
-                const float radial_deg = sqrtf((proj_x_deg * proj_x_deg) + (proj_y_deg * proj_y_deg));
-
-                if (radial_deg > static_cast<float>(celestial_sphere_view_range_deg)) {
+                if (radial_deg > celestial_sphere_view_range_deg) {
                     // Outside the aperture.
                     if (marker->dot != nullptr) {
                         lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
                 } else {
+                    float proj_x_deg = 0.0F;
+                    float proj_y_deg = 0.0F;
+                    project_lonlat_deg(center_az, center_alt, data.az, data.alt, proj_x_deg, proj_y_deg);
+
                     marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - body_half;
                     // Screen Y grows downward while altitude grows upward, so invert.
                     marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - body_half;
@@ -1596,14 +1614,19 @@ void celestial_sphere_update(void) {
                 if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
                 if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
             } else {
+                // Plain angular deltas -- what the "ALT/AZ still needed" label
+                // below shows -- kept separate from the projected x/y used for
+                // on-screen placement, since those two diverge away from the
+                // boresight by design (see project_lonlat_deg()).
                 const double scan_delta_az = wrap_delta_deg(scan_az - center_az);
                 const double scan_delta_alt = scan_alt - center_alt;
 
-                const float scan_proj_x_deg = static_cast<float>(scan_delta_az) * cos_center_alt;
-                const float scan_proj_y_deg = static_cast<float>(scan_delta_alt);
-                const float scan_radial_deg = sqrtf((scan_proj_x_deg * scan_proj_x_deg) + (scan_proj_y_deg * scan_proj_y_deg));
+                const double scan_radial_deg = angular_separation_deg(center_az, center_alt, scan_az, scan_alt);
+                float scan_proj_x_deg = 0.0F;
+                float scan_proj_y_deg = 0.0F;
+                project_lonlat_deg(center_az, center_alt, scan_az, scan_alt, scan_proj_x_deg, scan_proj_y_deg);
 
-                if (scan_radial_deg <= static_cast<float>(celestial_sphere_view_range_deg)) {
+                if (scan_radial_deg <= celestial_sphere_view_range_deg) {
                     // Within the aperture: highlight it (no data box, no arrow/delta text).
                     if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
                     if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
@@ -1731,7 +1754,7 @@ void celestial_sphere_begin(
         SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 
         SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
-        PX_PER_DEG = static_cast<float>(SCOPE_RADIUS) / static_cast<float>(celestial_sphere_view_range_deg);
+        PX_PER_DEG = static_cast<float>(static_cast<double>(SCOPE_RADIUS) / stereographic_edge_projected_deg(celestial_sphere_view_range_deg));
 
         current_mode = initial_mode;
         current_target_index = -1;
@@ -1797,7 +1820,7 @@ void celestial_sphere_begin(
         const int32_t scope_top_px    = SCOPE_CENTER_Y - (SCOPE_HEIGHT / 2);
         const int32_t scope_bottom_px = SCOPE_CENTER_Y + (SCOPE_HEIGHT / 2);
         // Width of the DEG stepper panel below the scope.
-        const int32_t outside_stepper_width_px = (SCOPE_WIDTH / 2);
+        const int32_t outside_stepper_width_px = (SCOPE_WIDTH / 2) - 10;
 
         // Objects-found readout, pinned outside scope_container, just above
         // its top-left corner (left edges aligned, a small gap above).
@@ -1913,7 +1936,6 @@ void celestial_sphere_begin(
         //         0,
         //         &font_cobalt_alien_17
         //     );
-        //     lv_dropdown_add_option(visual_mode_dropdown, "2x2", LV_DROPDOWN_POS_LAST);
         //     lv_dropdown_add_option(visual_mode_dropdown, "4x4", LV_DROPDOWN_POS_LAST);
         //     lv_dropdown_add_option(visual_mode_dropdown, "8x8", LV_DROPDOWN_POS_LAST);
         //     lv_dropdown_add_option(visual_mode_dropdown, "16x16", LV_DROPDOWN_POS_LAST);
