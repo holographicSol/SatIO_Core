@@ -1002,8 +1002,8 @@ void identifyKnownObject(SiderealObjectSingle *obj, int table_i, int number)
 {
     switch (table_i)
     {
-        case INDEX_SIDEREAL_STAR_TABLE:          myAstroObj.selectStarTable(number); break;
-        case INDEX_SIDEREAL_NGC_TABLE:            myAstroObj.selectNGCTable(number); break;
+        case INDEX_SIDEREAL_STAR_TABLE:            myAstroObj.selectStarTable(number); break;
+        case INDEX_SIDEREAL_NGC_TABLE:             myAstroObj.selectNGCTable(number); break;
         case INDEX_SIDEREAL_IC_TABLE:              myAstroObj.selectICTable(number); break;
         case INDEX_SIDEREAL_OTHER_OBJECTS_TABLE:   myAstroObj.selectOtherObjectsTable(number); break;
         default: break; // not one of buildSphere()'s four base tables
