@@ -91,6 +91,15 @@ static constexpr int32_t ECLIPTIC_SAMPLE_COUNT = 180;
 static constexpr int32_t ECLIPTIC_LINE_SEGMENTS = 2;
 static constexpr int32_t ECLIPTIC_MAX_SEGMENT_POINTS = ECLIPTIC_SAMPLE_COUNT + 1;
 
+// Ecliptic-longitude tick labels drawn on the line every 5 deg -- one label
+// slot per possible step around the full loop (see
+// update_ecliptic_longitude_labels()), each a small fixed-size box centered
+// on its own projected point.
+static constexpr double ECLIPTIC_LONGITUDE_TICK_STEP_DEG = 5.0;
+static constexpr int32_t ECLIPTIC_LONGITUDE_TICK_COUNT = 72; // 360 / 5
+static constexpr int32_t ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX = 28;
+static constexpr int32_t ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX = 20;
+
 // Converts an angular half-width (degrees) into the matching
 // project_lonlat_deg()-space "projected degree" value along a cardinal
 // direction from the boresight -- i.e. what a point exactly that many
@@ -497,6 +506,10 @@ struct BodyReadout {
     bool is_luna;
     double luna_lum;
     const char * luna_phase;
+    double elat;
+    double elon;
+    double helon;
+    double helat;
 };
 
 static BodyReadout body_readout(const CelestialBody body) {
@@ -511,6 +524,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.sun_r;
             r.set_time = siderealPlanetData.sun_s;
             r.distance = siderealPlanetData.sun_distance;
+            r.elat = siderealPlanetData.sun_ecliptic_lat;
+            r.elon = siderealPlanetData.sun_ecliptic_long;
+            r.helat = siderealPlanetData.sun_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.sun_helio_ecliptic_long;
             break;
         case CelestialBody::LUNA:
             r.tracked = siderealPlanetData.track_luna;
@@ -544,6 +561,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.mercury_r;
             r.set_time = siderealPlanetData.mercury_s;
             r.distance = siderealPlanetData.mercury_distance;
+            r.elat = siderealPlanetData.mercury_ecliptic_lat;
+            r.elon = siderealPlanetData.mercury_ecliptic_long;
+            r.helat = siderealPlanetData.mercury_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.mercury_helio_ecliptic_long;
             break;
         case CelestialBody::VENUS:
             r.tracked = siderealPlanetData.track_venus;
@@ -554,6 +575,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.venus_r;
             r.set_time = siderealPlanetData.venus_s;
             r.distance = siderealPlanetData.venus_distance;
+            r.elat = siderealPlanetData.venus_ecliptic_lat;
+            r.elon = siderealPlanetData.venus_ecliptic_long;
+            r.helat = siderealPlanetData.venus_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.venus_helio_ecliptic_long;
             break;
         case CelestialBody::MARS:
             r.tracked = siderealPlanetData.track_mars;
@@ -564,6 +589,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.mars_r;
             r.set_time = siderealPlanetData.mars_s;
             r.distance = siderealPlanetData.mars_distance;
+            r.elat = siderealPlanetData.mars_ecliptic_lat;
+            r.elon = siderealPlanetData.mars_ecliptic_long;
+            r.helat = siderealPlanetData.mars_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.mars_helio_ecliptic_long;
             break;
         case CelestialBody::JUPITER:
             r.tracked = siderealPlanetData.track_jupiter;
@@ -574,6 +603,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.jupiter_r;
             r.set_time = siderealPlanetData.jupiter_s;
             r.distance = siderealPlanetData.jupiter_distance;
+            r.elat = siderealPlanetData.jupiter_ecliptic_lat;
+            r.elon = siderealPlanetData.jupiter_ecliptic_long;
+            r.helat = siderealPlanetData.jupiter_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.jupiter_helio_ecliptic_long;
             break;
         case CelestialBody::SATURN:
             r.tracked = siderealPlanetData.track_saturn;
@@ -584,6 +617,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.saturn_r;
             r.set_time = siderealPlanetData.saturn_s;
             r.distance = siderealPlanetData.saturn_distance;
+            r.elat = siderealPlanetData.saturn_ecliptic_lat;
+            r.elon = siderealPlanetData.saturn_ecliptic_long;
+            r.helat = siderealPlanetData.saturn_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.saturn_helio_ecliptic_long;
             break;
         case CelestialBody::URANUS:
             r.tracked = siderealPlanetData.track_uranus;
@@ -594,6 +631,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.uranus_r;
             r.set_time = siderealPlanetData.uranus_s;
             r.distance = siderealPlanetData.uranus_distance;
+            r.elat = siderealPlanetData.uranus_ecliptic_lat;
+            r.elon = siderealPlanetData.uranus_ecliptic_long;
+            r.helat = siderealPlanetData.uranus_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.uranus_helio_ecliptic_long;
             break;
         case CelestialBody::NEPTUNE:
             r.tracked = siderealPlanetData.track_neptune;
@@ -604,6 +645,10 @@ static BodyReadout body_readout(const CelestialBody body) {
             r.rise = siderealPlanetData.neptune_r;
             r.set_time = siderealPlanetData.neptune_s;
             r.distance = siderealPlanetData.neptune_distance;
+            r.elat = siderealPlanetData.neptune_ecliptic_lat;
+            r.elon = siderealPlanetData.neptune_ecliptic_long;
+            r.helat = siderealPlanetData.neptune_helio_ecliptic_lat;
+            r.helon = siderealPlanetData.neptune_helio_ecliptic_long;
             break;
         case CelestialBody::COUNT:
         default:
@@ -657,6 +702,10 @@ static lv_obj_t * crosshair_constellation_value_label = nullptr;
 // (see update_ecliptic_line()), each with its own point buffer.
 static lv_obj_t * ecliptic_line[ECLIPTIC_LINE_SEGMENTS] = { nullptr, nullptr };
 static lv_point_precise_t ecliptic_line_points[ECLIPTIC_LINE_SEGMENTS][ECLIPTIC_MAX_SEGMENT_POINTS];
+
+// One tick-label slot per ECLIPTIC_LONGITUDE_TICK_STEP_DEG step around the
+// full ecliptic loop (see update_ecliptic_longitude_labels()).
+static lv_obj_t * ecliptic_longitude_labels[ECLIPTIC_LONGITUDE_TICK_COUNT];
 
 // Count of objects currently plotted within the scope
 static lv_obj_t * objects_found_value_label = nullptr;
@@ -920,6 +969,43 @@ static void update_ecliptic_line(const double center_ra_deg, const double center
     for (int32_t seg = segment_count; seg < ECLIPTIC_LINE_SEGMENTS; seg++) {
         if (ecliptic_line[seg] != nullptr) {
             lv_obj_add_flag(ecliptic_line[seg], LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}
+
+// Places a small ecliptic-longitude tick label at every
+// ECLIPTIC_LONGITUDE_TICK_STEP_DEG step around the loop that's currently in
+// view -- same in-view test and projection (negated RA) as
+// update_ecliptic_line() above, computed independently per tick rather than
+// reused from its samples since the 5 deg tick step and 2 deg line-sample
+// step don't share every point.
+static void update_ecliptic_longitude_labels(const double center_ra_deg, const double center_dec_deg) {
+    for (int32_t i = 0; i < ECLIPTIC_LONGITUDE_TICK_COUNT; i++) {
+        lv_obj_t * const label = ecliptic_longitude_labels[i];
+        if (label != nullptr) {
+            const double ecl_lon_deg = static_cast<double>(i) * ECLIPTIC_LONGITUDE_TICK_STEP_DEG;
+            double point_ra_deg = 0.0;
+            double point_dec_deg = 0.0;
+            ecliptic_lon_to_radec_deg(ecl_lon_deg, point_ra_deg, point_dec_deg);
+
+            const double radial_deg = angular_separation_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg);
+            if (radial_deg > celestial_sphere_view_range_deg) {
+                lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
+            } else {
+                float x_deg = 0.0F;
+                float y_deg = 0.0F;
+                project_lonlat_deg(-center_ra_deg, center_dec_deg, -point_ra_deg, point_dec_deg, x_deg, y_deg);
+
+                const int32_t x = SCOPE_CENTER_X + static_cast<int32_t>(x_deg * PX_PER_DEG);
+                // Screen Y grows downward while declination grows "up", so invert.
+                const int32_t y = SCOPE_CENTER_Y - static_cast<int32_t>(y_deg * PX_PER_DEG);
+
+                char buf[8];
+                snprintf(buf, sizeof(buf), "%.0f", ecl_lon_deg);
+                lv_label_set_text(label, buf);
+                lv_obj_set_pos(label, x - (ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX / 2), y - (ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX / 2));
+                lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+            }
         }
     }
 }
@@ -1260,14 +1346,18 @@ static void update_body_target_data_content(const CelestialBody body) {
             );
         } else {
             snprintf(buf, sizeof(buf),
-                "Name            %s\n\n"
-                "Rise            %.2f\n"
-                "Set             %.2f\n"
-                "Distance        %.2f\n"
-                "Right Ascension %.2f\n"
-                "Declination     %.2f\n"
-                "Azimuth         %.2f\n"
-                "Altitude        %.2f",
+                "Name             %s\n\n"
+                "Rise             %.2f\n"
+                "Set              %.2f\n"
+                "Distance         %.2f\n"
+                "Right Ascension  %.2f\n"
+                "Declination      %.2f\n"
+                "Azimuth          %.2f\n"
+                "Altitude         %.2f\n"
+                "Ecliptic Lat     %.2f\n"
+                "Ecliptic Lon     %.2f\n"
+                "H. Ecliptic Lat  %.2f\n"
+                "H. Ecliptic Long %.2f",
                 body_name(body),
                 data.rise,
                 data.set_time,
@@ -1275,7 +1365,11 @@ static void update_body_target_data_content(const CelestialBody body) {
                 data.ra,
                 data.dec,
                 data.az,
-                data.alt
+                data.alt,
+                data.elat,
+                data.elon,
+                data.helat,
+                data.helon
             );
         }
         lv_label_set_text(label, buf);
@@ -1590,6 +1684,7 @@ void celestial_sphere_update(void) {
         const double center_ra_deg = center_ra_hours * 15.0;
 
         update_ecliptic_line(center_ra_deg, center_dec_deg);
+        update_ecliptic_longitude_labels(center_ra_deg, center_dec_deg);
 
         // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
@@ -2225,6 +2320,22 @@ void celestial_sphere_begin(
                 lv_obj_set_style_line_color(ecliptic_line[i], COLOR_ECLIPTIC, 0);
                 lv_obj_set_style_line_width(ecliptic_line[i], ECLIPTIC_LINE_WIDTH, 0);
                 lv_obj_set_style_line_rounded(ecliptic_line[i], true, 0);
+            }
+        }
+
+        // Ecliptic-longitude tick labels, one per possible 5 deg step around
+        // the loop -- update_ecliptic_longitude_labels() fills in text and
+        // position and un-hides whichever are actually in view each tick.
+        for (int32_t i = 0; i < ECLIPTIC_LONGITUDE_TICK_COUNT; i++) {
+            ecliptic_longitude_labels[i] = lv_label_create(celestial_sphere_container);
+            if (ecliptic_longitude_labels[i] != nullptr) {
+                lv_obj_add_flag(ecliptic_longitude_labels[i], LV_OBJ_FLAG_HIDDEN);
+                lv_obj_set_style_text_font(ecliptic_longitude_labels[i], &font_cobalt_alien_17, 0);
+                lv_obj_set_style_text_color(ecliptic_longitude_labels[i], COLOR_ECLIPTIC, 0);
+                lv_obj_set_size(ecliptic_longitude_labels[i], ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX, ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX);
+                lv_obj_set_style_text_align(ecliptic_longitude_labels[i], LV_TEXT_ALIGN_CENTER, 0);
+                lv_obj_remove_flag(ecliptic_longitude_labels[i], LV_OBJ_FLAG_SCROLLABLE);
+                lv_obj_remove_flag(ecliptic_longitude_labels[i], LV_OBJ_FLAG_CLICKABLE);
             }
         }
 
