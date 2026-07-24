@@ -78,9 +78,9 @@ static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE_32 + SELECT
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
-#define MAX_CELESTIAL_SPHERE_OBJECTS 3000
+#define MAX_CELESTIAL_SPHERE_OBJECTS 500
 static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
-static constexpr double VIEW_RANGE_DEG_MAX = 90.0;
+static constexpr double VIEW_RANGE_DEG_MAX = 45.0;
 static double celestial_sphere_view_range_deg = 10.0;
 
 // Number of ecliptic samples spanning the full 360 deg loop (2 deg apart),
@@ -101,10 +101,10 @@ static constexpr int32_t ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX = 28;
 static constexpr int32_t ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX = 20;
 
 // Converts an angular half-width (degrees) into the matching
-// project_lonlat_deg()-space "projected degree" value along a cardinal
+// angular_separation_and_project_deg()-space "projected degree" value along a cardinal
 // direction from the boresight -- i.e. what a point exactly that many
 // degrees off boresight (along a pure lat or pure lon offset) projects to
-// under the stereographic projection those functions use (see the
+// under the stereographic projection that function uses (see the
 // "SPHERICAL PROJECTION" section below for the full formula and why
 // stereographic, not the simpler gnomonic/rectilinear projection, was
 // chosen). PX_PER_DEG is calibrated from this -- not a plain 1:1 degree
@@ -319,13 +319,28 @@ EXT_RAM_BSS_ATTR static SiderealSphereEntry sphere_entries[SIDEREAL_SPHERE_TOTAL
 static int32_t sphere_entry_count = 0;
 static bool sphere_built = false;
 
-// Builds sphere_entries[] exactly once per program lifetime -- catalog (siderealObjects)
-// RA/Dec are static, so the results never goes stale and never needs rebuilding
-// (celestial_sphere_begin() may run this again across repeated screen opens;
-// the sphere_built guard makes every call after the first a no-op).
+// sphere_entries[i]'s resolved objectType[] row, cached once alongside it below -- see
+// build_celestial_sphere(). A catalog entry's (table_i, number) never changes, so neither
+// does the type identifyKnownObject()+getObjectTypeEntry() resolves it to; without this
+// cache, celestial_sphere_update() would re-run that resolution -- including
+// checkAltCatalogs()'s ~600-entry Messier/Caldwell/Herschel scan and an up-to-7840-entry
+// NGC/IC name-table scan -- for every visible marker on every single tick forever, even
+// though the answer can never change. nullptr means "no objectType[] entry" (object_type_
+// color() already treats that as COLOR_MARKER).
+EXT_RAM_BSS_ATTR static const SiderealObjectTypeEntry * sphere_entry_type[SIDEREAL_SPHERE_TOTAL_OBJECTS];
+
+// Builds sphere_entries[] (and sphere_entry_type[] above) exactly once per program
+// lifetime -- catalog (siderealObjects) RA/Dec are static, so the results never go stale
+// and never need rebuilding (celestial_sphere_begin() may run this again across repeated
+// screen opens; the sphere_built guard makes every call after the first a no-op).
 static void build_celestial_sphere(void) {
     if (!sphere_built) {
         sphere_entry_count = myAstroObj.buildSphere(sphere_entries, SIDEREAL_SPHERE_TOTAL_OBJECTS);
+        for (int32_t i = 0; i < sphere_entry_count; i++) {
+            SiderealObjectSingle type_lookup{};
+            identifyKnownObject(&type_lookup, sphere_entries[i].table_i, sphere_entries[i].number);
+            sphere_entry_type[i] = getObjectTypeEntry(&type_lookup);
+        }
         sphere_built = true;
     }
 }
@@ -781,79 +796,79 @@ static inline double wrap_delta_deg(const double delta_deg) {
 // boresight", the same question a real telescope/camera answers optically
 // by projecting the sky onto a flat sensor. Both RA/Dec and Az/Alt are
 // spherical lon/lat pairs, so one function serves both.
+
+// Computes the great-circle angular separation (degrees) between a shared boresight
+// center and a point, and -- only when that separation is within view_range_deg -- the
+// point's stereographic-projected x/y too (in the same "projected degree" units
+// PX_PER_DEG converts to pixels; see stereographic_edge_projected_deg()). Returns the
+// separation (the correct field-of-view cutoff test -- NOT the projected x/y, whose
+// radius from center diverges from the true angular distance by design, the exact
+// curvature the reticle lines are meant to show) and reports via in_view whether x_deg/
+// y_deg were filled in.
 //
-// Stereographic (not the more familiar gnomonic/rectilinear) projection was
-// chosen deliberately: gnomonic only stays finite up to just under 90 deg
-// off boresight and already diverges toward infinity well before that,
-// while celestial_sphere_view_range_deg is allowed up to VIEW_RANGE_DEG_MAX
-// (90 deg) -- stereographic stays finite and well-behaved all the way out
-// to a full 90 deg (only its true singularity, 180 deg, is unreachable
-// here). Both reduce to the same plain linear-degree approximation this
-// file used to use at small offsets; stereographic just keeps working at
-// the wide end instead of blowing up.
-
-// Great-circle angular separation (degrees) between two lon/lat points.
-// This is the correct field-of-view cutoff test -- NOT the projected
-// x/y from project_lonlat_deg() below, whose radius from center diverges
-// from the true angular distance away from the boresight by design (that
-// divergence is exactly the curvature the reticle lines are meant to show).
-static double angular_separation_deg(const double center_lon_deg, const double center_lat_deg,
-                                      const double point_lon_deg, const double point_lat_deg) {
-    const double center_lat_rad = center_lat_deg * (M_PI / 180.0);
+// Every call site used to do this as two separate calls -- one to test whether a point
+// was in view, another to project it if so -- each independently computing sin/cos of
+// the same center latitude and (for in-view points) sin/cos of the same point latitude/
+// delta-longitude a second time. Folding them into one pass halves the trig for every
+// in-view point (5 calls instead of 10) and costs nothing extra for out-of-view ones
+// (still exactly 5: sin/cos of point_lat and cos of delta_lon, same as a separation-only
+// check, since sin_delta_lon is deferred until we know projection is actually needed).
+//
+// sin_center_lat/cos_center_lat are precomputed by the caller instead of taken as a plain
+// center_lat_deg and re-derived here: every caller below shares one boresight per tick
+// across many points (up to the whole catalog), so the sin/cos of *that* is worth hoisting
+// out of the per-point loop entirely rather than recomputing it on every single call.
+//
+// Stereographic (not the more familiar gnomonic/rectilinear) projection was chosen
+// deliberately: gnomonic only stays finite up to just under 90 deg off boresight and
+// already diverges toward infinity well before that, while celestial_sphere_view_range_deg
+// is allowed up to VIEW_RANGE_DEG_MAX (90 deg) -- stereographic stays finite and
+// well-behaved all the way out to a full 90 deg (only its true singularity, 180 deg, is
+// unreachable here).
+static double angular_separation_and_project_deg(const double sin_center_lat, const double cos_center_lat,
+                                                   const double center_lon_deg,
+                                                   const double point_lon_deg, const double point_lat_deg,
+                                                   const double view_range_deg,
+                                                   float &x_deg, float &y_deg, bool &in_view) {
     const double point_lat_rad = point_lat_deg * (M_PI / 180.0);
     const double delta_lon_rad = wrap_delta_deg(point_lon_deg - center_lon_deg) * (M_PI / 180.0);
 
-    double cos_sep = (sin(center_lat_rad) * sin(point_lat_rad))
-        + (cos(center_lat_rad) * cos(point_lat_rad) * cos(delta_lon_rad));
-    // Clamp against float/double rounding right at (or past) +-1, where
-    // acos() would otherwise return NaN.
-    if (cos_sep > 1.0) {
-        cos_sep = 1.0;
-    }
-    if (cos_sep < -1.0) {
-        cos_sep = -1.0;
-    }
-    return acos(cos_sep) * (180.0 / M_PI);
-}
-
-// Stereographic projection of (point_lon_deg, point_lat_deg) onto the plane
-// tangent to the sphere at (center_lon_deg, center_lat_deg). x_deg/y_deg are
-// in the same "projected degree" units PX_PER_DEG converts to pixels (see
-// stereographic_edge_projected_deg()): they match plain degree offsets at
-// small angles and grow faster than the true angular offset near the edge
-// of a wide view range -- the projected image of a curved sphere bulging
-// toward the viewer, same as a real wide lens.
-static void project_lonlat_deg(const double center_lon_deg, const double center_lat_deg,
-                                const double point_lon_deg, const double point_lat_deg,
-                                float &x_deg, float &y_deg) {
-    const double center_lat_rad = center_lat_deg * (M_PI / 180.0);
-    const double point_lat_rad = point_lat_deg * (M_PI / 180.0);
-    const double delta_lon_rad = wrap_delta_deg(point_lon_deg - center_lon_deg) * (M_PI / 180.0);
-
-    const double sin_center_lat = sin(center_lat_rad);
-    const double cos_center_lat = cos(center_lat_rad);
     const double sin_point_lat = sin(point_lat_rad);
     const double cos_point_lat = cos(point_lat_rad);
-    const double sin_delta_lon = sin(delta_lon_rad);
     const double cos_delta_lon = cos(delta_lon_rad);
 
-    // cos_c: cosine of the true angular separation (see angular_separation_deg()).
-    const double cos_c = (sin_center_lat * sin_point_lat) + (cos_center_lat * cos_point_lat * cos_delta_lon);
-    // k: stereographic's radial scale factor, 2/(1+cos_c). Its only
-    // singularity is cos_c = -1 (the antipodal point, 180 deg away), never
-    // reached within VIEW_RANGE_DEG_MAX; clamped defensively anyway.
-    constexpr double ONE_PLUS_COS_C_MIN = 1.0e-6;
-    double one_plus_cos_c = 1.0 + cos_c;
-    if (one_plus_cos_c < ONE_PLUS_COS_C_MIN) {
-        one_plus_cos_c = ONE_PLUS_COS_C_MIN;
+    // cos_c: cosine of the true angular separation.
+    double cos_c = (sin_center_lat * sin_point_lat) + (cos_center_lat * cos_point_lat * cos_delta_lon);
+    // Clamp against float/double rounding right at (or past) +-1, where
+    // acos() would otherwise return NaN.
+    if (cos_c > 1.0) {
+        cos_c = 1.0;
     }
-    const double k = 2.0 / one_plus_cos_c;
+    if (cos_c < -1.0) {
+        cos_c = -1.0;
+    }
+    const double radial_deg = acos(cos_c) * (180.0 / M_PI);
 
-    const double x_rad = k * cos_point_lat * sin_delta_lon;
-    const double y_rad = k * ((cos_center_lat * sin_point_lat) - (sin_center_lat * cos_point_lat * cos_delta_lon));
+    in_view = (radial_deg <= view_range_deg);
+    if (in_view) {
+        const double sin_delta_lon = sin(delta_lon_rad);
+        // k: stereographic's radial scale factor, 2/(1+cos_c). Its only
+        // singularity is cos_c = -1 (the antipodal point, 180 deg away), never
+        // reached within VIEW_RANGE_DEG_MAX; clamped defensively anyway.
+        constexpr double ONE_PLUS_COS_C_MIN = 1.0e-6;
+        double one_plus_cos_c = 1.0 + cos_c;
+        if (one_plus_cos_c < ONE_PLUS_COS_C_MIN) {
+            one_plus_cos_c = ONE_PLUS_COS_C_MIN;
+        }
+        const double k = 2.0 / one_plus_cos_c;
 
-    x_deg = static_cast<float>(x_rad * (180.0 / M_PI));
-    y_deg = static_cast<float>(y_rad * (180.0 / M_PI));
+        const double x_rad = k * cos_point_lat * sin_delta_lon;
+        const double y_rad = k * ((cos_center_lat * sin_point_lat) - (sin_center_lat * cos_point_lat * cos_delta_lon));
+
+        x_deg = static_cast<float>(x_rad * (180.0 / M_PI));
+        y_deg = static_cast<float>(y_rad * (180.0 / M_PI));
+    }
+    return radial_deg;
 }
 
 // ============================================================================
@@ -889,38 +904,62 @@ static void ecliptic_lon_to_radec_deg(const double ecl_lon_deg, double &ra_deg, 
     }
 }
 
+// Every ecliptic sample's/tick's RA/Dec, cached once -- see build_ecliptic_geometry().
+static double ecliptic_sample_ra_deg[ECLIPTIC_SAMPLE_COUNT];
+static double ecliptic_sample_dec_deg[ECLIPTIC_SAMPLE_COUNT];
+static double ecliptic_tick_ra_deg[ECLIPTIC_LONGITUDE_TICK_COUNT];
+static double ecliptic_tick_dec_deg[ECLIPTIC_LONGITUDE_TICK_COUNT];
+static bool ecliptic_geometry_built = false;
+
+// Precomputes every ecliptic sample's/tick's RA/Dec exactly once per program lifetime.
+// With ECLIPTIC_OBLIQUITY_DEG fixed, ecliptic_lon_to_radec_deg()'s result depends only on
+// ecl_lon_deg, which never changes tick to tick -- update_ecliptic_line() and
+// update_ecliptic_longitude_labels() used to recompute all 180+72 of these (4 trig calls
+// apiece) every single tick for an answer that can never change; this builds the table
+// once instead (called from celestial_sphere_begin(), alongside build_celestial_sphere()).
+static void build_ecliptic_geometry(void) {
+    if (!ecliptic_geometry_built) {
+        for (int32_t i = 0; i < ECLIPTIC_SAMPLE_COUNT; i++) {
+            const double ecl_lon_deg = (360.0 * static_cast<double>(i)) / static_cast<double>(ECLIPTIC_SAMPLE_COUNT);
+            ecliptic_lon_to_radec_deg(ecl_lon_deg, ecliptic_sample_ra_deg[i], ecliptic_sample_dec_deg[i]);
+        }
+        for (int32_t i = 0; i < ECLIPTIC_LONGITUDE_TICK_COUNT; i++) {
+            const double ecl_lon_deg = static_cast<double>(i) * ECLIPTIC_LONGITUDE_TICK_STEP_DEG;
+            ecliptic_lon_to_radec_deg(ecl_lon_deg, ecliptic_tick_ra_deg[i], ecliptic_tick_dec_deg[i]);
+        }
+        ecliptic_geometry_built = true;
+    }
+}
+
 // Recomputes the ecliptic line's on-screen points from the current RA/Dec
 // boresight and pushes them into ecliptic_line[]/ecliptic_line_points[],
 // hiding whichever segment slots aren't needed this tick.
 //
-// ECLIPTIC_SAMPLE_COUNT points are walked in ecliptic-longitude order and
-// classified in/out of view exactly like the catalog markers above
-// (angular_separation_deg() against celestial_sphere_view_range_deg), then
-// projected the same way too (negated RA, see project_lonlat_deg()'s call
-// site in celestial_sphere_update()) so the line lines up with them on
-// screen. A great circle crossing a circular aperture boundary generically
-// crosses it at exactly two points, leaving exactly one visible arc; the
-// scan below starts from an out-of-view sample (if one exists) so that one
-// arc is never artificially split by the sample array's own 0/360 wrap
-// point. ECLIPTIC_LINE_SEGMENTS (2) leaves margin for the rare tangential
-// case where it isn't.
-static void update_ecliptic_line(const double center_ra_deg, const double center_dec_deg) {
+// ECLIPTIC_SAMPLE_COUNT points (their RA/Dec precomputed once by
+// build_ecliptic_geometry(), never recomputed here) are walked in
+// ecliptic-longitude order and classified in/out of view and projected (negated RA,
+// see angular_separation_and_project_deg()'s call site in celestial_sphere_update())
+// in the same single pass, so the line lines up with the catalog markers on screen.
+// sin_center_dec/cos_center_dec are the boresight's, precomputed once per tick by the
+// caller (see celestial_sphere_update()) and shared across every sample here. A great
+// circle crossing a circular aperture boundary generically crosses it at exactly two
+// points, leaving exactly one visible arc; the scan below starts from an out-of-view
+// sample (if one exists) so that one arc is never artificially split by the sample
+// array's own 0/360 wrap point. ECLIPTIC_LINE_SEGMENTS (2) leaves margin for the rare
+// tangential case where it isn't.
+static void update_ecliptic_line(const double sin_center_dec, const double cos_center_dec,
+                                   const double center_ra_deg) {
     bool sample_in_view[ECLIPTIC_SAMPLE_COUNT];
     float sample_x_deg[ECLIPTIC_SAMPLE_COUNT];
     float sample_y_deg[ECLIPTIC_SAMPLE_COUNT];
 
     for (int32_t i = 0; i < ECLIPTIC_SAMPLE_COUNT; i++) {
-        const double ecl_lon_deg = (360.0 * static_cast<double>(i)) / static_cast<double>(ECLIPTIC_SAMPLE_COUNT);
-        double point_ra_deg = 0.0;
-        double point_dec_deg = 0.0;
-        ecliptic_lon_to_radec_deg(ecl_lon_deg, point_ra_deg, point_dec_deg);
+        const double point_ra_deg = ecliptic_sample_ra_deg[i];
+        const double point_dec_deg = ecliptic_sample_dec_deg[i];
 
-        const double radial_deg = angular_separation_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg);
-        sample_in_view[i] = (radial_deg <= celestial_sphere_view_range_deg);
-        if (sample_in_view[i]) {
-            project_lonlat_deg(-center_ra_deg, center_dec_deg, -point_ra_deg, point_dec_deg,
-                                sample_x_deg[i], sample_y_deg[i]);
-        }
+        angular_separation_and_project_deg(sin_center_dec, cos_center_dec, -center_ra_deg, -point_ra_deg,
+                                             point_dec_deg, celestial_sphere_view_range_deg,
+                                             sample_x_deg[i], sample_y_deg[i], sample_in_view[i]);
     }
 
     int32_t start = 0;
@@ -974,34 +1013,35 @@ static void update_ecliptic_line(const double center_ra_deg, const double center
 }
 
 // Places a small ecliptic-longitude tick label at every
-// ECLIPTIC_LONGITUDE_TICK_STEP_DEG step around the loop that's currently in
-// view -- same in-view test and projection (negated RA) as
-// update_ecliptic_line() above, computed independently per tick rather than
-// reused from its samples since the 5 deg tick step and 2 deg line-sample
-// step don't share every point.
-static void update_ecliptic_longitude_labels(const double center_ra_deg, const double center_dec_deg) {
+// ECLIPTIC_LONGITUDE_TICK_STEP_DEG step around the loop that's currently in view --
+// same in-view test and projection (negated RA) as update_ecliptic_line() above (RA/Dec
+// precomputed once by build_ecliptic_geometry(), sin_center_dec/cos_center_dec shared
+// with every other call site this tick), computed independently from its samples since
+// the 5 deg tick step and 2 deg line-sample step don't share every point.
+static void update_ecliptic_longitude_labels(const double sin_center_dec, const double cos_center_dec,
+                                               const double center_ra_deg) {
     for (int32_t i = 0; i < ECLIPTIC_LONGITUDE_TICK_COUNT; i++) {
         lv_obj_t * const label = ecliptic_longitude_labels[i];
         if (label != nullptr) {
-            const double ecl_lon_deg = static_cast<double>(i) * ECLIPTIC_LONGITUDE_TICK_STEP_DEG;
-            double point_ra_deg = 0.0;
-            double point_dec_deg = 0.0;
-            ecliptic_lon_to_radec_deg(ecl_lon_deg, point_ra_deg, point_dec_deg);
+            const double point_ra_deg = ecliptic_tick_ra_deg[i];
+            const double point_dec_deg = ecliptic_tick_dec_deg[i];
 
-            const double radial_deg = angular_separation_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg);
-            if (radial_deg > celestial_sphere_view_range_deg) {
+            float x_deg = 0.0F;
+            float y_deg = 0.0F;
+            bool in_view = false;
+            angular_separation_and_project_deg(sin_center_dec, cos_center_dec, -center_ra_deg, -point_ra_deg,
+                                                 point_dec_deg, celestial_sphere_view_range_deg,
+                                                 x_deg, y_deg, in_view);
+
+            if (!in_view) {
                 lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
             } else {
-                float x_deg = 0.0F;
-                float y_deg = 0.0F;
-                project_lonlat_deg(-center_ra_deg, center_dec_deg, -point_ra_deg, point_dec_deg, x_deg, y_deg);
-
                 const int32_t x = SCOPE_CENTER_X + static_cast<int32_t>(x_deg * PX_PER_DEG);
                 // Screen Y grows downward while declination grows "up", so invert.
                 const int32_t y = SCOPE_CENTER_Y - static_cast<int32_t>(y_deg * PX_PER_DEG);
 
                 char buf[8];
-                snprintf(buf, sizeof(buf), "%.0f", ecl_lon_deg);
+                snprintf(buf, sizeof(buf), "%.0f", static_cast<double>(i) * ECLIPTIC_LONGITUDE_TICK_STEP_DEG);
                 lv_label_set_text(label, buf);
                 lv_obj_set_pos(label, x - (ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX / 2), y - (ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX / 2));
                 lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
@@ -1260,6 +1300,15 @@ void celestial_sphere_set_scan_number(const int32_t number) {
 // ============================================================================
 // UPDATE TARGET DATA BOX CONTENT
 // ============================================================================
+// Identity (name/table/type/description/constellation/number/distance) of whichever
+// sphere_entries[] index was last identifyKnownObject()-resolved below, plus that
+// resolution's result -- kept across ticks so update_target_data_content() doesn't
+// redo the expensive identify pipeline every single tick while the same object stays
+// selected (celestial_sphere_update() calls this once per tick via celestial_sphere_
+// set_target() for as long as current_target_index is valid).
+static int32_t cached_target_sphere_idx = -1;
+static SiderealObjectSingle cached_target_detail{};
+
 static void update_target_data_content(const int32_t object_index) {
     const bool index_in_range = (target_data_box != nullptr) && (object_index >= 0) && (object_index < MAX_CELESTIAL_SPHERE_OBJECTS);
     const int32_t sphere_idx = index_in_range ? marker_sphere_index[object_index] : -1;
@@ -1267,12 +1316,19 @@ static void update_target_data_content(const int32_t object_index) {
     if (index_in_range && (sphere_idx >= 0) && (sphere_idx < sphere_entry_count)) {
         const SiderealSphereEntry &entry = sphere_entries[sphere_idx];
 
-        // Full details resolved on demand for this one clicked object only --
-        // the per-tick marker loop only ever resolves type (see
-        // celestial_sphere_update()), never name/description/Alt-Az/rise-set.
-        SiderealObjectSingle detail{};
-        detail.object_mag = NAN; // never populated by identifyKnownObject()/trackObject() (pre-existing gap)
-        identifyKnownObject(&detail, entry.table_i, entry.number);
+        // Name/table/type/description/constellation/number/distance never change for a
+        // fixed catalog entry -- identifyKnownObject()'s dispatch sets them once, and
+        // trackObject() below only ever touches ra/dec/az/alt/rise/set on this same
+        // struct -- so the expensive identify (checkAltCatalogs()'s ~600-entry
+        // Messier/Caldwell/Herschel scan plus an up-to-7840-entry NGC/IC name-table
+        // lookup) only needs to run again when the selection actually changes.
+        if (sphere_idx != cached_target_sphere_idx) {
+            cached_target_detail = SiderealObjectSingle{};
+            cached_target_detail.object_mag = NAN; // never populated by identifyKnownObject()/trackObject() (pre-existing gap)
+            identifyKnownObject(&cached_target_detail, entry.table_i, entry.number);
+            cached_target_sphere_idx = sphere_idx;
+        }
+        SiderealObjectSingle &detail = cached_target_detail;
         trackObject(&detail, entry.table_i, entry.number);
 
         lv_obj_clean(target_data_box);
@@ -1661,6 +1717,7 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
 // MISRA: the whole body is wrapped in the scope_container guard below
 // instead of returning early, giving the function a single point of exit.
 void celestial_sphere_update(void) {
+
     if (scope_container != nullptr) {
         lv_timer_pause(sphere_timer);
 
@@ -1683,8 +1740,15 @@ void celestial_sphere_update(void) {
         boresight_ra_dec_deg(center_ra_hours, center_dec_deg);
         const double center_ra_deg = center_ra_hours * 15.0;
 
-        update_ecliptic_line(center_ra_deg, center_dec_deg);
-        update_ecliptic_longitude_labels(center_ra_deg, center_dec_deg);
+        // sin/cos of the RA/Dec boresight, computed once here instead of redundantly
+        // inside every angular_separation_and_project_deg() call below that shares it
+        // (the catalog loop, up to ~14000 calls a tick, plus the ecliptic line/labels).
+        const double center_dec_rad = center_dec_deg * (M_PI / 180.0);
+        const double sin_center_dec = sin(center_dec_rad);
+        const double cos_center_dec = cos(center_dec_rad);
+
+        update_ecliptic_line(sin_center_dec, cos_center_dec, center_ra_deg);
+        update_ecliptic_longitude_labels(sin_center_dec, cos_center_dec, center_ra_deg);
 
         // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
@@ -1695,7 +1759,7 @@ void celestial_sphere_update(void) {
             const SiderealSphereEntry &entry = sphere_entries[i];
             const double point_dec_deg = static_cast<double>(entry.dec_deg);
 
-            // Cheap reject before paying for angular_separation_deg()'s trig:
+            // Cheap reject before paying for angular_separation_and_project_deg()'s trig:
             // true angular separation is always >= |Dec delta| alone (moving
             // along the sphere can't change declination faster than the
             // great-circle distance travelled), so this can never wrongly
@@ -1706,21 +1770,24 @@ void celestial_sphere_update(void) {
             // it was before this file used real spherical trig.
             if (fabs(point_dec_deg - center_dec_deg) <= celestial_sphere_view_range_deg) {
                 const double point_ra_deg = static_cast<double>(entry.ra_hours) * 15.0;
-                const double radial_deg = angular_separation_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg);
 
-                if (radial_deg <= celestial_sphere_view_range_deg) {
-                    float proj_x_deg = 0.0F;
-                    float proj_y_deg = 0.0F;
-                    // RA increases eastward in a right-handed sense, the opposite
-                    // handedness from Az (clockwise from North), which is the
-                    // convention project_lonlat_deg's x sign assumes (see the Az/Alt
-                    // call below). Negating both RAs here flips only x -- y is
-                    // unaffected since it depends on delta_lon through cos(), an
-                    // even function -- so catalog markers land on the correct side
-                    // of the boresight instead of mirrored relative to the Az/Alt-
-                    // plotted bodies and pointer sharing this same reticle.
-                    project_lonlat_deg(-center_ra_deg, center_dec_deg, -point_ra_deg, point_dec_deg, proj_x_deg, proj_y_deg);
+                float proj_x_deg = 0.0F;
+                float proj_y_deg = 0.0F;
+                bool in_view = false;
+                // RA increases eastward in a right-handed sense, the opposite
+                // handedness from Az (clockwise from North), which is the
+                // convention the projection's x sign assumes (see the Az/Alt
+                // call below). Negating both RAs here flips only x -- y is
+                // unaffected since it depends on delta_lon through cos(), an
+                // even function -- so catalog markers land on the correct side
+                // of the boresight instead of mirrored relative to the Az/Alt-
+                // plotted bodies and pointer sharing this same reticle. (It also
+                // doesn't change the separation test itself, for the same reason.)
+                angular_separation_and_project_deg(sin_center_dec, cos_center_dec, -center_ra_deg, -point_ra_deg,
+                                                     point_dec_deg, celestial_sphere_view_range_deg,
+                                                     proj_x_deg, proj_y_deg, in_view);
 
+                if (in_view) {
                     ObjectMarker * const marker = &markers[found_count];
                     marker_sphere_index[found_count] = i;
 
@@ -1729,14 +1796,11 @@ void celestial_sphere_update(void) {
                     marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
 
                     if (marker->dot != nullptr) {
-                        // Type-only identify for coloring/iconography -- cheap table
-                        // lookups (no trig), repeated on click for the full data box
-                        // (see celestial_sphere_set_target()). Bounded by how many
-                        // markers are actually on screen this tick, not the whole
-                        // catalog.
-                        SiderealObjectSingle type_lookup{};
-                        identifyKnownObject(&type_lookup, entry.table_i, entry.number);
-                        const SiderealObjectTypeEntry * const type_entry = getObjectTypeEntry(&type_lookup);
+                        // Type resolved once per catalog entry by build_celestial_sphere()
+                        // (see sphere_entry_type[] above) -- just an array read here,
+                        // however many markers are on screen this tick. Full re-identify
+                        // still happens on click, for the data box (celestial_sphere_set_target()).
+                        const SiderealObjectTypeEntry * const type_entry = sphere_entry_type[i];
                         const lv_color_t color = object_type_color(type_entry);
                         if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
                             const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
@@ -1780,6 +1844,13 @@ void celestial_sphere_update(void) {
         // found_count/OBJECTS (that readout is tied to the DEG control,
         // which doesn't apply to these).
         // -----------------------------------------------------------------
+        // sin/cos of the Az/Alt boresight, computed once and shared by the body loop
+        // and the scan target below -- same reasoning as sin_center_dec/cos_center_dec
+        // above, just for this section's different (Az/Alt, not RA/Dec) center.
+        const double center_alt_rad = center_alt * (M_PI / 180.0);
+        const double sin_center_alt = sin(center_alt_rad);
+        const double cos_center_alt = cos(center_alt_rad);
+
         for (int32_t i = 0; i < CELESTIAL_BODY_COUNT; i++) {
             ObjectMarker * const marker = &body_markers[i];
             const CelestialBody body = static_cast<CelestialBody>(i);
@@ -1792,18 +1863,18 @@ void celestial_sphere_update(void) {
                     lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                 }
             } else {
-                const double radial_deg = angular_separation_deg(center_az, center_alt, data.az, data.alt);
+                float proj_x_deg = 0.0F;
+                float proj_y_deg = 0.0F;
+                bool in_view = false;
+                angular_separation_and_project_deg(sin_center_alt, cos_center_alt, center_az, data.az, data.alt,
+                                                     celestial_sphere_view_range_deg, proj_x_deg, proj_y_deg, in_view);
 
-                if (radial_deg > celestial_sphere_view_range_deg) {
+                if (!in_view) {
                     // Outside the aperture.
                     if (marker->dot != nullptr) {
                         lv_obj_add_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
                     }
                 } else {
-                    float proj_x_deg = 0.0F;
-                    float proj_y_deg = 0.0F;
-                    project_lonlat_deg(center_az, center_alt, data.az, data.alt, proj_x_deg, proj_y_deg);
-
                     marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - body_half;
                     // Screen Y grows downward while altitude grows upward, so invert.
                     marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - body_half;
@@ -1856,16 +1927,18 @@ void celestial_sphere_update(void) {
                 // Plain angular deltas -- what the "ALT/AZ still needed" label
                 // below shows -- kept separate from the projected x/y used for
                 // on-screen placement, since those two diverge away from the
-                // boresight by design (see project_lonlat_deg()).
+                // boresight by design (see angular_separation_and_project_deg()).
                 const double scan_delta_az = wrap_delta_deg(scan_az - center_az);
                 const double scan_delta_alt = scan_alt - center_alt;
 
-                const double scan_radial_deg = angular_separation_deg(center_az, center_alt, scan_az, scan_alt);
                 float scan_proj_x_deg = 0.0F;
                 float scan_proj_y_deg = 0.0F;
-                project_lonlat_deg(center_az, center_alt, scan_az, scan_alt, scan_proj_x_deg, scan_proj_y_deg);
+                bool scan_in_view = false;
+                angular_separation_and_project_deg(sin_center_alt, cos_center_alt, center_az, scan_az, scan_alt,
+                                                     celestial_sphere_view_range_deg,
+                                                     scan_proj_x_deg, scan_proj_y_deg, scan_in_view);
 
-                if (scan_radial_deg <= celestial_sphere_view_range_deg) {
+                if (scan_in_view) {
                     // Within the aperture: highlight it (no data box, no arrow/delta text).
                     if (scan_pointer_line != nullptr) { lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN); }
                     if (scan_delta_value_label != nullptr) { lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN); }
@@ -1983,6 +2056,7 @@ void celestial_sphere_begin(
         celestial_sphere_end();
 
         build_celestial_sphere(); // once ever; no-op on repeated screen opens (see sphere_built)
+        build_ecliptic_geometry(); // once ever; no-op on repeated screen opens (see ecliptic_geometry_built)
 
         CELESTIAL_SPHERE_CONTAINER_SIZE = (width_px < height_px) ? width_px : height_px;
 
