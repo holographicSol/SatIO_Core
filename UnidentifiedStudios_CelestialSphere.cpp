@@ -83,6 +83,14 @@ static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
 static constexpr double VIEW_RANGE_DEG_MAX = 90.0;
 static double celestial_sphere_view_range_deg = 10.0;
 
+// Number of ecliptic samples spanning the full 360 deg loop (2 deg apart),
+// and the max number of separate on-screen polylines one loop can need in a
+// single tick -- see update_ecliptic_line() (SPHERICAL PROJECTION section
+// below) for why 1 is the generic case and 2 covers it with margin.
+static constexpr int32_t ECLIPTIC_SAMPLE_COUNT = 180;
+static constexpr int32_t ECLIPTIC_LINE_SEGMENTS = 2;
+static constexpr int32_t ECLIPTIC_MAX_SEGMENT_POINTS = ECLIPTIC_SAMPLE_COUNT + 1;
+
 // Converts an angular half-width (degrees) into the matching
 // project_lonlat_deg()-space "projected degree" value along a cardinal
 // direction from the boresight -- i.e. what a point exactly that many
@@ -127,6 +135,7 @@ static lv_timer_t * sphere_timer = nullptr;
 static bool sphere_active = false;
 
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
+static constexpr int32_t ECLIPTIC_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_LINE_WIDTH = 3;
 static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
 static constexpr int32_t APERTURE_BORDER_WIDTH = 2;
@@ -171,6 +180,9 @@ static const lv_color_t COLOR_MARKER      = lv_color_make(128, 128, 128);
 static const lv_color_t COLOR_TARGET      = lv_color_make(255, 0, 0);
 static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 0, 255, 0);
 static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 255, 0, 0);
+// Conventional sky-chart ecliptic-line color; distinct from every
+// COLOR_BODY_* below (closest is COLOR_BODY_SUN's plain yellow).
+static const lv_color_t COLOR_ECLIPTIC    = lv_color_make(255, 140, 0);
 
 static const lv_color_t COLOR_GROUP_GALAXY  = lv_color_make(255, 0, 255);
 static const lv_color_t COLOR_GROUP_CLUSTER = lv_color_make(0, 255, 0);
@@ -641,6 +653,11 @@ static lv_obj_t * crosshair_ra_value_label = nullptr;
 static lv_obj_t * crosshair_dec_value_label = nullptr;
 static lv_obj_t * crosshair_constellation_value_label = nullptr;
 
+// Ecliptic guide line -- up to ECLIPTIC_LINE_SEGMENTS separate polylines
+// (see update_ecliptic_line()), each with its own point buffer.
+static lv_obj_t * ecliptic_line[ECLIPTIC_LINE_SEGMENTS] = { nullptr, nullptr };
+static lv_point_precise_t ecliptic_line_points[ECLIPTIC_LINE_SEGMENTS][ECLIPTIC_MAX_SEGMENT_POINTS];
+
 // Count of objects currently plotted within the scope
 static lv_obj_t * objects_found_value_label = nullptr;
 
@@ -788,6 +805,123 @@ static void project_lonlat_deg(const double center_lon_deg, const double center_
 
     x_deg = static_cast<float>(x_rad * (180.0 / M_PI));
     y_deg = static_cast<float>(y_rad * (180.0 / M_PI));
+}
+
+// ============================================================================
+// ECLIPTIC
+// ============================================================================
+// A guide line tracing the ecliptic -- the Sun's apparent yearly path, and
+// close to every planet's own path too since the solar system's bodies all
+// orbit near this same plane -- so a user can follow it around the display
+// to find planets.
+
+// Fixed J2000 mean obliquity. The catalog markers above already treat their
+// source coordinates as fixed (no live re-query); nutation/precession would
+// only shift this by arcseconds, far below one pixel of this display, so
+// there's no benefit to coupling this line to SiderealPlanets's live,
+// mutable, time-dependent obliquity state (doObliquity()).
+static constexpr double ECLIPTIC_OBLIQUITY_DEG = 23.4392911;
+
+// Converts a point on the ecliptic (latitude implicitly 0 -- this traces the
+// ecliptic itself) to RA/Dec, in degrees: the standard ecliptic->equatorial
+// rotation by the obliquity, with ecliptic latitude fixed at 0.
+static void ecliptic_lon_to_radec_deg(const double ecl_lon_deg, double &ra_deg, double &dec_deg) {
+    const double eps_rad = ECLIPTIC_OBLIQUITY_DEG * (M_PI / 180.0);
+    const double lon_rad = ecl_lon_deg * (M_PI / 180.0);
+    const double sin_eps = sin(eps_rad);
+    const double cos_eps = cos(eps_rad);
+    const double sin_lon = sin(lon_rad);
+    const double cos_lon = cos(lon_rad);
+
+    dec_deg = asin(sin_eps * sin_lon) * (180.0 / M_PI);
+    ra_deg = atan2(cos_eps * sin_lon, cos_lon) * (180.0 / M_PI);
+    if (ra_deg < 0.0) {
+        ra_deg += 360.0;
+    }
+}
+
+// Recomputes the ecliptic line's on-screen points from the current RA/Dec
+// boresight and pushes them into ecliptic_line[]/ecliptic_line_points[],
+// hiding whichever segment slots aren't needed this tick.
+//
+// ECLIPTIC_SAMPLE_COUNT points are walked in ecliptic-longitude order and
+// classified in/out of view exactly like the catalog markers above
+// (angular_separation_deg() against celestial_sphere_view_range_deg), then
+// projected the same way too (negated RA, see project_lonlat_deg()'s call
+// site in celestial_sphere_update()) so the line lines up with them on
+// screen. A great circle crossing a circular aperture boundary generically
+// crosses it at exactly two points, leaving exactly one visible arc; the
+// scan below starts from an out-of-view sample (if one exists) so that one
+// arc is never artificially split by the sample array's own 0/360 wrap
+// point. ECLIPTIC_LINE_SEGMENTS (2) leaves margin for the rare tangential
+// case where it isn't.
+static void update_ecliptic_line(const double center_ra_deg, const double center_dec_deg) {
+    bool sample_in_view[ECLIPTIC_SAMPLE_COUNT];
+    float sample_x_deg[ECLIPTIC_SAMPLE_COUNT];
+    float sample_y_deg[ECLIPTIC_SAMPLE_COUNT];
+
+    for (int32_t i = 0; i < ECLIPTIC_SAMPLE_COUNT; i++) {
+        const double ecl_lon_deg = (360.0 * static_cast<double>(i)) / static_cast<double>(ECLIPTIC_SAMPLE_COUNT);
+        double point_ra_deg = 0.0;
+        double point_dec_deg = 0.0;
+        ecliptic_lon_to_radec_deg(ecl_lon_deg, point_ra_deg, point_dec_deg);
+
+        const double radial_deg = angular_separation_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg);
+        sample_in_view[i] = (radial_deg <= celestial_sphere_view_range_deg);
+        if (sample_in_view[i]) {
+            project_lonlat_deg(-center_ra_deg, center_dec_deg, -point_ra_deg, point_dec_deg,
+                                sample_x_deg[i], sample_y_deg[i]);
+        }
+    }
+
+    int32_t start = 0;
+    bool start_found = false;
+    for (int32_t i = 0; (i < ECLIPTIC_SAMPLE_COUNT) && !start_found; i++) {
+        if (!sample_in_view[i]) {
+            start = i;
+            start_found = true;
+        }
+    }
+
+    int32_t segment_count = 0;
+    int32_t k = 0;
+    while ((k < ECLIPTIC_SAMPLE_COUNT) && (segment_count < ECLIPTIC_LINE_SEGMENTS)) {
+        const int32_t i = (start + k) % ECLIPTIC_SAMPLE_COUNT;
+        if (!sample_in_view[i]) {
+            k++;
+        } else {
+            lv_point_precise_t * const points = ecliptic_line_points[segment_count];
+            int32_t point_count = 0;
+            bool run_open = true;
+            while ((k < ECLIPTIC_SAMPLE_COUNT) && run_open) {
+                const int32_t j = (start + k) % ECLIPTIC_SAMPLE_COUNT;
+                if (sample_in_view[j] && (point_count < ECLIPTIC_MAX_SEGMENT_POINTS)) {
+                    points[point_count].x = SCOPE_CENTER_X + static_cast<int32_t>(sample_x_deg[j] * PX_PER_DEG);
+                    points[point_count].y = SCOPE_CENTER_Y - static_cast<int32_t>(sample_y_deg[j] * PX_PER_DEG);
+                    point_count++;
+                    k++;
+                } else {
+                    run_open = false;
+                }
+            }
+
+            if (ecliptic_line[segment_count] != nullptr) {
+                if (point_count >= 2) {
+                    lv_line_set_points(ecliptic_line[segment_count], points, point_count);
+                    lv_obj_clear_flag(ecliptic_line[segment_count], LV_OBJ_FLAG_HIDDEN);
+                } else {
+                    lv_obj_add_flag(ecliptic_line[segment_count], LV_OBJ_FLAG_HIDDEN);
+                }
+            }
+            segment_count++;
+        }
+    }
+
+    for (int32_t seg = segment_count; seg < ECLIPTIC_LINE_SEGMENTS; seg++) {
+        if (ecliptic_line[seg] != nullptr) {
+            lv_obj_add_flag(ecliptic_line[seg], LV_OBJ_FLAG_HIDDEN);
+        }
+    }
 }
 
 // ============================================================================
@@ -1455,6 +1589,8 @@ void celestial_sphere_update(void) {
         boresight_ra_dec_deg(center_ra_hours, center_dec_deg);
         const double center_ra_deg = center_ra_hours * 15.0;
 
+        update_ecliptic_line(center_ra_deg, center_dec_deg);
+
         // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
 
@@ -2075,6 +2211,22 @@ void celestial_sphere_begin(
         lv_obj_set_style_bg_opa(crosshair_dec_value_label, LV_OPA_70, LV_PART_MAIN);
 
         update_gyro_attitude_label(); // populate the four labels immediately
+
+        // Ecliptic guide line segments -- created before the markers below
+        // so they stack behind them (and behind the crosshair, which
+        // raise_overlay_widgets_to_foreground() always keeps in front);
+        // update_ecliptic_line() fills in real points and un-hides
+        // whichever of these are actually needed once the sphere starts
+        // updating.
+        for (int32_t i = 0; i < ECLIPTIC_LINE_SEGMENTS; i++) {
+            ecliptic_line[i] = lv_line_create(celestial_sphere_container);
+            if (ecliptic_line[i] != nullptr) {
+                lv_obj_add_flag(ecliptic_line[i], LV_OBJ_FLAG_HIDDEN);
+                lv_obj_set_style_line_color(ecliptic_line[i], COLOR_ECLIPTIC, 0);
+                lv_obj_set_style_line_width(ecliptic_line[i], ECLIPTIC_LINE_WIDTH, 0);
+                lv_obj_set_style_line_rounded(ecliptic_line[i], true, 0);
+            }
+        }
 
         // Markers, one per possible visible-catalog-marker slot
         for (int32_t i = 0; i < MAX_CELESTIAL_SPHERE_OBJECTS; i++) {
