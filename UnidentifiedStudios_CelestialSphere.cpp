@@ -1480,7 +1480,15 @@ void celestial_sphere_update(void) {
                 if (radial_deg <= celestial_sphere_view_range_deg) {
                     float proj_x_deg = 0.0F;
                     float proj_y_deg = 0.0F;
-                    project_lonlat_deg(center_ra_deg, center_dec_deg, point_ra_deg, point_dec_deg, proj_x_deg, proj_y_deg);
+                    // RA increases eastward in a right-handed sense, the opposite
+                    // handedness from Az (clockwise from North), which is the
+                    // convention project_lonlat_deg's x sign assumes (see the Az/Alt
+                    // call below). Negating both RAs here flips only x -- y is
+                    // unaffected since it depends on delta_lon through cos(), an
+                    // even function -- so catalog markers land on the correct side
+                    // of the boresight instead of mirrored relative to the Az/Alt-
+                    // plotted bodies and pointer sharing this same reticle.
+                    project_lonlat_deg(-center_ra_deg, center_dec_deg, -point_ra_deg, point_dec_deg, proj_x_deg, proj_y_deg);
 
                     ObjectMarker * const marker = &markers[found_count];
                     marker_sphere_index[found_count] = i;
