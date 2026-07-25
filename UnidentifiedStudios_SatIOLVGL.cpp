@@ -16705,6 +16705,19 @@ void update_display_lvgl()
     // ---------------------
     else if (current_screen_number == GPS_SCREEN) {
 
+        // Switch Panel tab highlight (text color only). Written once here,
+        // covering all four views, rather than duplicated per panel branch
+        // below -- set_style_text_color_if_changed() already makes repeated
+        // calls with the same color a cheap no-op.
+        set_style_text_color_if_changed(gps_switch_panel.switch_SatIO_panel.label,
+            (current_gps_panel==0) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel.switch_gngga_panel.label,
+            (current_gps_panel==1) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel.switch_gnrmc_panel.label,
+            (current_gps_panel==2) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel.switch_gpatt_panel.label,
+            (current_gps_panel==3) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+
         if (current_gps_panel == 0) {
             if (SatIO_c.panel) {
                 // Hide
@@ -16715,327 +16728,314 @@ void update_display_lvgl()
                 // Show
                 lv_obj_remove_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
 
-                // Switch Panel
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_on_bg, LV_PART_MAIN);
-
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-
                 // Panel
-                lv_obj_set_style_outline_color(SatIO_c.panel, default_outline_hue, LV_PART_MAIN);
+                set_style_outline_color_if_changed(SatIO_c.panel, default_outline_hue, LV_PART_MAIN);
 
                 // ────────────────────────────────────────────────
                 // GPS Degrees Latitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_deg_lat, String(SatIOData.degrees_latitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_deg_lat, String(SatIOData.degrees_latitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // GPS Degrees Longitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_deg_lon, String(SatIOData.degrees_longitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_deg_lon, String(SatIOData.degrees_longitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // User Degrees Latitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_user_deg_lat, String(SatIOData.user_degrees_latitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_user_deg_lat, String(SatIOData.user_degrees_latitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // User Degrees Longitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_user_deg_lon, String(SatIOData.user_degrees_longitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_user_deg_lon, String(SatIOData.user_degrees_longitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // System Degrees Latitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_sys_deg_lat, String(SatIOData.system_degrees_latitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_sys_deg_lat, String(SatIOData.system_degrees_latitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // System Degrees Longitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_sys_deg_lon, String(SatIOData.system_degrees_longitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_sys_deg_lon, String(SatIOData.system_degrees_longitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // Location Value Mode
                 // ────────────────────────────────────────────────
                 if (SatIOData.location_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_location_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_location_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // GPS emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_location_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_location_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
                 else if (SatIOData.location_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_location_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_location_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // User emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_location_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_location_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_location_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
 
 
                 // ────────────────────────────────────────────────
                 // Local Year Day
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_local_yday, String(SatIOData.localTime.yday).c_str());
+                set_label_text_if_changed(SatIO_c.val_local_yday, String(SatIOData.localTime.yday).c_str());
 
                 // ────────────────────────────────────────────────
                 // Local Weekday Name
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_local_wday_name, String(SatIOData.localTime.wday_name).c_str());
+                set_label_text_if_changed(SatIO_c.val_local_wday_name, String(SatIOData.localTime.wday_name).c_str());
 
                 // ────────────────────────────────────────────────
                 // Local Month Name
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_local_month_name, String(SatIOData.localTime.month_name).c_str());
+                set_label_text_if_changed(SatIO_c.val_local_month_name, String(SatIOData.localTime.month_name).c_str());
 
 
                 // ────────────────────────────────────────────────
                 // Formatted Local Time
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_formatted_local_time, String(SatIOData.localTime.formatted_time_HHMMSS).c_str());
+                set_label_text_if_changed(SatIO_c.val_formatted_local_time, String(SatIOData.localTime.formatted_time_HHMMSS).c_str());
 
                 // ────────────────────────────────────────────────
                 // Formatted Local Date
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_formatted_local_date, String(SatIOData.localTime.formatted_date_DDMMYYYY).c_str());
+                set_label_text_if_changed(SatIO_c.val_formatted_local_date, String(SatIOData.localTime.formatted_date_DDMMYYYY).c_str());
 
                 // ────────────────────────────────────────────────
                 // Local Unix Time (μs)
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_local_unixtime_us, String(SatIOData.localTime.unixtime_uS).c_str());
+                set_label_text_if_changed(SatIO_c.val_local_unixtime_us, String(SatIOData.localTime.unixtime_uS).c_str());
 
                 // ────────────────────────────────────────────────
                 // Formatted System Time Sync Time (last GPS/manual sync)
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_formatted_rtc_sync_time, String(SatIOData.systemTime.sync_formatted_time_HHMMSS).c_str());
+                set_label_text_if_changed(SatIO_c.val_formatted_rtc_sync_time, String(SatIOData.systemTime.sync_formatted_time_HHMMSS).c_str());
 
                 // ────────────────────────────────────────────────
                 // Formatted System Time Sync Date (last GPS/manual sync)
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_formatted_rtc_sync_date, String(SatIOData.systemTime.sync_formatted_date_DDMMYYYY).c_str());
+                set_label_text_if_changed(SatIO_c.val_formatted_rtc_sync_date, String(SatIOData.systemTime.sync_formatted_date_DDMMYYYY).c_str());
 
                 // ────────────────────────────────────────────────
                 // Sync Latitude (this board has no RTC-chip position snapshot;
                 // shows the current system latitude/longitude/altitude instead)
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_rtcsync_latitude, String(SatIOData.system_degrees_latitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_rtcsync_latitude, String(SatIOData.system_degrees_latitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // Sync Longitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_rtcsync_longitude, String(SatIOData.system_degrees_longitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_rtcsync_longitude, String(SatIOData.system_degrees_longitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // Sync Altitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_rtcsync_altitude, String(gnggaData.altitude).c_str());
+                set_label_text_if_changed(SatIO_c.val_rtcsync_altitude, String(gnggaData.altitude).c_str());
 
                 // ────────────────────────────────────────────────
                 // Formatted System Time
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_formatted_rtc_time, String(SatIOData.systemTime.formatted_time_HHMMSS).c_str());
+                set_label_text_if_changed(SatIO_c.val_formatted_rtc_time, String(SatIOData.systemTime.formatted_time_HHMMSS).c_str());
 
                 // ────────────────────────────────────────────────
                 // Formatted System Date
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_formatted_rtc_date, String(SatIOData.systemTime.formatted_date_DDMMYYYY).c_str());
+                set_label_text_if_changed(SatIO_c.val_formatted_rtc_date, String(SatIOData.systemTime.formatted_date_DDMMYYYY).c_str());
 
                 // ────────────────────────────────────────────────
                 // System Time Unix Time (s)
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_rtc_unixtime, String((uint32_t)(SatIOData.systemTime.unixtime_uS / 1000000ULL)).c_str());
+                set_label_text_if_changed(SatIO_c.val_rtc_unixtime, String((uint32_t)(SatIOData.systemTime.unixtime_uS / 1000000ULL)).c_str());
 
 
                 // ────────────────────────────────────────────────
                 // UTC Second Offset
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_utc_second_offset, String(SatIOData.systemTime.second_offset).c_str());
+                set_label_text_if_changed(SatIO_c.val_utc_second_offset, String(SatIOData.systemTime.second_offset).c_str());
 
                 // ────────────────────────────────────────────────
                 // UTC Auto Offset Flag
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_utc_auto_offset_flag, SatIOData.systemTime.auto_offset_flag ? "Yes" : "No");
+                set_label_text_if_changed(SatIO_c.val_utc_auto_offset_flag, SatIOData.systemTime.auto_offset_flag ? "Yes" : "No");
 
                 // ────────────────────────────────────────────────
                 // Set Time Automatically
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_set_time_automatically, SatIOData.systemTime.set_time_automatically ? "Yes" : "No");
+                set_label_text_if_changed(SatIO_c.val_set_time_automatically, SatIOData.systemTime.set_time_automatically ? "Yes" : "No");
 
                 // ────────────────────────────────────────────────
                 // GPS Altitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_altitude, String(SatIOData.altitude).c_str());
+                set_label_text_if_changed(SatIO_c.val_altitude, String(SatIOData.altitude).c_str());
 
                 // ────────────────────────────────────────────────
                 // User Altitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_user_altitude, String(SatIOData.user_altitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_user_altitude, String(SatIOData.user_altitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // System Altitude
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_sys_altitude, String(SatIOData.system_altitude, 7).c_str());
+                set_label_text_if_changed(SatIO_c.val_sys_altitude, String(SatIOData.system_altitude, 7).c_str());
 
                 // ────────────────────────────────────────────────
                 // Altitude Value Mode
                 // ────────────────────────────────────────────────
                 if (SatIOData.altitude_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_altitude_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // GPS emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_altitude_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
                 else if (SatIOData.altitude_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_altitude_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // User emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_altitude_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_altitude_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_altitude_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
 
                 // ────────────────────────────────────────────────
                 // GPS Speed
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_speed, String(SatIOData.speed, 2).c_str());
+                set_label_text_if_changed(SatIO_c.val_speed, String(SatIOData.speed, 2).c_str());
 
                 // ────────────────────────────────────────────────
                 // User Speed
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_user_speed, String(SatIOData.user_speed, 2).c_str());
+                set_label_text_if_changed(SatIO_c.val_user_speed, String(SatIOData.user_speed, 2).c_str());
 
                 // ────────────────────────────────────────────────
                 // System Speed
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_sys_speed, String(SatIOData.system_speed, 2).c_str());
+                set_label_text_if_changed(SatIO_c.val_sys_speed, String(SatIOData.system_speed, 2).c_str());
 
                 // ────────────────────────────────────────────────
                 // Speed Value Mode
                 // ────────────────────────────────────────────────
                 if (SatIOData.speed_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_speed_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_speed_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // GPS emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_speed_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
                 else if (SatIOData.speed_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_speed_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // User emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_speed_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_speed_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_speed_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
 
                 // ────────────────────────────────────────────────
                 // Ground Heading Name
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_ground_heading_name, String(SatIOData.ground_heading_name).c_str());
+                set_label_text_if_changed(SatIO_c.val_ground_heading_name, String(SatIOData.ground_heading_name).c_str());
 
                 // ────────────────────────────────────────────────
                 // GPS Ground Heading
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_ground_heading, String(SatIOData.ground_heading, 2).c_str());
+                set_label_text_if_changed(SatIO_c.val_ground_heading, String(SatIOData.ground_heading, 2).c_str());
 
                 // ────────────────────────────────────────────────
                 // User Ground Heading
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_user_ground_heading, String(SatIOData.user_ground_heading, 2).c_str());
+                set_label_text_if_changed(SatIO_c.val_user_ground_heading, String(SatIOData.user_ground_heading, 2).c_str());
 
                 // ────────────────────────────────────────────────
                 // System Ground Heading
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_sys_ground_heading, String(SatIOData.system_ground_heading, 2).c_str());
+                set_label_text_if_changed(SatIO_c.val_sys_ground_heading, String(SatIOData.system_ground_heading, 2).c_str());
 
                 // ────────────────────────────────────────────────
                 // Ground Heading Value Mode
                 // ────────────────────────────────────────────────
                 if (SatIOData.ground_heading_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_ground_heading_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // GPS emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_ground_heading_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
                 else if (SatIOData.ground_heading_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    lv_obj_set_style_outline_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_ground_heading_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // User emphasis
-                    lv_obj_set_style_outline_color(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(SatIO_c.btn_ground_heading_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
 
 
                 // ────────────────────────────────────────────────
                 // Mileage
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_mileage, String(SatIOData.mileage).c_str());
+                set_label_text_if_changed(SatIO_c.val_mileage, String(SatIOData.mileage).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Time
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_LMST_time, String(SatIOData.localMeanSolarTime.formatted_time_HHMMSS).c_str());
+                set_label_text_if_changed(SatIO_c.val_LMST_time, String(SatIOData.localMeanSolarTime.formatted_time_HHMMSS).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Date
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_LMST_date, String(SatIOData.localMeanSolarTime.formatted_date_DDMMYYYY).c_str());
+                set_label_text_if_changed(SatIO_c.val_LMST_date, String(SatIOData.localMeanSolarTime.formatted_date_DDMMYYYY).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Daylight Hours
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_LMST_day_hours, String(SatIOData.localMeanSolarTime.photo_period_schedule.LMST_day_hours).c_str());
+                set_label_text_if_changed(SatIO_c.val_LMST_day_hours, String(SatIOData.localMeanSolarTime.photo_period_schedule.LMST_day_hours).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Night Hours
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_LMST_night_hours, String(SatIOData.localMeanSolarTime.photo_period_schedule.LMST_night_hours).c_str());
+                set_label_text_if_changed(SatIO_c.val_LMST_night_hours, String(SatIOData.localMeanSolarTime.photo_period_schedule.LMST_night_hours).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Anomaly
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_LMST_anomaly, String(SatIOData.localMeanSolarTime.photo_period_schedule.LMST_anomaly).c_str());
+                set_label_text_if_changed(SatIO_c.val_LMST_anomaly, String(SatIOData.localMeanSolarTime.photo_period_schedule.LMST_anomaly).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Current Twilight Zone Name
                 // ────────────────────────────────────────────────
-                lv_label_set_text(SatIO_c.val_current_twilight_zone_name, String(twilight_zone_names[SatIOData.localMeanSolarTime.photo_period_schedule.current_zone]).c_str());
+                set_label_text_if_changed(SatIO_c.val_current_twilight_zone_name, String(twilight_zone_names[SatIOData.localMeanSolarTime.photo_period_schedule.current_zone]).c_str());
 
                 // ────────────────────────────────────────────────
                 // LMST Astronomical Twilight Dawn
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_astronomical_twilight_dawn,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dawn_start[AstronomicalTwilight]) +
@@ -17047,7 +17047,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Nautical Twilight Dawn
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_nautical_twilight_dawn,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dawn_start[NauticalTwilight]) +
@@ -17059,7 +17059,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Civil Twilight Dawn
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_civil_twilight_dawn,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dawn_start[CivilTwilight]) +
@@ -17071,7 +17071,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Sunrise
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_sunrise,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dawn_start[SunriseSunset]) +
@@ -17083,7 +17083,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Full Daylight
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_FullDayLight,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dawn_start[FullDaylight]) +
@@ -17095,7 +17095,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Golden Hour Dawn
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_golden_hour_dawn,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dawn_start[GoldenHour]) +
@@ -17107,7 +17107,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Golden Hour Dusk
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_golden_hour_dusk,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dusk_start[GoldenHour]) +
@@ -17119,7 +17119,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Sunset
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_sunset,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dusk_start[SunriseSunset]) +
@@ -17131,7 +17131,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Civil Twilight Dusk
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_civil_twilight_dusk,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dusk_start[CivilTwilight]) +
@@ -17143,7 +17143,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Nautical Twilight Dusk
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_nautical_twilight_dusk,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dusk_start[NauticalTwilight]) +
@@ -17155,7 +17155,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Astronomical Twilight Dusk
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_astronomical_twilight_dusk,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dusk_start[AstronomicalTwilight]) +
@@ -17167,7 +17167,7 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 // LMST Astronomical Night
                 // ────────────────────────────────────────────────
-                lv_label_set_text(
+                set_label_text_if_changed(
                     SatIO_c.val_LMST_astronomical_night,
                     String(
                         String(SatIOData.localMeanSolarTime.photo_period_schedule.dusk_start[AstronomicalNight]) +
@@ -17187,38 +17187,25 @@ void update_display_lvgl()
                 // Show
                 lv_obj_remove_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
 
-                // Switch Panel
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gngga_c.val_utc_time, String(gnggaData.utc_time).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gngga_c.val_latitude, String(String(gnggaData.latitude_hemisphere) + " " + String(gnggaData.latitude)).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gngga_c.val_longitude, String(String(gnggaData.longitude_hemisphere) + " " + String(gnggaData.longitude)).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gngga_c.val_solution_status, String(gnggaData.solution_status).c_str());
 
-                lv_label_set_text(gngga_c.val_utc_time, String(gnggaData.utc_time).c_str());
+                set_label_text_if_changed(gngga_c.val_sat_count, String(gnggaData.satellite_count).c_str());
 
-                lv_label_set_text(gngga_c.val_latitude, String(String(gnggaData.latitude_hemisphere) + " " + String(gnggaData.latitude)).c_str());
+                set_label_text_if_changed(gngga_c.val_gps_precision_factor, String(gnggaData.gps_precision_factor).c_str());
 
-                lv_label_set_text(gngga_c.val_longitude, String(String(gnggaData.longitude_hemisphere) + " " + String(gnggaData.longitude)).c_str());
+                set_label_text_if_changed(gngga_c.val_altitude, String(String(gnggaData.altitude) + " " + String(gnggaData.altitude_units)).c_str());
 
-                lv_label_set_text(gngga_c.val_solution_status, String(gnggaData.solution_status).c_str());
+                set_label_text_if_changed(gngga_c.val_geoidal, String(String(gnggaData.geoidal) + " " + String(gnggaData.geoidal_units)).c_str());
 
-                lv_label_set_text(gngga_c.val_sat_count, String(gnggaData.satellite_count).c_str());
+                set_label_text_if_changed(gngga_c.val_differential_delay, String(gnggaData.differential_delay).c_str());
 
-                lv_label_set_text(gngga_c.val_gps_precision_factor, String(gnggaData.gps_precision_factor).c_str());
-
-                lv_label_set_text(gngga_c.val_altitude, String(String(gnggaData.altitude) + " " + String(gnggaData.altitude_units)).c_str());
-
-                lv_label_set_text(gngga_c.val_geoidal, String(String(gnggaData.geoidal) + " " + String(gnggaData.geoidal_units)).c_str());
-
-                lv_label_set_text(gngga_c.val_differential_delay, String(gnggaData.differential_delay).c_str());
-
-                lv_label_set_text(gngga_c.val_bad_element_count, String(gnggaData.total_bad_elements).c_str());
+                set_label_text_if_changed(gngga_c.val_bad_element_count, String(gnggaData.total_bad_elements).c_str());
             }
         }
 
@@ -17231,45 +17218,32 @@ void update_display_lvgl()
                 // Show
                 lv_obj_remove_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
 
-                // Switch Panel
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gnrmc_c.val_utc_time, String(gnrmcData.utc_time).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gnrmc_c.val_positioning_status, String(gnrmcData.positioning_status).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_on_bg, LV_PART_MAIN);
-
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-
-                lv_label_set_text(gnrmc_c.val_utc_time, String(gnrmcData.utc_time).c_str());
-
-                lv_label_set_text(gnrmc_c.val_positioning_status, String(gnrmcData.positioning_status).c_str());
-
-                lv_label_set_text(gnrmc_c.val_latitude,
+                set_label_text_if_changed(gnrmc_c.val_latitude,
                                 String(String(gnrmcData.latitude_hemisphere) + " " +
                                         String(gnrmcData.latitude)).c_str());
 
-                lv_label_set_text(gnrmc_c.val_longitude,
+                set_label_text_if_changed(gnrmc_c.val_longitude,
                                 String(String(gnrmcData.longitude_hemisphere) + " " +
                                         String(gnrmcData.longitude)).c_str());
 
-                lv_label_set_text(gnrmc_c.val_ground_speed, String(gnrmcData.ground_speed).c_str());
+                set_label_text_if_changed(gnrmc_c.val_ground_speed, String(gnrmcData.ground_speed).c_str());
 
-                lv_label_set_text(gnrmc_c.val_ground_heading, String(gnrmcData.ground_heading).c_str());
+                set_label_text_if_changed(gnrmc_c.val_ground_heading, String(gnrmcData.ground_heading).c_str());
 
-                lv_label_set_text(gnrmc_c.val_utc_date, String(gnrmcData.utc_date).c_str());
+                set_label_text_if_changed(gnrmc_c.val_utc_date, String(gnrmcData.utc_date).c_str());
 
-                lv_label_set_text(gnrmc_c.val_installation_angle, String(gnrmcData.installation_angle).c_str());
+                set_label_text_if_changed(gnrmc_c.val_installation_angle, String(gnrmcData.installation_angle).c_str());
 
-                lv_label_set_text(gnrmc_c.val_installation_angle_direction,
+                set_label_text_if_changed(gnrmc_c.val_installation_angle_direction,
                                 String(gnrmcData.installation_angle_direction).c_str());
 
-                lv_label_set_text(gnrmc_c.val_mode_indication, String(gnrmcData.mode_indication).c_str());
+                set_label_text_if_changed(gnrmc_c.val_mode_indication, String(gnrmcData.mode_indication).c_str());
 
-                lv_label_set_text(gnrmc_c.val_bad_element_count, String(gnrmcData.total_bad_elements).c_str());
+                set_label_text_if_changed(gnrmc_c.val_bad_element_count, String(gnrmcData.total_bad_elements).c_str());
             }
         }
 
@@ -17282,60 +17256,47 @@ void update_display_lvgl()
                 // Show
                 lv_obj_remove_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
 
-                // Switch Panel
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gpatt_c.val_pitch, String(gpattData.pitch).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gpatt_c.val_roll, String(gpattData.roll).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gpatt_c.val_yaw, String(gpattData.yaw).c_str());
 
-                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+                set_label_text_if_changed(gpatt_c.val_software_version, String(gpattData.software_version).c_str());
 
-                lv_label_set_text(gpatt_c.val_pitch, String(gpattData.pitch).c_str());
+                set_label_text_if_changed(gpatt_c.val_product_id, String(gpattData.product_id).c_str());
 
-                lv_label_set_text(gpatt_c.val_roll, String(gpattData.roll).c_str());
+                set_label_text_if_changed(gpatt_c.val_ins, String(gpattData.ins).c_str());
 
-                lv_label_set_text(gpatt_c.val_yaw, String(gpattData.yaw).c_str());
+                set_label_text_if_changed(gpatt_c.val_hardware_version, String(gpattData.hardware_version).c_str());
 
-                lv_label_set_text(gpatt_c.val_software_version, String(gpattData.software_version).c_str());
+                set_label_text_if_changed(gpatt_c.val_run_state_flag, String(gpattData.run_state_flag).c_str());
 
-                lv_label_set_text(gpatt_c.val_product_id, String(gpattData.product_id).c_str());
+                set_label_text_if_changed(gpatt_c.val_mis_angle_num, String(gpattData.mis_angle_num).c_str());
 
-                lv_label_set_text(gpatt_c.val_ins, String(gpattData.ins).c_str());
+                set_label_text_if_changed(gpatt_c.val_static_flag, String(gpattData.static_flag).c_str());
 
-                lv_label_set_text(gpatt_c.val_hardware_version, String(gpattData.hardware_version).c_str());
+                set_label_text_if_changed(gpatt_c.val_user_code, String(gpattData.user_code).c_str());
 
-                lv_label_set_text(gpatt_c.val_run_state_flag, String(gpattData.run_state_flag).c_str());
+                set_label_text_if_changed(gpatt_c.val_gst_data, String(gpattData.gst_data).c_str());
 
-                lv_label_set_text(gpatt_c.val_mis_angle_num, String(gpattData.mis_angle_num).c_str());
+                set_label_text_if_changed(gpatt_c.val_line_flag, String(gpattData.line_flag).c_str());
 
-                lv_label_set_text(gpatt_c.val_static_flag, String(gpattData.static_flag).c_str());
+                set_label_text_if_changed(gpatt_c.val_mis_att_flag, String(gpattData.mis_att_flag).c_str());
 
-                lv_label_set_text(gpatt_c.val_user_code, String(gpattData.user_code).c_str());
+                set_label_text_if_changed(gpatt_c.val_imu_kind, String(gpattData.imu_kind).c_str());
 
-                lv_label_set_text(gpatt_c.val_gst_data, String(gpattData.gst_data).c_str());
+                set_label_text_if_changed(gpatt_c.val_ubi_car_kind, String(gpattData.ubi_car_kind).c_str());
 
-                lv_label_set_text(gpatt_c.val_line_flag, String(gpattData.line_flag).c_str());
+                set_label_text_if_changed(gpatt_c.val_mileage, String(gpattData.mileage).c_str());
 
-                lv_label_set_text(gpatt_c.val_mis_att_flag, String(gpattData.mis_att_flag).c_str());
+                set_label_text_if_changed(gpatt_c.val_run_inetial_flag, String(gpattData.run_inetial_flag).c_str());
 
-                lv_label_set_text(gpatt_c.val_imu_kind, String(gpattData.imu_kind).c_str());
+                set_label_text_if_changed(gpatt_c.val_speed_num, String(gpattData.speed_num).c_str());
 
-                lv_label_set_text(gpatt_c.val_ubi_car_kind, String(gpattData.ubi_car_kind).c_str());
+                set_label_text_if_changed(gpatt_c.val_scalable, String(gpattData.scalable).c_str());
 
-                lv_label_set_text(gpatt_c.val_mileage, String(gpattData.mileage).c_str());
-
-                lv_label_set_text(gpatt_c.val_run_inetial_flag, String(gpattData.run_inetial_flag).c_str());
-
-                lv_label_set_text(gpatt_c.val_speed_num, String(gpattData.speed_num).c_str());
-
-                lv_label_set_text(gpatt_c.val_scalable, String(gpattData.scalable).c_str());
-
-                lv_label_set_text(gpatt_c.val_bad_element_count, String(gpattData.total_bad_elements).c_str());
+                set_label_text_if_changed(gpatt_c.val_bad_element_count, String(gpattData.total_bad_elements).c_str());
             }
         }
     }
