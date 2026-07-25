@@ -36,6 +36,19 @@ enum CelestialSphereMode : int32_t {
     CELESTIAL_SPHERE_MODE_ZENITH
 };
 
+// Builds the full Star/NGC/IC/Other catalog sphere (~14000 entries: RA-sort,
+// per-entry type resolution, dec/RA spatial index) if it hasn't been built
+// yet; a no-op every call after the first. celestial_sphere_begin() also
+// triggers this build on demand, but only from inside taskDisplayUpdate()
+// (UnidentifiedStudios_TaskHandler.cpp), which holds dataMutex -- a lock
+// nearly every other task also needs, even just to bump its own frequency
+// counter -- for the whole call. Call this once during app_main(), before
+// any task that touches dataMutex or myAstroObj is created, so that one-time
+// cost lands in app_main()'s single-threaded startup sequence (where nothing
+// can race it and no watchdog is registered yet) instead of stalling the
+// whole system the first time a user opens the celestial sphere screen.
+void celestial_sphere_prebuild(void);
+
 // MISRA: every parameter uses a fixed-width type, so the function has the
 // same argument widths on every target that builds it.
 // Builds the celestial sphere inside parent and starts its periodic update timer.

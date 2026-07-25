@@ -80,6 +80,7 @@
 #include "lvgl.h"
 #include "./UnidentifiedStudios_SatIOLVGL.h"
 #include "./UnidentifiedStudios_AstroClock.h"
+#include "./UnidentifiedStudios_CelestialSphere.h"
 #endif
 #define UART0_NUM               UART_NUM_0
 #define UART0_BUF_SIZE          (1024)
@@ -465,6 +466,21 @@ extern "C" void app_main(void)
     printf("creating universe task\n");
     myAstroBegin();
     createTaskUniverse(); // (target: +1Hz)
+    #endif
+
+    /** ----------------------------------------------------------------------------
+     * Celestial Sphere: pre-build the full Star/NGC/IC/Other catalog sphere
+     * (~14000 entries) here, in this single-threaded startup sequence, before
+     * createTaskUniverse() above or createTaskDisplayUpdate() below start
+     * touching dataMutex/myAstroObj from their own tasks. Otherwise this same
+     * one-time build only happens the first time a user opens the celestial
+     * sphere screen, inside taskDisplayUpdate() while it holds dataMutex --
+     * a lock nearly every other task also needs -- stalling the whole system
+     * for as long as the build takes.
+     */
+    #ifdef SatIO_DISPLAY_OPTION_LVGL
+    printf("pre-building celestial sphere catalog\n");
+    celestial_sphere_prebuild();
     #endif
 
     // SatIO Serial Tx

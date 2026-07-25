@@ -79,7 +79,7 @@ static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE_32 + SELECT
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
-#define MAX_CELESTIAL_SPHERE_OBJECTS 300
+#define MAX_CELESTIAL_SPHERE_OBJECTS 500
 static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
 static constexpr double VIEW_RANGE_DEG_MAX = 10.0;
 static double celestial_sphere_view_range_deg = 2.0;
@@ -491,6 +491,15 @@ static void build_celestial_sphere(void) {
 
         sphere_built = true;
     }
+}
+
+// Public wrapper so app_main() (main.cpp) can trigger build_celestial_sphere()
+// during its single-threaded startup sequence -- see this function's
+// declaration in UnidentifiedStudios_CelestialSphere.h for why that matters.
+// build_celestial_sphere() stays static/private; nothing outside this TU
+// needs it directly now that this exists.
+void celestial_sphere_prebuild(void) {
+    build_celestial_sphere();
 }
 
 // Converts whichever attitude current_mode selects (local_sidereal_attitude
