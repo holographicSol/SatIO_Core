@@ -886,14 +886,25 @@ void astro_clock_update(void) {
                     saturn.last_below = static_cast<int8_t>(below);
                 }
             }
-            // Update Saturn rings position (invalidation is local to saturns rings, further efficiency should include never invalidating unecessarily)
+            // Update Saturn rings position. Ring geometry is purely a
+            // function of saturn.x/y, so cache the last position used and
+            // skip the recompute/invalidate entirely when saturn hasn't
+            // moved since the last call -- set_line_points_local() (like
+            // lv_line_set_points() underneath it) has no change-check of
+            // its own, so without this it invalidates on every call.
             if (saturn_ring != nullptr) {
-                const int32_t ring_extent = saturn.radius + 5;  // Ring extends beyond planet
-                saturn_ring_points[0].x = saturn.x + saturn.radius - ring_extent;
-                saturn_ring_points[0].y = saturn.y + saturn.radius;
-                saturn_ring_points[1].x = saturn.x + saturn.radius + ring_extent;
-                saturn_ring_points[1].y = saturn.y + saturn.radius;
-                set_line_points_local(saturn_ring, saturn_ring_points, 2);
+                static int32_t last_saturn_ring_x = INT32_MIN;
+                static int32_t last_saturn_ring_y = INT32_MIN;
+                if ((saturn.x != last_saturn_ring_x) || (saturn.y != last_saturn_ring_y)) {
+                    last_saturn_ring_x = saturn.x;
+                    last_saturn_ring_y = saturn.y;
+                    const int32_t ring_extent = saturn.radius + 5;  // Ring extends beyond planet
+                    saturn_ring_points[0].x = saturn.x + saturn.radius - ring_extent;
+                    saturn_ring_points[0].y = saturn.y + saturn.radius;
+                    saturn_ring_points[1].x = saturn.x + saturn.radius + ring_extent;
+                    saturn_ring_points[1].y = saturn.y + saturn.radius;
+                    set_line_points_local(saturn_ring, saturn_ring_points, 2);
+                }
             }
             lv_obj_clear_flag(saturn.obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(saturn.orbit, LV_OBJ_FLAG_HIDDEN);
