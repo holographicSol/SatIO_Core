@@ -927,6 +927,33 @@ lv_obj_t * create_label(
     return result;
 }
 
+void set_label_text_if_changed(lv_obj_t * label, const char * new_text) {
+    if ((label != NULL) && (new_text != NULL)) {
+        const char * current_text = lv_label_get_text(label);
+        if ((current_text == NULL) || (strcmp(current_text, new_text) != 0)) {
+            lv_label_set_text(label, new_text);
+        }
+    }
+}
+
+void set_style_text_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part) {
+    if ((obj != NULL) && !lv_color_eq(lv_obj_get_style_text_color(obj, part), color)) {
+        lv_obj_set_style_text_color(obj, color, part);
+    }
+}
+
+void set_style_outline_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part) {
+    if ((obj != NULL) && !lv_color_eq(lv_obj_get_style_outline_color(obj, part), color)) {
+        lv_obj_set_style_outline_color(obj, color, part);
+    }
+}
+
+void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part) {
+    if ((obj != NULL) && !lv_color_eq(lv_obj_get_style_bg_color(obj, part), color)) {
+        lv_obj_set_style_bg_color(obj, color, part);
+    }
+}
+
 /** -------------------------------------------------------------------------------------
  * @brief Create Text Area.
  * 

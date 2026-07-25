@@ -16350,17 +16350,20 @@ void update_display_lvgl()
         // Matrix Save Slot
         dd_select(dd_matrix_file_slot_select, SatIOFileData.i_current_matrix_file_path);
 
-        if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW) {
+        // Switch Panel tab highlight (text color only). Written once here,
+        // covering all four views, rather than duplicated per panel-view
+        // branch below -- set_style_text_color_if_changed() already makes
+        // repeated calls with the same color a cheap no-op.
+        set_style_text_color_if_changed(matrix_switch_panel.switch_overview_panel.label,
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+        set_style_text_color_if_changed(matrix_switch_panel.switch_matrix_panel.label,
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MATRIX) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+        set_style_text_color_if_changed(matrix_switch_panel.switch_mapping_panel.label,
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MAPPING) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+        set_style_text_color_if_changed(matrix_switch_panel.switch_gpiope_panel.label,
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_GPIOPE) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
 
-            // Switch Panel
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_overview_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_overview_panel.panel, default_btn_on_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_matrix_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+        if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW) {
 
             // Matrix Overview Grid 1
             if (matrix_overview_grid_1) {
@@ -16371,23 +16374,22 @@ void update_display_lvgl()
 
                 uint32_t grid_child_cnt = lv_obj_get_child_cnt(matrix_overview_grid_1);
                 for(uint32_t i = 0; i < grid_child_cnt; i++) {
-                    // vTaskDelay(pdMS_TO_TICKS(5));
                     lv_obj_t * btn = lv_obj_get_child(matrix_overview_grid_1, i);
 
 
                     /* Computer Assist (yellow outline) */
-                    if (matrixData.computer_assist[0][i]==true) {lv_obj_set_style_outline_color(btn, lv_color_make(255, 255, 0), LV_PART_MAIN);}
-                    else {lv_obj_set_style_outline_color(btn, lv_color_make(58, 58, 58), LV_PART_MAIN);}
+                    if (matrixData.computer_assist[0][i]==true) {set_style_outline_color_if_changed(btn, lv_color_make(255, 255, 0), LV_PART_MAIN);}
+                    else {set_style_outline_color_if_changed(btn, lv_color_make(58, 58, 58), LV_PART_MAIN);}
 
                     lv_obj_t * label = lv_obj_get_child(btn, 0);
                     if(label && lv_obj_has_class(label, &lv_label_class)) {
 
                         /* Switch Intention (blue text) */
-                        if (matrixData.switch_intention[0][i]==true) {lv_obj_set_style_text_color(label, lv_color_make(0, 0, 255), LV_PART_MAIN);}
+                        if (matrixData.switch_intention[0][i]==true) {set_style_text_color_if_changed(label, lv_color_make(0, 0, 255), LV_PART_MAIN);}
                         else {
                             /* Computer Intention (yellow text) */
-                            if (matrixData.computer_intention[0][i]==true) {lv_obj_set_style_text_color(label, lv_color_make(255, 255, 0), LV_PART_MAIN);}
-                            else {lv_obj_set_style_text_color(label, lv_color_make(58, 58, 58), LV_PART_MAIN);}
+                            if (matrixData.computer_intention[0][i]==true) {set_style_text_color_if_changed(label, lv_color_make(255, 255, 0), LV_PART_MAIN);}
+                            else {set_style_text_color_if_changed(label, lv_color_make(58, 58, 58), LV_PART_MAIN);}
                         }
                     }
                 }
@@ -16396,16 +16398,6 @@ void update_display_lvgl()
 
         // Matrix Configuration Panel
         else if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MATRIX) {
-
-            // Switch Panel
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_overview_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_overview_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_matrix_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_on_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
             if (mfc.panel) {
                 lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, true);
@@ -16427,7 +16419,7 @@ void update_display_lvgl()
                 // X Value
                 if (matrixData.matrix_function_mode_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_X]==0) {
                     // Mode 0: User Defined
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", matrixData.matrix_function_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_X]); lv_label_set_text(mfc.val_x, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", matrixData.matrix_function_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_X]); set_label_text_if_changed(mfc.val_x, buf); }
                     lv_obj_set_flag(mfc.dd_x, LV_OBJ_FLAG_HIDDEN, true);
                     lv_obj_set_flag(mfc.val_x, LV_OBJ_FLAG_HIDDEN, false);
                 }
@@ -16443,7 +16435,7 @@ void update_display_lvgl()
                 // Y Value
                 if (matrixData.matrix_function_mode_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_Y]==0) {
                     // Mode 0: User Defined
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", matrixData.matrix_function_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_Y]); lv_label_set_text(mfc.val_y, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", matrixData.matrix_function_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_Y]); set_label_text_if_changed(mfc.val_y, buf); }
                     lv_obj_set_flag(mfc.dd_y, LV_OBJ_FLAG_HIDDEN, true);
                     lv_obj_set_flag(mfc.val_y, LV_OBJ_FLAG_HIDDEN, false);
                 }
@@ -16459,7 +16451,7 @@ void update_display_lvgl()
                 // Z Value
                 if (matrixData.matrix_function_mode_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_Z]==0) {
                     // Mode 0: User Defined
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", matrixData.matrix_function_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_Z]); lv_label_set_text(mfc.val_z, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", matrixData.matrix_function_xyz[0][current_matrix_i][current_matrix_function_i][INDEX_MATRIX_FUNTION_Z]); set_label_text_if_changed(mfc.val_z, buf); }
                     lv_obj_set_flag(mfc.dd_z, LV_OBJ_FLAG_HIDDEN, true);
                     lv_obj_set_flag(mfc.val_z, LV_OBJ_FLAG_HIDDEN, false);
                 }
@@ -16480,36 +16472,36 @@ void update_display_lvgl()
                 dd_select(mfc.dd_map_slot, matrixData.index_mapped_value[0][current_matrix_i]);
 
                 // Flux (fluctuation threshold)
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)matrixData.flux_value[0][current_matrix_i]); lv_label_set_text(mfc.val_flux, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)matrixData.flux_value[0][current_matrix_i]); set_label_text_if_changed(mfc.val_flux, buf); }
 
                 // Output Mode
                 dd_select(mfc.dd_output_mode, matrixData.output_mode[0][current_matrix_i]);
 
                 // User Value
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", matrixData.user_output_value[0][current_matrix_i]); lv_label_set_text(mfc.val_user_output_value, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", matrixData.user_output_value[0][current_matrix_i]); set_label_text_if_changed(mfc.val_user_output_value, buf); }
 
                 // GPIOPE Address
                 dd_select(mfc.dd_gpiope_address, matrixData.gpiope_address[0][current_matrix_i]);
 
                 // Output Port Slot
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.matrix_port_map[0][current_matrix_i]); lv_label_set_text(mfc.val_port_map, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.matrix_port_map[0][current_matrix_i]); set_label_text_if_changed(mfc.val_port_map, buf); }
 
                 // ----------------------------------------------------------------------------------------------------------------------------
 
                 // Switch Logic: Enabled/disabled. Is logic actually configured on the switch (function 0 must be set or logic will be ignored).
                 if (matrixData.matrix_function[0][current_matrix_i][0] > INDEX_MATRIX_SWITCH_FUNCTION_NONE) {
-                    lv_obj_set_style_outline_color(mfc.indicator_function_non_zero, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.indicator_function_non_zero, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(0, 0, 255), LV_PART_MAIN);
                 }
                 else {
-                    lv_obj_set_style_outline_color(mfc.indicator_function_non_zero, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.indicator_function_non_zero, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(58, 58, 58), LV_PART_MAIN);
                 }
 
                 // Switch Logic p/s: How many times a second switch logic is calculated
-                lv_obj_set_style_outline_color(mfc.switch_logic_per_second, lv_color_make(255, 0, 0), LV_PART_MAIN);
-                lv_obj_set_style_text_color(mfc.switch_logic_per_second, lv_color_make(255, 0, 0), LV_PART_MAIN);
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", systemData.counters_mtx.task_ffreq_t); lv_label_set_text(mfc.switch_logic_per_second, buf); }
+                set_style_outline_color_if_changed(mfc.switch_logic_per_second, lv_color_make(255, 0, 0), LV_PART_MAIN);
+                set_style_text_color_if_changed(mfc.switch_logic_per_second, lv_color_make(255, 0, 0), LV_PART_MAIN);
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", systemData.counters_mtx.task_ffreq_t); set_label_text_if_changed(mfc.switch_logic_per_second, buf); }
 
                 /**
                  * Poitential Output Value: Computer Intent / Mapped Value
@@ -16519,41 +16511,41 @@ void update_display_lvgl()
                  */
                 if (matrixData.computer_intention[0][current_matrix_i]) {
                     // Computer Intent True
-                    lv_obj_set_style_outline_color(mfc.potential_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.potential_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.potential_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.potential_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
                 }
                 else {
                     // Computer Intent False
-                    lv_obj_set_style_outline_color(mfc.potential_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.potential_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.potential_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.potential_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
                 }
                 if (matrixData.output_mode[0][current_matrix_i]==1) {
                     // Mapped Value
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", mappingData.mapped_value[0][matrixData.index_mapped_value[0][current_matrix_i]]); lv_label_set_text(mfc.potential_output_value, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", mappingData.mapped_value[0][matrixData.index_mapped_value[0][current_matrix_i]]); set_label_text_if_changed(mfc.potential_output_value, buf); }
                 }
                 else {
                     // Computer Intention
-                    { char buf[8]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.computer_intention[0][current_matrix_i]); lv_label_set_text(mfc.potential_output_value, buf); }
+                    { char buf[8]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.computer_intention[0][current_matrix_i]); set_label_text_if_changed(mfc.potential_output_value, buf); }
                 }
 
                 // Computer Intention: True/False. Does the computer want to attempt switching.
                 if (matrixData.computer_intention[0][current_matrix_i]) {
-                    lv_obj_set_style_outline_color(mfc.indicator_computer_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.indicator_computer_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.indicator_computer_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_computer_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
                 }
                 else {
-                    lv_obj_set_style_outline_color(mfc.indicator_computer_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.indicator_computer_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.indicator_computer_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_computer_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
                 }
 
                 // Switch Intention: True/False. Will the computer actually attempt to switch.
                 if (matrixData.switch_intention[0][current_matrix_i]) {
-                    lv_obj_set_style_outline_color(mfc.indicator_switch_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.indicator_switch_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.indicator_switch_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_switch_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
                 }
                 else {
-                    lv_obj_set_style_outline_color(mfc.indicator_switch_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.indicator_switch_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.indicator_switch_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_switch_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
                 }
 
                 // ----------------------------------------------------------------------------------------------------------------------------
@@ -16561,30 +16553,30 @@ void update_display_lvgl()
                 // Computer Assist
                 if (mfc.matrix_switch_computer_assist.panel) {
                     if (matrixData.computer_assist[0][current_matrix_i]==true) {
-                        lv_obj_set_style_outline_color(mfc.matrix_switch_computer_assist.panel, lv_color_make(255, 255, 0), LV_PART_MAIN);
-                        lv_obj_set_style_text_color(mfc.matrix_switch_computer_assist.label, lv_color_make(255, 255, 0), LV_PART_MAIN);
+                        set_style_outline_color_if_changed(mfc.matrix_switch_computer_assist.panel, lv_color_make(255, 255, 0), LV_PART_MAIN);
+                        set_style_text_color_if_changed(mfc.matrix_switch_computer_assist.label, lv_color_make(255, 255, 0), LV_PART_MAIN);
                     }
                     else {
-                        lv_obj_set_style_outline_color(mfc.matrix_switch_computer_assist.panel, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                        lv_obj_set_style_text_color(mfc.matrix_switch_computer_assist.label, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                        set_style_outline_color_if_changed(mfc.matrix_switch_computer_assist.panel, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                        set_style_text_color_if_changed(mfc.matrix_switch_computer_assist.label, lv_color_make(58, 58, 58), LV_PART_MAIN);
                     }
                 }
 
                 // Output Value
                 if (matrixData.switch_intention[0][current_matrix_i]==true) {
-                    lv_obj_set_style_outline_color(mfc.matrix_switch_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.matrix_switch_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
                 }
                 else {
-                    lv_obj_set_style_outline_color(mfc.matrix_switch_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.matrix_switch_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
                 }
-                if (mfc.matrix_switch_output_value) { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.output_value[0][current_matrix_i]); lv_label_set_text(mfc.matrix_switch_output_value, buf); }
+                if (mfc.matrix_switch_output_value) { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.output_value[0][current_matrix_i]); set_label_text_if_changed(mfc.matrix_switch_output_value, buf); }
 
                 // Override
                 if (mfc.matrix_switch_override.panel) {
-                    lv_obj_set_style_outline_color(mfc.matrix_switch_override.panel, lv_color_make(255, 0, 0), LV_PART_MAIN);
-                    lv_obj_set_style_text_color(mfc.matrix_switch_override.label, lv_color_make(255, 0, 0), LV_PART_MAIN);
+                    set_style_outline_color_if_changed(mfc.matrix_switch_override.panel, lv_color_make(255, 0, 0), LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.matrix_switch_override.label, lv_color_make(255, 0, 0), LV_PART_MAIN);
                 }
 
                 // ----------------------------------------------------------------------------------------------------------------------------
@@ -16593,16 +16585,6 @@ void update_display_lvgl()
 
         // Mapping Configuration Panel
         else if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MAPPING) {
-
-            // Switch Panel
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_overview_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_overview_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_matrix_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_on_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
             if (mcc.panel) {
                 lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, true);
@@ -16615,36 +16597,26 @@ void update_display_lvgl()
 
                 dd_select(mcc.dd_c0, (uint32_t)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C0]);
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C1]); lv_label_set_text(mcc.val_c1, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C1]); set_label_text_if_changed(mcc.val_c1, buf); }
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C2]); lv_label_set_text(mcc.val_c2, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C2]); set_label_text_if_changed(mcc.val_c2, buf); }
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C3]); lv_label_set_text(mcc.val_c3, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C3]); set_label_text_if_changed(mcc.val_c3, buf); }
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C4]); lv_label_set_text(mcc.val_c4, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C4]); set_label_text_if_changed(mcc.val_c4, buf); }
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C5]); lv_label_set_text(mcc.val_c5, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapping_config[0][current_mapping_i][INDEX_MAP_C5]); set_label_text_if_changed(mcc.val_c5, buf); }
 
                 dd_select(mcc.dd_mode, (uint32_t)mappingData.map_mode[0][current_mapping_i]);
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", get_mapping_input_value(current_mapping_i)); lv_label_set_text(mcc.value_input, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%f", get_mapping_input_value(current_mapping_i)); set_label_text_if_changed(mcc.value_input, buf); }
 
-                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapped_value[0][current_mapping_i]); lv_label_set_text(mcc.value_map_result, buf); }
+                { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)mappingData.mapped_value[0][current_mapping_i]); set_label_text_if_changed(mcc.value_map_result, buf); }
             }
         }
 
         // GPIOPE Inspector Panel
         else if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_GPIOPE) {
-
-            // Switch Panel
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_overview_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_overview_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_matrix_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_matrix_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_mapping_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_mapping_panel.panel, default_btn_off_bg, LV_PART_MAIN);
-            lv_obj_set_style_text_color(matrix_switch_panel.switch_gpiope_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-            lv_obj_set_style_bg_color(matrix_switch_panel.switch_gpiope_panel.panel, default_btn_on_bg, LV_PART_MAIN);
 
             if (gpc.panel) {
                 lv_obj_set_flag(matrix_overview_grid_1, LV_OBJ_FLAG_HIDDEN, true);
@@ -16655,23 +16627,23 @@ void update_display_lvgl()
                 // Input/Output mode buttons
                 if (current_gpiope_output_mode) {
                     // Input lowlight
-                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_input.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_input.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_input.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_input.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // Output emphasis
-                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_output.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_output.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_output.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_output.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
                 else {
                     // Output lowlight
-                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_output.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_output.panel, default_btn_off_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_output.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_off_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_off_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_output.label, default_btn_off_value_hue, LV_PART_MAIN);
                     // Input emphasis
-                    lv_obj_set_style_outline_color(gpc.btn_gpiope_mode_input.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(gpc.btn_gpiope_mode_input.panel, default_btn_on_bg, LV_PART_MAIN);
-                    lv_obj_set_style_text_color(gpc.btn_gpiope_mode_input.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_on_outline_hue, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_on_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_input.label, rainbow_contrast_value_hue, LV_PART_MAIN);
                 }
 
                 // Device Address
@@ -16681,16 +16653,16 @@ void update_display_lvgl()
                 if (gpiope != nullptr) {
 
                     // Static device info
-                    lv_label_set_text(gpc.val_name, gpiope->name);
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->current_pin); lv_label_set_text(gpc.val_current_pin, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->pin_min); lv_label_set_text(gpc.val_pin_min, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->pin_max); lv_label_set_text(gpc.val_pin_max, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->max_pins); lv_label_set_text(gpc.val_max_pins, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->num_analog_pins); lv_label_set_text(gpc.val_num_analog_pins, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->num_digital_pins); lv_label_set_text(gpc.val_num_digital_pins, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->max_input_values); lv_label_set_text(gpc.val_max_input_values, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->max_output_values); lv_label_set_text(gpc.val_max_output_values, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->query_cursor); lv_label_set_text(gpc.val_query_cursor, buf); }
+                    set_label_text_if_changed(gpc.val_name, gpiope->name);
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->current_pin); set_label_text_if_changed(gpc.val_current_pin, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->pin_min); set_label_text_if_changed(gpc.val_pin_min, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->pin_max); set_label_text_if_changed(gpc.val_pin_max, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->max_pins); set_label_text_if_changed(gpc.val_max_pins, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->num_analog_pins); set_label_text_if_changed(gpc.val_num_analog_pins, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->num_digital_pins); set_label_text_if_changed(gpc.val_num_digital_pins, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->max_input_values); set_label_text_if_changed(gpc.val_max_input_values, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->max_output_values); set_label_text_if_changed(gpc.val_max_output_values, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->query_cursor); set_label_text_if_changed(gpc.val_query_cursor, buf); }
 
                     // Port index may be stale if the device's max_pins shrank since the
                     // dropdown was last rebuilt (dd_gpiope_screen_address_event_cb).
@@ -16700,30 +16672,30 @@ void update_display_lvgl()
                     dd_select(gpc.dd_port_i, current_gpiope_port_i);
 
                     // Per-port-index fields
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF]); lv_label_set_text(gpc.val_pwm_off, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON]); lv_label_set_text(gpc.val_pwm_on, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->input_value[current_gpiope_port_i]); lv_label_set_text(gpc.val_input_value, buf); }
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->port_map[current_gpiope_port_i]); lv_label_set_text(gpc.val_port_map, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_OFF]); set_label_text_if_changed(gpc.val_pwm_off, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (uint32_t)gpiope->modulation_time[current_gpiope_port_i][INDEX_MATRIX_SWITCH_PWM_ON]); set_label_text_if_changed(gpc.val_pwm_on, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", (long)gpiope->input_value[current_gpiope_port_i]); set_label_text_if_changed(gpc.val_input_value, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)gpiope->port_map[current_gpiope_port_i]); set_label_text_if_changed(gpc.val_port_map, buf); }
                     sync_switch_state(gpc.sw_enabled, gpiope->enabled[current_gpiope_port_i]);
-                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%llu", (unsigned long long)gpiope->chan_freq_uS[current_gpiope_port_i]); lv_label_set_text(gpc.val_chan_freq, buf); }
+                    { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%llu", (unsigned long long)gpiope->chan_freq_uS[current_gpiope_port_i]); set_label_text_if_changed(gpc.val_chan_freq, buf); }
                 }
                 else {
                     // No device configured/answering at this address - show placeholders.
-                    lv_label_set_text(gpc.val_name, "-");
-                    lv_label_set_text(gpc.val_current_pin, "-");
-                    lv_label_set_text(gpc.val_pin_min, "-");
-                    lv_label_set_text(gpc.val_pin_max, "-");
-                    lv_label_set_text(gpc.val_max_pins, "-");
-                    lv_label_set_text(gpc.val_num_analog_pins, "-");
-                    lv_label_set_text(gpc.val_num_digital_pins, "-");
-                    lv_label_set_text(gpc.val_max_input_values, "-");
-                    lv_label_set_text(gpc.val_max_output_values, "-");
-                    lv_label_set_text(gpc.val_query_cursor, "-");
-                    lv_label_set_text(gpc.val_pwm_off, "-");
-                    lv_label_set_text(gpc.val_pwm_on, "-");
-                    lv_label_set_text(gpc.val_input_value, "-");
-                    lv_label_set_text(gpc.val_port_map, "-");
-                    lv_label_set_text(gpc.val_chan_freq, "-");
+                    set_label_text_if_changed(gpc.val_name, "-");
+                    set_label_text_if_changed(gpc.val_current_pin, "-");
+                    set_label_text_if_changed(gpc.val_pin_min, "-");
+                    set_label_text_if_changed(gpc.val_pin_max, "-");
+                    set_label_text_if_changed(gpc.val_max_pins, "-");
+                    set_label_text_if_changed(gpc.val_num_analog_pins, "-");
+                    set_label_text_if_changed(gpc.val_num_digital_pins, "-");
+                    set_label_text_if_changed(gpc.val_max_input_values, "-");
+                    set_label_text_if_changed(gpc.val_max_output_values, "-");
+                    set_label_text_if_changed(gpc.val_query_cursor, "-");
+                    set_label_text_if_changed(gpc.val_pwm_off, "-");
+                    set_label_text_if_changed(gpc.val_pwm_on, "-");
+                    set_label_text_if_changed(gpc.val_input_value, "-");
+                    set_label_text_if_changed(gpc.val_port_map, "-");
+                    set_label_text_if_changed(gpc.val_chan_freq, "-");
                 }
             }
         }
@@ -16744,17 +16716,17 @@ void update_display_lvgl()
                 lv_obj_remove_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
 
                 // Switch Panel
-                lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_on_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
                 // Panel
                 lv_obj_set_style_outline_color(SatIO_c.panel, default_outline_hue, LV_PART_MAIN);
@@ -17216,17 +17188,17 @@ void update_display_lvgl()
                 lv_obj_remove_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
 
                 // Switch Panel
-                lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_on_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
                 lv_label_set_text(gngga_c.val_utc_time, String(gnggaData.utc_time).c_str());
 
@@ -17260,17 +17232,17 @@ void update_display_lvgl()
                 lv_obj_remove_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
 
                 // Switch Panel
-                lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_on_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
                 lv_label_set_text(gnrmc_c.val_utc_time, String(gnrmcData.utc_time).c_str());
 
@@ -17311,17 +17283,17 @@ void update_display_lvgl()
                 lv_obj_remove_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
 
                 // Switch Panel
-                lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_SatIO_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_SatIO_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gngga_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gngga_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gnrmc_panel.label, default_btn_off_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gnrmc_panel.panel, default_btn_off_bg, LV_PART_MAIN);
 
-                lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
-                lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_on_bg, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(gps_switch_panel.switch_gpatt_panel.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                // lv_obj_set_style_bg_color(gps_switch_panel.switch_gpatt_panel.panel, default_btn_on_bg, LV_PART_MAIN);
 
                 lv_label_set_text(gpatt_c.val_pitch, String(gpattData.pitch).c_str());
 

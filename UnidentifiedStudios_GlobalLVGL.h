@@ -407,6 +407,45 @@ lv_obj_t * create_label(
     );
 
 /** -------------------------------------------------------------------------------------
+ * @brief Set a label's text only if it actually differs from what's already shown.
+ *
+ * lv_label_set_text() has no such check itself: internally it only skips
+ * reallocating when the caller passes back the exact same pointer LVGL
+ * already owns (see set_text_internal() in lv_label.c), which real call
+ * sites -- fresh snprintf buffers, struct fields formatted elsewhere --
+ * never do. Without this, a label whose formatted content hasn't actually
+ * changed still gets freed, reallocated, copied and invalidated on every
+ * single call. Compares against lv_label_get_text(), the copy LVGL already
+ * owns, rather than keeping a second cached copy of every label's text.
+ *
+ * @param label Target label object (no-op if nullptr).
+ * @param new_text Newly formatted text to display.
+ */
+void set_label_text_if_changed(lv_obj_t * label, const char * new_text);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Set a text/outline/bg color style prop only if it actually differs
+ *        from what's currently resolved for the object.
+ *
+ * lv_obj_set_style_*_color() has no such check itself (see
+ * lv_obj_set_local_style_prop() in lv_obj_style.c: it unconditionally
+ * writes the value and calls lv_obj_refresh_style(), which invalidates,
+ * regardless of whether the new value equals the old one). Compares
+ * against lv_obj_get_style_*_color(), which resolves the object's current
+ * style through the normal cascade, rather than keeping a separate cache.
+ *
+ * @param obj Target object (no-op if nullptr).
+ * @param color New color to apply.
+ * @param part Part to style (e.g. LV_PART_MAIN). Plain part only, not a
+ *             part+state selector: lv_obj_get_style_*_color() (used to read
+ *             back the current value) only accepts lv_part_t, unlike the
+ *             wider lv_style_selector_t the setters take.
+ */
+void set_style_text_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
+void set_style_outline_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
+void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
+
+/** -------------------------------------------------------------------------------------
  * @brief Create Text Area.
  * 
  * @param parent Specify parent object.
