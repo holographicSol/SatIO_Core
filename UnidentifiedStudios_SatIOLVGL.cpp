@@ -16072,10 +16072,10 @@ void display_celestial_sphere_screen() {
 
     celestial_sphere_begin(
         celestial_sphere_screen,
-        500,                         // width (total available width)
-        500,                         // height (total available height)
-        400,                         // scope width (span X of total available width)
-        400,                         // scope height (span Y of total available height)
+        650,                         // width (total available width)
+        650,                         // height (total available height)
+        500,                         // scope width (span X of total available width)
+        500,                         // scope height (span Y of total available height)
         LV_ALIGN_CENTER,             // alignment
         0,                           // pos x
         0,                           // pos y

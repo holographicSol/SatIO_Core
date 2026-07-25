@@ -8,6 +8,7 @@
     nullptr/zero comparisons, nullptr instead of NULL, named casts, switch
     statements with an explicit default) are followed here.
 */
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -78,10 +79,10 @@ static constexpr int32_t APERTURE_EDGE_MARGIN_PX = (MARKER_ICON_SIZE_32 + SELECT
 // Max usable aperture radius (leave margin for marker size).
 static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOPE_HEIGHT) / 2 - APERTURE_EDGE_MARGIN_PX;
 
-#define MAX_CELESTIAL_SPHERE_OBJECTS 500
+#define MAX_CELESTIAL_SPHERE_OBJECTS 300
 static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
 static constexpr double VIEW_RANGE_DEG_MAX = 10.0;
-static double celestial_sphere_view_range_deg = 10.0;
+static double celestial_sphere_view_range_deg = 2.0;
 
 // Number of ecliptic samples spanning the full 360 deg loop (2 deg apart),
 // and the max number of separate on-screen polylines one loop can need in a
@@ -324,6 +325,125 @@ static bool sphere_built = false;
 // color() already treats that as COLOR_MARKER).
 EXT_RAM_BSS_ATTR static const SiderealObjectTypeEntry * sphere_entry_type[SIDEREAL_SPHERE_TOTAL_OBJECTS];
 
+// ----------------------------------------------------------------------------
+// DEC/RA SPATIAL INDEX (built once, alongside sphere_entries[] above)
+// ----------------------------------------------------------------------------
+// celestial_sphere_update()'s per-tick catalog loop used to scan every one of
+// the ~14000 entries in sphere_entries[], cheap-rejecting by declination
+// alone. Measured cost: ~100ms/tick at a 10 deg view range for only ~149
+// entries actually in view -- most of that scanning entries at a similar
+// declination but nowhere near the boresight in right ascension, which the
+// declination-only reject can't filter out (RA circles aren't uniform width
+// across declinations, so a cheap RA-only reject isn't safe to add directly
+// to that per-entry check without real risk of wrongly excluding a valid
+// in-view object near the poles -- see conversation).
+//
+// This index doesn't touch that per-entry correctness check at all -- it's
+// purely a *candidate-narrowing* step in front of it. sorted_idx[] holds
+// catalog indices (into the untouched sphere_entries[]/sphere_entry_type[])
+// ordered by (declination band, then right ascension) so that, per tick, the
+// handful of dec bands overlapping the current view can be found directly
+// (dec_band_start[]), and within each band a further RA sub-range can be
+// binary-searched (entries are RA-sorted within a band). Every candidate
+// that survives this narrowing still goes through the exact same
+// angular_separation_and_project_deg() check as before, unchanged -- so
+// final accept/reject correctness is governed entirely by that existing,
+// already-correct function. The only thing this index has to get right is
+// being *conservative*: never narrow away an entry that the real check would
+// have accepted. See dec_band_ra_half_width_deg() for the safety argument.
+static constexpr double DEC_BAND_WIDTH_DEG = 2.0;
+static constexpr int32_t NUM_DEC_BANDS = static_cast<int32_t>(180.0 / DEC_BAND_WIDTH_DEG);
+
+EXT_RAM_BSS_ATTR static int32_t sorted_idx[SIDEREAL_SPHERE_TOTAL_OBJECTS];
+// Band b's entries occupy sorted_idx[dec_band_start[b] .. dec_band_start[b+1]),
+// RA-sorted within that range. NUM_DEC_BANDS+1 entries so the last band's end
+// is well-defined without a special case.
+static int32_t dec_band_start[NUM_DEC_BANDS + 1];
+
+// Clamps into [0, NUM_DEC_BANDS-1] rather than asserting: dec_deg is always a
+// real declination in [-90, 90] for actual catalog entries and query bounds,
+// but query bounds are center_dec +/- view_range_deg, which callers don't
+// clamp to +/-90 first -- clamping here keeps that safe instead of indexing
+// out of bounds.
+static int32_t dec_band_index(const double dec_deg) {
+    int32_t band = static_cast<int32_t>(floor((dec_deg + 90.0) / DEC_BAND_WIDTH_DEG));
+    if (band < 0) { band = 0; }
+    if (band >= NUM_DEC_BANDS) { band = NUM_DEC_BANDS - 1; }
+    return band;
+}
+
+// Smallest cos(declination) attainable by any point within the given band --
+// i.e. cos() at whichever of the band's two edges sits closer to a pole.
+// Used as a conservative (never too large) stand-in for cos(point_dec) in
+// dec_band_ra_half_width_deg() below, since the real per-point value is
+// unknown until the entry is actually examined.
+static double dec_band_min_cos(const int32_t band) {
+    const double band_dec_lo = (static_cast<double>(band) * DEC_BAND_WIDTH_DEG) - 90.0;
+    const double band_dec_hi = band_dec_lo + DEC_BAND_WIDTH_DEG;
+    const double max_abs_dec = (fabs(band_dec_lo) > fabs(band_dec_hi)) ? fabs(band_dec_lo) : fabs(band_dec_hi);
+    return cos(max_abs_dec * (M_PI / 180.0));
+}
+
+// Safe (conservative) RA half-width, in degrees, for testing entries in the
+// given dec band against a boresight at declination cos_center_dec with the
+// given view_range_deg: any entry in this band whose RA is farther than this
+// from the boresight's RA cannot possibly be within view_range_deg true
+// angular separation, for ANY declination within the band.
+//
+// Derived directly from the exact (not approximated) haversine identity:
+//   sin^2(theta/2) = sin^2(delta_dec/2) + cos(dec1)*cos(dec2)*sin^2(delta_ra/2)
+//                 >= cos(dec1)*cos(dec2)*sin^2(delta_ra/2)
+// Substituting cos(dec2) with dec_band_min_cos(band) -- a valid lower bound
+// for cos(point_dec) for every point in the band -- gives a lower bound on
+// theta purely from delta_ra, so solving sin(theta/2) == sin(view_range/2)
+// for delta_ra yields the widest RA half-width any true in-view point in
+// this band could have. Near the poles (cos_bound -> 0) or when the bound
+// would exceed 180 deg, this returns 180 deg -- i.e. "don't bother RA-
+// filtering this band", always safe, just less of a speedup there.
+static double dec_band_ra_half_width_deg(const int32_t band, const double cos_center_dec,
+                                           const double view_range_deg) {
+    const double cos_bound = dec_band_min_cos(band);
+    const double denom = cos_center_dec * cos_bound;
+    if (denom <= 1.0e-9) {
+        return 180.0;
+    }
+    const double view_range_rad = view_range_deg * (M_PI / 180.0);
+    const double s = sin(view_range_rad / 2.0) / sqrt(denom);
+    if (s >= 1.0) {
+        return 180.0;
+    }
+    return 2.0 * asin(s) * (180.0 / M_PI);
+}
+
+// First position in sorted_idx[lo, hi) (a band's RA-sorted sub-range) whose
+// entry's ra_hours is >= value. Standard binary-search lower_bound, just
+// indexed through sorted_idx[] instead of comparing array elements directly.
+static int32_t ra_lower_bound(int32_t lo, int32_t hi, const float value) {
+    while (lo < hi) {
+        const int32_t mid = lo + ((hi - lo) / 2);
+        if (sphere_entries[sorted_idx[mid]].ra_hours < value) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    return lo;
+}
+
+// First position in sorted_idx[lo, hi) whose entry's ra_hours is > value
+// (i.e. one past the last entry with ra_hours <= value).
+static int32_t ra_upper_bound(int32_t lo, int32_t hi, const float value) {
+    while (lo < hi) {
+        const int32_t mid = lo + ((hi - lo) / 2);
+        if (sphere_entries[sorted_idx[mid]].ra_hours <= value) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    return lo;
+}
+
 // Builds sphere_entries[] (and sphere_entry_type[] above) exactly once per program
 // lifetime -- catalog (siderealObjects) RA/Dec are static, so the results never go stale
 // and never need rebuilding (celestial_sphere_begin() may run this again across repeated
@@ -336,6 +456,39 @@ static void build_celestial_sphere(void) {
             identifyKnownObject(&type_lookup, sphere_entries[i].table_i, sphere_entries[i].number);
             sphere_entry_type[i] = getObjectTypeEntry(&type_lookup);
         }
+
+        // Build the dec/RA spatial index (see above): sphere_entries[]/
+        // sphere_entry_type[] themselves are left untouched, only this
+        // separate index of catalog indices is sorted, so every existing
+        // index into those two arrays (marker_sphere_index[] etc.) stays
+        // valid regardless.
+        for (int32_t i = 0; i < sphere_entry_count; i++) {
+            sorted_idx[i] = i;
+        }
+        std::sort(sorted_idx, sorted_idx + sphere_entry_count, [](const int32_t a, const int32_t b) {
+            const int32_t band_a = dec_band_index(static_cast<double>(sphere_entries[a].dec_deg));
+            const int32_t band_b = dec_band_index(static_cast<double>(sphere_entries[b].dec_deg));
+            if (band_a != band_b) {
+                return band_a < band_b;
+            }
+            return sphere_entries[a].ra_hours < sphere_entries[b].ra_hours;
+        });
+        {
+            int32_t band = 0;
+            dec_band_start[0] = 0;
+            for (int32_t p = 0; p < sphere_entry_count; p++) {
+                const int32_t entry_band = dec_band_index(static_cast<double>(sphere_entries[sorted_idx[p]].dec_deg));
+                while (band < entry_band) {
+                    band++;
+                    dec_band_start[band] = p;
+                }
+            }
+            while (band < NUM_DEC_BANDS) {
+                band++;
+                dec_band_start[band] = sphere_entry_count;
+            }
+        }
+
         sphere_built = true;
     }
 }
@@ -365,20 +518,18 @@ static void boresight_ra_dec_deg(double &ra_hours, double &dec_deg) {
 // MARKER VISUAL MODE
 // ============================================================================
 enum class MarkerVisualMode : int32_t {
-    CIRCLE_4 = 0,
+    CIRCLE_2 = 0,
+    CIRCLE_4,
     CIRCLE_8,
     CIRCLE_16,
     ICON_16,
     ICON_32,
-    CIRCLE_2  // Appended rather than inserted first, so it doesn't renumber
-              // the existing modes (visual_mode_dropdown_cb() below still
-              // maps dropdown index straight to this enum's ordinal value).
 };
 
 // Smallest available marker: an initial mitigation for celestial sphere's
 // whole-screen-invalidating-constantly symptom -- smaller markers mean a
 // smaller invalidated area per marker while the root cause is investigated.
-static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::CIRCLE_2;
+static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::CIRCLE_4;
 
 static lv_obj_t * visual_mode_dropdown = nullptr;
 
@@ -816,6 +967,17 @@ static inline double wrap_delta_deg(const double delta_deg) {
 // (still exactly 5: sin/cos of point_lat and cos of delta_lon, same as a separation-only
 // check, since sin_delta_lon is deferred until we know projection is actually needed).
 //
+// force_project overrides that skip and fills x_deg/y_deg unconditionally, even when
+// in_view comes back false. Default false, for every hot-path caller below (the up-to-
+// ~14000-candidate catalog loop, body markers, ecliptic line) that only ever reads x_deg/
+// y_deg after checking in_view, so paying for the extra trig there would be pure waste.
+// The scan-target pointer (celestial_sphere_update(), SCAN TARGET section) is the one
+// caller that passes true: its out-of-view arrow needs the direction toward an object
+// that is, by definition, never in view, and the stereographic projection is conformal
+// (azimuth-preserving) about the center, so atan2(y_deg, x_deg) gives the true bearing
+// to the target regardless of how far outside view_range_deg it falls -- only the
+// projected radius (unused for a direction-only arrow) distorts with distance.
+//
 // sin_center_lat/cos_center_lat are precomputed by the caller instead of taken as a plain
 // center_lat_deg and re-derived here: every caller below shares one boresight per tick
 // across many points (up to the whole catalog), so the sin/cos of *that* is worth hoisting
@@ -831,7 +993,8 @@ static double angular_separation_and_project_deg(const double sin_center_lat, co
                                                    const double center_lon_deg,
                                                    const double point_lon_deg, const double point_lat_deg,
                                                    const double view_range_deg,
-                                                   float &x_deg, float &y_deg, bool &in_view) {
+                                                   float &x_deg, float &y_deg, bool &in_view,
+                                                   const bool force_project = false) {
     const double point_lat_rad = point_lat_deg * (M_PI / 180.0);
     const double delta_lon_rad = wrap_delta_deg(point_lon_deg - center_lon_deg) * (M_PI / 180.0);
 
@@ -852,7 +1015,7 @@ static double angular_separation_and_project_deg(const double sin_center_lat, co
     const double radial_deg = acos(cos_c) * (180.0 / M_PI);
 
     in_view = (radial_deg <= view_range_deg);
-    if (in_view) {
+    if (in_view || force_project) {
         const double sin_delta_lon = sin(delta_lon_rad);
         // k: stereographic's radial scale factor, 2/(1+cos_c). Its only
         // singularity is cos_c = -1 (the antipodal point, 180 deg away), never
@@ -1176,6 +1339,9 @@ static void celestial_marker_click_cb(lv_event_t * e) {
 // RAISE OVERLAY WIDGETS TO FOREGROUND
 // ============================================================================
 static void raise_overlay_widgets_to_foreground(void) {
+    // Crosshair + its Alt/Az/RA/Dec/constellation readout are disabled for
+    // perf measurement (see celestial_sphere_begin()) -- commented out here
+    // to match, not deleted.
     lv_obj_move_foreground(crosshair_h);
     lv_obj_move_foreground(crosshair_v);
     lv_obj_move_foreground(crosshair_box);
@@ -1670,6 +1836,8 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
     current_mode = mode;
     const lv_color_t color = mode_color(mode);
 
+    // Crosshair + its readout labels are disabled for perf measurement (see
+    // celestial_sphere_begin()) -- commented out here to match, not deleted.
     if (crosshair_h != nullptr) {
         lv_obj_set_style_line_color(crosshair_h, color, 0);
     }
@@ -1694,6 +1862,7 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
     if (crosshair_constellation_value_label != nullptr) {
         lv_obj_set_style_text_color(crosshair_constellation_value_label, color, 0);
     }
+    (void)color;
 
     celestial_sphere_update();
 }
@@ -1714,6 +1883,8 @@ void celestial_sphere_update(void) {
 
     if (scope_container != nullptr) {
 
+        // Crosshair readout disabled for perf measurement (see
+        // celestial_sphere_begin()) -- commented out here to match, not deleted.
         update_gyro_attitude_label();
 
         const double center_alt = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
@@ -1748,70 +1919,131 @@ void celestial_sphere_update(void) {
 
         int32_t found_count = 0;
 
-        for (int32_t i = 0; (i < sphere_entry_count) && (found_count < MAX_CELESTIAL_SPHERE_OBJECTS); i++) {
+        // Per-candidate body, shared by every dec band/RA sub-range walked
+        // below so there's exactly one copy of this logic. i is a catalog
+        // index into the untouched sphere_entries[]/sphere_entry_type[] --
+        // dec/RA banding only changed the order candidates are visited in,
+        // not what they mean. The angular_separation_and_project_deg() call
+        // here is byte-for-byte the same check the old linear scan made; the
+        // index above only narrows which entries reach it.
+        const auto process_candidate = [&](const int32_t i) {
+            if (found_count >= MAX_CELESTIAL_SPHERE_OBJECTS) {
+                return;
+            }
             const SiderealSphereEntry &entry = sphere_entries[i];
             const double point_dec_deg = static_cast<double>(entry.dec_deg);
+            const double point_ra_deg = static_cast<double>(entry.ra_hours) * 15.0;
 
-            // Cheap reject before paying for angular_separation_and_project_deg()'s trig:
-            // true angular separation is always >= |Dec delta| alone (moving
-            // along the sphere can't change declination faster than the
-            // great-circle distance travelled), so this can never wrongly
-            // reject an object that's actually in view. With up to ~14000
-            // catalog entries scanned every 50 ms tick, most of them get
-            // rejected right here for anything but the widest view ranges,
-            // which is what keeps this loop's per-entry cost close to what
-            // it was before this file used real spherical trig.
-            if (fabs(point_dec_deg - center_dec_deg) <= celestial_sphere_view_range_deg) {
-                const double point_ra_deg = static_cast<double>(entry.ra_hours) * 15.0;
+            float proj_x_deg = 0.0F;
+            float proj_y_deg = 0.0F;
+            bool in_view = false;
+            // RA increases eastward in a right-handed sense, the opposite
+            // handedness from Az (clockwise from North), which is the
+            // convention the projection's x sign assumes (see the Az/Alt
+            // call below). Negating both RAs here flips only x -- y is
+            // unaffected since it depends on delta_lon through cos(), an
+            // even function -- so catalog markers land on the correct side
+            // of the boresight instead of mirrored relative to the Az/Alt-
+            // plotted bodies and pointer sharing this same reticle. (It also
+            // doesn't change the separation test itself, for the same reason.)
+            angular_separation_and_project_deg(sin_center_dec, cos_center_dec, -center_ra_deg, -point_ra_deg,
+                                                 point_dec_deg, celestial_sphere_view_range_deg,
+                                                 proj_x_deg, proj_y_deg, in_view);
 
-                float proj_x_deg = 0.0F;
-                float proj_y_deg = 0.0F;
-                bool in_view = false;
-                // RA increases eastward in a right-handed sense, the opposite
-                // handedness from Az (clockwise from North), which is the
-                // convention the projection's x sign assumes (see the Az/Alt
-                // call below). Negating both RAs here flips only x -- y is
-                // unaffected since it depends on delta_lon through cos(), an
-                // even function -- so catalog markers land on the correct side
-                // of the boresight instead of mirrored relative to the Az/Alt-
-                // plotted bodies and pointer sharing this same reticle. (It also
-                // doesn't change the separation test itself, for the same reason.)
-                angular_separation_and_project_deg(sin_center_dec, cos_center_dec, -center_ra_deg, -point_ra_deg,
-                                                     point_dec_deg, celestial_sphere_view_range_deg,
-                                                     proj_x_deg, proj_y_deg, in_view);
+            if (in_view) {
+                ObjectMarker * const marker = &markers[found_count];
+                marker_sphere_index[found_count] = i;
 
-                if (in_view) {
-                    ObjectMarker * const marker = &markers[found_count];
-                    marker_sphere_index[found_count] = i;
+                marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
+                // Screen Y grows downward while declination grows "up" (north), so invert.
+                marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
 
-                    marker->x = SCOPE_CENTER_X + static_cast<int32_t>(proj_x_deg * PX_PER_DEG) - marker_half;
-                    // Screen Y grows downward while declination grows "up" (north), so invert.
-                    marker->y = SCOPE_CENTER_Y - static_cast<int32_t>(proj_y_deg * PX_PER_DEG) - marker_half;
-
-                    if (marker->dot != nullptr) {
-                        // Type resolved once per catalog entry by build_celestial_sphere()
-                        // (see sphere_entry_type[] above) -- just an array read here,
-                        // however many markers are on screen this tick. Full re-identify
-                        // still happens on click, for the data box (celestial_sphere_set_target()).
-                        const SiderealObjectTypeEntry * const type_entry = sphere_entry_type[i];
-                        const lv_color_t color = object_type_color(type_entry);
-                        if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
-                            const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
-                                ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
-                                : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
-                            const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
-                                ? &object_type_icon_fallback_16
-                                : &object_type_icon_fallback;
-                            set_image_src_if_changed(marker->dot, (icon != nullptr) ? icon : fallback);
-                            set_style_image_recolor_if_changed(marker->dot, color, LV_PART_MAIN);
-                        } else {
-                            set_style_bg_color_if_changed(marker->dot, color, LV_PART_MAIN);
-                        }
-                        lv_obj_set_pos(marker->dot, marker->x, marker->y);
-                        lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+                if (marker->dot != nullptr) {
+                    // Type resolved once per catalog entry by build_celestial_sphere()
+                    // (see sphere_entry_type[] above) -- just an array read here,
+                    // however many markers are on screen this tick. Full re-identify
+                    // still happens on click, for the data box (celestial_sphere_set_target()).
+                    const SiderealObjectTypeEntry * const type_entry = sphere_entry_type[i];
+                    const lv_color_t color = object_type_color(type_entry);
+                    if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
+                        const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                            ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
+                            : ((type_entry != nullptr) ? get_object_type_icon(type_entry->num) : nullptr);
+                        const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
+                            ? &object_type_icon_fallback_16
+                            : &object_type_icon_fallback;
+                        set_image_src_if_changed(marker->dot, (icon != nullptr) ? icon : fallback);
+                        set_style_image_recolor_if_changed(marker->dot, color, LV_PART_MAIN);
+                    } else {
+                        set_style_bg_color_if_changed(marker->dot, color, LV_PART_MAIN);
                     }
+                    lv_obj_set_pos(marker->dot, marker->x, marker->y);
+                    lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
+                }
 
-                    found_count++;
+                found_count++;
+            }
+        };
+
+        // Only the dec bands overlapping the current view can contain an
+        // in-view entry (band_lo/band_hi already clamp to valid band indices
+        // via dec_band_index(), even though center_dec +/- view_range isn't
+        // itself clamped to +/-90).
+        const int32_t band_lo = dec_band_index(center_dec_deg - celestial_sphere_view_range_deg);
+        const int32_t band_hi = dec_band_index(center_dec_deg + celestial_sphere_view_range_deg);
+
+        for (int32_t band = band_lo; (band <= band_hi) && (found_count < MAX_CELESTIAL_SPHERE_OBJECTS); band++) {
+            const int32_t band_start = dec_band_start[band];
+            const int32_t band_end = dec_band_start[band + 1];
+            if (band_start >= band_end) {
+                continue; // empty band
+            }
+
+            const double ra_half_width_deg = dec_band_ra_half_width_deg(band, cos_center_dec, celestial_sphere_view_range_deg);
+
+            int32_t sub_lo1 = band_start;
+            int32_t sub_hi1 = band_end;
+            int32_t sub_lo2 = 0;
+            int32_t sub_hi2 = 0;
+            bool has_second_range = false;
+
+            if (ra_half_width_deg < 179.0) {
+                const double ra_half_width_hours = ra_half_width_deg / 15.0;
+                const double lo_hours = center_ra_hours - ra_half_width_hours;
+                const double hi_hours = center_ra_hours + ra_half_width_hours;
+
+                if ((hi_hours - lo_hours) < 24.0) {
+                    double lo_wrapped = fmod(lo_hours, 24.0);
+                    if (lo_wrapped < 0.0) { lo_wrapped += 24.0; }
+                    double hi_wrapped = fmod(hi_hours, 24.0);
+                    if (hi_wrapped < 0.0) { hi_wrapped += 24.0; }
+
+                    if (lo_wrapped <= hi_wrapped) {
+                        sub_lo1 = ra_lower_bound(band_start, band_end, static_cast<float>(lo_wrapped));
+                        sub_hi1 = ra_upper_bound(band_start, band_end, static_cast<float>(hi_wrapped));
+                    } else {
+                        // Query range wraps across the 0h/24h RA boundary: the
+                        // band's RA-sorted entries near its low and high ends
+                        // both need checking, as two separate sub-ranges.
+                        sub_lo1 = band_start;
+                        sub_hi1 = ra_upper_bound(band_start, band_end, static_cast<float>(hi_wrapped));
+                        sub_lo2 = ra_lower_bound(band_start, band_end, static_cast<float>(lo_wrapped));
+                        sub_hi2 = band_end;
+                        has_second_range = (sub_lo2 < sub_hi2);
+                    }
+                }
+                // else: half-width alone already spans the full 24h circle;
+                // fall through with sub_lo1/sub_hi1 left as the whole band.
+            }
+            // else (ra_half_width_deg >= 179): near-pole degenerate case,
+            // also falls through with the whole band, safely.
+
+            for (int32_t p = sub_lo1; (p < sub_hi1) && (found_count < MAX_CELESTIAL_SPHERE_OBJECTS); p++) {
+                process_candidate(sorted_idx[p]);
+            }
+            if (has_second_range) {
+                for (int32_t p = sub_lo2; (p < sub_hi2) && (found_count < MAX_CELESTIAL_SPHERE_OBJECTS); p++) {
+                    process_candidate(sorted_idx[p]);
                 }
             }
         }
@@ -1927,9 +2159,17 @@ void celestial_sphere_update(void) {
                 float scan_proj_x_deg = 0.0F;
                 float scan_proj_y_deg = 0.0F;
                 bool scan_in_view = false;
+                // force_project=true: unlike every other caller, the out-of-view
+                // arrow branch below needs scan_proj_x_deg/y_deg's direction even
+                // when scan_in_view comes back false (see force_project's doc
+                // comment on angular_separation_and_project_deg() above) --
+                // without it those stayed at their 0.0F initializers above,
+                // collapsing the arrow's (ux, uy) unit vector to a 0/0 NaN and
+                // sending the whole arrow off to an undefined position.
                 angular_separation_and_project_deg(sin_center_alt, cos_center_alt, center_az, scan_az, scan_alt,
                                                      celestial_sphere_view_range_deg,
-                                                     scan_proj_x_deg, scan_proj_y_deg, scan_in_view);
+                                                     scan_proj_x_deg, scan_proj_y_deg, scan_in_view,
+                                                     true);
 
                 if (scan_in_view) {
                     // Within the aperture: highlight it (no data box, no arrow/delta text).
@@ -2121,17 +2361,18 @@ void celestial_sphere_begin(
         const int32_t scope_top_px    = SCOPE_CENTER_Y - (SCOPE_HEIGHT / 2);
         const int32_t scope_bottom_px = SCOPE_CENTER_Y + (SCOPE_HEIGHT / 2);
         // Width of the DEG stepper panel below the scope.
-        const int32_t outside_stepper_width_px = (SCOPE_WIDTH / 2) - 10;
+        const int32_t outside_stepper_width_px = (SCOPE_WIDTH / 4) * 3;
+        const int32_t label_h_px = 24;
 
         // Objects-found readout, pinned outside scope_container, just above
         // its top-left corner (left edges aligned, a small gap above).
         const label_pair_panel_t objects_found_panel = create_label_pair_panel(
             celestial_sphere_container,                    // parent
             168,                                            // width_px
-            24,                                             // height_px
+            label_h_px,                                             // height_px
             LV_ALIGN_TOP_LEFT,                              // alignment
             scope_left_px+40,                                  // pos_x
-            scope_top_px - 24 - SCOPE_OUTSIDE_GAP_PX,        // pos_y
+            scope_top_px - label_h_px - SCOPE_OUTSIDE_GAP_PX,        // pos_y
             radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
@@ -2140,7 +2381,7 @@ void celestial_sphere_begin(
             1,                              // main_column_padding
             1,                              // sub_row_padding
             4,                              // sub_column_padding
-            24,                             // row_height
+            label_h_px,                             // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
             &font_cobalt_alien_17,          // font_title
@@ -2160,14 +2401,14 @@ void celestial_sphere_begin(
             const int32_t scan_number_width_px = 60;
             const int32_t scan_dropdown_width_px = 120;
             const int32_t scan_row_width_px = scan_dropdown_width_px + SCOPE_OUTSIDE_GAP_PX + scan_number_width_px;
-            const int32_t scan_row_y = scope_top_px - 24 - SCOPE_OUTSIDE_GAP_PX;
+            const int32_t scan_row_y = scope_top_px - label_h_px - SCOPE_OUTSIDE_GAP_PX;
 
             scan_delta_value_label = create_label(
                 celestial_sphere_container,
-                scan_row_width_px, 24,
+                scan_row_width_px, label_h_px,
                 LV_ALIGN_TOP_LEFT,
                 scope_right_px - scan_row_width_px - 40,
-                scan_row_y - 24 - SCOPE_OUTSIDE_GAP_PX,
+                scan_row_y - label_h_px - SCOPE_OUTSIDE_GAP_PX,
                 "",
                 LV_TEXT_ALIGN_CENTER,
                 &font_cobalt_alien_17,
@@ -2180,7 +2421,7 @@ void celestial_sphere_begin(
             scan_table_dropdown = create_dropdown_menu(
                 celestial_sphere_container,
                 nullptr, 0,
-                scan_dropdown_width_px, 24,
+                scan_dropdown_width_px, label_h_px,
                 LV_ALIGN_TOP_LEFT,
                 scope_right_px - scan_row_width_px - 20,
                 scan_row_y,
@@ -2204,7 +2445,7 @@ void celestial_sphere_begin(
 
             scan_number_label = create_label(
                 celestial_sphere_container,
-                scan_number_width_px, 24,
+                scan_number_width_px, label_h_px,
                 LV_ALIGN_TOP_LEFT,
                 scope_right_px - scan_number_width_px - 40,
                 scan_row_y,
@@ -2231,7 +2472,7 @@ void celestial_sphere_begin(
         //     visual_mode_dropdown = create_dropdown_menu(
         //         celestial_sphere_container,
         //         nullptr, 0,
-        //         visual_mode_dropdown_width_px, 24,
+        //         visual_mode_dropdown_width_px, label_h_px,
         //         LV_ALIGN_BOTTOM_MID,
         //         0,
         //         0,
@@ -2268,7 +2509,7 @@ void celestial_sphere_begin(
             SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
+            &font_cobalt_alien_25,          // font_title
             &font_cobalt_alien_17,          // font_sub
             "DEG",                          // title_text
             ""                              // value_text
@@ -2280,6 +2521,10 @@ void celestial_sphere_begin(
         update_sweep_adjuster_labels();
     }
 
+    // Crosshair + its Alt/Az/RA/Dec/constellation readout disabled for perf
+    // measurement of the celestial sphere without the data overlays --
+    // commented out here (and at every other reference to these objects),
+    // not deleted.
     if (ok) {
         crosshair_h = lv_line_create(celestial_sphere_container);
         lv_obj_set_style_line_color(crosshair_h, mode_color(current_mode), 0);
@@ -2289,7 +2534,7 @@ void celestial_sphere_begin(
         crosshair_h_points[1].x = SCOPE_CENTER_X + CROSSHAIR_ARM_LEN_PX;
         crosshair_h_points[1].y = SCOPE_CENTER_Y;
         lv_line_set_points(crosshair_h, crosshair_h_points, 2);
-
+    
         crosshair_v = lv_line_create(celestial_sphere_container);
         lv_obj_set_style_line_color(crosshair_v, mode_color(current_mode), 0);
         lv_obj_set_style_line_width(crosshair_v, CROSSHAIR_LINE_WIDTH, 0);
@@ -2298,7 +2543,7 @@ void celestial_sphere_begin(
         crosshair_v_points[1].x = SCOPE_CENTER_X;
         crosshair_v_points[1].y = SCOPE_CENTER_Y + CROSSHAIR_ARM_LEN_PX;
         lv_line_set_points(crosshair_v, crosshair_v_points, 2);
-
+    
         // Wide box around the crosshair: sized so a gap remains between
         // each arm tip and the box border (see CROSSHAIR_BOX_*_GAP_PX).
         crosshair_box = lv_obj_create(celestial_sphere_container);
@@ -2310,13 +2555,13 @@ void celestial_sphere_begin(
         lv_obj_set_style_radius(crosshair_box, 0, 0);
         lv_obj_set_style_bg_opa(crosshair_box, LV_OPA_TRANSP, 0);
         lv_obj_set_style_border_width(crosshair_box, 0, 0);
-
+    
         lv_obj_set_style_outline_width(crosshair_box, 3, LV_PART_MAIN);
         lv_obj_set_style_outline_color(crosshair_box, lv_color_make(0, 255, 0), LV_PART_MAIN);
-
+    
         lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_CLICKABLE);
-
+    
         crosshair_constellation_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_constellation_value_label, &font_cobalt_alien_17, 0);
         lv_obj_set_style_text_color(crosshair_constellation_value_label, mode_color(current_mode), 0);
@@ -2326,7 +2571,7 @@ void celestial_sphere_begin(
                          0, -CROSSHAIR_BOX_LABEL_GAP_PX);
         lv_obj_set_style_bg_color(crosshair_constellation_value_label, default_bg_hue, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_constellation_value_label, LV_OPA_70, LV_PART_MAIN);
-
+    
         crosshair_alt_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_alt_value_label, &font_cobalt_alien_17, 0);
         lv_obj_set_style_text_color(crosshair_alt_value_label, mode_color(current_mode), 0);
@@ -2336,7 +2581,7 @@ void celestial_sphere_begin(
                          -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
         lv_obj_set_style_bg_color(crosshair_alt_value_label, default_bg_hue, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_alt_value_label, LV_OPA_70, LV_PART_MAIN);
-
+    
         crosshair_az_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_az_value_label, &font_cobalt_alien_17, 0);
         lv_obj_set_style_text_color(crosshair_az_value_label, mode_color(current_mode), 0);
@@ -2346,7 +2591,7 @@ void celestial_sphere_begin(
                          -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
         lv_obj_set_style_bg_color(crosshair_az_value_label, default_bg_hue, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_az_value_label, LV_OPA_70, LV_PART_MAIN);
-
+    
         crosshair_ra_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_ra_value_label, &font_cobalt_alien_17, 0);
         lv_obj_set_style_text_color(crosshair_ra_value_label, mode_color(current_mode), 0);
@@ -2356,7 +2601,7 @@ void celestial_sphere_begin(
                          CROSSHAIR_BOX_LABEL_GAP_PX, 0);
         lv_obj_set_style_bg_color(crosshair_ra_value_label, default_bg_hue, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_ra_value_label, LV_OPA_70, LV_PART_MAIN);
-
+    
         crosshair_dec_value_label = lv_label_create(celestial_sphere_container);
         lv_obj_set_style_text_font(crosshair_dec_value_label, &font_cobalt_alien_17, 0);
         lv_obj_set_style_text_color(crosshair_dec_value_label, mode_color(current_mode), 0);
@@ -2366,9 +2611,11 @@ void celestial_sphere_begin(
                          CROSSHAIR_BOX_LABEL_GAP_PX, 0);
         lv_obj_set_style_bg_color(crosshair_dec_value_label, default_bg_hue, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_dec_value_label, LV_OPA_70, LV_PART_MAIN);
-
+    
         update_gyro_attitude_label(); // populate the four labels immediately
+    }
 
+    if (ok) {
         // Ecliptic guide line segments -- created before the markers below
         // so they stack behind them (and behind the crosshair, which
         // raise_overlay_widgets_to_foreground() always keeps in front);

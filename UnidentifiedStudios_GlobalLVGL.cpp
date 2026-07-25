@@ -1847,7 +1847,7 @@ stepper_panel_t create_stepper_panel(
         0, 0,
         title_text,
         LV_TEXT_ALIGN_CENTER,
-        font_title,
+        font_sub,
         false,
         false,
         false,
