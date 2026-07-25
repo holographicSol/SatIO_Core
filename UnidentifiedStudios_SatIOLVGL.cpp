@@ -16072,10 +16072,10 @@ void display_celestial_sphere_screen() {
 
     celestial_sphere_begin(
         celestial_sphere_screen,
-        650,                         // width (total available width)
-        650,                         // height (total available height)
-        500,                         // scope width (span X of total available width)
-        500,                         // scope height (span Y of total available height)
+        500,                         // width (total available width)
+        500,                         // height (total available height)
+        400,                         // scope width (span X of total available width)
+        400,                         // scope height (span Y of total available height)
         LV_ALIGN_CENTER,             // alignment
         0,                           // pos x
         0,                           // pos y
@@ -17495,7 +17495,7 @@ void initSatIOUI() {
 
     // Set LVGL tick period
     // lv_timer_set_period(lv_timer_get_next(NULL), 10);  // ms
-    lv_timer_set_period(lv_display_get_refr_timer(disp), 1);
+    lv_timer_set_period(lv_display_get_refr_timer(disp), 10);
     
     // Initialize display brightness and backlight
     bsp_display_brightness_init();

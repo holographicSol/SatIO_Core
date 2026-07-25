@@ -63,6 +63,7 @@ static int32_t SCOPE_CENTER_Y = CELESTIAL_SPHERE_CONTAINER_SIZE / 2;
 static constexpr int32_t MARKER_ICON_SIZE_32 = 32;
 static constexpr int32_t MARKER_ICON_SIZE_16 = 16;
 
+static constexpr int32_t MARKER_CIRCLE_DIAMETER_2PX  = 2;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_4PX  = 4;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_8PX  = 8;
 static constexpr int32_t MARKER_CIRCLE_DIAMETER_16PX = 16;
@@ -368,10 +369,16 @@ enum class MarkerVisualMode : int32_t {
     CIRCLE_8,
     CIRCLE_16,
     ICON_16,
-    ICON_32
+    ICON_32,
+    CIRCLE_2  // Appended rather than inserted first, so it doesn't renumber
+              // the existing modes (visual_mode_dropdown_cb() below still
+              // maps dropdown index straight to this enum's ordinal value).
 };
 
-static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::CIRCLE_4;
+// Smallest available marker: an initial mitigation for celestial sphere's
+// whole-screen-invalidating-constantly symptom -- smaller markers mean a
+// smaller invalidated area per marker while the root cause is investigated.
+static MarkerVisualMode current_marker_visual_mode = MarkerVisualMode::CIRCLE_2;
 
 static lv_obj_t * visual_mode_dropdown = nullptr;
 
@@ -379,6 +386,7 @@ static lv_obj_t * visual_mode_dropdown = nullptr;
 static int32_t marker_visual_diameter_px(const MarkerVisualMode mode) {
     int32_t result = MARKER_ICON_SIZE_32;
     switch (mode) {
+        case MarkerVisualMode::CIRCLE_2:  result = MARKER_CIRCLE_DIAMETER_2PX;  break;
         case MarkerVisualMode::CIRCLE_4:  result = MARKER_CIRCLE_DIAMETER_4PX;  break;
         case MarkerVisualMode::CIRCLE_8:  result = MARKER_CIRCLE_DIAMETER_8PX;  break;
         case MarkerVisualMode::CIRCLE_16: result = MARKER_CIRCLE_DIAMETER_16PX; break;
@@ -2063,7 +2071,12 @@ void celestial_sphere_begin(
         lv_obj_set_style_bg_opa(celestial_sphere_container, LV_OPA_0, 0);
         lv_obj_set_style_border_width(celestial_sphere_container, 0, 0);
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_set_style_opa(celestial_sphere_container, CONTAINER_OPA, 0);
+        // CONTAINER_OPA (70%) removed: lv_obj_set_style_opa() applies to the
+        // whole subtree as one composited layer (LV_LAYER_TYPE_SIMPLE, see
+        // calculate_layer_type() in lv_obj_style.c), so any single marker/
+        // line/label changing anywhere inside forced this entire near-full-
+        // screen container to be redrawn as one unit -- the root cause of
+        // the whole-screen-invalidating-constantly symptom.
         lv_obj_add_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
 
         // Scope Container
