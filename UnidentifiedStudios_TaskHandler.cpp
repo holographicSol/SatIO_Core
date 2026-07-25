@@ -1458,14 +1458,14 @@ static void taskDisplayUpdate(void *pvParameters) {
         #endif
         bsp_display_unlock();
 
+        // --------------------------------------------
+        // Task frequency counter
+        // --------------------------------------------
+        xSemaphoreTake(dataMutex, portMAX_DELAY);
+        stepFFCounter(systemData.counters_dsp, 1);
+        systemData.counters_dsp.flag_c = true;
+        xSemaphoreGive(dataMutex);
       }
-      // --------------------------------------------
-      // Task frequency counter
-      // --------------------------------------------
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
-      stepFFCounter(systemData.counters_dsp, 1);
-      systemData.counters_dsp.flag_c = true;
-      xSemaphoreGive(dataMutex);
     }
 
     // --------------------------------------------
@@ -1486,5 +1486,13 @@ void createTaskDisplayUpdate() {
     TASK_DISPLAY_PRIORITY,      /* Priority of the task */
     &TaskDisplayUpdate,         /* Task handle. */
     TASK_DISPLAY_CORE);         /* Core where the task should run */
+  // xTaskCreate(
+  //   taskDisplayUpdate,
+  //   "TaskDisplayUpdate",
+  //   TASK_DISPLAY_STACK_SIZE,
+  //   nullptr,
+  //   TASK_DISPLAY_PRIORITY,
+  //   &TaskDisplayUpdate
+  // );
 }
 #endif

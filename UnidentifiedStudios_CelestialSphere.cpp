@@ -1,8 +1,7 @@
 /*
     Celestial Sphere - Written By Benjamin Jack Cullen.
 
-    A scalable Alt/Az sky viewfinder that runs on a timer, in a specified
-    parent object, in the fashion of UnidentifiedStudios_AstroClock.
+    A scalable Alt/Az sky viewfinder.
 
     MISRA notes for this file: see UnidentifiedStudios_AstroClock.cpp; the
     same conventions (single point of exit via an `ok` guard, explicit
@@ -80,7 +79,7 @@ static int32_t SCOPE_RADIUS = ((SCOPE_WIDTH < SCOPE_HEIGHT) ? SCOPE_WIDTH : SCOP
 
 #define MAX_CELESTIAL_SPHERE_OBJECTS 500
 static constexpr double VIEW_RANGE_DEG_MIN = 1.0;
-static constexpr double VIEW_RANGE_DEG_MAX = 45.0;
+static constexpr double VIEW_RANGE_DEG_MAX = 10.0;
 static double celestial_sphere_view_range_deg = 10.0;
 
 // Number of ecliptic samples spanning the full 360 deg loop (2 deg apart),
@@ -137,11 +136,6 @@ static CelestialSphereMode current_mode = CELESTIAL_SPHERE_MODE_GYRO;
 // Currently selected object -- either a markers[]/marker_sphere_index[] slot
 // or an encoded body index (see encode_body_target()), -1 = none.
 static int32_t current_target_index = -1;
-
-// Timer for celestial sphere updates.
-static lv_timer_t * sphere_timer = nullptr;
-
-static bool sphere_active = false;
 
 static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
 static constexpr int32_t ECLIPTIC_LINE_WIDTH = 2;
@@ -1193,11 +1187,6 @@ static void raise_overlay_widgets_to_foreground(void) {
 // ============================================================================
 // SET MARKER VISUAL MODE
 // ============================================================================
-// Deletes and re-creates every catalog (sphere_entries[]) marker (bodies are
-// untouched) in the newly selected mode's shape/size, resizes scan_target_
-// box to match, restores z-order, then refreshes immediately so positions/
-// colors/the current selection box are all correct for the new mode without
-// waiting for the next timer tick.
 static void set_marker_visual_mode(const MarkerVisualMode mode) {
     if (mode != current_marker_visual_mode) {
         current_marker_visual_mode = mode;
@@ -1669,9 +1658,6 @@ void celestial_sphere_set_target(const int32_t object_index) {
 // ============================================================================
 // SET MODE
 // ============================================================================
-// Switches which tracked attitude supplies the boresight, re-colors the
-// aperture ring/crosshair to indicate the active mode, and refreshes
-// immediately rather than waiting for the next timer tick.
 void celestial_sphere_set_mode(const CelestialSphereMode mode) {
     current_mode = mode;
     const lv_color_t color = mode_color(mode);
@@ -1719,7 +1705,6 @@ void celestial_sphere_set_mode(const CelestialSphereMode mode) {
 void celestial_sphere_update(void) {
 
     if (scope_container != nullptr) {
-        lv_timer_pause(sphere_timer);
 
         update_gyro_attitude_label();
 
@@ -1999,17 +1984,7 @@ void celestial_sphere_update(void) {
                 }
             }
         }
-
-        lv_timer_resume(sphere_timer);
     }
-}
-
-/** ---------------------------------------------------------------------------------------
- * @brief Celestial sphere animation callback to update marker positions.
- */
-static void celestial_sphere_timer_cb(lv_timer_t * timer) {
-    (void)timer;
-    celestial_sphere_update();
 }
 
 // ============================================================================
@@ -2509,50 +2484,12 @@ void celestial_sphere_begin(
 
         // allow show once built
         lv_obj_remove_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
-
-        // Create timer for celestial sphere updates
-        sphere_timer = lv_timer_create(celestial_sphere_timer_cb, 50, nullptr);
-        sphere_active = true;
     }
 }
 
-// ============================================================================
-// SET VISIBLE
-// ============================================================================
-void celestial_sphere_set_visible(const bool visible) {
-    if (celestial_sphere_container != nullptr) {
-        if (visible) {
-            lv_obj_clear_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
-        } else {
-            lv_obj_add_flag(celestial_sphere_container, LV_OBJ_FLAG_HIDDEN);
-        }
-    }
-}
-
-void celestial_sphere_pause(void) {
-    lv_timer_pause(sphere_timer);
-    sphere_active = false;
-}
-
-void celestial_sphere_resume(void) {
-    lv_timer_resume(sphere_timer);
-    sphere_active = true;
-}
-
-bool celestial_sphere_is_active(void) {
-    return sphere_active;
-}
-
-// Stops and releases the update timer, if one is running, and clears the
-// current target selection.
+// Clears the current target selection and marks the sphere inactive, so
+// update_display_lvgl() stops calling celestial_sphere_update() for it.
 void celestial_sphere_end(void) {
-    if (sphere_timer != nullptr) {
-        lv_timer_pause(sphere_timer);
-        lv_timer_delete(sphere_timer);
-        sphere_timer = nullptr;
-    }
-
-    sphere_active = false;
     current_target_index = -1;
     scan_object_number = -1;
 }

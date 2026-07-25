@@ -15435,16 +15435,15 @@ void display_home_screen()
     // Initialize astro clock on main screen
     astro_clock_begin(
         home_screen,
-        550,             // width (total available width)
-        550,             // height (total available height)
-        550,             // astro width (span X of total available width)
-        550,             // astro height (span Y of total available height)
+        600,             // width (total available width)
+        600,             // height (total available height)
+        600,             // astro width (span X of total available width)
+        600,             // astro height (span Y of total available height)
         LV_ALIGN_CENTER, // alignment
         0,               // pos x
         0,               // pos y
         90               // angle offset
     );
-
 }
 
 /** -------------------------------------------------------------------------------------
@@ -16082,7 +16081,6 @@ void display_celestial_sphere_screen() {
         0,                           // pos y
         CELESTIAL_SPHERE_MODE_GYRO   // initial mode
     );
-    celestial_sphere_set_visible(true);
 }
 
 /** -------------------------------------------------------------------------------------
@@ -16128,17 +16126,17 @@ void update_display_lvgl()
     // colors below stay the same; lv_obj_set_style_* calls with an identical
     // color are a no-op in LVGL 9, so rainbow-coloured widgets are not
     // re-rendered in the intervening frames.
-    static uint8_t rainbow_frame_ctr = 0U;
-    if (rainbow_frame_ctr == 0U) { current_hue = (current_hue + 1) % 360; }
-    rainbow_frame_ctr = (rainbow_frame_ctr + 1U) % 3U;
-    // Rainbow Major
-    rainbow_outline_hue = lv_color_hsv_to_rgb((current_hue + 300) % 360, 100, 100);
-    rainbow_title_hue   = lv_color_hsv_to_rgb((current_hue + 250) % 360, 100, 100);
-    rainbow_value_hue   = lv_color_hsv_to_rgb((current_hue + 200) % 360, 100, 100);
-    // Rainbow Minor
-    rainbow_contrast_outline_hue = lv_color_hsv_to_rgb((current_hue + 150) % 360, 100, 100);
-    rainbow_contrast_title_hue   = lv_color_hsv_to_rgb((current_hue + 100) % 360, 100, 100);
-    rainbow_contrast_value_hue   = lv_color_hsv_to_rgb((current_hue + 50) % 360, 100, 100);
+    // static uint8_t rainbow_frame_ctr = 0U;
+    // if (rainbow_frame_ctr == 0U) { current_hue = (current_hue + 1) % 360; }
+    // rainbow_frame_ctr = (rainbow_frame_ctr + 1U) % 3U;
+    // // Rainbow Major
+    // rainbow_outline_hue = lv_color_hsv_to_rgb((current_hue + 300) % 360, 100, 100);
+    // rainbow_title_hue   = lv_color_hsv_to_rgb((current_hue + 250) % 360, 100, 100);
+    // rainbow_value_hue   = lv_color_hsv_to_rgb((current_hue + 200) % 360, 100, 100);
+    // // Rainbow Minor
+    // rainbow_contrast_outline_hue = lv_color_hsv_to_rgb((current_hue + 150) % 360, 100, 100);
+    // rainbow_contrast_title_hue   = lv_color_hsv_to_rgb((current_hue + 100) % 360, 100, 100);
+    // rainbow_contrast_value_hue   = lv_color_hsv_to_rgb((current_hue + 50) % 360, 100, 100);
 
     // ---------------------
     // Check Load Screen Flags
@@ -16152,40 +16150,40 @@ void update_display_lvgl()
     else if (flag_display_uap_screen==true) {display_uap_screen();}
     else if (flag_display_celestial_sphere_screen==true) {display_celestial_sphere_screen();}
     
-    // ---------------------
-    // KB Alnumsym
-    // ---------------------
-    if (kb_alnumsym.kb != NULL && lv_obj_is_valid(kb_alnumsym.kb)) {
-        if (!lv_obj_has_flag(kb_alnumsym.kb, LV_OBJ_FLAG_HIDDEN)) {
-            // Rainbow keyboard full outline
-            lv_obj_set_style_outline_color(kb_alnumsym.kb, rainbow_outline_hue, LV_PART_MAIN);
-            // Rainbow keyboard full keys
-            lv_obj_set_style_text_color(kb_alnumsym.kb, rainbow_title_hue, LV_PART_ITEMS);
-            // Rainbow keyboard full checked keys
-            lv_obj_set_style_text_color(kb_alnumsym.kb, rainbow_value_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-            // Rainbow keyboard full text area outline
-            lv_obj_set_style_outline_color(kb_alnumsym.ta, rainbow_outline_hue, LV_PART_MAIN);
-            // Rainbow keyboard full text area text
-            lv_obj_set_style_text_color(kb_alnumsym.ta, rainbow_value_hue, LV_PART_MAIN);
-        }
-    }
-    // ---------------------
-    // KB Numdedc
-    // ---------------------
-    if (kb_numdec.kb != NULL && lv_obj_is_valid(kb_numdec.kb)) {
-        if (!lv_obj_has_flag(kb_numdec.kb, LV_OBJ_FLAG_HIDDEN)) {
-            // Rainbow keyboard numdec full outline
-            lv_obj_set_style_outline_color(kb_numdec.kb, rainbow_outline_hue, LV_PART_MAIN);
-            // Rainbow keyboard numdec full keys
-            lv_obj_set_style_text_color(kb_numdec.kb, rainbow_title_hue, LV_PART_ITEMS);
-            // Rainbow keyboard numdec full checked keys
-            lv_obj_set_style_text_color(kb_numdec.kb, rainbow_value_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-            // Rainbow keyboard numdec full text area outline
-            lv_obj_set_style_outline_color(kb_numdec.ta, rainbow_outline_hue, LV_PART_MAIN);
-            // Rainbow keyboard numdec full text area text
-            lv_obj_set_style_text_color(kb_numdec.ta, rainbow_value_hue, LV_PART_MAIN);
-        }
-    }
+    // // ---------------------
+    // // KB Alnumsym
+    // // ---------------------
+    // if (kb_alnumsym.kb != NULL && lv_obj_is_valid(kb_alnumsym.kb)) {
+    //     if (!lv_obj_has_flag(kb_alnumsym.kb, LV_OBJ_FLAG_HIDDEN)) {
+    //         // Rainbow keyboard full outline
+    //         lv_obj_set_style_outline_color(kb_alnumsym.kb, rainbow_outline_hue, LV_PART_MAIN);
+    //         // Rainbow keyboard full keys
+    //         lv_obj_set_style_text_color(kb_alnumsym.kb, rainbow_title_hue, LV_PART_ITEMS);
+    //         // Rainbow keyboard full checked keys
+    //         lv_obj_set_style_text_color(kb_alnumsym.kb, rainbow_value_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
+    //         // Rainbow keyboard full text area outline
+    //         lv_obj_set_style_outline_color(kb_alnumsym.ta, rainbow_outline_hue, LV_PART_MAIN);
+    //         // Rainbow keyboard full text area text
+    //         lv_obj_set_style_text_color(kb_alnumsym.ta, rainbow_value_hue, LV_PART_MAIN);
+    //     }
+    // }
+    // // ---------------------
+    // // KB Numdedc
+    // // ---------------------
+    // if (kb_numdec.kb != NULL && lv_obj_is_valid(kb_numdec.kb)) {
+    //     if (!lv_obj_has_flag(kb_numdec.kb, LV_OBJ_FLAG_HIDDEN)) {
+    //         // Rainbow keyboard numdec full outline
+    //         lv_obj_set_style_outline_color(kb_numdec.kb, rainbow_outline_hue, LV_PART_MAIN);
+    //         // Rainbow keyboard numdec full keys
+    //         lv_obj_set_style_text_color(kb_numdec.kb, rainbow_title_hue, LV_PART_ITEMS);
+    //         // Rainbow keyboard numdec full checked keys
+    //         lv_obj_set_style_text_color(kb_numdec.kb, rainbow_value_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
+    //         // Rainbow keyboard numdec full text area outline
+    //         lv_obj_set_style_outline_color(kb_numdec.ta, rainbow_outline_hue, LV_PART_MAIN);
+    //         // Rainbow keyboard numdec full text area text
+    //         lv_obj_set_style_text_color(kb_numdec.ta, rainbow_value_hue, LV_PART_MAIN);
+    //     }
+    // }
     
     // ---------------------
     // Title Bar
@@ -16193,52 +16191,52 @@ void update_display_lvgl()
     if (main_title_bar.panel) {
 
         // Title Bar Outline
-        lv_obj_set_style_outline_color(main_title_bar.panel, rainbow_outline_hue, LV_PART_MAIN);
+        // lv_obj_set_style_outline_color(main_title_bar.panel, rainbow_outline_hue, LV_PART_MAIN);
 
         // Title Bar Local Time
         lv_label_set_text(main_title_bar.time_label, SatIOData.localTime.formatted_time_HHMMSS);
-        lv_obj_set_style_text_color(main_title_bar.time_label, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(main_title_bar.time_label, rainbow_title_hue, LV_PART_MAIN);
 
         // Title Bar Local Date
         lv_label_set_text(main_title_bar.date_label, SatIOData.localTime.formatted_date_DDMMYY);
-        lv_obj_set_style_text_color(main_title_bar.date_label, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(main_title_bar.date_label, rainbow_title_hue, LV_PART_MAIN);
 
         // GPS Sync
         if (SatIOData.GPSTime.sync == true) {
             lv_obj_add_flag(main_title_bar.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(main_title_bar.datetime_sync, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_outline_color(main_title_bar.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            lv_obj_set_style_text_color(main_title_bar.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(main_title_bar.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_text_color(main_title_bar.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
         }
         // GPS Signal
         else {
             lv_obj_add_flag(main_title_bar.datetime_sync, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(main_title_bar.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); lv_label_set_text(main_title_bar.gps_signal_strength, gps_sig); }
-            lv_obj_set_style_outline_color(main_title_bar.gps_signal_strength, rainbow_contrast_outline_hue, LV_PART_MAIN);
-            lv_obj_set_style_text_color(main_title_bar.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(main_title_bar.gps_signal_strength, rainbow_contrast_outline_hue, LV_PART_MAIN);
+            // lv_obj_set_style_text_color(main_title_bar.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
         }
 
         // SD Card Mounted / Success Flag
         if (sdcardFlagData.success_flag==2) {
-            lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             lv_label_set_text(main_title_bar.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
-            lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
-            lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
+            // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             lv_label_set_text(main_title_bar.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
-                lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
+                // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
                 lv_label_set_text(main_title_bar.sdcard_mounted, "SD");
             }
             else {
-                lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
+                // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
                 lv_label_set_text(main_title_bar.sdcard_mounted, "SD!");
             }
         }
@@ -16250,85 +16248,85 @@ void update_display_lvgl()
     if (system_tray.is_open) {
 
         // Rainbow System Tray Outline
-        lv_obj_set_style_outline_color(system_tray.panel, rainbow_outline_hue, LV_PART_MAIN);
+        // lv_obj_set_style_outline_color(system_tray.panel, rainbow_outline_hue, LV_PART_MAIN);
 
-        // Rainbow System Tray Brightness Slider Outline
-        lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_MAIN);
+        // // Rainbow System Tray Brightness Slider Outline
+        // lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_MAIN);
 
-        // Rainbow System Tray Brightness Slider Knob
-        lv_obj_set_style_bg_color(system_tray.slider_brightness, rainbow_contrast_value_hue, LV_PART_KNOB);
+        // // Rainbow System Tray Brightness Slider Knob
+        // lv_obj_set_style_bg_color(system_tray.slider_brightness, rainbow_contrast_value_hue, LV_PART_KNOB);
 
-        // Rainbow System Tray Brightness Slider Indicator
-        lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_INDICATOR);
+        // // Rainbow System Tray Brightness Slider Indicator
+        // lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_INDICATOR);
 
         // System Tray Local Time
         lv_label_set_text(system_tray.local_time, SatIOData.localTime.formatted_time_HHMMSS);
-        lv_obj_set_style_text_color(system_tray.local_time, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(system_tray.local_time, rainbow_title_hue, LV_PART_MAIN);
 
         // System Tray Local Date
         lv_label_set_text(system_tray.local_date, SatIOData.localTime.formatted_date_DDMMYY);
-        lv_obj_set_style_text_color(system_tray.local_date, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(system_tray.local_date, rainbow_title_hue, LV_PART_MAIN);
 
         // System Tray Human Date
         { char human_date[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(human_date, sizeof(human_date), "%s %d %s", SatIOData.localTime.wday_name, SatIOData.localTime.mday, SatIOData.localTime.month_name); lv_label_set_text(system_tray.human_date, human_date); }
-        lv_obj_set_style_text_color(system_tray.human_date, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(system_tray.human_date, rainbow_title_hue, LV_PART_MAIN);
 
         // GPS Sync
         if (SatIOData.GPSTime.sync == true) {
             lv_obj_add_flag(system_tray.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(system_tray.datetime_sync, LV_OBJ_FLAG_HIDDEN);
-            lv_obj_set_style_outline_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            lv_obj_set_style_text_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_text_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
         }
         // GPS Signal
         else {
             lv_obj_add_flag(system_tray.datetime_sync, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(system_tray.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); lv_label_set_text(system_tray.gps_signal_strength, gps_sig); }
-            lv_obj_set_style_outline_color(system_tray.gps_signal_strength, main_outline_hue, LV_PART_MAIN);
-            lv_obj_set_style_text_color(system_tray.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(system_tray.gps_signal_strength, main_outline_hue, LV_PART_MAIN);
+            // lv_obj_set_style_text_color(system_tray.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
         }
 
         // SD Card Mounted / Success Flag
         if (sdcardFlagData.success_flag==2) {
-            lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             lv_label_set_text(system_tray.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
-            lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
-            lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
+            // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
+            // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             lv_label_set_text(system_tray.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
-                lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
+                // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
                 lv_label_set_text(system_tray.sdcard_mounted, "SD");
             }
             else {
-                lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
+                // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
                 lv_label_set_text(system_tray.sdcard_mounted, "SD!");
             }
         }
 
         // Grid Menu 1
-        if (system_tray.grid_menu_1) {
+        // if (system_tray.grid_menu_1) {
 
-            uint32_t grid_child_cnt = lv_obj_get_child_cnt(system_tray.grid_menu_1);
-            for(uint32_t i = 0; i < grid_child_cnt; i++) {
-                // vTaskDelay(pdMS_TO_TICKS(5));
-                lv_obj_t * btn = lv_obj_get_child(system_tray.grid_menu_1, i);
-                lv_obj_set_style_outline_color(btn, rainbow_contrast_outline_hue, LV_PART_MAIN);
-                // Get label
-                lv_obj_t * label = lv_obj_get_child(btn, 0);
-                if(label && lv_obj_has_class(label, &lv_label_class)) {
-                    // Color label
-                    lv_obj_set_style_text_color(label,  lv_color_hsv_to_rgb((current_hue + (i * 60)) % 360, 100, 100), LV_PART_MAIN);
-                }
-            }
-        }
+        //     uint32_t grid_child_cnt = lv_obj_get_child_cnt(system_tray.grid_menu_1);
+        //     for(uint32_t i = 0; i < grid_child_cnt; i++) {
+        //         // vTaskDelay(pdMS_TO_TICKS(5));
+        //         lv_obj_t * btn = lv_obj_get_child(system_tray.grid_menu_1, i);
+        //         lv_obj_set_style_outline_color(btn, rainbow_contrast_outline_hue, LV_PART_MAIN);
+        //         // Get label
+        //         lv_obj_t * label = lv_obj_get_child(btn, 0);
+        //         if(label && lv_obj_has_class(label, &lv_label_class)) {
+        //             // Color label
+        //             lv_obj_set_style_text_color(label,  lv_color_hsv_to_rgb((current_hue + (i * 60)) % 360, 100, 100), LV_PART_MAIN);
+        //         }
+        //     }
+        // }
     }
 
     // ---------------------
@@ -16341,6 +16339,7 @@ void update_display_lvgl()
     // main screen
     // ---------------------
     else if (current_screen_number == HOME_SCREEN) {
+        astro_clock_update();
     }
 
     // ---------------------
@@ -17520,6 +17519,7 @@ void update_display_lvgl()
     // celestial sphere screen
     // ---------------------
     else if (current_screen_number == CELESTIAL_SPHERE_SCREEN) {
+        celestial_sphere_update();
     }
 }
 
@@ -17532,19 +17532,45 @@ void initSatIOUI() {
     // --------------------------------------------------------------
     ESP_LOGI("LVGL", "Version: %d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
     
-    // Initialize LVGL display object via BSP
-    lv_display_t *disp = bsp_display_start();
+    // Initialize LVGL display object via BSP.
+    //
+    // Explicit config instead of bsp_display_start()'s implicit default so the
+    // draw-buffer placement is guaranteed in code rather than inferred from
+    // Kconfig. When CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR is on, esp_lvgl_port
+    // ignores buffer_size/double_buffer/buff_dma/buff_spiram entirely (it
+    // overwrites buffer_size internally) and binds LVGL straight to the
+    // MIPI-DSI panel's own double buffered, DMA2D-fed frame buffers
+    // (CONFIG_BSP_LCD_DPI_BUFFER_NUMS=2, .flags.use_dma2d=true) -- that's the
+    // real DMA path. BSP_LCD_DRAW_BUFF_SIZE/_DOUBLE below are what actually
+    // get used (via real heap_caps_aligned_alloc) if avoid-tear is off: a
+    // full-screen buffer here would try to heap-allocate ~1MB+ from internal
+    // RAM and fail to boot (confirmed: "Not enough memory for LVGL buffer
+    // (buf1) allocation!").
+    bsp_display_cfg_t disp_cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
+        .buffer_size   = BSP_LCD_DRAW_BUFF_SIZE,
+        .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
+        .flags = {
+            .buff_dma    = true,  // valid only for RGB565; matches CONFIG_BSP_LCD_COLOR_FORMAT_RGB565
+            .buff_spiram = false,
+            .sw_rotate   = false, // unsupported under avoid-tear mode
+        }
+    };
+    lv_display_t *disp = bsp_display_start_with_config(&disp_cfg);
     if (!disp) {ESP_LOGE("APP", "Failed to initialize display");}
     ESP_LOGI("APP", "Display initialized successfully");
 
     // Set LVGL tick period
-    lv_timer_set_period(lv_timer_get_next(NULL), 40);  // ms
+    // lv_timer_set_period(lv_timer_get_next(NULL), 10);  // ms
+    lv_timer_set_period(lv_display_get_refr_timer(disp), 1);
     
     // Initialize display brightness and backlight
     bsp_display_brightness_init();
     bsp_display_backlight_on();
     slider_brightness_value = 100;
     bsp_display_brightness_set(slider_brightness_value);
+
+    // uint8_t * psram_pointer = (uint8_t *)heap_caps_malloc(BSP_LCD_H_RES * BSP_LCD_V_RES, MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
 
     // Create Screen Objects
     //

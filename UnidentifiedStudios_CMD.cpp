@@ -1606,6 +1606,11 @@ void CmdProcess(void) {
                 {setDelay(TaskStorage, argparser_get_uint32(&parser, "storage", pwrConfigCurrent.TASK_MAX_FREQ_STORAGE), &pwrConfigCurrent.TASK_MAX_FREQ_STORAGE);}
               #endif
 
+              #ifdef SatIO_USE_DISPLAY
+              if (argparser_has_flag(&parser, "display"))
+                {setDelay(TaskDisplayUpdate, argparser_get_uint32(&parser, "display", pwrConfigCurrent.TASK_MAX_FREQ_DISPLAY), &pwrConfigCurrent.TASK_MAX_FREQ_DISPLAY);}
+              #endif
+
               if (argparser_has_flag(&parser, "gpiope"))
                 {setDelay(TaskInputPortController, argparser_get_uint32(&parser, "gpiope", pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT), &pwrConfigCurrent.TASK_MAX_FREQ_GPIOE_INPUT);}
             }

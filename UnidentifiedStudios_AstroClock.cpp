@@ -118,6 +118,12 @@ struct Planet {
     lv_obj_t * obj;
     lv_obj_t * orbit;
     lv_obj_t * target_box;
+    // -1 = unset (forces the first astro_clock_update() call to apply orbit
+    // style), 0 = above horizon, 1 = below. lv_obj_set_style_arc_color/width
+    // invalidate unconditionally on every call (no built-in change check,
+    // unlike lv_obj_set_x/y), so without this the orbit arc's style is
+    // rewritten to the same value every single update cycle.
+    int8_t last_below = -1;
 };
 
 static constexpr int32_t ZODIAC_LINE_WIDTH     = 2;
@@ -175,6 +181,9 @@ static lv_point_precise_t zodiac_points[12][2];
 
 static lv_obj_t * sun_altitude_line = nullptr;
 static lv_point_precise_t sun_altitude_points[2];
+// -1 = unset, 0 = above horizon, 1 = below. See Planet::last_below for why
+// this guard exists (lv_obj_set_style_line_color has no built-in change check).
+static int8_t sun_altitude_last_below = -1;
 
 static lv_obj_t * luna_shadow = nullptr;  // Shadow overlay for luna phase
 static lv_obj_t * saturn_ring = nullptr;  // Saturn's rings
@@ -196,6 +205,36 @@ static constexpr int32_t DATA_BOX_MARGIN = 10;
 // floating-point narrowing occurs.
 static inline float deg2rad(const float degrees) {
     return static_cast<float>(static_cast<double>(degrees) * M_PI / 180.0);
+}
+
+// ============================================================================
+// SET LINE POINTS (LOCAL-ORIGIN)
+// ============================================================================
+// lv_line's self size (and therefore its invalidated area) is computed as
+// max(point.x)/max(point.y) measured from (0,0) -- not a real bounding box
+// (see lv_line.c's LV_EVENT_GET_SELF_SIZE handler). Every line widget here
+// is driven by absolute, parent-relative point coordinates (e.g. saturn's
+// current position on its orbit), so feeding those points straight to
+// lv_line_set_points() makes the widget's invalidated area stretch from the
+// container's top-left corner out to wherever the line currently sits,
+// instead of a small box around the line itself. Repositioning the widget
+// at the points' own minimum x/y and rewriting the points relative to that
+// origin keeps the self size (and the invalidated area) tight.
+static void set_line_points_local(lv_obj_t * const line_obj, lv_point_precise_t * const points, const uint32_t point_num) {
+    if ((line_obj != nullptr) && (points != nullptr) && (point_num > 0U)) {
+        lv_value_precise_t min_x = points[0].x;
+        lv_value_precise_t min_y = points[0].y;
+        for (uint32_t i = 1U; i < point_num; i++) {
+            min_x = (points[i].x < min_x) ? points[i].x : min_x;
+            min_y = (points[i].y < min_y) ? points[i].y : min_y;
+        }
+        for (uint32_t i = 0U; i < point_num; i++) {
+            points[i].x -= min_x;
+            points[i].y -= min_y;
+        }
+        lv_obj_set_pos(line_obj, static_cast<int32_t>(min_x), static_cast<int32_t>(min_y));
+        lv_line_set_points(line_obj, points, point_num);
+    }
 }
 
 // ============================================================================
@@ -462,9 +501,18 @@ static void show_zodiac() {
 // guard update_altitude_line applies to the same quantity, because a zero
 // radius here would mean the orbit geometry has not been computed yet.
 static void update_zodiac(const int32_t earth_x, const int32_t earth_y) {
+    // Single caller (astro_clock_update() for earth), so one cached "last
+    // seen" pair is enough: skip the 12-line quadratic-solve entirely when
+    // earth hasn't moved since the last call, rather than recomputing
+    // identical geometry and re-invalidating all 12 lines for nothing.
+    static int32_t last_earth_x = INT32_MIN;
+    static int32_t last_earth_y = INT32_MIN;
     const bool args_valid = (earth_x != 0) && (earth_y != 0) && (neptune.orbit_radius != 0);
+    const bool moved = (earth_x != last_earth_x) || (earth_y != last_earth_y);
 
-    if (args_valid) {
+    if (args_valid && moved) {
+        last_earth_x = earth_x;
+        last_earth_y = earth_y;
         const float step = 2.0f * static_cast<float>(M_PI) / 12.0f;
         const float neptune_r = static_cast<float>(neptune.orbit_radius);
 
@@ -507,7 +555,7 @@ static void update_zodiac(const int32_t earth_x, const int32_t earth_y) {
             zodiac_points[i][1].x = earth_x + static_cast<int32_t>(dx * r);
             zodiac_points[i][1].y = earth_y + static_cast<int32_t>(dy * r);
 
-            lv_line_set_points(zodiac_lines[i], zodiac_points[i], 2);
+            set_line_points_local(zodiac_lines[i], zodiac_points[i], 2);
         }
     }
 }
@@ -529,6 +577,12 @@ static void update_zodiac(const int32_t earth_x, const int32_t earth_y) {
  * Orbital path lines reflect objects that are actually above the
  * horizon (altitude > 0).
  *
+ * The line is drawn as a fixed-length ray from Earth rather than out to an
+ * orbit circle: it previously extended to Neptune's orbit purely to be
+ * visually long, which made its (axis-aligned) invalidated bounding box
+ * needlessly large. Sized to the sun-to-earth distance (earth.orbit_radius)
+ * instead, since that's the length the line is actually meant to represent.
+ *
  * MISRA: altitude_angle is checked with std::isfinite rather than a
  * non-zero comparison, because a non-zero check does not reject NaN (NaN
  * compares unequal to everything, so it would pass) and a value of exactly
@@ -538,55 +592,39 @@ static void update_zodiac(const int32_t earth_x, const int32_t earth_y) {
  * non-zero result to satisfy itself.
  */
 static void update_altitude_line(lv_obj_t * const altitude_line, const float altitude_angle,
-                                  lv_point_precise_t * const altitude_points, const float intersection) {
+                                  lv_point_precise_t * const altitude_points, const float length) {
+    // Single caller (astro_clock_update() for sun_altitude_line), so one
+    // cached "last seen" pair is enough: skip the recompute and
+    // re-invalidation entirely when the inputs haven't changed since the
+    // last call (they're derived from siderealPlanetData, which only
+    // updates ~1Hz -- most calls in between would otherwise recompute and
+    // re-set identical points).
+    static float last_altitude_angle = NAN;
+    static float last_length = NAN;
     const bool args_valid =
         (altitude_line != nullptr) &&
         (altitude_points != nullptr) &&
         std::isfinite(altitude_angle) &&
-        (intersection != 0.0f);
+        (length != 0.0f);
+    const bool changed = (altitude_angle != last_altitude_angle) || (length != last_length);
 
-    if (args_valid) {
+    if (args_valid && changed) {
+        last_altitude_angle = altitude_angle;
+        last_length = length;
         const float rad = deg2rad(altitude_angle);
         const float dx = cosf(rad);
         const float dy = sinf(rad);
 
-        // Calculate intersection with Neptune's orbit circle (same as zodiac lines)
-        const float ex = static_cast<float>((earth.x + earth.radius) - SOLAR_CENTER_X);
-        const float ey = static_cast<float>((earth.y + earth.radius) - SOLAR_CENTER_Y);
-
-        // Quadratic coefficients: a*t^2 + b*t + c = 0
-        const float a = (dx * dx) + (dy * dy);  // = 1 for unit direction
-        const float b = 2.0f * ((ex * dx) + (ey * dy));
-        const float c = (ex * ex) + (ey * ey) - (intersection * intersection);
-
-        const float discriminant = (b * b) - (4.0f * a * c);
-        float r = 0.0f;
-
-        if (discriminant >= 0.0f) {
-            const float sqrt_disc = sqrtf(discriminant);
-            const float t1 = (-b + sqrt_disc) / (2.0f * a);
-            const float t2 = (-b - sqrt_disc) / (2.0f * a);
-            // Take positive t (direction we're drawing toward)
-            if ((t1 > 0.0f) && (t2 > 0.0f)) {
-                r = (t1 < t2) ? t1 : t2;
-            } else if (t1 > 0.0f) {
-                r = t1;
-            } else if (t2 > 0.0f) {
-                r = t2;
-            } else {
-                r = 0.0f;
-            }
-        }
         // Set points for altitde line (from Earth's center outwards)
         altitude_points[0].x = earth.x + earth.radius;
         altitude_points[0].y = earth.y + earth.radius;
-        altitude_points[1].x = (earth.x + earth.radius) + static_cast<int32_t>(dx * r);
-        altitude_points[1].y = (earth.y + earth.radius) + static_cast<int32_t>(dy * r);
+        altitude_points[1].x = (earth.x + earth.radius) + static_cast<int32_t>(dx * length);
+        altitude_points[1].y = (earth.y + earth.radius) + static_cast<int32_t>(dy * length);
 
-        lv_line_set_points(altitude_line, altitude_points, 2);
+        set_line_points_local(altitude_line, altitude_points, 2);
     }
     else {
-        // printf("ERROR: Invalid args in update_altitude_line, called with args altitude_angle=%f  intersection=%f\n", altitude_angle, intersection);
+        // printf("ERROR: Invalid args in update_altitude_line, called with args altitude_angle=%f  length=%f\n", altitude_angle, length);
     }
 }
 
@@ -602,13 +640,11 @@ static void update_altitude_line(lv_obj_t * const altitude_line, const float alt
 // are each already brace-enclosed and free of implicit bool conversions.
 void astro_clock_update(void) {
     if (astro_container != nullptr) {
-        // Pause timer
-        lv_timer_pause(astro_timer);
 
         // ---------------------
         // Rainbow Effect
         // ---------------------
-        current_astroclock_hue = (current_astroclock_hue + 1U) % 360U;
+        // current_astroclock_hue = (current_astroclock_hue + 1U) % 360U;
 
         // -----------------------------------------------------------------
         //                                                           MERCURY
@@ -618,8 +654,11 @@ void astro_clock_update(void) {
             update_planet_pos(&mercury, siderealPlanetData.mercury_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (mercury.orbit != nullptr) {
                 const bool below = (siderealPlanetData.mercury_alt <= 0.0f);
-                lv_obj_set_style_arc_color(mercury.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(mercury.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (mercury.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(mercury.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(mercury.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    mercury.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(mercury.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(mercury.obj, LV_OBJ_FLAG_HIDDEN);
@@ -636,8 +675,11 @@ void astro_clock_update(void) {
             update_planet_pos(&venus, siderealPlanetData.venus_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (venus.orbit != nullptr) {
                 const bool below = (siderealPlanetData.venus_alt <= 0.0f);
-                lv_obj_set_style_arc_color(venus.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(venus.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (venus.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(venus.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(venus.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    venus.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(venus.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(venus.obj, LV_OBJ_FLAG_HIDDEN);
@@ -660,19 +702,24 @@ void astro_clock_update(void) {
             if (earth.target_box != nullptr) {
                 lv_obj_set_pos(earth.target_box, earth.x - 4, earth.y - 4);
             }
-            if (earth.orbit != nullptr) {
-                lv_obj_set_style_arc_color(earth.orbit, COLOR_ORBIT_LUNA_ABOVE, LV_PART_MAIN);
-            }
+            // earth.orbit's color never varies (always COLOR_ORBIT_LUNA_ABOVE),
+            // so it's set once at creation in astro_clock_begin() instead of
+            // being rewritten to the same value on every update.
 
-            // Draw Zodiac lines from earth
+            // update_zodiac() itself skips the 12-line recompute/invalidate
+            // when earth hasn't moved since the last call.
             update_zodiac(earth.x + earth.radius, earth.y + earth.radius);
 
             const float ecliptic_long = -siderealPlanetData.earth_ecliptic_long; // points directly at the sun
             const float altitde_angle = ecliptic_long - siderealPlanetData.sun_az + 180.0f; // rotate by az = deg relative to local pos, sun pos
-            const lv_color_t color = (siderealPlanetData.sun_alt <= 0.0f) ? COLOR_SUN_BELOW : COLOR_SUN_ABOVE;
-            lv_obj_set_style_line_color(sun_altitude_line, color, 0);
-
-            update_altitude_line(sun_altitude_line, altitde_angle, sun_altitude_points, static_cast<float>(neptune.orbit_radius));
+            const bool sun_below = (siderealPlanetData.sun_alt <= 0.0f);
+            if (sun_altitude_last_below != static_cast<int8_t>(sun_below)) {
+                lv_obj_set_style_line_color(sun_altitude_line, sun_below ? COLOR_SUN_BELOW : COLOR_SUN_ABOVE, 0);
+                sun_altitude_last_below = static_cast<int8_t>(sun_below);
+            }
+            // update_altitude_line() itself skips the recompute/invalidate
+            // when its inputs haven't changed since the last call.
+            update_altitude_line(sun_altitude_line, altitde_angle, sun_altitude_points, static_cast<float>(earth.orbit_radius));
             lv_obj_clear_flag(sun_altitude_line, LV_OBJ_FLAG_HIDDEN);
 
             lv_obj_clear_flag(earth.orbit, LV_OBJ_FLAG_HIDDEN);
@@ -717,6 +764,10 @@ void astro_clock_update(void) {
                 // Phase determines shadow coverage and side
                 // Waxing (1-3): shadow on left, shrinking
                 // Waning (5-7): shadow on right, growing
+                // lv_arc_set_bg_*_angle() already skips its own invalidation
+                // when the new angle equals the current one (see lv_arc.c),
+                // so re-running the same case every frame while the phase is
+                // unchanged is already a no-op at the pixel level.
                 switch (phase) {
                     case 0:  // New Luna - full shadow
                         lv_arc_set_bg_angles(luna_shadow, 0, 360);
@@ -755,12 +806,21 @@ void astro_clock_update(void) {
                 }
             }
 
-            // Position luna orbit arc centered on Earth
+            // Position luna orbit arc centered on Earth. lv_obj_align_to()
+            // always rewrites the align style prop unconditionally before it
+            // gets to the (self-guarding) lv_obj_set_pos() call underneath
+            // it, so the equivalent absolute position is computed directly
+            // here instead, to go through the self-guarding path alone.
             if (luna.orbit != nullptr) {
-                lv_obj_align_to(luna.orbit, earth.obj, LV_ALIGN_CENTER, 0, 0);
+                const int32_t luna_orbit_x = (earth.x + earth.radius) - luna.orbit_radius;
+                const int32_t luna_orbit_y = (earth.y + earth.radius) - luna.orbit_radius;
+                lv_obj_set_pos(luna.orbit, luna_orbit_x, luna_orbit_y);
                 const bool below = (siderealPlanetData.luna_alt <= 0.0f);
-                lv_obj_set_style_arc_color(luna.orbit, below ? COLOR_ORBIT_LUNA_BELOW : COLOR_ORBIT_LUNA_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(luna.orbit, below ? LUNA_ORBIT_ARC_WIDTH_BELOW : LUNA_ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (luna.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(luna.orbit, below ? COLOR_ORBIT_LUNA_BELOW : COLOR_ORBIT_LUNA_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(luna.orbit, below ? LUNA_ORBIT_ARC_WIDTH_BELOW : LUNA_ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    luna.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(luna.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(luna.obj, LV_OBJ_FLAG_HIDDEN);
@@ -778,8 +838,11 @@ void astro_clock_update(void) {
             update_planet_pos(&mars, siderealPlanetData.mars_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (mars.orbit != nullptr) {
                 const bool below = (siderealPlanetData.mars_alt <= 0.0f);
-                lv_obj_set_style_arc_color(mars.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(mars.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (mars.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(mars.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(mars.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    mars.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(mars.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(mars.obj, LV_OBJ_FLAG_HIDDEN);
@@ -796,8 +859,11 @@ void astro_clock_update(void) {
             update_planet_pos(&jupiter, siderealPlanetData.jupiter_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (jupiter.orbit != nullptr) {
                 const bool below = (siderealPlanetData.jupiter_alt <= 0.0f);
-                lv_obj_set_style_arc_color(jupiter.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(jupiter.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (jupiter.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(jupiter.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(jupiter.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    jupiter.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(jupiter.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(jupiter.obj, LV_OBJ_FLAG_HIDDEN);
@@ -814,17 +880,20 @@ void astro_clock_update(void) {
             update_planet_pos(&saturn, siderealPlanetData.saturn_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (saturn.orbit != nullptr) {
                 const bool below = (siderealPlanetData.saturn_alt <= 0.0f);
-                lv_obj_set_style_arc_color(saturn.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(saturn.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (saturn.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(saturn.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(saturn.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    saturn.last_below = static_cast<int8_t>(below);
+                }
             }
-            // Update Saturn rings position
+            // Update Saturn rings position (invalidation is local to saturns rings, further efficiency should include never invalidating unecessarily)
             if (saturn_ring != nullptr) {
                 const int32_t ring_extent = saturn.radius + 5;  // Ring extends beyond planet
                 saturn_ring_points[0].x = saturn.x + saturn.radius - ring_extent;
                 saturn_ring_points[0].y = saturn.y + saturn.radius;
                 saturn_ring_points[1].x = saturn.x + saturn.radius + ring_extent;
                 saturn_ring_points[1].y = saturn.y + saturn.radius;
-                lv_line_set_points(saturn_ring, saturn_ring_points, 2);
+                set_line_points_local(saturn_ring, saturn_ring_points, 2);
             }
             lv_obj_clear_flag(saturn.obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(saturn.orbit, LV_OBJ_FLAG_HIDDEN);
@@ -843,8 +912,11 @@ void astro_clock_update(void) {
             update_planet_pos(&uranus, siderealPlanetData.uranus_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (uranus.orbit != nullptr) {
                 const bool below = (siderealPlanetData.uranus_alt <= 0.0f);
-                lv_obj_set_style_arc_color(uranus.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(uranus.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (uranus.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(uranus.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(uranus.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    uranus.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(uranus.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(uranus.obj, LV_OBJ_FLAG_HIDDEN);
@@ -861,8 +933,11 @@ void astro_clock_update(void) {
             update_planet_pos(&neptune, siderealPlanetData.neptune_helio_ecliptic_long, SOLAR_CENTER_X, SOLAR_CENTER_Y);
             if (neptune.orbit != nullptr) {
                 const bool below = (siderealPlanetData.neptune_alt <= 0.0f);
-                lv_obj_set_style_arc_color(neptune.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
-                lv_obj_set_style_arc_width(neptune.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                if (neptune.last_below != static_cast<int8_t>(below)) {
+                    lv_obj_set_style_arc_color(neptune.orbit, below ? COLOR_ORBIT_BELOW : COLOR_ORBIT_ABOVE, LV_PART_MAIN);
+                    lv_obj_set_style_arc_width(neptune.orbit, below ? ORBIT_ARC_WIDTH_BELOW : ORBIT_ARC_WIDTH_ABOVE, LV_PART_MAIN);
+                    neptune.last_below = static_cast<int8_t>(below);
+                }
             }
             lv_obj_clear_flag(neptune.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(neptune.obj, LV_OBJ_FLAG_HIDDEN);
@@ -906,9 +981,6 @@ void astro_clock_update(void) {
         if (current_target != ASTRO_TARGET_NONE) {
             astro_clock_set_target(current_target);
         }
-
-        // Resume timer
-        lv_timer_resume(astro_timer);
     }
 }
 
@@ -1450,7 +1522,7 @@ void astro_clock_set_target(const AstroTarget target) {
             connector_points[0].y = connector_start_y;
             connector_points[1].x = connector_end_x;
             connector_points[1].y = connector_end_y;
-            lv_line_set_points(target_connector_line, connector_points, 2);
+            set_line_points_local(target_connector_line, connector_points, 2);
             lv_obj_clear_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
         }
     }
@@ -1676,7 +1748,7 @@ void astro_clock_begin(
     }
 
     if (ok) {
-        earth.orbit = create_orbit(astro_container, earth.orbit_radius, COLOR_ORBIT_BELOW);
+        earth.orbit = create_orbit(astro_container, earth.orbit_radius, COLOR_ORBIT_LUNA_ABOVE);
         ok = (earth.orbit != nullptr);
         if (!ok) {
             printf("ERROR: astro_clock_begin failed to create earth.orbit\n");
@@ -1901,7 +1973,7 @@ void astro_clock_begin(
         lv_obj_add_event_cb(astro_container, container_click_cb, LV_EVENT_CLICKED, nullptr);
 
         // Create timer for astro clock updates
-        astro_timer = lv_timer_create(astro_timer_cb, 500, nullptr); // use delay time in UnidentifiedStudios_Config.h
+        // astro_timer = lv_timer_create(astro_timer_cb, 500, nullptr); // use delay time in UnidentifiedStudios_Config.h
     }
 }
 
@@ -1916,11 +1988,11 @@ void astroclock_set_visible(const bool visible) {
 }
 
 void astro_clock_pause(void) {
-    lv_timer_pause(astro_timer);
+    // lv_timer_pause(astro_timer);
 }
 
 void astro_clock_resume(void) {
-    lv_timer_resume(astro_timer);
+    // lv_timer_resume(astro_timer);
 }
 
 // Stops and releases the update timer, if one is running, and clears the

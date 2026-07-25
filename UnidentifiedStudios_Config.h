@@ -89,10 +89,10 @@ extern long system_sync_retry_max;
 #define SatIO_USE_GPS_0
 #define SatIO_USE_INS
 #define SatIO_USE_GYRO_0
-#define SatIO_USE_MATRIX
+// #define SatIO_USE_MATRIX
 #define SatIO_USE_STORAGE
 #define SatIO_USE_UNIVERSE
-#define SatIO_CD74HC4067_OPTION_USE_0
+// #define SatIO_CD74HC4067_OPTION_USE_0
 
 
 // ----------------------------------------------------------------------------------------
