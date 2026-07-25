@@ -954,6 +954,12 @@ void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t p
     }
 }
 
+void set_style_transform_rotation_if_changed(lv_obj_t * obj, int32_t rotation, lv_part_t part) {
+    if ((obj != NULL) && (lv_obj_get_style_transform_rotation(obj, part) != rotation)) {
+        lv_obj_set_style_transform_rotation(obj, rotation, part);
+    }
+}
+
 /** -------------------------------------------------------------------------------------
  * @brief Create Text Area.
  * 

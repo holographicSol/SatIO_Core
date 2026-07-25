@@ -446,6 +446,22 @@ void set_style_outline_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_par
 void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 
 /** -------------------------------------------------------------------------------------
+ * @brief Set a transform-rotation style prop only if it actually differs
+ *        from what's currently resolved for the object.
+ *
+ * lv_obj_set_style_transform_rotation() has no change-check either, and
+ * transform properties are worse than plain color props here:
+ * lv_obj_set_local_style_prop() unconditionally calls lv_obj_invalidate()
+ * up front for any LV_STYLE_PROP_FLAG_TRANSFORM property on LV_PART_MAIN,
+ * on top of the normal lv_obj_refresh_style() call that follows.
+ *
+ * @param obj Target object (no-op if nullptr).
+ * @param rotation New rotation value (0.1 degree units, as LVGL uses).
+ * @param part Part to style (e.g. LV_PART_MAIN).
+ */
+void set_style_transform_rotation_if_changed(lv_obj_t * obj, int32_t rotation, lv_part_t part);
+
+/** -------------------------------------------------------------------------------------
  * @brief Create Text Area.
  * 
  * @param parent Specify parent object.

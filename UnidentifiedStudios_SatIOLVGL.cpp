@@ -17310,35 +17310,35 @@ void update_display_lvgl()
             // ────────────────────────────────────────────────
             // Angular
             // ────────────────────────────────────────────────
-            lv_label_set_text(gyro_0_c.val_gyro_0_ang_x, String(gyroData.gyro_0_ang_x).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_ang_y, String(gyroData.gyro_0_ang_y).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_ang_z, String(gyroData.gyro_0_ang_z).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_ang_x, String(gyroData.gyro_0_ang_x).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_ang_y, String(gyroData.gyro_0_ang_y).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_ang_z, String(gyroData.gyro_0_ang_z).c_str());
 
             // ────────────────────────────────────────────────
             // Acceleration
             // ────────────────────────────────────────────────
-            lv_label_set_text(gyro_0_c.val_gyro_0_acc_x, String(gyroData.gyro_0_acc_x).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_acc_y, String(gyroData.gyro_0_acc_y).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_acc_z, String(gyroData.gyro_0_acc_z).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_acc_x, String(gyroData.gyro_0_acc_x).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_acc_y, String(gyroData.gyro_0_acc_y).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_acc_z, String(gyroData.gyro_0_acc_z).c_str());
 
             // ────────────────────────────────────────────────
             // Gyroscope 
             // ────────────────────────────────────────────────
-            lv_label_set_text(gyro_0_c.val_gyro_0_gyr_x, String(gyroData.gyro_0_gyr_x).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_gyr_y, String(gyroData.gyro_0_gyr_y).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_gyr_z, String(gyroData.gyro_0_gyr_z).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_gyr_x, String(gyroData.gyro_0_gyr_x).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_gyr_y, String(gyroData.gyro_0_gyr_y).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_gyr_z, String(gyroData.gyro_0_gyr_z).c_str());
 
             // ────────────────────────────────────────────────
             // Magnetometer 
             // ────────────────────────────────────────────────
-            lv_label_set_text(gyro_0_c.val_gyro_0_mag_x, String(gyroData.gyro_0_mag_x).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_mag_y, String(gyroData.gyro_0_mag_y).c_str());
-            lv_label_set_text(gyro_0_c.val_gyro_0_mag_z, String(gyroData.gyro_0_mag_z).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_mag_x, String(gyroData.gyro_0_mag_x).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_mag_y, String(gyroData.gyro_0_mag_y).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_mag_z, String(gyroData.gyro_0_mag_z).c_str());
 
             // ────────────────────────────────────────────────
             // Current UI Baud Rate
             // ────────────────────────────────────────────────
-            lv_label_set_text(gyro_0_c.val_gyro_0_current_uiBaud, String(gyroData.gyro_0_current_uiBaud).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_current_uiBaud, String(gyroData.gyro_0_current_uiBaud).c_str());
         }
     }
 
@@ -17348,17 +17348,17 @@ void update_display_lvgl()
     else if (current_screen_number == MPLEX0_SCREEN) {
         if (admlpex0_c.panel) {
             for (uint8_t i_chan_disp=0; i_chan_disp<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan_disp++) {
-                lv_label_set_text(admlpex0_c.lbl_val_chan[i_chan_disp], String(ad_mux_0.data[i_chan_disp]).c_str());
-                lv_label_set_text(admlpex0_c.lbl_val_chan1[i_chan_disp], String(ad_mux_1.data[i_chan_disp]).c_str());
+                set_label_text_if_changed(admlpex0_c.lbl_val_chan[i_chan_disp], String(ad_mux_0.data[i_chan_disp]).c_str());
+                set_label_text_if_changed(admlpex0_c.lbl_val_chan1[i_chan_disp], String(ad_mux_1.data[i_chan_disp]).c_str());
 
                 // Configured read rate (uS); clicking opens the keyboard to change it.
-                lv_label_set_text(admlpex0_c.lbl_freq_chan[i_chan_disp], String(ad_mux_0.chan_freq_uS[i_chan_disp]).c_str());
-                lv_label_set_text(admlpex0_c.lbl_freq_chan1[i_chan_disp], String(ad_mux_1.chan_freq_uS[i_chan_disp]).c_str());
+                set_label_text_if_changed(admlpex0_c.lbl_freq_chan[i_chan_disp], String(ad_mux_0.chan_freq_uS[i_chan_disp]).c_str());
+                set_label_text_if_changed(admlpex0_c.lbl_freq_chan1[i_chan_disp], String(ad_mux_1.chan_freq_uS[i_chan_disp]).c_str());
 
                 // Achieved read rate (Hz) out of the configured rate (uS).
-                lv_label_set_text(admlpex0_c.lbl_rate_chan[i_chan_disp],
+                set_label_text_if_changed(admlpex0_c.lbl_rate_chan[i_chan_disp],
                     String(String(systemData.counters_mplex0_chan[i_chan_disp].task_ffreq_t) + "Hz").c_str());
-                lv_label_set_text(admlpex0_c.lbl_rate_chan1[i_chan_disp],
+                set_label_text_if_changed(admlpex0_c.lbl_rate_chan1[i_chan_disp],
                     String(String(systemData.counters_mplex1_chan[i_chan_disp].task_ffreq_t) + "Hz").c_str());
 
                 // Enable/disable switches.
@@ -17407,7 +17407,7 @@ void update_display_lvgl()
         // Roll
         // ────────────────────────────────────────────────
         if (uap_c.roll_panel) {
-            lv_obj_set_style_transform_rotation(uap_c.roll_panel, (int32_t)gyroData.gyro_0_ang_x*10, LV_PART_MAIN);
+            set_style_transform_rotation_if_changed(uap_c.roll_panel, (int32_t)gyroData.gyro_0_ang_x*10, LV_PART_MAIN);
         }
 
         // ────────────────────────────────────────────────
@@ -17434,18 +17434,18 @@ void update_display_lvgl()
                 uap_c.yaw_panel_height_px + (int32_t)(t_yaw * (float)uap_c.yaw_panel_width_px));
         }
 
-        lv_label_set_text(uap_c.gyro_angle_x_label, String("ROL " + String(gyroData.gyro_0_ang_x, 2)).c_str());
-        lv_label_set_text(uap_c.gyro_angle_y_label, String("PIT " + String(gyroData.gyro_0_ang_y, 2)).c_str());
-        lv_label_set_text(uap_c.gyro_angle_z_label, String("YAW " + String(gyroData.gyro_0_ang_z, 2)).c_str());
+        set_label_text_if_changed(uap_c.gyro_angle_x_label, String("ROL " + String(gyroData.gyro_0_ang_x, 2)).c_str());
+        set_label_text_if_changed(uap_c.gyro_angle_y_label, String("PIT " + String(gyroData.gyro_0_ang_y, 2)).c_str());
+        set_label_text_if_changed(uap_c.gyro_angle_z_label, String("YAW " + String(gyroData.gyro_0_ang_z, 2)).c_str());
 
-        lv_label_set_text(uap_c.gyro_gforce_x_label, String("GROL " + String(gyroData.gyro_0_acc_x, 2)).c_str());
-        lv_label_set_text(uap_c.gyro_gforce_y_label, String("GPIT " + String(gyroData.gyro_0_acc_y, 2)).c_str());
-        lv_label_set_text(uap_c.gyro_gforce_z_label, String("GYAW " + String(gyroData.gyro_0_acc_z, 2)).c_str());
+        set_label_text_if_changed(uap_c.gyro_gforce_x_label, String("GROL " + String(gyroData.gyro_0_acc_x, 2)).c_str());
+        set_label_text_if_changed(uap_c.gyro_gforce_y_label, String("GPIT " + String(gyroData.gyro_0_acc_y, 2)).c_str());
+        set_label_text_if_changed(uap_c.gyro_gforce_z_label, String("GYAW " + String(gyroData.gyro_0_acc_z, 2)).c_str());
 
-        lv_label_set_text(uap_c.latitude_label, String("LAT " + String(SatIOData.degrees_latitude, 7)).c_str());
-        lv_label_set_text(uap_c.longitude_label, String("LON " + String(SatIOData.degrees_longitude, 7)).c_str());
-        lv_label_set_text(uap_c.altitude_label, String("ALT " + String(SatIOData.altitude, 2)).c_str());
-        lv_label_set_text(uap_c.speed_label, String("SPE " + String(SatIOData.speed, 2)).c_str());
+        set_label_text_if_changed(uap_c.latitude_label, String("LAT " + String(SatIOData.degrees_latitude, 7)).c_str());
+        set_label_text_if_changed(uap_c.longitude_label, String("LON " + String(SatIOData.degrees_longitude, 7)).c_str());
+        set_label_text_if_changed(uap_c.altitude_label, String("ALT " + String(SatIOData.altitude, 2)).c_str());
+        set_label_text_if_changed(uap_c.speed_label, String("SPE " + String(SatIOData.speed, 2)).c_str());
     }
 
     // ---------------------
