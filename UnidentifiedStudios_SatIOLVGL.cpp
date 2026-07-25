@@ -16194,11 +16194,11 @@ void update_display_lvgl()
         // lv_obj_set_style_outline_color(main_title_bar.panel, rainbow_outline_hue, LV_PART_MAIN);
 
         // Title Bar Local Time
-        lv_label_set_text(main_title_bar.time_label, SatIOData.localTime.formatted_time_HHMMSS);
+        set_label_text_if_changed(main_title_bar.time_label, SatIOData.localTime.formatted_time_HHMMSS);
         // lv_obj_set_style_text_color(main_title_bar.time_label, rainbow_title_hue, LV_PART_MAIN);
 
         // Title Bar Local Date
-        lv_label_set_text(main_title_bar.date_label, SatIOData.localTime.formatted_date_DDMMYY);
+        set_label_text_if_changed(main_title_bar.date_label, SatIOData.localTime.formatted_date_DDMMYY);
         // lv_obj_set_style_text_color(main_title_bar.date_label, rainbow_title_hue, LV_PART_MAIN);
 
         // GPS Sync
@@ -16212,7 +16212,7 @@ void update_display_lvgl()
         else {
             lv_obj_add_flag(main_title_bar.datetime_sync, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(main_title_bar.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
-            { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); lv_label_set_text(main_title_bar.gps_signal_strength, gps_sig); }
+            { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); set_label_text_if_changed(main_title_bar.gps_signal_strength, gps_sig); }
             // lv_obj_set_style_outline_color(main_title_bar.gps_signal_strength, rainbow_contrast_outline_hue, LV_PART_MAIN);
             // lv_obj_set_style_text_color(main_title_bar.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
         }
@@ -16221,23 +16221,23 @@ void update_display_lvgl()
         if (sdcardFlagData.success_flag==2) {
             // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            lv_label_set_text(main_title_bar.sdcard_mounted, "ok");
+            set_label_text_if_changed(main_title_bar.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
             // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
-            lv_label_set_text(main_title_bar.sdcard_mounted, "!");
+            set_label_text_if_changed(main_title_bar.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
                 // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
                 // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
-                lv_label_set_text(main_title_bar.sdcard_mounted, "SD");
+                set_label_text_if_changed(main_title_bar.sdcard_mounted, "SD");
             }
             else {
                 // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
                 // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
-                lv_label_set_text(main_title_bar.sdcard_mounted, "SD!");
+                set_label_text_if_changed(main_title_bar.sdcard_mounted, "SD!");
             }
         }
     }
@@ -16260,15 +16260,15 @@ void update_display_lvgl()
         // lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_INDICATOR);
 
         // System Tray Local Time
-        lv_label_set_text(system_tray.local_time, SatIOData.localTime.formatted_time_HHMMSS);
+        set_label_text_if_changed(system_tray.local_time, SatIOData.localTime.formatted_time_HHMMSS);
         // lv_obj_set_style_text_color(system_tray.local_time, rainbow_title_hue, LV_PART_MAIN);
 
         // System Tray Local Date
-        lv_label_set_text(system_tray.local_date, SatIOData.localTime.formatted_date_DDMMYY);
+        set_label_text_if_changed(system_tray.local_date, SatIOData.localTime.formatted_date_DDMMYY);
         // lv_obj_set_style_text_color(system_tray.local_date, rainbow_title_hue, LV_PART_MAIN);
 
         // System Tray Human Date
-        { char human_date[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(human_date, sizeof(human_date), "%s %d %s", SatIOData.localTime.wday_name, SatIOData.localTime.mday, SatIOData.localTime.month_name); lv_label_set_text(system_tray.human_date, human_date); }
+        { char human_date[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(human_date, sizeof(human_date), "%s %d %s", SatIOData.localTime.wday_name, SatIOData.localTime.mday, SatIOData.localTime.month_name); set_label_text_if_changed(system_tray.human_date, human_date); }
         // lv_obj_set_style_text_color(system_tray.human_date, rainbow_title_hue, LV_PART_MAIN);
 
         // GPS Sync
@@ -16282,7 +16282,7 @@ void update_display_lvgl()
         else {
             lv_obj_add_flag(system_tray.datetime_sync, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(system_tray.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
-            { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); lv_label_set_text(system_tray.gps_signal_strength, gps_sig); }
+            { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); set_label_text_if_changed(system_tray.gps_signal_strength, gps_sig); }
             // lv_obj_set_style_outline_color(system_tray.gps_signal_strength, main_outline_hue, LV_PART_MAIN);
             // lv_obj_set_style_text_color(system_tray.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
         }
@@ -16291,23 +16291,23 @@ void update_display_lvgl()
         if (sdcardFlagData.success_flag==2) {
             // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            lv_label_set_text(system_tray.sdcard_mounted, "ok");
+            set_label_text_if_changed(system_tray.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
             // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
-            lv_label_set_text(system_tray.sdcard_mounted, "!");
+            set_label_text_if_changed(system_tray.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
                 // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
                 // lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
-                lv_label_set_text(system_tray.sdcard_mounted, "SD");
+                set_label_text_if_changed(system_tray.sdcard_mounted, "SD");
             }
             else {
                 // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
                 // lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
-                lv_label_set_text(system_tray.sdcard_mounted, "SD!");
+                set_label_text_if_changed(system_tray.sdcard_mounted, "SD!");
             }
         }
 
