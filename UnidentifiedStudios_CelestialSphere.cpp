@@ -989,7 +989,7 @@ static void update_ecliptic_line(const double sin_center_dec, const double cos_c
 
             if (ecliptic_line[segment_count] != nullptr) {
                 if (point_count >= 2) {
-                    lv_line_set_points(ecliptic_line[segment_count], points, point_count);
+                    set_line_points_local(ecliptic_line[segment_count], points, static_cast<uint32_t>(point_count));
                     lv_obj_clear_flag(ecliptic_line[segment_count], LV_OBJ_FLAG_HIDDEN);
                 } else {
                     lv_obj_add_flag(ecliptic_line[segment_count], LV_OBJ_FLAG_HIDDEN);
@@ -1036,7 +1036,7 @@ static void update_ecliptic_longitude_labels(const double sin_center_dec, const 
 
                 char buf[8];
                 snprintf(buf, sizeof(buf), "%.0f", static_cast<double>(i) * ECLIPTIC_LONGITUDE_TICK_STEP_DEG);
-                lv_label_set_text(label, buf);
+                set_label_text_if_changed(label, buf);
                 lv_obj_set_pos(label, x - (ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX / 2), y - (ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX / 2));
                 lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
             }
@@ -1428,32 +1428,32 @@ static void update_gyro_attitude_label(void) {
     if (crosshair_alt_value_label != nullptr) {
         char buf[16];
         snprintf(buf, sizeof(buf), "AT %.2f", siderealPlanetData.gyro_0_sidereal_attitude.alt);
-        lv_label_set_text(crosshair_alt_value_label, buf);
+        set_label_text_if_changed(crosshair_alt_value_label, buf);
     }
 
     if (crosshair_az_value_label != nullptr) {
         char buf[16];
         snprintf(buf, sizeof(buf), "AZ %.2f", siderealPlanetData.gyro_0_sidereal_attitude.az);
-        lv_label_set_text(crosshair_az_value_label, buf);
+        set_label_text_if_changed(crosshair_az_value_label, buf);
     }
 
     if (crosshair_ra_value_label != nullptr) {
         char buf[64];
         snprintf(buf, sizeof(buf), "RA %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
-        lv_label_set_text(crosshair_ra_value_label, buf);
+        set_label_text_if_changed(crosshair_ra_value_label, buf);
     }
 
     if (crosshair_dec_value_label != nullptr) {
         char buf[64];
         snprintf(buf, sizeof(buf), "DC %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
-        lv_label_set_text(crosshair_dec_value_label, buf);
+        set_label_text_if_changed(crosshair_dec_value_label, buf);
     }
 
     if (crosshair_constellation_value_label != nullptr) {
         const char* name = (siderealPlanetData.gyro_0_constellation != nullptr)
             ? siderealPlanetData.gyro_0_constellation->name
             : "Unidentified";
-        lv_label_set_text(crosshair_constellation_value_label, name);
+        set_label_text_if_changed(crosshair_constellation_value_label, name);
     }
 }
 
@@ -1464,7 +1464,7 @@ static void update_objects_found_label(const int32_t count) {
     if (objects_found_value_label != nullptr) {
         char buf[16];
         snprintf(buf, sizeof(buf), "%ld", static_cast<long>(count));
-        lv_label_set_text(objects_found_value_label, buf);
+        set_label_text_if_changed(objects_found_value_label, buf);
     }
 }
 
@@ -1794,10 +1794,10 @@ void celestial_sphere_update(void) {
                             const lv_image_dsc_t * const fallback = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
                                 ? &object_type_icon_fallback_16
                                 : &object_type_icon_fallback;
-                            lv_image_set_src(marker->dot, (icon != nullptr) ? icon : fallback);
-                            lv_obj_set_style_image_recolor(marker->dot, color, 0);
+                            set_image_src_if_changed(marker->dot, (icon != nullptr) ? icon : fallback);
+                            set_style_image_recolor_if_changed(marker->dot, color, LV_PART_MAIN);
                         } else {
-                            lv_obj_set_style_bg_color(marker->dot, color, 0);
+                            set_style_bg_color_if_changed(marker->dot, color, LV_PART_MAIN);
                         }
                         lv_obj_set_pos(marker->dot, marker->x, marker->y);
                         lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
@@ -1966,14 +1966,14 @@ void celestial_sphere_update(void) {
                         scan_pointer_points[1].y = tip_y;
                         scan_pointer_points[2].x = back_center_x - static_cast<int32_t>(perp_x * ARROW_HALF_WIDTH_PX);
                         scan_pointer_points[2].y = back_center_y - static_cast<int32_t>(perp_y * ARROW_HALF_WIDTH_PX);
-                        lv_line_set_points(scan_pointer_line, scan_pointer_points, 3);
+                        set_line_points_local(scan_pointer_line, scan_pointer_points, 3);
                         lv_obj_clear_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN);
                     }
 
                     if (scan_delta_value_label != nullptr) {
                         char buf[32];
                         snprintf(buf, sizeof(buf), "ALT %+.1f  AZ %+.1f", scan_delta_alt, scan_delta_az);
-                        lv_label_set_text(scan_delta_value_label, buf);
+                        set_label_text_if_changed(scan_delta_value_label, buf);
                         const int32_t label_w = lv_obj_get_width(scan_delta_value_label);
                         const int32_t label_h = lv_obj_get_height(scan_delta_value_label);
                         const int32_t label_center_x = SCOPE_CENTER_X + static_cast<int32_t>(ux * (tip_r + 20.0F));

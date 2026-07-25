@@ -954,9 +954,38 @@ void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t p
     }
 }
 
+void set_style_image_recolor_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part) {
+    if ((obj != NULL) && !lv_color_eq(lv_obj_get_style_image_recolor(obj, part), color)) {
+        lv_obj_set_style_image_recolor(obj, color, part);
+    }
+}
+
 void set_style_transform_rotation_if_changed(lv_obj_t * obj, int32_t rotation, lv_part_t part) {
     if ((obj != NULL) && (lv_obj_get_style_transform_rotation(obj, part) != rotation)) {
         lv_obj_set_style_transform_rotation(obj, rotation, part);
+    }
+}
+
+void set_image_src_if_changed(lv_obj_t * obj, const void * src) {
+    if ((obj != NULL) && (lv_image_get_src(obj) != src)) {
+        lv_image_set_src(obj, src);
+    }
+}
+
+void set_line_points_local(lv_obj_t * line_obj, lv_point_precise_t * points, uint32_t point_num) {
+    if ((line_obj != NULL) && (points != NULL) && (point_num > 0U)) {
+        lv_value_precise_t min_x = points[0].x;
+        lv_value_precise_t min_y = points[0].y;
+        for (uint32_t i = 1U; i < point_num; i++) {
+            min_x = (points[i].x < min_x) ? points[i].x : min_x;
+            min_y = (points[i].y < min_y) ? points[i].y : min_y;
+        }
+        for (uint32_t i = 0U; i < point_num; i++) {
+            points[i].x -= min_x;
+            points[i].y -= min_y;
+        }
+        lv_obj_set_pos(line_obj, (int32_t)min_x, (int32_t)min_y);
+        lv_line_set_points(line_obj, points, point_num);
     }
 }
 

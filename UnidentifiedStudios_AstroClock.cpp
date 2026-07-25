@@ -33,6 +33,7 @@
 #include "UnidentifiedStudios_SatIO.h"
 #include "UnidentifiedStudios_WTGPS300P.h"
 #include "UnidentifiedStudios_SatIOLVGL.h"
+#include "UnidentifiedStudios_GlobalLVGL.h"
 
 // External data - adjust these includes to match your project
 extern "C" {
@@ -205,36 +206,6 @@ static constexpr int32_t DATA_BOX_MARGIN = 10;
 // floating-point narrowing occurs.
 static inline float deg2rad(const float degrees) {
     return static_cast<float>(static_cast<double>(degrees) * M_PI / 180.0);
-}
-
-// ============================================================================
-// SET LINE POINTS (LOCAL-ORIGIN)
-// ============================================================================
-// lv_line's self size (and therefore its invalidated area) is computed as
-// max(point.x)/max(point.y) measured from (0,0) -- not a real bounding box
-// (see lv_line.c's LV_EVENT_GET_SELF_SIZE handler). Every line widget here
-// is driven by absolute, parent-relative point coordinates (e.g. saturn's
-// current position on its orbit), so feeding those points straight to
-// lv_line_set_points() makes the widget's invalidated area stretch from the
-// container's top-left corner out to wherever the line currently sits,
-// instead of a small box around the line itself. Repositioning the widget
-// at the points' own minimum x/y and rewriting the points relative to that
-// origin keeps the self size (and the invalidated area) tight.
-static void set_line_points_local(lv_obj_t * const line_obj, lv_point_precise_t * const points, const uint32_t point_num) {
-    if ((line_obj != nullptr) && (points != nullptr) && (point_num > 0U)) {
-        lv_value_precise_t min_x = points[0].x;
-        lv_value_precise_t min_y = points[0].y;
-        for (uint32_t i = 1U; i < point_num; i++) {
-            min_x = (points[i].x < min_x) ? points[i].x : min_x;
-            min_y = (points[i].y < min_y) ? points[i].y : min_y;
-        }
-        for (uint32_t i = 0U; i < point_num; i++) {
-            points[i].x -= min_x;
-            points[i].y -= min_y;
-        }
-        lv_obj_set_pos(line_obj, static_cast<int32_t>(min_x), static_cast<int32_t>(min_y));
-        lv_line_set_points(line_obj, points, point_num);
-    }
 }
 
 // ============================================================================

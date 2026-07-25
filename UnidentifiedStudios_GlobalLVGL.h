@@ -444,6 +444,7 @@ void set_label_text_if_changed(lv_obj_t * label, const char * new_text);
 void set_style_text_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 void set_style_outline_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
+void set_style_image_recolor_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 
 /** -------------------------------------------------------------------------------------
  * @brief Set a transform-rotation style prop only if it actually differs
@@ -460,6 +461,46 @@ void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t p
  * @param part Part to style (e.g. LV_PART_MAIN).
  */
 void set_style_transform_rotation_if_changed(lv_obj_t * obj, int32_t rotation, lv_part_t part);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Set an image object's source only if it actually differs from what's shown.
+ *
+ * lv_image_set_src() unconditionally calls lv_obj_invalidate() as its very
+ * first line (see lv_image.c), before it even looks at whether the new
+ * source differs from the current one, and it also always re-runs the
+ * decoder's lv_image_decoder_get_info() lookup. Compares against
+ * lv_image_get_src() (pointer equality -- valid here since sources are
+ * pointers into fixed, static-const icon tables, so the same logical icon
+ * always resolves to the same address) rather than keeping a separate cache.
+ *
+ * @param obj Target image object (no-op if nullptr).
+ * @param src New image source.
+ */
+void set_image_src_if_changed(lv_obj_t * obj, const void * src);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Set a line widget's points via a local origin, keeping its
+ *        invalidated area tight to the line itself.
+ *
+ * lv_line's self size (and therefore its invalidated area) is computed as
+ * max(point.x)/max(point.y) measured from (0,0) -- not a real bounding box
+ * (see lv_line.c's LV_EVENT_GET_SELF_SIZE handler). Any line fed absolute,
+ * parent-relative point coordinates (a moving marker's current position,
+ * etc.) will otherwise have its invalidated area stretch from the
+ * container's top-left corner out to wherever the line currently sits,
+ * instead of a small box around the line itself. This repositions the
+ * widget at the points' own minimum x/y and rewrites the points relative
+ * to that origin, so the self size (and the invalidated area) stays tight.
+ *
+ * Mutates points in place (subtracts the computed origin from each entry),
+ * so callers must refill points with fresh absolute coordinates before
+ * each call rather than reusing values left over from a previous call.
+ *
+ * @param line_obj Target line object, created via lv_line_create() (no-op if nullptr).
+ * @param points Caller-owned point array (mutated in place).
+ * @param point_num Number of points in the array.
+ */
+void set_line_points_local(lv_obj_t * line_obj, lv_point_precise_t * points, uint32_t point_num);
 
 /** -------------------------------------------------------------------------------------
  * @brief Create Text Area.
