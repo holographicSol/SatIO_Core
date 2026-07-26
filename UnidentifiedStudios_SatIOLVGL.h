@@ -724,8 +724,11 @@ typedef struct {
 typedef struct {
     lv_obj_t * panel;
     lv_obj_t * lbl_title_theme;
-    button_t   btn_theme_slate;
+    button_t   btn_theme_null_void;
+    button_t   btn_theme_colorful_universe;
     button_t   btn_theme_alien;
+    button_t   btn_theme_keystone;
+    button_t   btn_theme_demon_slayer;
 } display_settings_container_t;
 
 /** -------------------------------------------------------------------------------------
@@ -823,8 +826,11 @@ void dd_gpiope_port_i_event_cb(lv_event_t * e);
 void sw_gpiope_enabled_event_cb(lv_event_t * e);
 void btn_gpiope_mode_input_event_cb(lv_event_t * e);
 void btn_gpiope_mode_output_event_cb(lv_event_t * e);
-void btn_theme_slate_event_cb(lv_event_t * e);
+void btn_theme_null_void_event_cb(lv_event_t * e);
+void btn_theme_colorful_universe_event_cb(lv_event_t * e);
 void btn_theme_alien_event_cb(lv_event_t * e);
+void btn_theme_keystone_event_cb(lv_event_t * e);
+void btn_theme_demon_slayer_event_cb(lv_event_t * e);
 
 /** -------------------------------------------------------------------------------------
  * @brief Create Matrix Function Container.
