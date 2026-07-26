@@ -13922,10 +13922,10 @@ void display_gyro_screen()
     gyro_0_c = create_gyro_panel(
         gyro_screen,      // parent
         500,              // width px
-        480,              // height px
-        LV_ALIGN_TOP_MID, // alignment
+        550,              // height px
+        LV_ALIGN_CENTER, // alignment
         0,                // pos x
-        75,               // pos y
+        0,               // pos y
         true,             // show scrollbar
         true              // enable scrolling
     );
@@ -13937,7 +13937,7 @@ void display_gyro_screen()
         42,               // height px
         LV_ALIGN_BOTTOM_MID,  // alignment
         0,                // pos x
-        -10,              // pos y
+        -60,              // pos y
         false,            // show scrollbar
         false             // enable scrolling
     );
