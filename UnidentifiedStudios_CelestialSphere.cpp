@@ -235,28 +235,29 @@ static ObjectTypeGroup object_type_group(const int32_t type_num) {
     return result;
 }
 
-// Returns the marker tint for a swept object's resolved type entry, falling
-// back to main_style.starnav.object_4 when the object has no objectType[] entry at all or
-// its num doesn't map to one of the 4 families.
+// Returns the marker tint for a swept object's resolved type entry -- each
+// type's own shimmer (relative to that type's hue, see iterHue()), falling
+// back to the shared shimmer when the object has no objectType[] entry at
+// all or its num doesn't map to one of the 4 families.
 static lv_color_t object_type_color(const SiderealObjectTypeEntry * const type_entry) {
-    lv_color_t result = main_style.starnav.object_4;
+    lv_color_t result = main_style.starnav.iterhue_color_bg;
     if (type_entry != nullptr) {
         switch (object_type_group(type_entry->num)) {
             case ObjectTypeGroup::GALAXY:
-                result = main_style.starnav.object_0;
+                result = main_style.starnav.iterhue_object_0;
                 break;
             case ObjectTypeGroup::CLUSTER:
-                result = main_style.starnav.object_1;
+                result = main_style.starnav.iterhue_object_1;
                 break;
             case ObjectTypeGroup::NEBULA:
-                result = main_style.starnav.object_2;
+                result = main_style.starnav.iterhue_object_2;
                 break;
             case ObjectTypeGroup::STAR:
-                result = main_style.starnav.object_3;
+                result = main_style.starnav.iterhue_object_3;
                 break;
             case ObjectTypeGroup::UNKNOWN:
             default:
-                result = main_style.starnav.object_4;
+                result = main_style.starnav.iterhue_color_bg;
                 break;
         }
     }
@@ -1917,10 +1918,10 @@ void celestial_sphere_update(void) {
                             : &object_type_icon_fallback;
                         set_image_src_if_changed(marker->dot, (icon != nullptr) ? icon : fallback);
                         if (in_iterhue_batch) {
-                            lv_obj_set_style_image_recolor(marker->dot, main_style.starnav.iterhue_color_bg, LV_PART_MAIN);
+                            lv_obj_set_style_image_recolor(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
                         }
                     } else if (in_iterhue_batch) {
-                        lv_obj_set_style_bg_color(marker->dot, main_style.starnav.iterhue_color_bg, LV_PART_MAIN);
+                        lv_obj_set_style_bg_color(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
                     }
                     lv_obj_set_pos(marker->dot, marker->x, marker->y);
                     lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);
