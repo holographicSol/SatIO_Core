@@ -13617,15 +13617,10 @@ void update_display_lvgl()
     // ---------------------
     if (kb_alnumsym.kb != NULL && lv_obj_is_valid(kb_alnumsym.kb)) {
         if (!lv_obj_has_flag(kb_alnumsym.kb, LV_OBJ_FLAG_HIDDEN)) {
-            // Rainbow keyboard full outline
             lv_obj_set_style_outline_color(kb_alnumsym.kb, main_style.title_1.color_outline, LV_PART_MAIN);
-            // Rainbow keyboard full keys
             lv_obj_set_style_text_color(kb_alnumsym.kb, main_style.title_1.color_font, LV_PART_ITEMS);
-            // Rainbow keyboard full checked keys
             lv_obj_set_style_text_color(kb_alnumsym.kb, main_style.value_1.color_font, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-            // Rainbow keyboard full text area outline
             lv_obj_set_style_outline_color(kb_alnumsym.ta, main_style.title_1.color_outline, LV_PART_MAIN);
-            // Rainbow keyboard full text area text
             lv_obj_set_style_text_color(kb_alnumsym.ta, main_style.value_1.color_font, LV_PART_MAIN);
         }
     }
@@ -13634,15 +13629,10 @@ void update_display_lvgl()
     // ---------------------
     if (kb_numdec.kb != NULL && lv_obj_is_valid(kb_numdec.kb)) {
         if (!lv_obj_has_flag(kb_numdec.kb, LV_OBJ_FLAG_HIDDEN)) {
-            // Rainbow keyboard numdec full outline
             lv_obj_set_style_outline_color(kb_numdec.kb, main_style.title_1.color_outline, LV_PART_MAIN);
-            // Rainbow keyboard numdec full keys
             lv_obj_set_style_text_color(kb_numdec.kb, main_style.title_1.color_font, LV_PART_ITEMS);
-            // Rainbow keyboard numdec full checked keys
             lv_obj_set_style_text_color(kb_numdec.kb, main_style.value_1.color_font, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-            // Rainbow keyboard numdec full text area outline
             lv_obj_set_style_outline_color(kb_numdec.ta, main_style.title_1.color_outline, LV_PART_MAIN);
-            // Rainbow keyboard numdec full text area text
             lv_obj_set_style_text_color(kb_numdec.ta, main_style.value_1.color_font, LV_PART_MAIN);
         }
     }
@@ -13654,16 +13644,15 @@ void update_display_lvgl()
 
         // Title Bar Local Time
         set_label_text_if_changed(main_title_bar.time_label, SatIOData.localTime.formatted_time_HHMMSS);
-        // lv_obj_set_style_text_color(main_title_bar.time_label, main_style.title_1.iterhue_color_font, LV_PART_MAIN);
 
         // Title Bar Local Date
         set_label_text_if_changed(main_title_bar.date_label, SatIOData.localTime.formatted_date_DDMMYY);
-        // lv_obj_set_style_text_color(main_title_bar.date_label, main_style.title_1.iterhue_color_font, LV_PART_MAIN);
 
         // GPS Sync
         if (SatIOData.GPSTime.sync == true) {
             lv_obj_add_flag(main_title_bar.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(main_title_bar.datetime_sync, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_text_color(main_title_bar.datetime_sync, main_style.title_1.iterhue_color_bg, LV_PART_MAIN);
         }
         // GPS Signal
         else {
@@ -13694,29 +13683,26 @@ void update_display_lvgl()
     // ---------------------
     if (system_tray.is_open) {
 
-        // // System Tray Brightness Slider Knob
-        // lv_obj_set_style_bg_color(system_tray.slider_brightness, main_style.value_1.color_font, LV_PART_KNOB);
+        // System Tray Brightness Slider Knob
+        lv_obj_set_style_bg_color(system_tray.slider_brightness, main_style.value_1.iterhue_color_bg, LV_PART_KNOB);
 
         // // System Tray Brightness Slider Indicator
         // lv_obj_set_style_outline_color(system_tray.slider_brightness, main_style.title_1.color_outline, LV_PART_INDICATOR);
 
         // System Tray Local Time
         set_label_text_if_changed(system_tray.local_time, SatIOData.localTime.formatted_time_HHMMSS);
-        // lv_obj_set_style_text_color(system_tray.local_time, main_style.title_1.iterhue_color_font, LV_PART_MAIN);
 
         // System Tray Local Date
         set_label_text_if_changed(system_tray.local_date, SatIOData.localTime.formatted_date_DDMMYY);
-        // lv_obj_set_style_text_color(system_tray.local_date, main_style.title_1.iterhue_color_font, LV_PART_MAIN);
 
         // System Tray Human Date
         { char human_date[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(human_date, sizeof(human_date), "%s %d %s", SatIOData.localTime.wday_name, SatIOData.localTime.mday, SatIOData.localTime.month_name); set_label_text_if_changed(system_tray.human_date, human_date); }
-        // lv_obj_set_style_text_color(system_tray.human_date, main_style.title_1.color_font, LV_PART_MAIN);
 
         // GPS Sync
         if (SatIOData.GPSTime.sync == true) {
             lv_obj_add_flag(system_tray.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(system_tray.datetime_sync, LV_OBJ_FLAG_HIDDEN);
-            // lv_obj_set_style_text_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
+            lv_obj_set_style_text_color(system_tray.datetime_sync, main_style.title_1.iterhue_color_bg, LV_PART_MAIN);
         }
         // GPS Signal
         else {
@@ -13727,20 +13713,16 @@ void update_display_lvgl()
 
         // SD Card Mounted / Success Flag
         if (sdcardFlagData.success_flag==2) {
-            // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             set_label_text_if_changed(system_tray.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
-            // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             set_label_text_if_changed(system_tray.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
-                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
                 set_label_text_if_changed(system_tray.sdcard_mounted, "SD");
             }
             else {;
-                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
                 set_label_text_if_changed(system_tray.sdcard_mounted, "SD!");
             }
         }
@@ -14877,22 +14859,30 @@ void initSatIOUI() {
     //
     // Explicit config instead of bsp_display_start()'s implicit default so the
     // draw-buffer placement is guaranteed in code rather than inferred from
-    // Kconfig. When CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR is on, esp_lvgl_port
-    // ignores buffer_size/double_buffer/buff_dma/buff_spiram entirely (it
-    // overwrites buffer_size internally) and binds LVGL straight to the
-    // MIPI-DSI panel's own double buffered, DMA2D-fed frame buffers
-    // (CONFIG_BSP_LCD_DPI_BUFFER_NUMS=2, .flags.use_dma2d=true) -- that's the
-    // real DMA path. BSP_LCD_DRAW_BUFF_SIZE/_DOUBLE below are what actually
-    // get used (via real heap_caps_aligned_alloc) if avoid-tear is off: a
-    // full-screen buffer here would try to heap-allocate ~1MB+ from internal
-    // RAM and fail to boot (confirmed: "Not enough memory for LVGL buffer
-    // (buf1) allocation!").
+    // Kconfig. When CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR is on, esp_lvgl_port's
+    // actual buffer *allocation* path ignores buffer_size/double_buffer/
+    // buff_dma/buff_spiram entirely (it overwrites buffer_size internally)
+    // and binds LVGL straight to the MIPI-DSI panel's own double buffered,
+    // DMA2D-fed frame buffers (CONFIG_BSP_LCD_DPI_BUFFER_NUMS=2,
+    // .flags.use_dma2d=true) -- that's the real DMA path.
+    // BSP_LCD_DRAW_BUFF_SIZE/_DOUBLE below are what actually get used (via
+    // real heap_caps_aligned_alloc) if avoid-tear is off: a full-screen
+    // buffer here would try to heap-allocate ~1MB+ from internal RAM and fail
+    // to boot (confirmed: "Not enough memory for LVGL buffer (buf1)
+    // allocation!").
+    //
+    // buff_dma must stay false regardless of avoid-tear mode: esp_lvgl_port's
+    // lvgl_port_add_disp_priv() rejects flags.buff_dma=true up front whenever
+    // color_format != RGB565 (esp_lvgl_port_disp.c), before it ever reaches
+    // the avoid-tear branch that would otherwise ignore the flag. With
+    // CONFIG_BSP_LCD_COLOR_FORMAT_RGB888 this fails display init with
+    // "DMA buffer can be used only in display color format RGB565".
     bsp_display_cfg_t disp_cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
         .buffer_size   = BSP_LCD_DRAW_BUFF_SIZE,
         .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
         .flags = {
-            .buff_dma    = true,  // valid only for RGB565; matches CONFIG_BSP_LCD_COLOR_FORMAT_RGB565
+            .buff_dma    = false,
             .buff_spiram = false,
             .sw_rotate   = false, // unsupported under avoid-tear mode
         }

@@ -235,11 +235,18 @@ static ObjectTypeGroup object_type_group(const int32_t type_num) {
     return result;
 }
 
-// Returns the marker tint for a swept object's resolved type entry -- each
-// type's own shimmer (relative to that type's hue, see iterHue()), falling
-// back to the shared shimmer when the object has no objectType[] entry at
-// all or its num doesn't map to one of the 4 families.
+// Returns the marker tint for a swept object's resolved type entry.
+//
+// USE_ITERHUE: each type's own shimmer (relative to that type's hue, see
+// iterHue()), falling back to the shared shimmer when the object has no
+// objectType[] entry at all or its num doesn't map to one of the 4 families.
+//
+// !USE_ITERHUE: the same per-family mapping, but onto the scheme's static
+// (non-animated) object_0..3 colors instead, so callers can skip re-touching
+// a marker's color every tick when its type hasn't changed -- see the
+// set_style_*_if_changed() call sites below.
 static lv_color_t object_type_color(const SiderealObjectTypeEntry * const type_entry) {
+#ifdef USE_ITERHUE
     lv_color_t result = main_style.starnav.iterhue_color_bg;
     if (type_entry != nullptr) {
         switch (object_type_group(type_entry->num)) {
@@ -261,6 +268,29 @@ static lv_color_t object_type_color(const SiderealObjectTypeEntry * const type_e
                 break;
         }
     }
+#else
+    lv_color_t result = main_style.starnav.object_4;
+    if (type_entry != nullptr) {
+        switch (object_type_group(type_entry->num)) {
+            case ObjectTypeGroup::GALAXY:
+                result = main_style.starnav.object_0;
+                break;
+            case ObjectTypeGroup::CLUSTER:
+                result = main_style.starnav.object_1;
+                break;
+            case ObjectTypeGroup::NEBULA:
+                result = main_style.starnav.object_2;
+                break;
+            case ObjectTypeGroup::STAR:
+                result = main_style.starnav.object_3;
+                break;
+            case ObjectTypeGroup::UNKNOWN:
+            default:
+                result = main_style.starnav.object_4;
+                break;
+        }
+    }
+#endif
     return result;
 }
 
@@ -1850,6 +1880,7 @@ void celestial_sphere_update(void) {
         // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
 
+#ifdef USE_ITERHUE
         // Restyling every visible marker's iterhue color every single tick is
         // needless per-marker LVGL style invalidation with up to
         // MAX_CELESTIAL_SPHERE_OBJECTS on screen, so only 1/ITERHUE_BATCH_DIVISOR
@@ -1860,6 +1891,7 @@ void celestial_sphere_update(void) {
         static constexpr int32_t ITERHUE_BATCH_DIVISOR = 2;
         static int32_t iterhue_batch_phase = 0;
         iterhue_batch_phase = (iterhue_batch_phase + 1) % ITERHUE_BATCH_DIVISOR;
+#endif
 
         int32_t found_count = 0;
 
@@ -1908,7 +1940,9 @@ void celestial_sphere_update(void) {
                     // however many markers are on screen this tick. Full re-identify
                     // still happens on click, for the data box (celestial_sphere_set_target()).
                     const SiderealObjectTypeEntry * const type_entry = sphere_entry_type[i];
+#ifdef USE_ITERHUE
                     const bool in_iterhue_batch = ((found_count % ITERHUE_BATCH_DIVISOR) == iterhue_batch_phase);
+#endif
                     if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
                         const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
                             ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
@@ -1917,11 +1951,24 @@ void celestial_sphere_update(void) {
                             ? &object_type_icon_fallback_16
                             : &object_type_icon_fallback;
                         set_image_src_if_changed(marker->dot, (icon != nullptr) ? icon : fallback);
+#ifdef USE_ITERHUE
                         if (in_iterhue_batch) {
                             lv_obj_set_style_image_recolor(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
                         }
-                    } else if (in_iterhue_batch) {
-                        lv_obj_set_style_bg_color(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
+#else
+                        // No shimmer to stagger -- the color is static per type,
+                        // so this is a no-op on every tick except the one where
+                        // this marker slot starts representing a different type.
+                        set_style_image_recolor_if_changed(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
+#endif
+                    } else {
+#ifdef USE_ITERHUE
+                        if (in_iterhue_batch) {
+                            lv_obj_set_style_bg_color(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
+                        }
+#else
+                        set_style_bg_color_if_changed(marker->dot, object_type_color(type_entry), LV_PART_MAIN);
+#endif
                     }
                     lv_obj_set_pos(marker->dot, marker->x, marker->y);
                     lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);

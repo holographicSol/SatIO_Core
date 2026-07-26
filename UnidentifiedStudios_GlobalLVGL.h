@@ -376,6 +376,11 @@ void setStyleTheNullVoid();
 /**
  * @brief Sets main style to scheme.
  */
+void setStyleChromaticUniverse();
+
+/**
+ * @brief Sets main style to scheme.
+ */
 void setStyleColorfulUniverse();
 
 /**

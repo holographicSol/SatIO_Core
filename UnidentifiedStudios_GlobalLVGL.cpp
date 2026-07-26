@@ -11,6 +11,14 @@
  * @brief Global Style
  */
 
+int CURRENT_UI_STYLE = 0;
+#define UI_STYLE_THE_NULL_VOID      0
+#define UI_STYLE_CHROMATIC_UNIVERSE 1
+#define UI_STYLE_COLORFUL_UNIVERSE  2
+#define UI_STYLE_THE_ALIEN          3
+#define UI_STYLE_KEYSTONE           4
+#define UI_STYLE_DEMON_SLAYER       5
+
 int32_t general_window_w_px = 550;
 int32_t general_window_h_px = 400;
 int32_t general_panel_row_h_px = 42;
@@ -157,8 +165,139 @@ void setStyleTheNullVoid()
 {
     main_style.name = "The Null Void";
 
-    // Shared chrome (background/outline/border/shadow/geometry) applied to every category;
-    // only color_font/opa_font/font differ per category below.
+    ui_style_prop_t chrome = {};
+    chrome.color_bg      = lv_color_make(0,0,0);
+    chrome.opa_bg        = LV_OPA_100;
+    chrome.color_outline = lv_color_make(28,28,28);
+    chrome.outline_width = 2;
+    chrome.opa_outline   = LV_OPA_100;
+    chrome.color_border  = lv_color_make(0,0,0);
+    chrome.border_width  = 0;
+    chrome.opa_border    = LV_OPA_100;
+    chrome.color_shadow  = lv_color_make(0,0,0);
+    chrome.shadow_width  = 0;
+    chrome.opa_shadow    = LV_OPA_100;
+    chrome.radius_square  = 0;
+    chrome.radius_rounded = 5;
+    chrome.radius_circle  = 360;
+    chrome.padall          = 2;
+
+    main_style.title_1 = chrome;
+    main_style.title_1.color_font = lv_color_make(255,255,255);
+    main_style.title_1.opa_font   = LV_OPA_100;
+    main_style.title_1.font       = font_cobalt_alien_25;
+
+    main_style.subtitle_1 = chrome;
+    main_style.subtitle_1.color_font = lv_color_make(184,184,184);
+    main_style.subtitle_1.opa_font   = LV_OPA_100;
+    main_style.subtitle_1.font       = font_cobalt_alien_17;
+
+    main_style.value_1 = chrome;
+    main_style.value_1.color_font = lv_color_make(126,126,126);
+    main_style.value_1.opa_font   = LV_OPA_100;
+    main_style.value_1.font       = font_cobalt_alien_17;
+
+    main_style.kb = chrome;
+    main_style.kb.color_font = lv_color_make(255,255,255);
+    main_style.kb.opa_font   = LV_OPA_100;
+    main_style.kb.font       = font_cobalt_alien_25;
+
+    main_style.astroclock = {};
+    main_style.astroclock.color_bg      = chrome.color_bg;
+    main_style.astroclock.opa_bg        = chrome.opa_bg;
+    main_style.astroclock.color_outline = chrome.color_outline;
+    main_style.astroclock.outline_width = chrome.outline_width;
+    main_style.astroclock.opa_outline   = chrome.opa_outline;
+    main_style.astroclock.color_border  = chrome.color_border;
+    main_style.astroclock.border_width  = chrome.border_width;
+    main_style.astroclock.opa_border    = chrome.opa_border;
+    main_style.astroclock.color_shadow  = chrome.color_shadow;
+    main_style.astroclock.shadow_width  = chrome.shadow_width;
+    main_style.astroclock.opa_shadow    = chrome.opa_shadow;
+    main_style.astroclock.radius_square  = chrome.radius_square;
+    main_style.astroclock.radius_rounded = chrome.radius_rounded;
+    main_style.astroclock.radius_circle  = chrome.radius_circle;
+    main_style.astroclock.padall         = chrome.padall;
+    main_style.astroclock.color_font = lv_color_make(255,255,255);
+    main_style.astroclock.opa_font   = LV_OPA_100;
+    main_style.astroclock.font_1     = font_unscii_12;
+    main_style.astroclock.font_2     = font_unscii_12;
+    main_style.astroclock.orbit_above = lv_color_make(184,184,184);
+    main_style.astroclock.orbit_below = lv_color_make(28,28,28);
+    main_style.astroclock.object_0  = lv_color_make(184,184,184); // Sun
+    main_style.astroclock.object_1  = lv_color_make(184,184,184); // Mercury
+    main_style.astroclock.object_2  = lv_color_make(184,184,184); // Venus
+    main_style.astroclock.object_3  = lv_color_make(184,184,184); // Earth
+    main_style.astroclock.object_4  = lv_color_make(184,184,184); // Luna
+    main_style.astroclock.object_5  = lv_color_make(184,184,184); // Mars
+    main_style.astroclock.object_6  = lv_color_make(184,184,184); // Jupiter
+    main_style.astroclock.object_7  = lv_color_make(184,184,184); // Saturn
+    main_style.astroclock.object_8  = lv_color_make(184,184,184); // Uranus
+    main_style.astroclock.object_9  = lv_color_make(184,184,184); // Neptune
+    main_style.astroclock.object_10 = lv_color_make(184,184,184); // Zodiac grid
+    main_style.astroclock.object_sun_altitude_line = lv_color_make(255,255,255);
+
+    main_style.starnav = {};
+    main_style.starnav.color_bg      = chrome.color_bg;
+    main_style.starnav.opa_bg        = chrome.opa_bg;
+    main_style.starnav.color_outline = chrome.color_outline;
+    main_style.starnav.outline_width = chrome.outline_width;
+    main_style.starnav.opa_outline   = chrome.opa_outline;
+    main_style.starnav.color_border  = chrome.color_border;
+
+    main_style.starnav.border_width  = 2;
+    main_style.starnav.opa_border    = chrome.opa_border;
+    main_style.starnav.color_shadow  = chrome.color_shadow;
+    main_style.starnav.shadow_width  = chrome.shadow_width;
+    main_style.starnav.opa_shadow    = chrome.opa_shadow;
+    main_style.starnav.radius_square  = chrome.radius_square;
+    main_style.starnav.radius_rounded = chrome.radius_rounded;
+    main_style.starnav.radius_circle  = chrome.radius_circle;
+    main_style.starnav.padall         = chrome.padall;
+    main_style.starnav.color_font = lv_color_make(255,255,255);
+    main_style.starnav.opa_font   = LV_OPA_100;
+    main_style.starnav.font_1     = font_unscii_12;
+    main_style.starnav.font_2     = font_unscii_12;
+    main_style.starnav.object_0  = lv_color_make(184,184,184); // Galaxy
+    main_style.starnav.object_1  = lv_color_make(184,184,184); // Cluster
+    main_style.starnav.object_2  = lv_color_make(184,184,184); // Nebula
+    main_style.starnav.object_3  = lv_color_make(184,184,184); // Star
+    main_style.starnav.object_4  = lv_color_make(184,184,184); // Unknown/default marker
+    main_style.starnav.object_5  = lv_color_make(184,184,184); // Gyro mode indicator
+    main_style.starnav.object_6  = lv_color_make(184,184,184); // Zenith mode indicator
+    main_style.starnav.object_7  = lv_color_make(184,184,184); // Ecliptic line
+    main_style.starnav.object_8  = lv_color_make(184,184,184); // reserved
+    main_style.starnav.object_9  = lv_color_make(184,184,184); // reserved
+    main_style.starnav.object_10 = lv_color_make(184,184,184); // reserved
+    main_style.starnav.scope_target = lv_color_make(255,255,255);
+
+    main_style.color_on  = lv_color_make(184,184,184);
+    main_style.color_off = lv_color_make(28,28,28);
+
+    main_style.color_knob_on  = lv_color_make(255,255,255);
+    main_style.color_knob_off = lv_color_make(28,28,28);
+
+    main_style.iterhue_hue_min = 205;
+    main_style.iterhue_hue_max = 220;
+    main_style.iterhue_sat = 10;
+    main_style.iterhue_val_min = 60;
+    main_style.iterhue_val_max = 100;
+    main_style.iterhue_step_deg = 1;
+    main_style.iterhue_current_hue = main_style.iterhue_hue_min;
+    CURRENT_UI_STYLE = UI_STYLE_THE_NULL_VOID;
+    iterHue();
+    start_iterhue_timer();
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Sets global color scheme to default color scheme.
+ * 
+ * Traversed beyond the colorful universe.
+ */
+void setStyleChromaticUniverse()
+{
+    main_style.name = "Chromatic Universe";
+
     ui_style_prop_t chrome = {};
     chrome.color_bg      = lv_color_make(0,0,0);
     chrome.opa_bg        = LV_OPA_100;
@@ -279,6 +418,7 @@ void setStyleTheNullVoid()
     main_style.iterhue_step_deg = 1;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
+    CURRENT_UI_STYLE = UI_STYLE_CHROMATIC_UNIVERSE;
     iterHue();
     start_iterhue_timer();
 }
@@ -415,6 +555,7 @@ void setStyleColorfulUniverse()
     main_style.iterhue_step_deg = 2;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
+    CURRENT_UI_STYLE = UI_STYLE_COLORFUL_UNIVERSE;
     iterHue();
     start_iterhue_timer();
 }
@@ -551,6 +692,7 @@ void setStyleTheAlien()
     main_style.iterhue_step_deg = 2;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
+    CURRENT_UI_STYLE = UI_STYLE_THE_ALIEN;
     iterHue();
     start_iterhue_timer();
 }
@@ -564,8 +706,6 @@ void setStyleKeystone()
 {
     main_style.name = "Keystone";
 
-    // Shared chrome (background/outline/border/shadow/geometry) applied to every category;
-    // only color_font/opa_font/font differ per category below.
     ui_style_prop_t chrome = {};
     chrome.color_bg      = lv_color_make(0,0,0);
     chrome.opa_bg        = LV_OPA_100;
@@ -638,8 +778,6 @@ void setStyleKeystone()
     main_style.astroclock.object_10 = lv_color_make(255,255,0);
     main_style.astroclock.object_sun_altitude_line = lv_color_make(255,255,0);
 
-    // Star Nav / Celestial Sphere (alien style: how UnidentifiedStudios_CelestialSphere.cpp
-    // currently hardcodes these -- not yet wired up to read from here, snapshotted as-is)
     main_style.starnav = {};
     main_style.starnav.color_bg      = chrome.color_bg;
     main_style.starnav.opa_bg        = chrome.opa_bg;
@@ -647,10 +785,7 @@ void setStyleKeystone()
     main_style.starnav.outline_width = chrome.outline_width;
     main_style.starnav.opa_outline   = chrome.opa_outline;
     main_style.starnav.color_border  = chrome.color_border;
-    // Unlike the categories above, starnav.border_width draws a real visible
-    // border (target/selection box, target data box, target connector line)
-    // rather than staying at 0 with outline carrying the frame, so it needs
-    // its own non-zero value here instead of copying chrome's.
+
     main_style.starnav.border_width  = 2;
     main_style.starnav.opa_border    = chrome.opa_border;
     main_style.starnav.color_shadow  = chrome.color_shadow;
@@ -664,7 +799,7 @@ void setStyleKeystone()
     main_style.starnav.opa_font   = LV_OPA_100;
     main_style.starnav.font_1     = font_unscii_12;
     main_style.starnav.font_2     = font_unscii_12;
-    // No dedicated starnav orbit color exists yet; mirrors astroclock's as the closest analog.
+
     main_style.starnav.object_0  = lv_color_make(255,255,0);   // COLOR_GROUP_GALAXY
     main_style.starnav.object_1  = lv_color_make(255,255,0);     // COLOR_GROUP_CLUSTER
     main_style.starnav.object_2  = lv_color_make(255,255,0);   // COLOR_GROUP_NEBULA
@@ -693,7 +828,7 @@ void setStyleKeystone()
     main_style.iterhue_step_deg = 2;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
-    // Seed immediately so nothing renders black before the timer's first tick.
+    CURRENT_UI_STYLE = UI_STYLE_KEYSTONE;
     iterHue();
     start_iterhue_timer();
 }
@@ -707,8 +842,6 @@ void setStyleDemonSlayer()
 {
     main_style.name = "Demon Slayer";
 
-    // Shared chrome (background/outline/border/shadow/geometry) applied to every category;
-    // only color_font/opa_font/font differ per category below.
     ui_style_prop_t chrome = {};
     chrome.color_bg      = lv_color_make(0,0,0);
     chrome.opa_bg        = LV_OPA_100;
@@ -746,8 +879,6 @@ void setStyleDemonSlayer()
     main_style.kb.opa_font   = LV_OPA_100;
     main_style.kb.font       = font_cobalt_alien_25;
 
-    // Astro Clock (alien style: how UnidentifiedStudios_AstroClock.cpp currently
-    // hardcodes these -- not yet wired up to read from here, snapshotted as-is)
     main_style.astroclock = {};
     main_style.astroclock.color_bg      = chrome.color_bg;
     main_style.astroclock.opa_bg        = chrome.opa_bg;
@@ -783,8 +914,6 @@ void setStyleDemonSlayer()
     main_style.astroclock.object_10 = lv_color_make(255,0,0);
     main_style.astroclock.object_sun_altitude_line = lv_color_make(255,0,0);
 
-    // Star Nav / Celestial Sphere (alien style: how UnidentifiedStudios_CelestialSphere.cpp
-    // currently hardcodes these -- not yet wired up to read from here, snapshotted as-is)
     main_style.starnav = {};
     main_style.starnav.color_bg      = chrome.color_bg;
     main_style.starnav.opa_bg        = chrome.opa_bg;
@@ -792,10 +921,7 @@ void setStyleDemonSlayer()
     main_style.starnav.outline_width = chrome.outline_width;
     main_style.starnav.opa_outline   = chrome.opa_outline;
     main_style.starnav.color_border  = chrome.color_border;
-    // Unlike the categories above, starnav.border_width draws a real visible
-    // border (target/selection box, target data box, target connector line)
-    // rather than staying at 0 with outline carrying the frame, so it needs
-    // its own non-zero value here instead of copying chrome's.
+
     main_style.starnav.border_width  = 2;
     main_style.starnav.opa_border    = chrome.opa_border;
     main_style.starnav.color_shadow  = chrome.color_shadow;
@@ -809,7 +935,7 @@ void setStyleDemonSlayer()
     main_style.starnav.opa_font   = LV_OPA_100;
     main_style.starnav.font_1     = font_unscii_12;
     main_style.starnav.font_2     = font_unscii_12;
-    // No dedicated starnav orbit color exists yet; mirrors astroclock's as the closest analog.
+
     main_style.starnav.object_0  = lv_color_make(255,0,0);   // COLOR_GROUP_GALAXY
     main_style.starnav.object_1  = lv_color_make(255,0,0);     // COLOR_GROUP_CLUSTER
     main_style.starnav.object_2  = lv_color_make(255,0,0);   // COLOR_GROUP_NEBULA
@@ -838,7 +964,7 @@ void setStyleDemonSlayer()
     main_style.iterhue_step_deg = 2;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
-    // Seed immediately so nothing renders black before the timer's first tick.
+    CURRENT_UI_STYLE = UI_STYLE_DEMON_SLAYER;
     iterHue();
     start_iterhue_timer();
 }
