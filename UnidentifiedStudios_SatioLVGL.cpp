@@ -12633,60 +12633,32 @@ display_settings_container_t create_display_settings_panel(
     lv_obj_set_size(result.lbl_title_theme, title_width, obj_height);
 
     /* ---------------------------------------------------------- */
-    /* Theme: NULL Void                                           */
+    /* Theme: Slate                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_theme_null_void = create_row(result.panel, sub_row_width, sub_row_height, false, false);
-    lv_obj_set_style_pad_column(row_theme_null_void, col_gap, LV_PART_MAIN);
+    lv_obj_t * row_theme_slate = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_theme_slate, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
-    lv_obj_set_flex_flow(row_theme_null_void, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_flow(row_theme_slate, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
-        row_theme_null_void,
+        row_theme_slate,
         LV_FLEX_ALIGN_CENTER,
         LV_FLEX_ALIGN_CENTER,
         LV_FLEX_ALIGN_CENTER
     );
 
-    // Button null_void
-    result.btn_theme_null_void = create_button(
-        row_theme_null_void,
+    // Button Slate
+    result.btn_theme_slate = create_button(
+        row_theme_slate,
         obj_w_0,
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "The NULL Void"
+        "Slate"
     );
 
-    lv_obj_set_size(result.btn_theme_null_void.panel, obj_w_0, obj_height);
-
-    /* ---------------------------------------------------------- */
-    /* Theme: Colorful Universe                                   */
-    /* ---------------------------------------------------------- */
-
-    lv_obj_t * row_theme_colorful_universe = create_row(result.panel, sub_row_width, sub_row_height, false, false);
-    lv_obj_set_style_pad_column(row_theme_colorful_universe, col_gap, LV_PART_MAIN);
-
-    // Adjust Flex
-    lv_obj_set_flex_flow(row_theme_colorful_universe, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(
-        row_theme_colorful_universe,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER
-    );
-
-    // Button null_void
-    result.btn_theme_colorful_universe = create_button(
-        row_theme_colorful_universe,
-        obj_w_0,
-        obj_height,
-        LV_ALIGN_CENTER,
-        0, 0,
-        "Colorful Universe"
-    );
-
-    lv_obj_set_size(result.btn_theme_colorful_universe.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.btn_theme_slate.panel, obj_w_0, obj_height);
 
     /* ---------------------------------------------------------- */
     /* Theme: Alien                                               */
@@ -12711,66 +12683,10 @@ display_settings_container_t create_display_settings_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "The Alien"
+        "Alien"
     );
 
     lv_obj_set_size(result.btn_theme_alien.panel, obj_w_0, obj_height);
-
-    /* ---------------------------------------------------------- */
-    /* Theme: Keystone                                            */
-    /* ---------------------------------------------------------- */
-
-    lv_obj_t * row_theme_keystone = create_row(result.panel, sub_row_width, sub_row_height, false, false);
-    lv_obj_set_style_pad_column(row_theme_keystone, col_gap, LV_PART_MAIN);
-
-    // Adjust Flex
-    lv_obj_set_flex_flow(row_theme_keystone, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(
-        row_theme_keystone,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER
-    );
-
-    // Button Alien
-    result.btn_theme_keystone = create_button(
-        row_theme_keystone,
-        obj_w_0,
-        obj_height,
-        LV_ALIGN_CENTER,
-        0, 0,
-        "Keystone"
-    );
-
-    lv_obj_set_size(result.btn_theme_keystone.panel, obj_w_0, obj_height);
-
-    /* ---------------------------------------------------------- */
-    /* Theme: Demon Slayer                                        */
-    /* ---------------------------------------------------------- */
-
-    lv_obj_t * row_theme_demon_slayer = create_row(result.panel, sub_row_width, sub_row_height, false, false);
-    lv_obj_set_style_pad_column(row_theme_demon_slayer, col_gap, LV_PART_MAIN);
-
-    // Adjust Flex
-    lv_obj_set_flex_flow(row_theme_demon_slayer, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(
-        row_theme_demon_slayer,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER,
-        LV_FLEX_ALIGN_CENTER
-    );
-
-    // Button Alien
-    result.btn_theme_demon_slayer = create_button(
-        row_theme_demon_slayer,
-        obj_w_0,
-        obj_height,
-        LV_ALIGN_CENTER,
-        0, 0,
-        "Demon Slayer"
-    );
-
-    lv_obj_set_size(result.btn_theme_demon_slayer.panel, obj_w_0, obj_height);
 
     return result;
 }
@@ -13478,72 +13394,19 @@ static void build_display_settings_screen()
     // Display Settings
     display_settings_c = create_display_settings_panel(
         settings_screen,   // parent
-        general_window_w_px,               // width px
-        general_window_h_px, // height px
+        200,               // width px
+        (general_panel_row_h_px*3)-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2), // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        true,             // show scrollbar
-        true,             // enable scrolling
+        false,             // show scrollbar
+        false,             // enable scrolling
         &main_style.title_1.font,     // font for titles,
         &main_style.subtitle_1.font   // font for text,
     );
 
-    lv_obj_add_event_cb(display_settings_c.btn_theme_null_void.button, btn_theme_null_void_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(display_settings_c.btn_theme_colorful_universe.button, btn_theme_colorful_universe_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(display_settings_c.btn_theme_slate.button, btn_theme_slate_event_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(display_settings_c.btn_theme_alien.button, btn_theme_alien_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(display_settings_c.btn_theme_keystone.button, btn_theme_keystone_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(display_settings_c.btn_theme_demon_slayer.button, btn_theme_demon_slayer_event_cb, LV_EVENT_CLICKED, NULL);
-}
-
-/** ---------------------------------------------------------------------------------------
- * @brief Event callback: switch to style and refresh the settings screen
- */
-void btn_theme_null_void_event_cb(lv_event_t * e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    setStyleTheNullVoid();
-    build_display_settings_screen();
-}
-
-/** ---------------------------------------------------------------------------------------
- * @brief Event callback: switch to style and refresh the settings screen
- */
-void btn_theme_colorful_universe_event_cb(lv_event_t * e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    setStyleColorfulUniverse();
-    build_display_settings_screen();
-}
-
-/** ---------------------------------------------------------------------------------------
- * @brief Event callback: switch to style and refresh the settings screen
- */
-void btn_theme_alien_event_cb(lv_event_t * e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    setStyleTheAlien();
-    build_display_settings_screen();
-}
-
-/** ---------------------------------------------------------------------------------------
- * @brief Event callback: switch to style and refresh the settings screen
- */
-void btn_theme_keystone_event_cb(lv_event_t * e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    setStyleKeystone();
-    build_display_settings_screen();
-}
-
-/** ---------------------------------------------------------------------------------------
- * @brief Event callback: switch to style and refresh the settings screen
- */
-void btn_theme_demon_slayer_event_cb(lv_event_t * e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    setStyleDemonSlayer();
-    build_display_settings_screen();
 }
 
 /** -------------------------------------------------------------------------------------
@@ -13560,6 +13423,28 @@ void display_settings_screen()
         return;
     }
 
+    build_display_settings_screen();
+}
+
+/** ---------------------------------------------------------------------------------------
+ * @brief Event callback: switch to the "Slate" theme and refresh the settings screen
+ *        immediately so the change is visible without navigating away and back.
+ */
+void btn_theme_slate_event_cb(lv_event_t * e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    setStyleDefaultSlate();
+    build_display_settings_screen();
+}
+
+/** ---------------------------------------------------------------------------------------
+ * @brief Event callback: switch to the "Alien" theme and refresh the settings screen
+ *        immediately so the change is visible without navigating away and back.
+ */
+void btn_theme_alien_event_cb(lv_event_t * e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    setStyleDefaultAlien();
     build_display_settings_screen();
 }
 
@@ -14935,7 +14820,7 @@ void initSatIOUI() {
     // --------------------------------------------------------------
     // Setup Styles
     // --------------------------------------------------------------
-    setStyleTheNullVoid();
+    setStyleDefaultSlate();
 
     // --------------------------------------------------------------
     // SD Card Initialization

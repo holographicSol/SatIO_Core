@@ -369,29 +369,14 @@ typedef struct {
 } label_pair_panel_t;
 
 /**
- * @brief Sets main style to scheme.
+ * @brief Sets main style to the "Slate" color scheme.
  */
-void setStyleTheNullVoid();
+void setStyleDefaultSlate();
 
 /**
- * @brief Sets main style to scheme.
+ * @brief Sets main style to the "Alien" color scheme.
  */
-void setStyleColorfulUniverse();
-
-/**
- * @brief Sets main style to scheme.
- */
-void setStyleTheAlien();
-
-/**
- * @brief Sets main style to scheme.
- */
-void setStyleKeystone();
-
-/**
- * @brief Sets main style to scheme.
- */
-void setStyleDemonSlayer();
+void setStyleDefaultAlien();
 
 /** -------------------------------------------------------------------------------------
  * @brief Advances main_style's hue-cycle phase by one step and writes the
@@ -401,7 +386,7 @@ void setStyleDemonSlayer();
  * The phase stays within [main_style.iterhue_hue_min, main_style.iterhue_hue_max]
  * at the scheme's fixed iterhue_sat, with value/brightness breathing between
  * iterhue_val_min/iterhue_val_max in step with that same phase (see
- * setStyleTheNullVoid()/setStyleTheAlien()) -- this is what gives a
+ * setStyleDefaultSlate()/setStyleDefaultAlien()) -- this is what gives a
  * sat=0 scheme like Slate visible motion (shimmering between silver and
  * white) even though hue itself is moot at zero saturation.
  *
