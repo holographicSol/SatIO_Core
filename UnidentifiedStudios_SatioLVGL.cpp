@@ -8206,6 +8206,98 @@ gyro_0_container_t create_gyro_panel(
     lv_obj_set_size(result.val_gyro_0_quat_y, obj_w_0, obj_height);
     lv_obj_set_size(result.val_gyro_0_quat_z, obj_w_0, obj_height);
 
+    /* ---------------------------------------------------------- */
+    /* Row 16: Rotation Vector (quaternion-rotated boresight)      */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_16 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_16, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_16, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_16,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Set row object widths
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
+
+    result.lbl_gyro_0_rvec_x = create_label(
+        row_16,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "RVEC",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_0_rvec_x = create_label(
+        row_16,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_0_rvec_y = create_label(
+        row_16,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_0_rvec_z = create_label(
+        row_16,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_0_rvec_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_rvec_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_rvec_y, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_rvec_z, obj_w_0, obj_height);
+
 #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
     /* ---------------------------------------------------------- */
     /* Row 18: Alignment Assist - Header (Gyro vs Zenith)         */
@@ -8635,7 +8727,7 @@ gyro_0_container_t create_gyro_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "Hold device upright & level. GYRO should\nmatch ZENITH (ALT ~90 deg). If not, run\nCAL ACC / CAL MAG.",
+        "Hold device upright & level. GYRO should\nmatch ZENITH (ALT ~90 deg). If not, run\nCAL ACC / CAL MAG, get a better gyro,\nand or refine the algorithm.",
         LV_TEXT_ALIGN_CENTER,
         &main_style.subtitle_1.font,
         false,
@@ -13829,7 +13921,7 @@ void display_gyro_screen()
     // on screen at once alongside the CAL ACC/CAL MAG panel below it.
     gyro_0_c = create_gyro_panel(
         gyro_screen,      // parent
-        650,              // width px
+        500,              // width px
         480,              // height px
         LV_ALIGN_TOP_MID, // alignment
         0,                // pos x
@@ -13845,7 +13937,7 @@ void display_gyro_screen()
         42,               // height px
         LV_ALIGN_BOTTOM_MID,  // alignment
         0,                // pos x
-        -100,              // pos y
+        -10,              // pos y
         false,            // show scrollbar
         false             // enable scrolling
     );
@@ -15291,6 +15383,13 @@ void update_display_lvgl()
             set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_x, String(gyroData.gyro_0_quaternion.x).c_str());
             set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_y, String(gyroData.gyro_0_quaternion.y).c_str());
             set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_z, String(gyroData.gyro_0_quaternion.z).c_str());
+
+            // ────────────────────────────────────────────────
+            // Rotation Vector (quaternion-rotated boresight)
+            // ────────────────────────────────────────────────
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_x, String(gyroData.gyro_0_quaternion.vx).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_y, String(gyroData.gyro_0_quaternion.vy).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_z, String(gyroData.gyro_0_quaternion.vz).c_str());
 
             #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
             // ────────────────────────────────────────────────

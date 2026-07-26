@@ -594,6 +594,12 @@ typedef struct {
     lv_obj_t * val_gyro_0_quat_y;
     lv_obj_t * val_gyro_0_quat_z;
 
+    // Rotation Vector (quaternion-rotated boresight, vx/vy/vz)
+    lv_obj_t * lbl_gyro_0_rvec_x;
+    lv_obj_t * val_gyro_0_rvec_x;
+    lv_obj_t * val_gyro_0_rvec_y;
+    lv_obj_t * val_gyro_0_rvec_z;
+
     // Alignment Assist (Gyro vs Zenith)
     lv_obj_t * lbl_gyro_align_hdr_gyro;
     lv_obj_t * lbl_gyro_align_hdr_zenith;
