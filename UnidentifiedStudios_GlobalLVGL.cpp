@@ -21,6 +21,91 @@ int32_t general_switch_w_px = 52;
 ui_style_t main_style;
 
 /** -------------------------------------------------------------------------------------
+ * @brief Advances *hue_phase by step_deg and ping-pongs it between hue_min
+ *        and hue_max (never wraps/jumps), converting to RGB at the given
+ *        fixed saturation and a value/brightness that breathes between
+ *        val_min/val_max in step with that same phase.
+ *
+ * A scheme (see setStyleDefaultSlate()/setStyleDefaultAlien()) pins hue_min/
+ * hue_max/sat to whatever range it wants its iterhue_color_* fields to stay
+ * within. Pinning sat to 0 makes every hue in the range resolve to an
+ * achromatic color regardless of the phase, which is how Slate restricts the
+ * cycle to white/silvery only -- the val breathing is what still gives that
+ * case visible motion, since the hue itself is invisible at zero saturation.
+ *
+ * @param hue_phase Caller-owned current phase in degrees (mutated in place).
+ * @param hue_min Lower bound of the allowed hue range, in degrees [0-359].
+ * @param hue_max Upper bound (inclusive) of that range, in degrees [0-359], >= hue_min.
+ * @param step_deg Degrees to advance the phase by this call.
+ * @param sat Saturation held fixed during the cycle, percent [0-100].
+ * @param val_min Lower bound of the value/brightness breath, percent [0-100].
+ * @param val_max Upper bound of that breath, percent [0-100], >= val_min (equal = constant).
+ * @return The resulting RGB color (white if hue_phase is null or the range is invalid).
+ */
+static lv_color_t iter_hue_in_range(int32_t * const hue_phase, int32_t hue_min, int32_t hue_max,
+                                     int32_t step_deg, uint8_t sat, uint8_t val_min, uint8_t val_max) {
+    lv_color_t result = lv_color_white();
+    const int32_t range = hue_max - hue_min;
+    const int32_t period = range * 2;
+    if ((hue_phase != nullptr) && (period > 0)) {
+        const int32_t advanced = *hue_phase + step_deg;
+        const int32_t phase = ((advanced % period) + period) % period;
+        *hue_phase = phase;
+
+        // Ping-pong phase into [0, range] instead of wrapping it, so hue eases
+        // up to hue_max then back down to hue_min and never jumps between them.
+        const int32_t triangle = (phase <= range) ? phase : (period - phase);
+        const int32_t hue = hue_min + triangle;
+
+        const float ratio = static_cast<float>(phase) / static_cast<float>(period);
+        const float breath = 0.5f - (0.5f * cosf(ratio * 2.0f * static_cast<float>(M_PI)));
+        const uint8_t val = static_cast<uint8_t>(
+            static_cast<float>(val_min) + (static_cast<float>(val_max - val_min) * breath));
+
+        result = lv_color_hsv_to_rgb(static_cast<uint16_t>(hue), sat, val);
+    }
+    return result;
+}
+
+void iterHue() {
+    const lv_color_t color = iter_hue_in_range(
+        &main_style.iterhue_current_hue,
+        main_style.iterhue_hue_min,
+        main_style.iterhue_hue_max,
+        main_style.iterhue_step_deg,
+        main_style.iterhue_sat,
+        main_style.iterhue_val_min,
+        main_style.iterhue_val_max
+    );
+
+    ui_style_prop_t * const categories[] = {
+        &main_style.title_1, &main_style.title_2,
+        &main_style.subtitle_1, &main_style.subtitle_2,
+        &main_style.value_1, &main_style.value_2,
+        &main_style.kb,
+    };
+    for (ui_style_prop_t * const category : categories) {
+        category->iterhue_color_bg      = color;
+        category->iterhue_color_outline = color;
+        category->iterhue_color_border  = color;
+        category->iterhue_color_shadow  = color;
+        category->iterhue_color_font    = color;
+    }
+
+    main_style.astroclock.iterhue_color_bg      = color;
+    main_style.astroclock.iterhue_color_outline = color;
+    main_style.astroclock.iterhue_color_border  = color;
+    main_style.astroclock.iterhue_color_shadow  = color;
+    main_style.astroclock.iterhue_color_font    = color;
+
+    main_style.starnav.iterhue_color_bg      = color;
+    main_style.starnav.iterhue_color_outline = color;
+    main_style.starnav.iterhue_color_border  = color;
+    main_style.starnav.iterhue_color_shadow  = color;
+    main_style.starnav.iterhue_color_font    = color;
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Sets global color scheme to default color scheme.
  */
 void setStyleDefaultSlate()
@@ -145,6 +230,21 @@ void setStyleDefaultSlate()
 
     main_style.color_knob_on  = lv_color_make(255,255,255);
     main_style.color_knob_off = lv_color_make(28,28,28);
+
+    // Icy blue-white: narrow hue band, low sat -- reads as white/silver with
+    // just a faint cool tint, not a visible color.
+    main_style.iterhue_hue_min = 205;
+    main_style.iterhue_hue_max = 220;
+    main_style.iterhue_sat = 10;
+    main_style.iterhue_val_min = 60;
+    main_style.iterhue_val_max = 100;
+    main_style.iterhue_step_deg = 1;
+    main_style.iterhue_current_hue = main_style.iterhue_hue_min;
+
+    // Seed every iterhue_color_* field with a real color immediately, rather
+    // than leaving them at zero-initialized black until update_display_lvgl()'s
+    // next call to iterHue() (see UnidentifiedStudios_SatioLVGL.cpp).
+    iterHue();
 }
 
 /** -------------------------------------------------------------------------------------
@@ -275,6 +375,24 @@ void setStyleDefaultAlien()
 
     main_style.color_knob_on  = lv_color_make(0,255,0);
     main_style.color_knob_off = lv_color_make(28,28,28);
+
+    // Hue-cycle range: green(120) through cyan(180) to blue(240), matching
+    // this scheme's own established accents (value=green, subtitle=cyan,
+    // title=blue) rather than sweeping through unrelated reds/yellows. val
+    // stays constant (min==max) -- full brightness throughout, no breathing --
+    // since only Slate's shimmer needed val motion to be visible at sat=0.
+    main_style.iterhue_hue_min = 120;
+    main_style.iterhue_hue_max = 240;
+    main_style.iterhue_sat = 100;
+    main_style.iterhue_val_min = 100;
+    main_style.iterhue_val_max = 100;
+    main_style.iterhue_step_deg = 2;
+    main_style.iterhue_current_hue = main_style.iterhue_hue_min;
+
+    // Seed every iterhue_color_* field with a real color immediately, rather
+    // than leaving them at zero-initialized black until update_display_lvgl()'s
+    // next call to iterHue() (see UnidentifiedStudios_SatioLVGL.cpp).
+    iterHue();
 }
 
 
@@ -1062,6 +1180,12 @@ void set_style_text_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t
 void set_style_outline_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part) {
     if ((obj != NULL) && !lv_color_eq(lv_obj_get_style_outline_color(obj, part), color)) {
         lv_obj_set_style_outline_color(obj, color, part);
+    }
+}
+
+void set_style_line_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part) {
+    if ((obj != NULL) && !lv_color_eq(lv_obj_get_style_line_color(obj, part), color)) {
+        lv_obj_set_style_line_color(obj, color, part);
     }
 }
 

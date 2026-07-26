@@ -1849,6 +1849,17 @@ void celestial_sphere_update(void) {
         // Current visual-mode marker size
         const int32_t marker_half = marker_visual_diameter_px(current_marker_visual_mode) / 2;
 
+        // Restyling every visible marker's iterhue color every single tick is
+        // needless per-marker LVGL style invalidation with up to
+        // MAX_CELESTIAL_SPHERE_OBJECTS on screen, so only 1/ITERHUE_BATCH_DIVISOR
+        // of them (round-robin by sweep position) get recolored per tick --
+        // the rest keep whatever iterhue value they last got, which staggers
+        // their phase against each other for a twinkling contrast effect
+        // instead of every marker shimmering in flat unison.
+        static constexpr int32_t ITERHUE_BATCH_DIVISOR = 8;
+        static int32_t iterhue_batch_phase = 0;
+        iterhue_batch_phase = (iterhue_batch_phase + 1) % ITERHUE_BATCH_DIVISOR;
+
         int32_t found_count = 0;
 
         // Per-candidate body, shared by every dec band/RA sub-range walked
@@ -1896,7 +1907,7 @@ void celestial_sphere_update(void) {
                     // however many markers are on screen this tick. Full re-identify
                     // still happens on click, for the data box (celestial_sphere_set_target()).
                     const SiderealObjectTypeEntry * const type_entry = sphere_entry_type[i];
-                    const lv_color_t color = object_type_color(type_entry);
+                    const bool in_iterhue_batch = ((found_count % ITERHUE_BATCH_DIVISOR) == iterhue_batch_phase);
                     if (marker_visual_mode_is_icon(current_marker_visual_mode)) {
                         const lv_image_dsc_t * const icon = (current_marker_visual_mode == MarkerVisualMode::ICON_16)
                             ? ((type_entry != nullptr) ? get_object_type_icon_16(type_entry->num) : nullptr)
@@ -1905,9 +1916,11 @@ void celestial_sphere_update(void) {
                             ? &object_type_icon_fallback_16
                             : &object_type_icon_fallback;
                         set_image_src_if_changed(marker->dot, (icon != nullptr) ? icon : fallback);
-                        set_style_image_recolor_if_changed(marker->dot, color, LV_PART_MAIN);
-                    } else {
-                        set_style_bg_color_if_changed(marker->dot, color, LV_PART_MAIN);
+                        if (in_iterhue_batch) {
+                            lv_obj_set_style_image_recolor(marker->dot, main_style.starnav.iterhue_color_bg, LV_PART_MAIN);
+                        }
+                    } else if (in_iterhue_batch) {
+                        lv_obj_set_style_bg_color(marker->dot, main_style.starnav.iterhue_color_bg, LV_PART_MAIN);
                     }
                     lv_obj_set_pos(marker->dot, marker->x, marker->y);
                     lv_obj_clear_flag(marker->dot, LV_OBJ_FLAG_HIDDEN);

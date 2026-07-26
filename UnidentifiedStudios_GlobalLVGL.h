@@ -253,6 +253,23 @@ typedef struct {
     lv_color_t      color_off;
     lv_color_t      color_knob_on;
     lv_color_t      color_knob_off;
+
+    // Hue-cycling ("iterhue") range for this scheme -- see iterHue() in
+    // UnidentifiedStudios_GlobalLVGL.cpp. iterHue() advances iterhue_current_hue
+    // by iterhue_step_deg, wraps it back into [iterhue_hue_min, iterhue_hue_max],
+    // and converts it to RGB at the fixed iterhue_sat and a value/brightness
+    // that breathes between iterhue_val_min/iterhue_val_max in step with the
+    // same hue phase. Pinning iterhue_sat to 0 makes every hue in the range
+    // resolve to an achromatic white/gray regardless of where the phase
+    // currently is, so a scheme (e.g. Slate) can restrict the cycle to
+    // white/silvery only while the val breathing still gives it visible motion.
+    int32_t iterhue_hue_min;     // 0-359
+    int32_t iterhue_hue_max;     // 0-359, >= iterhue_hue_min
+    uint8_t iterhue_sat;         // 0-100
+    uint8_t iterhue_val_min;     // 0-100
+    uint8_t iterhue_val_max;     // 0-100, >= iterhue_val_min (equal = constant, no breathing)
+    int32_t iterhue_step_deg;    // hue degrees advanced per iterHue() call
+    int32_t iterhue_current_hue; // current phase; iterHue() advances/wraps this
 } ui_style_t;
 
 extern ui_style_t main_style;
@@ -354,6 +371,33 @@ void setStyleDefaultSlate();
  * @brief Sets main style to the "Alien" color scheme.
  */
 void setStyleDefaultAlien();
+
+/** -------------------------------------------------------------------------------------
+ * @brief Advances main_style's hue-cycle phase by one step and writes the
+ *        resulting color into every iterhue_color_* field on every category
+ *        (title_1/2, subtitle_1/2, value_1/2, kb, astroclock, starnav).
+ *
+ * The phase stays within [main_style.iterhue_hue_min, main_style.iterhue_hue_max]
+ * at the scheme's fixed iterhue_sat, with value/brightness breathing between
+ * iterhue_val_min/iterhue_val_max in step with that same phase (see
+ * setStyleDefaultSlate()/setStyleDefaultAlien()) -- this is what gives a
+ * sat=0 scheme like Slate visible motion (shimmering between silver and
+ * white) even though hue itself is moot at zero saturation.
+ *
+ * Recomputes the color on every call (no throttling, no step-skipping) so
+ * every consumer's color changes every tick for a smooth, continuous gleam
+ * rather than a stepped one; consumers apply it with a plain, unconditional
+ * lv_obj_set_style_*_color() call rather than a set_style_*_color_if_changed()
+ * guard for the same reason -- the guard would just add a comparison ahead of
+ * a write that happens anyway, since the color is expected to differ every time.
+ *
+ * Called once per tick from update_display_lvgl() (see
+ * UnidentifiedStudios_SatioLVGL.cpp), which already runs on a recurring task
+ * -- don't also drive this from a separate timer, or the phase advances
+ * twice as fast as intended and duplicates work inside that task's
+ * bsp_display_lock()+dataMutex critical section for no benefit.
+ */
+void iterHue();
 
 /** -------------------------------------------------------------------------------------
  * @brief Create System Tray.
@@ -495,6 +539,7 @@ void set_style_text_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t
 void set_style_outline_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 void set_style_bg_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 void set_style_image_recolor_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
+void set_style_line_color_if_changed(lv_obj_t * obj, lv_color_t color, lv_part_t part);
 
 /** -------------------------------------------------------------------------------------
  * @brief Set a transform-rotation style prop only if it actually differs

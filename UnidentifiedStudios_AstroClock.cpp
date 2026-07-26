@@ -621,6 +621,11 @@ static void update_altitude_line(lv_obj_t * const altitude_line, const float alt
 void astro_clock_update(void) {
     if ((astro_container != nullptr) && !astro_spin_active) {
 
+        // Sun has no orbit/position of its own to update (it's the fixed
+        // center), so its iterhue refresh lives here rather than in a
+        // per-planet block below.
+        lv_obj_set_style_bg_color(sun.obj, main_style.astroclock.iterhue_color_bg, LV_PART_MAIN);
+
         // -----------------------------------------------------------------
         //                                                           MERCURY
         // -----------------------------------------------------------------
@@ -696,6 +701,8 @@ void astro_clock_update(void) {
             // when its inputs haven't changed since the last call.
             update_altitude_line(sun_altitude_line, altitde_angle, sun_altitude_points, static_cast<float>(earth.orbit_radius));
             lv_obj_clear_flag(sun_altitude_line, LV_OBJ_FLAG_HIDDEN);
+
+            lv_obj_set_style_bg_color(earth.obj, main_style.astroclock.iterhue_color_bg, LV_PART_MAIN);
 
             lv_obj_clear_flag(earth.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(earth.obj, LV_OBJ_FLAG_HIDDEN);
@@ -797,6 +804,8 @@ void astro_clock_update(void) {
                     luna.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_bg_color(luna.obj, main_style.astroclock.iterhue_color_bg, LV_PART_MAIN);
+
             lv_obj_clear_flag(luna.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(luna.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -879,6 +888,8 @@ void astro_clock_update(void) {
                     set_line_points_local(saturn_ring, saturn_ring_points, 2);
                 }
             }
+            lv_obj_set_style_line_color(saturn_ring, main_style.astroclock.iterhue_color_bg, LV_PART_MAIN);
+
             lv_obj_clear_flag(saturn.obj, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(saturn.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(saturn_ring, LV_OBJ_FLAG_HIDDEN);
@@ -2041,7 +2052,7 @@ void astro_clock_begin(
         uranus.obj = create_planet(astro_container, uranus.radius, uranus.color);
         saturn.obj = create_planet(astro_container, saturn.radius, saturn.color);
         saturn_ring = lv_line_create(astro_container);
-        lv_obj_set_style_line_color(saturn_ring, main_style.astroclock.object_7, LV_PART_MAIN);  // Matches Saturn's own tint
+        lv_obj_set_style_line_color(saturn_ring, main_style.astroclock.iterhue_color_bg, LV_PART_MAIN);  // Shimmers; refreshed each tick in astro_clock_update()
         lv_obj_set_style_line_width(saturn_ring, 2, LV_PART_MAIN);
         lv_obj_set_style_line_rounded(saturn_ring, true, LV_PART_MAIN);
         jupiter.obj = create_planet(astro_container, jupiter.radius, jupiter.color);
