@@ -221,6 +221,12 @@ typedef struct {
     lv_color_t object_9;
     lv_color_t object_10;
     lv_color_t scope_target;
+    // Per-type shimmer (galaxy/cluster/nebula/star), each wobbling in a
+    // narrow band around that same type's own object_0..3 hue -- see iterHue().
+    lv_color_t iterhue_object_0;
+    lv_color_t iterhue_object_1;
+    lv_color_t iterhue_object_2;
+    lv_color_t iterhue_object_3;
     lv_font_t  font_1;
     lv_font_t  font_2;
     int32_t radius_square;
@@ -363,14 +369,29 @@ typedef struct {
 } label_pair_panel_t;
 
 /**
- * @brief Sets main style to the "Slate" color scheme.
+ * @brief Sets main style to scheme.
  */
-void setStyleDefaultSlate();
+void setStyleTheNullVoid();
 
 /**
- * @brief Sets main style to the "Alien" color scheme.
+ * @brief Sets main style to scheme.
  */
-void setStyleDefaultAlien();
+void setStyleColorfulUniverse();
+
+/**
+ * @brief Sets main style to scheme.
+ */
+void setStyleTheAlien();
+
+/**
+ * @brief Sets main style to scheme.
+ */
+void setStyleKeystone();
+
+/**
+ * @brief Sets main style to scheme.
+ */
+void setStyleDemonSlayer();
 
 /** -------------------------------------------------------------------------------------
  * @brief Advances main_style's hue-cycle phase by one step and writes the
@@ -380,7 +401,7 @@ void setStyleDefaultAlien();
  * The phase stays within [main_style.iterhue_hue_min, main_style.iterhue_hue_max]
  * at the scheme's fixed iterhue_sat, with value/brightness breathing between
  * iterhue_val_min/iterhue_val_max in step with that same phase (see
- * setStyleDefaultSlate()/setStyleDefaultAlien()) -- this is what gives a
+ * setStyleTheNullVoid()/setStyleTheAlien()) -- this is what gives a
  * sat=0 scheme like Slate visible motion (shimmering between silver and
  * white) even though hue itself is moot at zero saturation.
  *
