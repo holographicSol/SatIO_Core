@@ -1856,7 +1856,7 @@ void celestial_sphere_update(void) {
         // the rest keep whatever iterhue value they last got, which staggers
         // their phase against each other for a twinkling contrast effect
         // instead of every marker shimmering in flat unison.
-        static constexpr int32_t ITERHUE_BATCH_DIVISOR = 8;
+        static constexpr int32_t ITERHUE_BATCH_DIVISOR = 2;
         static int32_t iterhue_batch_phase = 0;
         iterhue_batch_phase = (iterhue_batch_phase + 1) % ITERHUE_BATCH_DIVISOR;
 
