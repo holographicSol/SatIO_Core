@@ -1283,7 +1283,7 @@ static void taskUniverse(void *pvParameters) {
       // ------------------------------------------------
       // Zenith Ra/Dec
       // ------------------------------------------------
-      siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(0, 0, 0);
+      siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(0, 0, 1);
       esp_task_wdt_reset();
 
       #ifdef SatIO_USE_GYRO_0
@@ -1291,9 +1291,9 @@ static void taskUniverse(void *pvParameters) {
       // Gyro Ra/Dec
       // ------------------------------------------------
       siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
-        gyroData.gyro_0_quaternion.vx,  // roll
-        gyroData.gyro_0_quaternion.vy,  // pitch
-        gyroData.gyro_0_quaternion.vz   // yaw
+        gyroData.gyro_0_quaternion.vx,  // vector x (from roll)
+        gyroData.gyro_0_quaternion.vy,  // vector y (fom pitch)
+        gyroData.gyro_0_quaternion.vz   // vector z (from yaw)
       );
       esp_task_wdt_reset();
       #endif

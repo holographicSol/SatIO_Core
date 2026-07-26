@@ -586,6 +586,38 @@ typedef struct {
     lv_obj_t * val_gyro_0_mag_z;
     lv_obj_t * lbl_gyro_0_current_uiBaud;
     lv_obj_t * val_gyro_0_current_uiBaud;
+
+    // Quaternion (raw rotation vector, w/x/y/z)
+    lv_obj_t * lbl_gyro_0_quat_w;
+    lv_obj_t * val_gyro_0_quat_w;
+    lv_obj_t * val_gyro_0_quat_x;
+    lv_obj_t * val_gyro_0_quat_y;
+    lv_obj_t * val_gyro_0_quat_z;
+
+    // Alignment Assist (Gyro vs Zenith)
+    lv_obj_t * lbl_gyro_align_hdr_gyro;
+    lv_obj_t * lbl_gyro_align_hdr_zenith;
+
+    lv_obj_t * lbl_gyro_align_alt;
+    lv_obj_t * val_gyro_align_alt_gyro;
+    lv_obj_t * val_gyro_align_alt_zenith;
+
+    lv_obj_t * lbl_gyro_align_az;
+    lv_obj_t * val_gyro_align_az_gyro;
+    lv_obj_t * val_gyro_align_az_zenith;
+
+    lv_obj_t * lbl_gyro_align_ra;
+    lv_obj_t * val_gyro_align_ra_gyro;
+    lv_obj_t * val_gyro_align_ra_zenith;
+
+    lv_obj_t * lbl_gyro_align_dec;
+    lv_obj_t * val_gyro_align_dec_gyro;
+    lv_obj_t * val_gyro_align_dec_zenith;
+
+    lv_obj_t * lbl_gyro_align_err;
+    lv_obj_t * val_gyro_align_err;
+
+    lv_obj_t * lbl_gyro_align_instructions;
 } gyro_0_container_t;
 
 /** ---------------------------------------------------------------------------------------

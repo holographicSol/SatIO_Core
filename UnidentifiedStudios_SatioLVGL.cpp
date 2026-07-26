@@ -8096,6 +8096,557 @@ gyro_0_container_t create_gyro_panel(
     lv_obj_set_size(result.lbl_gyro_0_current_uiBaud, obj_w_0, obj_height);
     lv_obj_set_size(result.val_gyro_0_current_uiBaud, obj_w_0, obj_height);
 
+    /* ---------------------------------------------------------- */
+    /* Row 15: Quaternion (raw rotation vector)                   */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_15 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_15, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_15, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_15,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Set row object widths (5 cells: title + W/X/Y/Z)
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*4)) / 5;
+
+    result.lbl_gyro_0_quat_w = create_label(
+        row_15,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "QUAT",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_0_quat_w = create_label(
+        row_15,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_0_quat_x = create_label(
+        row_15,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_0_quat_y = create_label(
+        row_15,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_0_quat_z = create_label(
+        row_15,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_0_quat_w, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_quat_w, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_quat_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_quat_y, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_0_quat_z, obj_w_0, obj_height);
+
+#if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
+    /* ---------------------------------------------------------- */
+    /* Row 18: Alignment Assist - Header (Gyro vs Zenith)         */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_18 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_18, col_gap, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(row_18, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_18,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Set row object widths (3 cells: title + Gyro + Zenith)
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
+
+    lv_obj_t * lbl_align_spacer = create_label(
+        row_18,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ALIGN",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.lbl_gyro_align_hdr_gyro = create_label(
+        row_18,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "GYRO",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.lbl_gyro_align_hdr_zenith = create_label(
+        row_18,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ZENITH",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    lv_obj_set_size(lbl_align_spacer, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_align_hdr_gyro, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_align_hdr_zenith, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 21: Alignment Assist - Altitude                        */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_21 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_21, col_gap, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(row_21, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_21,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
+
+    result.lbl_gyro_align_alt = create_label(
+        row_21,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ALT",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_align_alt_gyro = create_label(
+        row_21,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_align_alt_zenith = create_label(
+        row_21,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_align_alt, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_alt_gyro, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_alt_zenith, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 24: Alignment Assist - Azimuth                         */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_24 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_24, col_gap, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(row_24, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_24,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
+
+    result.lbl_gyro_align_az = create_label(
+        row_24,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "AZ",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_align_az_gyro = create_label(
+        row_24,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_align_az_zenith = create_label(
+        row_24,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_align_az, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_az_gyro, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_az_zenith, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 27: Alignment Assist - Right Ascension                 */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_27 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_27, col_gap, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(row_27, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_27,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
+
+    result.lbl_gyro_align_ra = create_label(
+        row_27,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "RA",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_align_ra_gyro = create_label(
+        row_27,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_align_ra_zenith = create_label(
+        row_27,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_align_ra, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_ra_gyro, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_ra_zenith, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 30: Alignment Assist - Declination                     */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_30 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_30, col_gap, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(row_30, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_30,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
+
+    result.lbl_gyro_align_dec = create_label(
+        row_30,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "DEC",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_align_dec_gyro = create_label(
+        row_30,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    result.val_gyro_align_dec_zenith = create_label(
+        row_30,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_align_dec, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_dec_gyro, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_dec_zenith, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 33: Alignment Assist - Zenith Error (angular distance   */
+    /* from true zenith; the only stable single-number delta near  */
+    /* the zenith singularity, where Az/RA/Dec deltas are not).    */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_33 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_33, col_gap, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(row_33, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_33,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
+
+    result.lbl_gyro_align_err = create_label(
+        row_33,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ZEN ERR",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    result.val_gyro_align_err = create_label(
+        row_33,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.value_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_gyro_align_err, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_gyro_align_err, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 36: Alignment Assist - Instructions                    */
+    /* ---------------------------------------------------------- */
+
+    result.lbl_gyro_align_instructions = create_label(
+        result.panel,
+        sub_row_width,
+        sub_row_height*2,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "Hold device upright & level. GYRO should\nmatch ZENITH (ALT ~90 deg). If not, run\nCAL ACC / CAL MAG.",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        3,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+    lv_obj_set_size(result.lbl_gyro_align_instructions, sub_row_width, sub_row_height*2);
+#endif
+
     return result;
 }
 
@@ -13273,21 +13824,24 @@ void display_gyro_screen()
     create_default_screen_objects(gyro_screen);
 
     // Gyro
+    // NOTE: Fixed height (not sized to fit all rows) with scrolling enabled -
+    // the panel now holds more rows (Quaternion + Alignment Assist) than fit
+    // on screen at once alongside the CAL ACC/CAL MAG panel below it.
     gyro_0_c = create_gyro_panel(
         gyro_screen,      // parent
         650,              // width px
-        (general_panel_row_h_px*5)-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2), // height px
-        LV_ALIGN_CENTER,  // alignment
+        480,              // height px
+        LV_ALIGN_TOP_MID, // alignment
         0,                // pos x
-        0,                // pos y
-        false,             // show scrollbar
-        false              // enable scrolling
+        75,               // pos y
+        true,             // show scrollbar
+        true              // enable scrolling
     );
 
     // Calibration buttons (CAL ACC + CAL MAG)
     gyro_cal_c = create_cal_gyro_panel(
         gyro_screen,      // parent
-        200,              // width px
+        360,              // width px
         42,               // height px
         LV_ALIGN_BOTTOM_MID,  // alignment
         0,                // pos x
@@ -14729,6 +15283,36 @@ void update_display_lvgl()
             // Current UI Baud Rate
             // ────────────────────────────────────────────────
             set_label_text_if_changed(gyro_0_c.val_gyro_0_current_uiBaud, String(gyroData.gyro_0_current_uiBaud).c_str());
+
+            // ────────────────────────────────────────────────
+            // Quaternion (raw rotation vector)
+            // ────────────────────────────────────────────────
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_w, String(gyroData.gyro_0_quaternion.w).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_x, String(gyroData.gyro_0_quaternion.x).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_y, String(gyroData.gyro_0_quaternion.y).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_0_quat_z, String(gyroData.gyro_0_quaternion.z).c_str());
+
+            #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
+            // ────────────────────────────────────────────────
+            // Alignment Assist (Gyro vs Zenith)
+            // ────────────────────────────────────────────────
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_alt_gyro, String(siderealPlanetData.gyro_0_sidereal_attitude.alt).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_alt_zenith, String(siderealPlanetData.local_sidereal_attitude.alt).c_str());
+
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_az_gyro, String(siderealPlanetData.gyro_0_sidereal_attitude.az).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_az_zenith, String(siderealPlanetData.local_sidereal_attitude.az).c_str());
+
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_ra_gyro, siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_ra_zenith, siderealPlanetData.local_sidereal_attitude.formatted_ra_str);
+
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_dec_gyro, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_dec_zenith, siderealPlanetData.local_sidereal_attitude.formatted_dec_str);
+
+            // Angular distance from true zenith - the stable, single-number
+            // delta near the zenith singularity (Az/RA deltas are not).
+            double zenith_error_deg = fabs(90.0 - siderealPlanetData.gyro_0_sidereal_attitude.alt);
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_err, String(zenith_error_deg).c_str());
+            #endif
         }
     }
 
