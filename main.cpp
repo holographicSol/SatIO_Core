@@ -480,7 +480,7 @@ extern "C" void app_main(void)
      */
     #ifdef SatIO_DISPLAY_OPTION_LVGL
     printf("pre-building celestial sphere catalog\n");
-    celestial_sphere_prebuild();
+    // celestial_sphere_prebuild();
     #endif
 
     // SatIO Serial Tx

@@ -33,11 +33,6 @@ LV_FONT_DECLARE(font_unscii_12);
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
-// MISRA: each object below has internal linkage (static) because nothing
-// outside this translation unit references it; only celestial_sphere_begin,
-// celestial_sphere_end, celestial_sphere_update, celestial_sphere_set_mode
-// and celestial_sphere_set_target are part of the public interface declared
-// in UnidentifiedStudios_CelestialSphere.h.
 
 // Dimensions of the scope
 static int32_t SCOPE_WIDTH  = 480;
@@ -139,7 +134,8 @@ static CelestialSphereMode current_mode = CELESTIAL_SPHERE_MODE_GYRO;
 // or an encoded body index (see encode_body_target()), -1 = none.
 static int32_t current_target_index = -1;
 
-static constexpr int32_t SELECTION_BOX_LINE_WIDTH = 2;
+// Target/selection stroke width now comes from main_style.starnav.border_width
+// (see UnidentifiedStudios_GlobalLVGL.cpp) instead of a local constant here.
 static constexpr int32_t ECLIPTIC_LINE_WIDTH = 2;
 static constexpr int32_t CROSSHAIR_LINE_WIDTH = 3;
 static constexpr int32_t CROSSHAIR_ARM_LEN_PX = 14;
@@ -181,18 +177,9 @@ static constexpr lv_opa_t CONTAINER_OPA = LV_OPA_70;
 // ============================================================================
 // COLORS
 // ============================================================================
-static const lv_color_t COLOR_MARKER      = lv_color_make(128, 128, 128);
-static const lv_color_t COLOR_TARGET      = lv_color_make(255, 0, 0);
-static const lv_color_t COLOR_MODE_GYRO   = lv_color_make( 0, 255, 0);
-static const lv_color_t COLOR_MODE_ZENITH = lv_color_make( 255, 0, 0);
-// Conventional sky-chart ecliptic-line color; distinct from every
-// COLOR_BODY_* below (closest is COLOR_BODY_SUN's plain yellow).
-static const lv_color_t COLOR_ECLIPTIC    = lv_color_make(255, 140, 0);
-
-static const lv_color_t COLOR_GROUP_GALAXY  = lv_color_make(255, 0, 255);
-static const lv_color_t COLOR_GROUP_CLUSTER = lv_color_make(0, 255, 0);
-static const lv_color_t COLOR_GROUP_NEBULA  = lv_color_make(0, 255, 255);
-static const lv_color_t COLOR_GROUP_STAR    = lv_color_make(255, 255, 0);
+// All colors below now come from main_style.starnav (see
+// UnidentifiedStudios_GlobalLVGL.cpp) so they follow the active color scheme;
+// this file no longer holds its own static color constants for them.
 
 // MISRA: a named enum (not raw ints) identifies the 4 object-type families so
 // object_type_color()'s switch can enumerate every case explicitly.
@@ -249,46 +236,29 @@ static ObjectTypeGroup object_type_group(const int32_t type_num) {
 }
 
 // Returns the marker tint for a swept object's resolved type entry, falling
-// back to COLOR_MARKER when the object has no objectType[] entry at all or
+// back to main_style.starnav.object_4 when the object has no objectType[] entry at all or
 // its num doesn't map to one of the 4 families.
 static lv_color_t object_type_color(const SiderealObjectTypeEntry * const type_entry) {
-    lv_color_t result = COLOR_MARKER;
+    lv_color_t result = main_style.starnav.object_4;
     if (type_entry != nullptr) {
         switch (object_type_group(type_entry->num)) {
             case ObjectTypeGroup::GALAXY:
-                result = COLOR_GROUP_GALAXY;
+                result = main_style.starnav.object_0;
                 break;
             case ObjectTypeGroup::CLUSTER:
-                result = COLOR_GROUP_CLUSTER;
+                result = main_style.starnav.object_1;
                 break;
             case ObjectTypeGroup::NEBULA:
-                result = COLOR_GROUP_NEBULA;
+                result = main_style.starnav.object_2;
                 break;
             case ObjectTypeGroup::STAR:
-                result = COLOR_GROUP_STAR;
+                result = main_style.starnav.object_3;
                 break;
             case ObjectTypeGroup::UNKNOWN:
             default:
-                result = COLOR_MARKER;
+                result = main_style.starnav.object_4;
                 break;
         }
-    }
-    return result;
-}
-
-// Returns the boresight indicator color for the given mode.
-static lv_color_t mode_color(const CelestialSphereMode mode) {
-    lv_color_t result = COLOR_MODE_GYRO;
-    switch (mode) {
-        case CELESTIAL_SPHERE_MODE_ZENITH:
-            result = COLOR_MODE_ZENITH;
-            break;
-        case CELESTIAL_SPHERE_MODE_GYRO:
-            result = COLOR_MODE_GYRO;
-            break;
-        default:
-            // Unreachable: every enumerator is handled above.
-            break;
     }
     return result;
 }
@@ -322,7 +292,7 @@ static bool sphere_built = false;
 // checkAltCatalogs()'s ~600-entry Messier/Caldwell/Herschel scan and an up-to-7840-entry
 // NGC/IC name-table scan -- for every visible marker on every single tick forever, even
 // though the answer can never change. nullptr means "no objectType[] entry" (object_type_
-// color() already treats that as COLOR_MARKER).
+// color() already treats that as main_style.starnav.object_4).
 EXT_RAM_BSS_ATTR static const SiderealObjectTypeEntry * sphere_entry_type[SIDEREAL_SPHERE_TOTAL_OBJECTS];
 
 // ----------------------------------------------------------------------------
@@ -590,31 +560,22 @@ static constexpr int32_t CELESTIAL_BODY_COUNT = static_cast<int32_t>(CelestialBo
 
 static ObjectMarker body_markers[CELESTIAL_BODY_COUNT];
 
-// Colors mirror each Planet.color assignment in astro_clock_begin()
-// (UnidentifiedStudios_AstroClock.cpp), so the same body reads the same tint
-// on both views.
-static const lv_color_t COLOR_BODY_SUN     = lv_color_make(255, 255,   0);
-static const lv_color_t COLOR_BODY_LUNA    = lv_color_make(128, 128, 128);
-static const lv_color_t COLOR_BODY_MERCURY = lv_color_make(255,   0, 255);
-static const lv_color_t COLOR_BODY_VENUS   = lv_color_make(180, 180,   0);
-static const lv_color_t COLOR_BODY_MARS    = lv_color_make(255,   0,   0);
-static const lv_color_t COLOR_BODY_JUPITER = lv_color_make(128, 128, 128);
-static const lv_color_t COLOR_BODY_SATURN  = lv_color_make(210, 210,   0);
-static const lv_color_t COLOR_BODY_URANUS  = lv_color_make(  0, 255, 255);
-static const lv_color_t COLOR_BODY_NEPTUNE = lv_color_make(255,   0, 255);
-
+// Colors come from main_style.astroclock (see UnidentifiedStudios_GlobalLVGL.cpp),
+// the same category astro_clock_begin() (UnidentifiedStudios_AstroClock.cpp)
+// assigns each Planet.color from, so the same body reads the same tint on both
+// views and both follow the active color scheme together.
 static lv_color_t body_color(const CelestialBody body) {
-    lv_color_t result = COLOR_MARKER;
+    lv_color_t result = main_style.starnav.object_4;
     switch (body) {
-        case CelestialBody::SUN:     result = COLOR_BODY_SUN;     break;
-        case CelestialBody::LUNA:    result = COLOR_BODY_LUNA;    break;
-        case CelestialBody::MERCURY: result = COLOR_BODY_MERCURY; break;
-        case CelestialBody::VENUS:   result = COLOR_BODY_VENUS;   break;
-        case CelestialBody::MARS:    result = COLOR_BODY_MARS;    break;
-        case CelestialBody::JUPITER: result = COLOR_BODY_JUPITER; break;
-        case CelestialBody::SATURN:  result = COLOR_BODY_SATURN;  break;
-        case CelestialBody::URANUS:  result = COLOR_BODY_URANUS;  break;
-        case CelestialBody::NEPTUNE: result = COLOR_BODY_NEPTUNE; break;
+        case CelestialBody::SUN:     result = main_style.astroclock.object_0; break;
+        case CelestialBody::LUNA:    result = main_style.astroclock.object_4; break;
+        case CelestialBody::MERCURY: result = main_style.astroclock.object_1; break;
+        case CelestialBody::VENUS:   result = main_style.astroclock.object_2; break;
+        case CelestialBody::MARS:    result = main_style.astroclock.object_5; break;
+        case CelestialBody::JUPITER: result = main_style.astroclock.object_6; break;
+        case CelestialBody::SATURN:  result = main_style.astroclock.object_7; break;
+        case CelestialBody::URANUS:  result = main_style.astroclock.object_8; break;
+        case CelestialBody::NEPTUNE: result = main_style.astroclock.object_9; break;
         case CelestialBody::COUNT:
         default:
             // Unreachable: every enumerator other than COUNT is handled above.
@@ -1320,8 +1281,8 @@ static lv_obj_t * create_selection_box(lv_obj_t * const parent, const int32_t si
         } else {
             lv_obj_remove_style_all(box);
             lv_obj_set_size(box, size + SELECTION_BOX_PADDING_PX, size + SELECTION_BOX_PADDING_PX);
-            lv_obj_set_style_border_width(box, SELECTION_BOX_LINE_WIDTH, 0);
-            lv_obj_set_style_border_color(box, COLOR_TARGET, 0);
+            lv_obj_set_style_border_width(box, main_style.starnav.border_width, 0);
+            lv_obj_set_style_border_color(box, main_style.starnav.scope_target, 0);
             lv_obj_set_style_bg_opa(box, LV_OPA_TRANSP, 0);
             lv_obj_add_flag(box, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(box, LV_OBJ_FLAG_SCROLLABLE);
@@ -1379,7 +1340,7 @@ static void set_marker_visual_mode(const MarkerVisualMode mode) {
                 lv_obj_del(markers[i].dot);
                 markers[i].dot = nullptr;
             }
-            markers[i].dot = create_marker_for_mode(celestial_sphere_container, mode, COLOR_MARKER);
+            markers[i].dot = create_marker_for_mode(celestial_sphere_container, mode, main_style.starnav.object_4);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
@@ -1505,8 +1466,8 @@ static void update_target_data_content(const int32_t object_index) {
 
         lv_obj_clean(target_data_box);
         lv_obj_t * const label = lv_label_create(target_data_box);
-        lv_obj_set_style_text_font(label, &font_unscii_12, LV_PART_MAIN);
-        lv_obj_set_style_text_color(label, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_text_font(label, &main_style.starnav.font_1, LV_PART_MAIN);
+        lv_obj_set_style_text_color(label, main_style.starnav.color_font, LV_PART_MAIN);
 
         char buf[768];
         snprintf(buf, sizeof(buf),
@@ -1546,8 +1507,8 @@ static void update_body_target_data_content(const CelestialBody body) {
     if (target_data_box != nullptr) {
         lv_obj_clean(target_data_box);
         lv_obj_t * const label = lv_label_create(target_data_box);
-        lv_obj_set_style_text_font(label, &font_unscii_12, LV_PART_MAIN);
-        lv_obj_set_style_text_color(label, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_text_font(label, &main_style.starnav.font_1, LV_PART_MAIN);
+        lv_obj_set_style_text_color(label, main_style.starnav.color_font, LV_PART_MAIN);
 
         const BodyReadout data = body_readout(body);
         char buf[384];
@@ -1836,44 +1797,6 @@ void celestial_sphere_set_target(const int32_t object_index) {
             lv_obj_clear_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
         }
     }
-}
-
-// ============================================================================
-// SET MODE
-// ============================================================================
-void celestial_sphere_set_mode(const CelestialSphereMode mode) {
-    current_mode = mode;
-    const lv_color_t color = mode_color(mode);
-
-    // Crosshair + its readout labels are disabled for perf measurement (see
-    // celestial_sphere_begin()) -- commented out here to match, not deleted.
-    if (crosshair_h != nullptr) {
-        lv_obj_set_style_line_color(crosshair_h, color, 0);
-    }
-    if (crosshair_v != nullptr) {
-        lv_obj_set_style_line_color(crosshair_v, color, 0);
-    }
-    if (crosshair_box != nullptr) {
-        lv_obj_set_style_border_color(crosshair_box, color, 0);
-    }
-    if (crosshair_alt_value_label != nullptr) {
-        lv_obj_set_style_text_color(crosshair_alt_value_label, color, 0);
-    }
-    if (crosshair_az_value_label != nullptr) {
-        lv_obj_set_style_text_color(crosshair_az_value_label, color, 0);
-    }
-    if (crosshair_ra_value_label != nullptr) {
-        lv_obj_set_style_text_color(crosshair_ra_value_label, color, 0);
-    }
-    if (crosshair_dec_value_label != nullptr) {
-        lv_obj_set_style_text_color(crosshair_dec_value_label, color, 0);
-    }
-    if (crosshair_constellation_value_label != nullptr) {
-        lv_obj_set_style_text_color(crosshair_constellation_value_label, color, 0);
-    }
-    (void)color;
-
-    celestial_sphere_update();
 }
 
 // ============================================================================
@@ -2342,22 +2265,22 @@ void celestial_sphere_begin(
         lv_obj_align(scope_container, LV_ALIGN_CENTER, 0, 0);
 
         // Scope style: radius
-        lv_obj_set_style_radius(scope_container, general_radius, LV_PART_MAIN);
+        lv_obj_set_style_radius(scope_container, main_style.title_1.radius_square, LV_PART_MAIN);
 
         // Scope style: outline
-        lv_obj_set_style_outline_width(scope_container, 3, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(scope_container, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_outline_width(scope_container, main_style.title_1.outline_width, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(scope_container, main_style.title_1.color_outline, LV_PART_MAIN);
 
         // Scope style: border
-        lv_obj_set_style_border_width(scope_container, border_width, LV_PART_MAIN);
-        lv_obj_set_style_border_color(scope_container, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_width(scope_container, main_style.title_1.border_width, LV_PART_MAIN);
+        lv_obj_set_style_border_color(scope_container, main_style.title_1.color_border, LV_PART_MAIN);
 
         // Scope style: background
-        lv_obj_set_style_bg_color(scope_container, default_bg_title_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(scope_container, main_style.title_1.color_bg, LV_PART_MAIN);
 
         // Scope style: shadow
-        lv_obj_set_style_shadow_width(scope_container, shadow_width, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(scope_container, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_width(scope_container, main_style.title_1.shadow_width, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(scope_container, main_style.title_1.color_shadow, LV_PART_MAIN);
 
         // Scope style: No scroll
         lv_obj_remove_flag(scope_container, LV_OBJ_FLAG_SCROLLABLE);
@@ -2382,7 +2305,7 @@ void celestial_sphere_begin(
             LV_ALIGN_TOP_LEFT,                              // alignment
             scope_left_px+40,                                  // pos_x
             scope_top_px - label_h_px - SCOPE_OUTSIDE_GAP_PX,        // pos_y
-            radius_rounded,                 // radius
+            main_style.title_1.radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
             1,                              // outline_padding
@@ -2393,8 +2316,6 @@ void celestial_sphere_begin(
             label_h_px,                             // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
-            &font_cobalt_alien_17,          // font_title
-            &font_cobalt_alien_17,          // font_sub
             "OBJECTS",                      // label_0_text
             ""                              // label_1_text: filled by update_objects_found_label()
         );
@@ -2420,10 +2341,9 @@ void celestial_sphere_begin(
                 scan_row_y - label_h_px - SCOPE_OUTSIDE_GAP_PX,
                 "",
                 LV_TEXT_ALIGN_CENTER,
-                &font_cobalt_alien_17,
-                false, false, false,
-                2, general_radius, 1,
-                default_bg_hue, default_subtitle_hue
+                &main_style.subtitle_1.font,
+                false, main_style.title_1.radius_square, 1,
+                main_style.title_1.color_bg, main_style.subtitle_1.color_font
             );
             lv_obj_add_flag(scan_delta_value_label, LV_OBJ_FLAG_HIDDEN);
 
@@ -2434,7 +2354,7 @@ void celestial_sphere_begin(
                 LV_ALIGN_TOP_LEFT,
                 scope_right_px - scan_row_width_px - 20,
                 scan_row_y,
-                &font_cobalt_alien_17
+                &main_style.subtitle_1.font
             );
             lv_dropdown_add_option(scan_table_dropdown, "STAR", LV_DROPDOWN_POS_LAST);
             lv_dropdown_add_option(scan_table_dropdown, "NGC", LV_DROPDOWN_POS_LAST);
@@ -2460,10 +2380,9 @@ void celestial_sphere_begin(
                 scan_row_y,
                 "SCAN",
                 LV_TEXT_ALIGN_CENTER,
-                &font_cobalt_alien_17,
-                false, false, false,
-                2, general_radius, 1,
-                default_bg_hue, default_subtitle_hue
+                &main_style.subtitle_1.font,
+                false, main_style.title_1.radius_square, 1,
+                main_style.title_1.color_bg, main_style.subtitle_1.color_font
             );
             lv_obj_add_flag(scan_number_label, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_add_event_cb(scan_number_label, set_keyboard_context_cb, LV_EVENT_CLICKED, nullptr);
@@ -2507,7 +2426,7 @@ void celestial_sphere_begin(
             LV_ALIGN_TOP_MID,                      // alignment
             0,                          // pos_x
             scope_bottom_px + SCOPE_OUTSIDE_GAP_PX, // pos_y
-            radius_rounded,                 // radius
+            main_style.title_1.radius_rounded,                 // radius
             1,                              // outer_pad_all
             1,                              // inner_pad_all
             1,                              // outline_padding
@@ -2518,8 +2437,6 @@ void celestial_sphere_begin(
             SCOPE_OUTSIDE_STEPPER_HEIGHT_PX, // row_height
             false,                          // show_scrollbar
             false,                          // enable_scrolling
-            &font_cobalt_alien_25,          // font_title
-            &font_cobalt_alien_17,          // font_sub
             "DEG",                          // title_text
             ""                              // value_text
         );
@@ -2535,8 +2452,9 @@ void celestial_sphere_begin(
     // commented out here (and at every other reference to these objects),
     // not deleted.
     if (ok) {
+
         crosshair_h = lv_line_create(celestial_sphere_container);
-        lv_obj_set_style_line_color(crosshair_h, mode_color(current_mode), 0);
+        lv_obj_set_style_line_color(crosshair_h, main_style.starnav.scope_target, 0);
         lv_obj_set_style_line_width(crosshair_h, CROSSHAIR_LINE_WIDTH, 0);
         crosshair_h_points[0].x = SCOPE_CENTER_X - CROSSHAIR_ARM_LEN_PX;
         crosshair_h_points[0].y = SCOPE_CENTER_Y;
@@ -2545,7 +2463,7 @@ void celestial_sphere_begin(
         lv_line_set_points(crosshair_h, crosshair_h_points, 2);
     
         crosshair_v = lv_line_create(celestial_sphere_container);
-        lv_obj_set_style_line_color(crosshair_v, mode_color(current_mode), 0);
+        lv_obj_set_style_line_color(crosshair_v, main_style.starnav.scope_target, 0);
         lv_obj_set_style_line_width(crosshair_v, CROSSHAIR_LINE_WIDTH, 0);
         crosshair_v_points[0].x = SCOPE_CENTER_X;
         crosshair_v_points[0].y = SCOPE_CENTER_Y - CROSSHAIR_ARM_LEN_PX;
@@ -2566,59 +2484,59 @@ void celestial_sphere_begin(
         lv_obj_set_style_border_width(crosshair_box, 0, 0);
     
         lv_obj_set_style_outline_width(crosshair_box, 3, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(crosshair_box, lv_color_make(0, 255, 0), LV_PART_MAIN);
+        lv_obj_set_style_outline_color(crosshair_box, main_style.starnav.scope_target, LV_PART_MAIN);
     
         lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_remove_flag(crosshair_box, LV_OBJ_FLAG_CLICKABLE);
     
         crosshair_constellation_value_label = lv_label_create(celestial_sphere_container);
-        lv_obj_set_style_text_font(crosshair_constellation_value_label, &font_cobalt_alien_17, 0);
-        lv_obj_set_style_text_color(crosshair_constellation_value_label, mode_color(current_mode), 0);
+        lv_obj_set_style_text_font(crosshair_constellation_value_label, &main_style.value_1.font, 0);
+        lv_obj_set_style_text_color(crosshair_constellation_value_label, main_style.starnav.scope_target, 0);
         lv_obj_set_width(crosshair_constellation_value_label, CROSSHAIR_CONSTELLATION_VALUE_WIDTH_PX);
         lv_obj_set_style_text_align(crosshair_constellation_value_label, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_align_to(crosshair_constellation_value_label, crosshair_box, LV_ALIGN_OUT_TOP_MID,
                          0, -CROSSHAIR_BOX_LABEL_GAP_PX);
-        lv_obj_set_style_bg_color(crosshair_constellation_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(crosshair_constellation_value_label, main_style.title_1.color_bg, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_constellation_value_label, LV_OPA_70, LV_PART_MAIN);
     
         crosshair_alt_value_label = lv_label_create(celestial_sphere_container);
-        lv_obj_set_style_text_font(crosshair_alt_value_label, &font_cobalt_alien_17, 0);
-        lv_obj_set_style_text_color(crosshair_alt_value_label, mode_color(current_mode), 0);
+        lv_obj_set_style_text_font(crosshair_alt_value_label, &main_style.value_1.font, 0);
+        lv_obj_set_style_text_color(crosshair_alt_value_label, main_style.starnav.scope_target, 0);
         lv_obj_set_width(crosshair_alt_value_label, CROSSHAIR_ALTAZ_VALUE_WIDTH_PX);
         lv_obj_set_style_text_align(crosshair_alt_value_label, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_align_to(crosshair_alt_value_label, crosshair_box, LV_ALIGN_OUT_LEFT_TOP,
                          -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
-        lv_obj_set_style_bg_color(crosshair_alt_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(crosshair_alt_value_label, main_style.title_1.color_bg, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_alt_value_label, LV_OPA_70, LV_PART_MAIN);
     
         crosshair_az_value_label = lv_label_create(celestial_sphere_container);
-        lv_obj_set_style_text_font(crosshair_az_value_label, &font_cobalt_alien_17, 0);
-        lv_obj_set_style_text_color(crosshair_az_value_label, mode_color(current_mode), 0);
+        lv_obj_set_style_text_font(crosshair_az_value_label, &main_style.value_1.font, 0);
+        lv_obj_set_style_text_color(crosshair_az_value_label, main_style.starnav.scope_target, 0);
         lv_obj_set_width(crosshair_az_value_label, CROSSHAIR_ALTAZ_VALUE_WIDTH_PX);
         lv_obj_set_style_text_align(crosshair_az_value_label, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_align_to(crosshair_az_value_label, crosshair_box, LV_ALIGN_OUT_LEFT_BOTTOM,
                          -CROSSHAIR_BOX_LABEL_GAP_PX, 0);
-        lv_obj_set_style_bg_color(crosshair_az_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(crosshair_az_value_label, main_style.title_1.color_bg, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_az_value_label, LV_OPA_70, LV_PART_MAIN);
     
         crosshair_ra_value_label = lv_label_create(celestial_sphere_container);
-        lv_obj_set_style_text_font(crosshair_ra_value_label, &font_cobalt_alien_17, 0);
-        lv_obj_set_style_text_color(crosshair_ra_value_label, mode_color(current_mode), 0);
+        lv_obj_set_style_text_font(crosshair_ra_value_label, &main_style.value_1.font, 0);
+        lv_obj_set_style_text_color(crosshair_ra_value_label, main_style.starnav.scope_target, 0);
         lv_obj_set_width(crosshair_ra_value_label, CROSSHAIR_RADEC_VALUE_WIDTH_PX);
         lv_obj_set_style_text_align(crosshair_ra_value_label, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_align_to(crosshair_ra_value_label, crosshair_box, LV_ALIGN_OUT_RIGHT_TOP,
                          CROSSHAIR_BOX_LABEL_GAP_PX, 0);
-        lv_obj_set_style_bg_color(crosshair_ra_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(crosshair_ra_value_label, main_style.title_1.color_bg, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_ra_value_label, LV_OPA_70, LV_PART_MAIN);
     
         crosshair_dec_value_label = lv_label_create(celestial_sphere_container);
-        lv_obj_set_style_text_font(crosshair_dec_value_label, &font_cobalt_alien_17, 0);
-        lv_obj_set_style_text_color(crosshair_dec_value_label, mode_color(current_mode), 0);
+        lv_obj_set_style_text_font(crosshair_dec_value_label, &main_style.value_1.font, 0);
+        lv_obj_set_style_text_color(crosshair_dec_value_label, main_style.starnav.scope_target, 0);
         lv_obj_set_width(crosshair_dec_value_label, CROSSHAIR_RADEC_VALUE_WIDTH_PX);
         lv_obj_set_style_text_align(crosshair_dec_value_label, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_align_to(crosshair_dec_value_label, crosshair_box, LV_ALIGN_OUT_RIGHT_BOTTOM,
                          CROSSHAIR_BOX_LABEL_GAP_PX, 0);
-        lv_obj_set_style_bg_color(crosshair_dec_value_label, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(crosshair_dec_value_label, main_style.title_1.color_bg, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(crosshair_dec_value_label, LV_OPA_70, LV_PART_MAIN);
     
         update_gyro_attitude_label(); // populate the four labels immediately
@@ -2635,7 +2553,7 @@ void celestial_sphere_begin(
             ecliptic_line[i] = lv_line_create(celestial_sphere_container);
             if (ecliptic_line[i] != nullptr) {
                 lv_obj_add_flag(ecliptic_line[i], LV_OBJ_FLAG_HIDDEN);
-                lv_obj_set_style_line_color(ecliptic_line[i], COLOR_ECLIPTIC, 0);
+                lv_obj_set_style_line_color(ecliptic_line[i], main_style.starnav.object_7, 0);
                 lv_obj_set_style_line_width(ecliptic_line[i], ECLIPTIC_LINE_WIDTH, 0);
                 lv_obj_set_style_line_rounded(ecliptic_line[i], true, 0);
             }
@@ -2648,8 +2566,8 @@ void celestial_sphere_begin(
             ecliptic_longitude_labels[i] = lv_label_create(celestial_sphere_container);
             if (ecliptic_longitude_labels[i] != nullptr) {
                 lv_obj_add_flag(ecliptic_longitude_labels[i], LV_OBJ_FLAG_HIDDEN);
-                lv_obj_set_style_text_font(ecliptic_longitude_labels[i], &font_cobalt_alien_17, 0);
-                lv_obj_set_style_text_color(ecliptic_longitude_labels[i], COLOR_ECLIPTIC, 0);
+                lv_obj_set_style_text_font(ecliptic_longitude_labels[i], &main_style.value_1.font, 0);
+                lv_obj_set_style_text_color(ecliptic_longitude_labels[i], main_style.starnav.object_7, 0);
                 lv_obj_set_size(ecliptic_longitude_labels[i], ECLIPTIC_LONGITUDE_LABEL_WIDTH_PX, ECLIPTIC_LONGITUDE_LABEL_HEIGHT_PX);
                 lv_obj_set_style_text_align(ecliptic_longitude_labels[i], LV_TEXT_ALIGN_CENTER, 0);
                 lv_obj_remove_flag(ecliptic_longitude_labels[i], LV_OBJ_FLAG_SCROLLABLE);
@@ -2662,7 +2580,7 @@ void celestial_sphere_begin(
             markers[i].x = 0;
             markers[i].y = 0;
             marker_sphere_index[i] = -1;
-            markers[i].dot = create_marker_for_mode(celestial_sphere_container, current_marker_visual_mode, COLOR_MARKER);
+            markers[i].dot = create_marker_for_mode(celestial_sphere_container, current_marker_visual_mode, main_style.starnav.object_4);
             if (markers[i].dot != nullptr) {
                 lv_obj_add_event_cb(markers[i].dot, celestial_marker_click_cb, LV_EVENT_CLICKED,
                                      reinterpret_cast<void *>(static_cast<intptr_t>(i)));
@@ -2700,9 +2618,9 @@ void celestial_sphere_begin(
         lv_obj_add_flag(target_data_box, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_style_all(target_data_box);
         lv_obj_set_size(target_data_box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-        lv_obj_set_style_border_width(target_data_box, SELECTION_BOX_LINE_WIDTH, 0);
-        lv_obj_set_style_border_color(target_data_box, COLOR_TARGET, 0);
-        lv_obj_set_style_bg_color(target_data_box, lv_color_black(), 0);
+        lv_obj_set_style_border_width(target_data_box, main_style.starnav.border_width, 0);
+        lv_obj_set_style_border_color(target_data_box, main_style.starnav.scope_target, 0);
+        lv_obj_set_style_bg_color(target_data_box, main_style.starnav.color_bg, 0);
         lv_obj_set_style_bg_opa(target_data_box, LV_OPA_80, 0);
         lv_obj_set_style_pad_all(target_data_box, 12, 0);
         lv_obj_remove_flag(target_data_box, LV_OBJ_FLAG_SCROLLABLE);
@@ -2715,8 +2633,8 @@ void celestial_sphere_begin(
         // -----------------------------------------------------------------
         target_connector_line = lv_line_create(celestial_sphere_container);
         lv_obj_add_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_line_color(target_connector_line, COLOR_TARGET, 0);
-        lv_obj_set_style_line_width(target_connector_line, SELECTION_BOX_LINE_WIDTH, 0);
+        lv_obj_set_style_line_color(target_connector_line, main_style.starnav.scope_target, 0);
+        lv_obj_set_style_line_width(target_connector_line, main_style.starnav.border_width, 0);
         lv_obj_set_style_line_rounded(target_connector_line, true, 0);
         connector_points[0].x = 0;
         connector_points[0].y = 0;
@@ -2732,7 +2650,7 @@ void celestial_sphere_begin(
 
         scan_pointer_line = lv_line_create(celestial_sphere_container);
         lv_obj_add_flag(scan_pointer_line, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_line_color(scan_pointer_line, COLOR_TARGET, 0);
+        lv_obj_set_style_line_color(scan_pointer_line, main_style.starnav.scope_target, 0);
         lv_obj_set_style_line_width(scan_pointer_line, CROSSHAIR_LINE_WIDTH, 0);
         lv_obj_set_style_line_rounded(scan_pointer_line, true, 0);
         scan_pointer_points[0].x = 0;

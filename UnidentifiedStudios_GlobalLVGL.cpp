@@ -11,110 +11,272 @@
  * @brief Global Style
  */
 
-// ---------------------------
-// Size
-// ---------------------------
-int32_t outline_width = 2;
-int32_t border_width  = 0;
-int32_t shadow_width  = 0;
-int32_t general_menu_w_px = 550;
-int32_t general_menu_h_px = 400;
-int32_t general_menu_row_h_px = 42;
-int32_t interactive_menu_row_h_px = 48;
-// ---------------------------
-// Radius
-// ---------------------------
-int32_t radius_square  = 0;
-int32_t radius_rounded = 5;
-int32_t radius_circle  = 360;
-int32_t general_radius = 0;
-// ---------------------------
-// Current Hue
-// ---------------------------
-uint32_t current_hue=0;
-// ---------------------------
-// Rainbow Color
-// ---------------------------
-lv_color_t rainbow_outline_hue;
-lv_color_t rainbow_title_hue;
-lv_color_t rainbow_value_hue;
-// ---------------------------
-// Rainbow Contrast Color
-// ---------------------------
-lv_color_t rainbow_contrast_outline_hue;
-lv_color_t rainbow_contrast_title_hue;
-lv_color_t rainbow_contrast_value_hue;
-// ---------------------------
-// Default Color
-// ---------------------------
-lv_color_t default_bg_hue;
-lv_color_t default_bg_title_hue;
-lv_color_t default_outline_hue;
-lv_color_t default_border_hue;
-lv_color_t default_shadow_hue;
-lv_color_t default_title_hue;
-lv_color_t default_subtitle_hue;
-lv_color_t default_value_hue;
-// ---------------------------
-// Default Button
-// ---------------------------
-lv_color_t default_btn_bg;
-lv_color_t default_btn_outline_hue;
-lv_color_t default_btn_border_hue;
-lv_color_t default_btn_shadow_hue;
-lv_color_t default_btn_value_hue;
-// ---------------------------
-// Default Button Off
-// ---------------------------
-lv_color_t default_btn_off_bg;
-lv_color_t default_btn_off_outline_hue;
-lv_color_t default_btn_off_border_hue;
-lv_color_t default_btn_off_shadow_hue;
-lv_color_t default_btn_off_value_hue;
-// ---------------------------
-// Default Button On
-// ---------------------------
-lv_color_t default_btn_on_bg;
-lv_color_t default_btn_on_outline_hue;
-lv_color_t default_btn_on_border_hue;
-lv_color_t default_btn_on_shadow_hue;
-lv_color_t default_btn_on_value_hue;
-// ---------------------------
-// Default Button Toggle
-// ---------------------------
-lv_color_t default_btn_toggle_outline_hue;
-lv_color_t default_btn_toggle_value_hue;
-// ---------------------------
-// Default Switch
-// ---------------------------
-lv_color_t default_sw_off_bg;
-lv_color_t default_sw_off_knob_bg;
-lv_color_t default_sw_on_bg;
-lv_color_t default_sw_on_knob_bg;
-// ---------------------------
-// Custom Color
-// ---------------------------
-lv_color_t custom_bg_hue;
-lv_color_t custom_title_bg_hue;
-lv_color_t custom_outline_hue;
-lv_color_t custom_border_hue;
-lv_color_t custom_shadow_hue;
-lv_color_t custom_title_hue;
-lv_color_t custom_subtitle_hue;
-lv_color_t custom_value_hue;
-// -------------------------------------
-// Current Color (set as default/custom)
-// -------------------------------------
-lv_color_t main_bg_hue;
-lv_color_t main_title_bg_hue;
-lv_color_t main_outline_hue;
-lv_color_t main_border_hue;
-lv_color_t main_shadow_hue;
-lv_color_t main_title_hue;
-lv_color_t main_subtitle_hue;
-lv_color_t main_value_hue;
+int32_t general_window_w_px = 550;
+int32_t general_window_h_px = 400;
+int32_t general_panel_row_h_px = 42;
+int32_t general_slider_h_px = 8;
+int32_t general_switch_h_px = 16;
+int32_t general_switch_w_px = 52;
 
-int32_t slider_outline_width = 2;
+ui_style_t main_style;
+
+/** -------------------------------------------------------------------------------------
+ * @brief Sets global color scheme to default color scheme.
+ */
+void setStyleDefaultSlate()
+{
+    main_style.name = "Slate";
+
+    // Shared chrome (background/outline/border/shadow/geometry) applied to every category;
+    // only color_font/opa_font/font differ per category below.
+    ui_style_prop_t chrome = {};
+    chrome.color_bg      = lv_color_make(0,0,0);
+    chrome.opa_bg        = LV_OPA_100;
+    chrome.color_outline = lv_color_make(28,28,28);
+    chrome.outline_width = 2;
+    chrome.opa_outline   = LV_OPA_100;
+    chrome.color_border  = lv_color_make(0,0,0);
+    chrome.border_width  = 0;
+    chrome.opa_border    = LV_OPA_100;
+    chrome.color_shadow  = lv_color_make(0,0,0);
+    chrome.shadow_width  = 0;
+    chrome.opa_shadow    = LV_OPA_100;
+    chrome.radius_square  = 0;
+    chrome.radius_rounded = 5;
+    chrome.radius_circle  = 360;
+    chrome.padall          = 2;
+
+    main_style.title_1 = chrome;
+    main_style.title_1.color_font = lv_color_make(255,255,255);
+    main_style.title_1.opa_font   = LV_OPA_100;
+    main_style.title_1.font       = font_cobalt_alien_25;
+
+    main_style.subtitle_1 = chrome;
+    main_style.subtitle_1.color_font = lv_color_make(184,184,184);
+    main_style.subtitle_1.opa_font   = LV_OPA_100;
+    main_style.subtitle_1.font       = font_cobalt_alien_17;
+
+    main_style.value_1 = chrome;
+    main_style.value_1.color_font = lv_color_make(126,126,126);
+    main_style.value_1.opa_font   = LV_OPA_100;
+    main_style.value_1.font       = font_cobalt_alien_17;
+
+    main_style.kb = chrome;
+    main_style.kb.color_font = lv_color_make(255,255,255);
+    main_style.kb.opa_font   = LV_OPA_100;
+    main_style.kb.font       = font_cobalt_alien_25;
+
+    // Astro Clock (slate style: monochrome, mirrors the chrome above)
+    main_style.astroclock = {};
+    main_style.astroclock.color_bg      = chrome.color_bg;
+    main_style.astroclock.opa_bg        = chrome.opa_bg;
+    main_style.astroclock.color_outline = chrome.color_outline;
+    main_style.astroclock.outline_width = chrome.outline_width;
+    main_style.astroclock.opa_outline   = chrome.opa_outline;
+    main_style.astroclock.color_border  = chrome.color_border;
+    main_style.astroclock.border_width  = chrome.border_width;
+    main_style.astroclock.opa_border    = chrome.opa_border;
+    main_style.astroclock.color_shadow  = chrome.color_shadow;
+    main_style.astroclock.shadow_width  = chrome.shadow_width;
+    main_style.astroclock.opa_shadow    = chrome.opa_shadow;
+    main_style.astroclock.radius_square  = chrome.radius_square;
+    main_style.astroclock.radius_rounded = chrome.radius_rounded;
+    main_style.astroclock.radius_circle  = chrome.radius_circle;
+    main_style.astroclock.padall         = chrome.padall;
+    main_style.astroclock.color_font = lv_color_make(255,255,255);
+    main_style.astroclock.opa_font   = LV_OPA_100;
+    main_style.astroclock.font_1     = font_unscii_12;
+    main_style.astroclock.font_2     = font_unscii_12;
+    main_style.astroclock.orbit_above = lv_color_make(184,184,184);
+    main_style.astroclock.orbit_below = lv_color_make(28,28,28);
+    main_style.astroclock.object_0  = lv_color_make(184,184,184); // Sun
+    main_style.astroclock.object_1  = lv_color_make(184,184,184); // Mercury
+    main_style.astroclock.object_2  = lv_color_make(184,184,184); // Venus
+    main_style.astroclock.object_3  = lv_color_make(184,184,184); // Earth
+    main_style.astroclock.object_4  = lv_color_make(184,184,184); // Luna
+    main_style.astroclock.object_5  = lv_color_make(184,184,184); // Mars
+    main_style.astroclock.object_6  = lv_color_make(184,184,184); // Jupiter
+    main_style.astroclock.object_7  = lv_color_make(184,184,184); // Saturn
+    main_style.astroclock.object_8  = lv_color_make(184,184,184); // Uranus
+    main_style.astroclock.object_9  = lv_color_make(184,184,184); // Neptune
+    main_style.astroclock.object_10 = lv_color_make(184,184,184); // Zodiac grid
+    main_style.astroclock.object_sun_altitude_line = lv_color_make(255,255,255);
+
+    // Star Nav / Celestial Sphere (slate style: monochrome, mirrors the chrome above)
+    main_style.starnav = {};
+    main_style.starnav.color_bg      = chrome.color_bg;
+    main_style.starnav.opa_bg        = chrome.opa_bg;
+    main_style.starnav.color_outline = chrome.color_outline;
+    main_style.starnav.outline_width = chrome.outline_width;
+    main_style.starnav.opa_outline   = chrome.opa_outline;
+    main_style.starnav.color_border  = chrome.color_border;
+    // Unlike the categories above, starnav.border_width draws a real visible
+    // border (target/selection box, target data box, target connector line)
+    // rather than staying at 0 with outline carrying the frame, so it needs
+    // its own non-zero value here instead of copying chrome's.
+    main_style.starnav.border_width  = 2;
+    main_style.starnav.opa_border    = chrome.opa_border;
+    main_style.starnav.color_shadow  = chrome.color_shadow;
+    main_style.starnav.shadow_width  = chrome.shadow_width;
+    main_style.starnav.opa_shadow    = chrome.opa_shadow;
+    main_style.starnav.radius_square  = chrome.radius_square;
+    main_style.starnav.radius_rounded = chrome.radius_rounded;
+    main_style.starnav.radius_circle  = chrome.radius_circle;
+    main_style.starnav.padall         = chrome.padall;
+    main_style.starnav.color_font = lv_color_make(255,255,255);
+    main_style.starnav.opa_font   = LV_OPA_100;
+    main_style.starnav.font_1     = font_unscii_12;
+    main_style.starnav.font_2     = font_unscii_12;
+    main_style.starnav.object_0  = lv_color_make(184,184,184); // Galaxy
+    main_style.starnav.object_1  = lv_color_make(184,184,184); // Cluster
+    main_style.starnav.object_2  = lv_color_make(184,184,184); // Nebula
+    main_style.starnav.object_3  = lv_color_make(184,184,184); // Star
+    main_style.starnav.object_4  = lv_color_make(184,184,184); // Unknown/default marker
+    main_style.starnav.object_5  = lv_color_make(184,184,184); // Gyro mode indicator
+    main_style.starnav.object_6  = lv_color_make(184,184,184); // Zenith mode indicator
+    main_style.starnav.object_7  = lv_color_make(184,184,184); // Ecliptic line
+    main_style.starnav.object_8  = lv_color_make(184,184,184); // reserved
+    main_style.starnav.object_9  = lv_color_make(184,184,184); // reserved
+    main_style.starnav.object_10 = lv_color_make(184,184,184); // reserved
+    main_style.starnav.scope_target = lv_color_make(255,255,255);
+
+    main_style.color_on  = lv_color_make(184,184,184);
+    main_style.color_off = lv_color_make(28,28,28);
+
+    main_style.color_knob_on  = lv_color_make(255,255,255);
+    main_style.color_knob_off = lv_color_make(28,28,28);
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Sets global color scheme to default color scheme.
+ */
+void setStyleDefaultAlien()
+{
+    main_style.name = "Alien";
+
+    // Shared chrome (background/outline/border/shadow/geometry) applied to every category;
+    // only color_font/opa_font/font differ per category below.
+    ui_style_prop_t chrome = {};
+    chrome.color_bg      = lv_color_make(0,0,0);
+    chrome.opa_bg        = LV_OPA_100;
+    chrome.color_outline = lv_color_make(28,28,28);
+    chrome.outline_width = 2;
+    chrome.opa_outline   = LV_OPA_100;
+    chrome.color_border  = lv_color_make(0,0,0);
+    chrome.border_width  = 0;
+    chrome.opa_border    = LV_OPA_100;
+    chrome.color_shadow  = lv_color_make(0,0,0);
+    chrome.shadow_width  = 0;
+    chrome.opa_shadow    = LV_OPA_100;
+    chrome.radius_square  = 0;
+    chrome.radius_rounded = 5;
+    chrome.radius_circle  = 360;
+    chrome.padall          = 2;
+
+    main_style.title_1 = chrome;
+    main_style.title_1.color_font = lv_color_make(0,0,255);
+    main_style.title_1.opa_font   = LV_OPA_100;
+    main_style.title_1.font       = font_cobalt_alien_25;
+
+    main_style.subtitle_1 = chrome;
+    main_style.subtitle_1.color_font = lv_color_make(0,255,255);
+    main_style.subtitle_1.opa_font   = LV_OPA_100;
+    main_style.subtitle_1.font       = font_cobalt_alien_17;
+
+    main_style.value_1 = chrome;
+    main_style.value_1.color_font = lv_color_make(0,255,0);
+    main_style.value_1.opa_font   = LV_OPA_100;
+    main_style.value_1.font       = font_cobalt_alien_17;
+
+    main_style.kb = chrome;
+    main_style.kb.color_font = lv_color_make(0,0,255);
+    main_style.kb.opa_font   = LV_OPA_100;
+    main_style.kb.font       = font_cobalt_alien_25;
+
+    // Astro Clock (alien style: how UnidentifiedStudios_AstroClock.cpp currently
+    // hardcodes these -- not yet wired up to read from here, snapshotted as-is)
+    main_style.astroclock = {};
+    main_style.astroclock.color_bg      = chrome.color_bg;
+    main_style.astroclock.opa_bg        = chrome.opa_bg;
+    main_style.astroclock.color_outline = chrome.color_outline;
+    main_style.astroclock.outline_width = chrome.outline_width;
+    main_style.astroclock.opa_outline   = chrome.opa_outline;
+    main_style.astroclock.color_border  = chrome.color_border;
+    main_style.astroclock.border_width  = chrome.border_width;
+    main_style.astroclock.opa_border    = chrome.opa_border;
+    main_style.astroclock.color_shadow  = chrome.color_shadow;
+    main_style.astroclock.shadow_width  = chrome.shadow_width;
+    main_style.astroclock.opa_shadow    = chrome.opa_shadow;
+    main_style.astroclock.radius_square  = chrome.radius_square;
+    main_style.astroclock.radius_rounded = chrome.radius_rounded;
+    main_style.astroclock.radius_circle  = chrome.radius_circle;
+    main_style.astroclock.padall         = chrome.padall;
+    main_style.astroclock.color_font = lv_color_make(0,255,0);
+    main_style.astroclock.opa_font   = LV_OPA_100;
+    main_style.astroclock.font_1     = font_unscii_12;
+    main_style.astroclock.font_2     = font_unscii_12;
+    main_style.astroclock.orbit_above = lv_color_make(0,128,0);   // COLOR_ORBIT_ABOVE
+    main_style.astroclock.orbit_below = lv_color_make(0,0,96);    // COLOR_ORBIT_BELOW
+    main_style.astroclock.object_0  = lv_color_make(255,255,0);   // Sun
+    main_style.astroclock.object_1  = lv_color_make(255,0,255);   // Mercury
+    main_style.astroclock.object_2  = lv_color_make(180,180,0);   // Venus
+    main_style.astroclock.object_3  = lv_color_make(0,0,255);     // Earth
+    main_style.astroclock.object_4  = lv_color_make(128,128,128); // Luna
+    main_style.astroclock.object_5  = lv_color_make(255,0,0);     // Mars
+    main_style.astroclock.object_6  = lv_color_make(128,128,128); // Jupiter
+    main_style.astroclock.object_7  = lv_color_make(210,210,0);   // Saturn
+    main_style.astroclock.object_8  = lv_color_make(0,255,255);   // Uranus
+    main_style.astroclock.object_9  = lv_color_make(255,0,255);   // Neptune
+    main_style.astroclock.object_10 = lv_color_make(0,0,96); // Zodiac grid (COLOR_ZODIAC)
+    main_style.astroclock.object_sun_altitude_line = lv_color_make(128,0,0); // COLOR_SUN_BELOW/ABOVE
+
+    // Star Nav / Celestial Sphere (alien style: how UnidentifiedStudios_CelestialSphere.cpp
+    // currently hardcodes these -- not yet wired up to read from here, snapshotted as-is)
+    main_style.starnav = {};
+    main_style.starnav.color_bg      = chrome.color_bg;
+    main_style.starnav.opa_bg        = chrome.opa_bg;
+    main_style.starnav.color_outline = chrome.color_outline;
+    main_style.starnav.outline_width = chrome.outline_width;
+    main_style.starnav.opa_outline   = chrome.opa_outline;
+    main_style.starnav.color_border  = chrome.color_border;
+    // Unlike the categories above, starnav.border_width draws a real visible
+    // border (target/selection box, target data box, target connector line)
+    // rather than staying at 0 with outline carrying the frame, so it needs
+    // its own non-zero value here instead of copying chrome's.
+    main_style.starnav.border_width  = 2;
+    main_style.starnav.opa_border    = chrome.opa_border;
+    main_style.starnav.color_shadow  = chrome.color_shadow;
+    main_style.starnav.shadow_width  = chrome.shadow_width;
+    main_style.starnav.opa_shadow    = chrome.opa_shadow;
+    main_style.starnav.radius_square  = chrome.radius_square;
+    main_style.starnav.radius_rounded = chrome.radius_rounded;
+    main_style.starnav.radius_circle  = chrome.radius_circle;
+    main_style.starnav.padall         = chrome.padall;
+    main_style.starnav.color_font = lv_color_make(0,255,0);
+    main_style.starnav.opa_font   = LV_OPA_100;
+    main_style.starnav.font_1     = font_unscii_12;
+    main_style.starnav.font_2     = font_unscii_12;
+    // No dedicated starnav orbit color exists yet; mirrors astroclock's as the closest analog.
+    main_style.starnav.object_0  = lv_color_make(255,0,255);   // COLOR_GROUP_GALAXY
+    main_style.starnav.object_1  = lv_color_make(0,255,0);     // COLOR_GROUP_CLUSTER
+    main_style.starnav.object_2  = lv_color_make(0,255,255);   // COLOR_GROUP_NEBULA
+    main_style.starnav.object_3  = lv_color_make(255,255,0);   // COLOR_GROUP_STAR
+    main_style.starnav.object_4  = lv_color_make(128,128,128); // COLOR_MARKER (unknown/default)
+    main_style.starnav.object_5  = lv_color_make(0,255,0);     // COLOR_MODE_GYRO
+    main_style.starnav.object_6  = lv_color_make(255,0,0);     // COLOR_MODE_ZENITH
+    main_style.starnav.object_7  = lv_color_make(255,140,0);   // COLOR_ECLIPTIC
+    main_style.starnav.object_8  = lv_color_make(128,128,128); // reserved
+    main_style.starnav.object_9  = lv_color_make(128,128,128); // reserved
+    main_style.starnav.object_10 = lv_color_make(128,128,128); // reserved
+    main_style.starnav.scope_target = lv_color_make(255,0,0);  // COLOR_TARGET
+
+    main_style.color_on  = lv_color_make(0,255,0);
+    main_style.color_off = lv_color_make(28,28,28);
+
+    main_style.color_knob_on  = lv_color_make(0,255,0);
+    main_style.color_knob_off = lv_color_make(28,28,28);
+}
+
 
 /** -------------------------------------------------------------------------------------
  * @brief Create Title Bar.
@@ -139,9 +301,7 @@ title_bar_t create_title_bar (
     int32_t pos_x,
     int32_t pos_y,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     // Initialize struct
@@ -165,27 +325,27 @@ title_bar_t create_title_bar (
     /* ------------------------------- LV_PART_MAIN -------------------------------- */
 
     // Main style: radius
-    lv_obj_set_style_radius(title_bar.panel, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(title_bar.panel, main_style.title_1.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(title_bar.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(title_bar.panel, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(title_bar.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(title_bar.panel, main_style.title_1.color_outline, LV_PART_MAIN);
 
     // Main style: border
-    lv_obj_set_style_border_width(title_bar.panel, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(title_bar.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(title_bar.panel, main_style.title_1.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(title_bar.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Main style: background
-    lv_obj_set_style_bg_color(title_bar.panel, default_bg_title_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(title_bar.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(title_bar.panel, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(title_bar.panel, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(title_bar.panel, main_style.title_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(title_bar.panel, main_style.title_1.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(title_bar.panel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_font(title_bar.panel, font_title, LV_PART_MAIN);
-    lv_obj_set_style_text_color(title_bar.panel, default_title_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_font(title_bar.panel, &main_style.title_1.font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(title_bar.panel, main_style.title_1.color_font, LV_PART_MAIN);
 
     // -------------------------------- Objects --------------------------------- //
 
@@ -199,15 +359,12 @@ title_bar_t create_title_bar (
         -10,                  // pos y
         "00:00:00",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_title,          // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.title_1.font,          // font
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     // Date
@@ -220,15 +377,12 @@ title_bar_t create_title_bar (
         15,                   // pos y
         "00/00/00",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_title,          // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.title_1.font,          // font
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     // Datetime Sync
@@ -241,15 +395,12 @@ title_bar_t create_title_bar (
         14,                   // pos y
         "GPS SYNC",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_sub,       // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,       // font
+        true,                    // outline width
+        main_style.subtitle_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // GPS Signal
@@ -262,15 +413,12 @@ title_bar_t create_title_bar (
         14,                   // pos y
         "0:0",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_sub,       // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,       // font
+        true,                    // outline width
+        main_style.subtitle_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // SDCard Status
@@ -283,15 +431,12 @@ title_bar_t create_title_bar (
         14,                   // pos y
         "SD",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_sub,       // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,       // font
+        true,                    // outline width
+        main_style.subtitle_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     return title_bar;
@@ -311,11 +456,11 @@ title_bar_t create_title_bar (
  */
 system_tray_t create_system_tray(
     lv_obj_t * parent,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub,
     int32_t slider_initial_value
     )
 {
+    const lv_font_t * font_title = &main_style.title_1.font;
+    const lv_font_t * font_sub   = &main_style.subtitle_1.font;
 
     /* ------------------------------------ TRAY --------------------------------------- */
 
@@ -334,27 +479,27 @@ system_tray_t create_system_tray(
     /* ------------------------------- TRAY LV_PART_MAIN -------------------------------- */
 
     // Main style: radius
-    lv_obj_set_style_radius(tray.panel, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(tray.panel, main_style.title_1.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(tray.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(tray.panel, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(tray.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(tray.panel, main_style.title_1.color_outline, LV_PART_MAIN);
 
     // Main style: border
-    lv_obj_set_style_border_width(tray.panel, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(tray.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(tray.panel, main_style.title_1.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(tray.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Main style: background
-    lv_obj_set_style_bg_color(tray.panel, default_bg_title_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(tray.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(tray.panel, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(tray.panel, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(tray.panel, main_style.title_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(tray.panel, main_style.title_1.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(tray.panel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(tray.panel, font_title, LV_PART_MAIN);
-    lv_obj_set_style_text_color(tray.panel, default_title_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_color(tray.panel, main_style.title_1.color_font, LV_PART_MAIN);
 
     /* ---------------------------------- TRAY BRIGHTNESS ------------------------------- */
 
@@ -362,7 +507,7 @@ system_tray_t create_system_tray(
     tray.slider_brightness = create_slider(
         tray.panel,             // parent: tray panel
         200,                    // width
-        8,                      // height
+        general_slider_h_px,    // height
         LV_ALIGN_BOTTOM_MID,    // alignment
         0,                      // x offset
         0,                      // y offset
@@ -384,14 +529,11 @@ system_tray_t create_system_tray(
         "00:00:00",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         font_title,           // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     // Date
@@ -405,14 +547,11 @@ system_tray_t create_system_tray(
         "00/00/00",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         font_title,           // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     // Human Date
@@ -426,14 +565,11 @@ system_tray_t create_system_tray(
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         font_title,           // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     // Datetime Sync
@@ -447,14 +583,11 @@ system_tray_t create_system_tray(
         "GPS SYNC",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         font_sub,             // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.subtitle_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // GPS Signal
@@ -468,14 +601,11 @@ system_tray_t create_system_tray(
         "0:0",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         font_sub,             // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.subtitle_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // SDCard Status
@@ -489,14 +619,11 @@ system_tray_t create_system_tray(
         "SD",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
         font_sub,             // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.subtitle_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Grid Menu 1 (buttons default to numeric index labels; caller attaches
@@ -511,13 +638,12 @@ system_tray_t create_system_tray(
         0,                    // pos x
         0,                    // pos y
         LV_ALIGN_CENTER,      // alignment
-        radius_rounded,       // item radius
+        main_style.subtitle_1.radius_rounded,       // item radius
         7,                    // Max visbilble columns. Equal or less than cols
         1,                    // Max visible rows. Equal or less than rows
         false,                // show scrollbar
         false,                // enable scrolling
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_sub,             // font
         true,
         true
     );
@@ -534,13 +660,12 @@ system_tray_t create_system_tray(
         0,                    // pos x
         70,                   // pos y
         LV_ALIGN_CENTER,      // alignment
-        radius_rounded,       // item radius
+        main_style.subtitle_1.radius_rounded,       // item radius
         7,                    // Max visbilble columns. Equal or less than cols
         1,                    // Max visible rows. Equal or less than rows
         false,                // show scrollbar
         false,                // enable scrolling
         LV_TEXT_ALIGN_CENTER, // font alignment
-        font_sub,             // font
         true,
         true
     );
@@ -584,11 +709,11 @@ keyboard_t create_keyboard(
     int32_t pos_y,
     int32_t kb_ta_padding_px,
     int32_t ta_height_px,
-    lv_keyboard_mode_t keyboard_mode,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    lv_keyboard_mode_t keyboard_mode
     )
 {
+    const lv_font_t * font_title = &main_style.kb.font;
+
     /*----------------------------------------------- KEYBOARD --------------------------------------------*/
 
     // Allocate keyboard struct
@@ -609,60 +734,60 @@ keyboard_t create_keyboard(
     /*---------------------------------------- KEYBOARD LV_PART_MAIN ---------------------------------------*/
 
     // Main style: radius
-    lv_obj_set_style_radius(result.kb, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.kb, main_style.kb.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(result.kb, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.kb, default_outline_hue, LV_PART_MAIN);
-    
+    lv_obj_set_style_outline_width(result.kb, main_style.kb.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.kb, main_style.kb.color_outline, LV_PART_MAIN);
+
     // Main style: border
-    lv_obj_set_style_border_width(result.kb, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.kb, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.kb, main_style.kb.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.kb, main_style.kb.color_border, LV_PART_MAIN);
 
     // Main style: background
-    lv_obj_set_style_bg_color(result.kb, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.kb, main_style.kb.color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(result.kb, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.kb, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(result.kb, main_style.kb.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.kb, main_style.kb.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(result.kb, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(result.kb, font_title, LV_PART_MAIN);
-    lv_obj_set_style_text_color(result.kb, default_title_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_color(result.kb, main_style.kb.color_font, LV_PART_MAIN);
 
     /*-------------------------------------- KEYBOARD LV_PART_ITEMS ---------------------------------------*/
 
     // Item style: radius
-    lv_obj_set_style_radius(result.kb, general_radius, LV_PART_ITEMS);
+    lv_obj_set_style_radius(result.kb, main_style.kb.radius_square, LV_PART_ITEMS);
 
     // Item style: outline
-    lv_obj_set_style_outline_width(result.kb, outline_width, LV_PART_ITEMS);
-    lv_obj_set_style_outline_color(result.kb, default_outline_hue, LV_PART_ITEMS);
+    lv_obj_set_style_outline_width(result.kb, main_style.kb.outline_width, LV_PART_ITEMS);
+    lv_obj_set_style_outline_color(result.kb, main_style.kb.color_outline, LV_PART_ITEMS);
 
     // Item style: border
-    lv_obj_set_style_border_width(result.kb, border_width, LV_PART_ITEMS);
-    lv_obj_set_style_border_color(result.kb, default_border_hue, LV_PART_ITEMS);
+    lv_obj_set_style_border_width(result.kb, main_style.kb.border_width, LV_PART_ITEMS);
+    lv_obj_set_style_border_color(result.kb, main_style.kb.color_border, LV_PART_ITEMS);
 
     // Item style: background
-    lv_obj_set_style_bg_color(result.kb, default_bg_hue, LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(result.kb, main_style.kb.color_bg, LV_PART_ITEMS);
 
     // Item style: shadow
-    lv_obj_set_style_shadow_width(result.kb, shadow_width, LV_PART_ITEMS);
-    lv_obj_set_style_shadow_color(result.kb, default_shadow_hue, LV_PART_ITEMS);
+    lv_obj_set_style_shadow_width(result.kb, main_style.kb.shadow_width, LV_PART_ITEMS);
+    lv_obj_set_style_shadow_color(result.kb, main_style.kb.color_shadow, LV_PART_ITEMS);
 
     // Item style: text
     lv_obj_set_style_text_align(result.kb, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(result.kb, font_title, LV_PART_ITEMS);
-    lv_obj_set_style_text_color(result.kb, default_title_hue, LV_PART_ITEMS);
-    
+    lv_obj_set_style_text_color(result.kb, main_style.kb.color_font, LV_PART_ITEMS);
+
     // Item style: background checked
-    lv_obj_set_style_bg_color(result.kb, default_border_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-    
+    lv_obj_set_style_bg_color(result.kb, main_style.kb.color_border, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
+
     // Item style: text checked
     lv_obj_set_style_text_align(result.kb, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(result.kb, font_title, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(result.kb, default_title_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
+    lv_obj_set_style_text_color(result.kb, main_style.kb.color_font, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
 
     /*---------------------------------------------- TEXTAREA -----------------------------------------------*/
 
@@ -685,27 +810,27 @@ keyboard_t create_keyboard(
     /*--------------------------------------- TEXTAREA LV_PART_MAIN -----------------------------------------*/
 
     // Main style: radius
-    lv_obj_set_style_radius(result.ta, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.ta, main_style.kb.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(result.ta, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.ta, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.ta, main_style.kb.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.ta, main_style.kb.color_outline, LV_PART_MAIN);
 
     // Main style: border
-    lv_obj_set_style_border_width(result.ta, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.ta, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.ta, main_style.kb.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.ta, main_style.kb.color_border, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(result.ta, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.ta, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(result.ta, main_style.kb.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.ta, main_style.kb.color_shadow, LV_PART_MAIN);
 
     // Main style: background
-    lv_obj_set_style_bg_color(result.ta, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.ta, main_style.kb.color_bg, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(result.ta, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(result.ta, font_title, LV_PART_MAIN);
-    lv_obj_set_style_text_color(result.ta, default_title_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_color(result.ta, main_style.kb.color_font, LV_PART_MAIN);
 
     return result;
 }
@@ -752,64 +877,64 @@ lv_obj_t * create_slider(
     /*---------------------------------------- SLIDER LV_PART_MAIN -----------------------------------------*/
 
     // Main style: radius
-    lv_obj_set_style_radius(slider, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(slider, main_style.value_1.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(slider, slider_outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(slider, default_outline_hue, LV_PART_MAIN);
-    
+    lv_obj_set_style_outline_width(slider, main_style.value_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(slider, main_style.value_1.color_outline, LV_PART_MAIN);
+
     // Main style: border
-    lv_obj_set_style_border_width(slider, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(slider, default_border_hue, LV_PART_MAIN);
-    
+    lv_obj_set_style_border_width(slider, main_style.value_1.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(slider, main_style.value_1.color_border, LV_PART_MAIN);
+
     // Main style: background
-    lv_obj_set_style_bg_color(slider, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(slider, main_style.value_1.color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(slider, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(slider, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(slider, main_style.value_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(slider, main_style.value_1.color_shadow, LV_PART_MAIN);
 
     // ---------------------------------------- SLIDER LV_PART_INDICATOR -----------------------------------------*/
 
     // Indicator style: outline
-    lv_obj_set_style_outline_width(slider, slider_outline_width, LV_PART_INDICATOR);
-    lv_obj_set_style_outline_color(slider, default_outline_hue, LV_PART_INDICATOR);
-    
+    lv_obj_set_style_outline_width(slider, main_style.value_1.outline_width, LV_PART_INDICATOR);
+    lv_obj_set_style_outline_color(slider, main_style.value_1.color_outline, LV_PART_INDICATOR);
+
     // Indicator style: border
-    lv_obj_set_style_border_width(slider, border_width, LV_PART_INDICATOR);
-    lv_obj_set_style_border_color(slider, default_border_hue, LV_PART_INDICATOR);
+    lv_obj_set_style_border_width(slider, main_style.value_1.border_width, LV_PART_INDICATOR);
+    lv_obj_set_style_border_color(slider, main_style.value_1.color_border, LV_PART_INDICATOR);
 
     // Indicator style: background
-    lv_obj_set_style_bg_color(slider, default_bg_hue, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(slider, main_style.value_1.color_bg, LV_PART_INDICATOR);
 
     // Indicator style: shadow
-    lv_obj_set_style_shadow_width(slider, shadow_width, LV_PART_INDICATOR);
-    lv_obj_set_style_shadow_color(slider, default_shadow_hue, LV_PART_INDICATOR);
+    lv_obj_set_style_shadow_width(slider, main_style.value_1.shadow_width, LV_PART_INDICATOR);
+    lv_obj_set_style_shadow_color(slider, main_style.value_1.color_shadow, LV_PART_INDICATOR);
 
     // Indicator style: radius (set last to square off indicator so main outline does not bleed though on left edge)
-    lv_obj_set_style_radius(slider, general_radius, LV_PART_INDICATOR);
+    lv_obj_set_style_radius(slider, main_style.value_1.radius_square, LV_PART_INDICATOR);
 
     // ----------------------------------------- SLIDER LV_PART_KNOB -----------------------------------------*/
 
     // Indicator style: radius
-    lv_obj_set_style_radius(slider, radius_circle, LV_PART_KNOB);
+    lv_obj_set_style_radius(slider, main_style.value_1.radius_rounded, LV_PART_KNOB);
 
     // Knob style: outline
-    lv_obj_set_style_outline_width(slider, slider_outline_width, LV_PART_KNOB);
-    lv_obj_set_style_outline_color(slider, default_outline_hue, LV_PART_KNOB);
-    
+    lv_obj_set_style_outline_width(slider, main_style.value_1.outline_width, LV_PART_KNOB);
+    lv_obj_set_style_outline_color(slider, main_style.value_1.color_outline, LV_PART_KNOB);
+
     // Knob style: border
-    lv_obj_set_style_border_width(slider, border_width, LV_PART_KNOB);
-    lv_obj_set_style_border_color(slider, default_border_hue, LV_PART_KNOB);
+    lv_obj_set_style_border_width(slider, main_style.value_1.border_width, LV_PART_KNOB);
+    lv_obj_set_style_border_color(slider, main_style.value_1.color_border, LV_PART_KNOB);
 
     // Knob style: background
-    lv_obj_set_style_bg_color(slider, default_bg_hue, LV_PART_KNOB);
+    lv_obj_set_style_bg_color(slider, main_style.color_knob_on, LV_PART_KNOB);
 
     // Knob style: shadow
-    lv_obj_set_style_shadow_width(slider, shadow_width, LV_PART_KNOB);
-    lv_obj_set_style_shadow_color(slider, default_shadow_hue, LV_PART_KNOB);
+    lv_obj_set_style_shadow_width(slider, main_style.value_1.shadow_width, LV_PART_KNOB);
+    lv_obj_set_style_shadow_color(slider, main_style.value_1.color_shadow, LV_PART_KNOB);
 
-    return slider;   
+    return slider;
 }
 
 /** -------------------------------------------------------------------------------------
@@ -825,9 +950,6 @@ lv_obj_t * create_slider(
  * @param text_align Text alignment on label.
  * @param font Specify text font.
  * @param transparent_bg Tranparent background.
- * @param show_scrollbar Show/hide scrollbar.
- * @param enable_scrolling Enable/disable scrolling.
- * @param outline_width Specify panel outline width.
  * @param radius Specify panel outline radius.
  * @param expected_number_of_lines Specify expected number of lines (used for alignment).
  * @param color_bg Background color.
@@ -845,9 +967,6 @@ lv_obj_t * create_label(
     lv_text_align_t text_align,
     const lv_font_t * font,
     bool transparent_bg,
-    bool show_scrollbar,
-    bool enable_scrolling,
-    int32_t outline_width,
     int32_t radius,
     int32_t expected_number_of_lines,
     lv_color_t color_bg,
@@ -860,12 +979,10 @@ lv_obj_t * create_label(
     lv_obj_t * result = lv_label_create(parent);
 
     // Show scrollbar
-    if (show_scrollbar) {lv_obj_set_scrollbar_mode(result, LV_SCROLLBAR_MODE_AUTO);}
-    else {lv_obj_set_scrollbar_mode(result, LV_SCROLLBAR_MODE_OFF);}
+    lv_obj_set_scrollbar_mode(result, LV_SCROLLBAR_MODE_OFF);
 
     // Enable scrolling
-    if (enable_scrolling) {lv_obj_set_scroll_dir(result, LV_DIR_ALL);}
-    else {lv_obj_set_scroll_dir(result, LV_DIR_NONE);}
+    lv_obj_set_scroll_dir(result, LV_DIR_NONE);
 
     // Size and position
     lv_obj_set_size(result, size_w_px, size_h_px);
@@ -886,11 +1003,11 @@ lv_obj_t * create_label(
     if (transparent_bg) {
         // Main style: outline
         lv_obj_set_style_outline_width(result, 0, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(result, default_outline_hue, LV_PART_MAIN);
-        
+        lv_obj_set_style_outline_color(result, main_style.title_1.color_outline, LV_PART_MAIN);
+
         // Main style: border
         lv_obj_set_style_border_width(result, 0, LV_PART_MAIN);
-        lv_obj_set_style_border_color(result, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_color(result, main_style.title_1.color_border, LV_PART_MAIN);
 
         // Main style: background
         lv_obj_set_style_bg_color(result, color_bg, LV_PART_MAIN);
@@ -898,24 +1015,24 @@ lv_obj_t * create_label(
 
         // Main style: shadow
         lv_obj_set_style_shadow_width(result, 0, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(result, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(result, main_style.title_1.color_shadow, LV_PART_MAIN);
     }
     else {
         // Main style: outline
-        lv_obj_set_style_outline_width(result, outline_width, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(result, default_outline_hue, LV_PART_MAIN);
-        
+        lv_obj_set_style_outline_width(result, main_style.title_1.outline_width, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(result, main_style.title_1.color_outline, LV_PART_MAIN);
+
         // Main style: border
         lv_obj_set_style_border_width(result, 0, LV_PART_MAIN);
-        lv_obj_set_style_border_color(result, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_color(result, main_style.title_1.color_border, LV_PART_MAIN);
 
         // Main style: background
         lv_obj_set_style_bg_color(result, color_bg, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(result, LV_OPA_100, LV_PART_MAIN);
 
         // Main style: shadow
-        lv_obj_set_style_shadow_width(result, shadow_width, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(result, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_width(result, main_style.title_1.shadow_width, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(result, main_style.title_1.color_shadow, LV_PART_MAIN);
     }
 
     // Main style: text
@@ -1061,45 +1178,45 @@ lv_obj_t * create_textarea(
     /*----------------------------------- LV_PART_MAIN --------------------------------- */
 
     // Main style: radius
-    lv_obj_set_style_radius(ta, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(ta, main_style.value_1.radius_square, LV_PART_MAIN);
 
     if (transparent_bg) {
         // Main style: outline
         lv_obj_set_style_outline_width(ta, 0, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(ta, default_outline_hue, LV_PART_MAIN);
-        
+        lv_obj_set_style_outline_color(ta, main_style.value_1.color_outline, LV_PART_MAIN);
+
         // Main style: border
         lv_obj_set_style_border_width(ta, 0, LV_PART_MAIN);
-        lv_obj_set_style_border_color(ta, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_color(ta, main_style.value_1.color_border, LV_PART_MAIN);
 
         // Main style: background
         lv_obj_set_style_bg_opa(ta, LV_OPA_TRANSP, LV_PART_MAIN);
 
         // Main style: shadow
         lv_obj_set_style_shadow_width(ta, 0, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(ta, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(ta, main_style.value_1.color_shadow, LV_PART_MAIN);
     }
     else {
         // Main style: outline
-        lv_obj_set_style_outline_width(ta, outline_width, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(ta, default_outline_hue, LV_PART_MAIN);
-        
+        lv_obj_set_style_outline_width(ta, main_style.value_1.outline_width, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(ta, main_style.value_1.color_outline, LV_PART_MAIN);
+
         // Main style: border
-        lv_obj_set_style_border_width(ta, border_width, LV_PART_MAIN);
-        lv_obj_set_style_border_color(ta, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_width(ta, main_style.value_1.border_width, LV_PART_MAIN);
+        lv_obj_set_style_border_color(ta, main_style.value_1.color_border, LV_PART_MAIN);
 
         // Main style: background
-        lv_obj_set_style_bg_color(ta, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(ta, main_style.value_1.color_bg, LV_PART_MAIN);
 
         // Main style: shadow
-        lv_obj_set_style_shadow_width(ta, shadow_width, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(ta, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_width(ta, main_style.value_1.shadow_width, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(ta, main_style.value_1.color_shadow, LV_PART_MAIN);
     }
 
     // Main style: text
     lv_obj_set_style_text_align(ta, text_align, LV_PART_MAIN);
     lv_obj_set_style_text_font(ta, font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(ta, default_value_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_color(ta, main_style.value_1.color_font, LV_PART_MAIN);
 
     lv_obj_set_style_pad_top(ta, (size_h_px - lv_font_get_line_height(font)) / 2, LV_PART_MAIN);
     lv_obj_set_style_pad_bottom(ta, (size_h_px - lv_font_get_line_height(font)) / 2, LV_PART_MAIN);
@@ -1124,9 +1241,6 @@ lv_obj_t * create_row(
     lv_obj_t * parent,
     int32_t sub_row_width,
     int32_t sub_row_height,
-    int32_t inner_pad_all,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
     bool show_scrollbar,
     bool enable_scrolling
 ) {
@@ -1145,12 +1259,12 @@ lv_obj_t * create_row(
     lv_obj_align(row, LV_ALIGN_CENTER, 0, 0);
 
     // Row Padding
-    lv_obj_set_style_pad_all(row, inner_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(row, sub_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(row, sub_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(row, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(row, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(row, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(row, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(row, main_style.title_1.outline_width, LV_PART_MAIN);
     lv_obj_set_style_outline_color(row, lv_color_make(0,0,0), LV_PART_MAIN);
     lv_obj_set_style_outline_pad(row, 0, LV_PART_MAIN);
 
@@ -1227,11 +1341,12 @@ lv_obj_t * create_menu_grid(
     bool show_scrollbar,
     bool enable_scrolling,
     lv_text_align_t text_align,
-    const lv_font_t * font,
     bool transparent_bg,
     bool transparent_outline
     )
 {
+    const lv_font_t * font = &main_style.subtitle_1.font;
+
     /* ---- GRID MENU CONFIGURATION ---------------------------------------------------- */
 
     const int32_t GRID_MENU_X_CELL_SIZE_PX = cell_size_px; // Set cell size in pixels
@@ -1289,24 +1404,29 @@ lv_obj_t * create_menu_grid(
     /* ---- GRID MENU LV_PART_MAIN ----------------------------------------------------- */
 
     // Main style: radius
-    lv_obj_set_style_radius(grid_menu, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(grid_menu, main_style.subtitle_1.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(grid_menu, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(grid_menu, default_outline_hue, LV_PART_MAIN);
+    if (dev_outlines_enable == true) {
+        lv_obj_set_style_outline_width(grid_menu, main_style.subtitle_1.outline_width, LV_PART_MAIN);
+    }
+    else {
+        lv_obj_set_style_outline_width(grid_menu, 0, LV_PART_MAIN);
+    }
+    lv_obj_set_style_outline_color(grid_menu, main_style.subtitle_1.color_outline, LV_PART_MAIN);
     if (transparent_outline) {lv_obj_set_style_outline_opa(grid_menu, LV_OPA_TRANSP, LV_PART_MAIN);}
 
     // Main style: border
     lv_obj_set_style_border_width(grid_menu, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(grid_menu, default_border_hue, LV_PART_MAIN);
-    
+    lv_obj_set_style_border_color(grid_menu, main_style.subtitle_1.color_border, LV_PART_MAIN);
+
     // Main style: background
-    lv_obj_set_style_bg_color(grid_menu, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(grid_menu, main_style.subtitle_1.color_bg, LV_PART_MAIN);
     if (transparent_bg) {lv_obj_set_style_bg_opa(grid_menu, LV_OPA_TRANSP, LV_PART_MAIN);}
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(grid_menu, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(grid_menu, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(grid_menu, main_style.subtitle_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(grid_menu, main_style.subtitle_1.color_shadow, LV_PART_MAIN);
     
     // Set layout to grid
     lv_obj_set_layout(grid_menu, LV_LAYOUT_GRID);
@@ -1350,19 +1470,19 @@ lv_obj_t * create_menu_grid(
         lv_obj_set_style_radius(grid_menu_x_btn, item_radius, LV_PART_MAIN);
 
         // Button style: outline
-        lv_obj_set_style_outline_width(grid_menu_x_btn, outline_width, LV_PART_MAIN);
-        lv_obj_set_style_outline_color(grid_menu_x_btn, default_outline_hue, LV_PART_MAIN);
+        lv_obj_set_style_outline_width(grid_menu_x_btn, main_style.subtitle_1.outline_width, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(grid_menu_x_btn, main_style.subtitle_1.color_outline, LV_PART_MAIN);
 
         // Button style: border
         lv_obj_set_style_border_width(grid_menu_x_btn, 0, LV_PART_MAIN);
-        lv_obj_set_style_border_color(grid_menu_x_btn, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_color(grid_menu_x_btn, main_style.subtitle_1.color_border, LV_PART_MAIN);
 
         // Button style: background
-        lv_obj_set_style_bg_color(grid_menu_x_btn, default_bg_hue, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(grid_menu_x_btn, main_style.subtitle_1.color_bg, LV_PART_MAIN);
 
         // Button style: shadow
         lv_obj_set_style_shadow_width(grid_menu_x_btn, 0, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(grid_menu_x_btn, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(grid_menu_x_btn, main_style.subtitle_1.color_shadow, LV_PART_MAIN);
 
         /* --- CELL LABEL ----------------------------------------------------------------------- */
         
@@ -1383,7 +1503,7 @@ lv_obj_t * create_menu_grid(
         // Label style: text
         lv_obj_set_style_text_align(grid_menu_x_label, text_align, LV_PART_MAIN);
         lv_obj_set_style_text_font(grid_menu_x_label, font, LV_PART_MAIN);
-        lv_obj_set_style_text_color(grid_menu_x_label, default_title_hue, LV_PART_MAIN);
+        lv_obj_set_style_text_color(grid_menu_x_label, main_style.title_1.color_font, LV_PART_MAIN);
         
     }
     return grid_menu;
@@ -1442,27 +1562,27 @@ lv_obj_t * create_dropdown_menu(
     /* --- DROPDOWN LV_PART_MAIN ------------------------------------------------------- */
 
     // Main style: radius
-    lv_obj_set_style_radius(ddlist, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(ddlist, main_style.value_1.radius_square, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(ddlist, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(ddlist, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(ddlist, main_style.value_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(ddlist, main_style.value_1.color_outline, LV_PART_MAIN);
 
     // Main style: border
-    lv_obj_set_style_border_width(ddlist, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(ddlist, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(ddlist, main_style.value_1.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(ddlist, main_style.value_1.color_border, LV_PART_MAIN);
 
     // Main style: background
-    lv_obj_set_style_bg_color(ddlist, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(ddlist, main_style.value_1.color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(ddlist, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(ddlist, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(ddlist, main_style.value_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(ddlist, main_style.value_1.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(ddlist, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_font(ddlist, font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(ddlist, default_value_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_color(ddlist, main_style.value_1.color_font, LV_PART_MAIN);
 
     /* --- DROPDOWN LIST --------------------------------------------------------------- */
 
@@ -1472,31 +1592,31 @@ lv_obj_t * create_dropdown_menu(
     /* --- DROPDOWN LIST LV_PART_MAIN -------------------------------------------------- */
 
     // List style: radius
-    lv_obj_set_style_radius(list, general_radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(list, main_style.value_1.radius_square, LV_PART_MAIN);
 
     // List style: outline
-    lv_obj_set_style_outline_width(list, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(list, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(list, main_style.value_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(list, main_style.value_1.color_outline, LV_PART_MAIN);
 
     // List style: border
-    lv_obj_set_style_border_width(list, border_width, LV_PART_MAIN);
-    lv_obj_set_style_border_color(list, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(list, main_style.value_1.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(list, main_style.value_1.color_border, LV_PART_MAIN);
 
     // List style: background
-    lv_obj_set_style_bg_color(list, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(list, main_style.value_1.color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(list, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(list, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(list, main_style.value_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(list, main_style.value_1.color_shadow, LV_PART_MAIN);
 
     // List style: text
     lv_obj_set_style_text_align(list, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_font(list, font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(list, default_value_hue, LV_PART_MAIN);
+    lv_obj_set_style_text_color(list, main_style.value_1.color_font, LV_PART_MAIN);
 
     // List style: background checked
-    lv_obj_set_style_bg_color(list, default_border_hue, (lv_style_selector_t)LV_PART_SELECTED | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(list, default_border_hue, (lv_style_selector_t)LV_PART_SELECTED | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(list, main_style.value_1.color_border, (lv_style_selector_t)LV_PART_SELECTED | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_color(list, main_style.value_1.color_border, (lv_style_selector_t)LV_PART_SELECTED | LV_STATE_DEFAULT);
 
     return ddlist;
 }
@@ -1525,17 +1645,82 @@ lv_obj_t * create_switch(
     lv_obj_set_size(sw, size_w_px, size_h_px);
     lv_obj_align(sw, alignment, pos_x, pos_y);
 
-    // Background
-    lv_obj_set_style_bg_color(sw, default_sw_off_bg, LV_PART_MAIN);
+    /*---------------------------------------- LV_PART_MAIN -----------------------------------------*/
 
-    // Indicator
-    lv_obj_set_style_bg_color(sw, default_sw_off_bg, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(sw, default_sw_on_bg, (lv_style_selector_t)LV_PART_INDICATOR | LV_STATE_CHECKED);
-    
-    // Knob
-    lv_obj_set_style_bg_color(sw, default_sw_off_knob_bg, LV_PART_KNOB);
-    lv_obj_set_style_bg_color(sw, default_sw_on_knob_bg, (lv_style_selector_t)LV_PART_KNOB | LV_STATE_CHECKED);
-    
+    // Main style: radius
+    lv_obj_set_style_radius(sw, main_style.value_1.radius_square, LV_PART_MAIN);
+
+    // Main style: outline
+    lv_obj_set_style_outline_width(sw, main_style.value_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(sw, main_style.value_1.color_bg, LV_PART_MAIN);
+
+    // Main style: border
+    lv_obj_set_style_border_width(sw, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(sw, main_style.value_1.color_border, LV_PART_MAIN);
+
+    // Main style: background
+    lv_obj_set_style_bg_color(sw, main_style.value_1.color_bg, LV_PART_MAIN);
+
+    // Main style: shadow
+    lv_obj_set_style_shadow_width(sw, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(sw, main_style.value_1.color_shadow, LV_PART_MAIN);
+
+    // Unlike labels/buttons/dropdowns, the switch has no LV_PART_MAIN outline to bleed
+    // outward into the row's pad_column gap, so it needs its own margin to keep the
+    // same visual spacing from neighboring row objects.
+    lv_obj_set_style_margin_left(sw, main_style.value_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_margin_right(sw, main_style.value_1.outline_width, LV_PART_MAIN);
+
+    // Indicator (track) is drawn inset from LV_PART_MAIN's content box, while the knob's
+    // size is derived from the object's raw height regardless of this padding - so this
+    // shrinks the visible track without shrinking the knob.
+    lv_obj_set_style_pad_ver(sw, size_h_px / 4, LV_PART_MAIN);
+
+    // ---------------------------------------- LV_PART_INDICATOR -----------------------------------------*/
+
+    // Indicator style: radius
+    lv_obj_set_style_radius(sw, main_style.value_1.radius_square, LV_PART_INDICATOR);
+
+    // Indicator style: outline
+    lv_obj_set_style_outline_width(sw, main_style.value_1.outline_width, LV_PART_INDICATOR);
+    lv_obj_set_style_outline_color(sw, main_style.value_1.color_outline, LV_PART_INDICATOR);
+
+    // Indicator style: border
+    lv_obj_set_style_border_width(sw, main_style.value_1.border_width, LV_PART_INDICATOR);
+    lv_obj_set_style_border_color(sw, main_style.value_1.color_border, LV_PART_INDICATOR);
+
+    // Indicator style: bg
+    lv_obj_set_style_bg_color(sw, main_style.color_off, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(sw, main_style.color_off, (lv_style_selector_t)LV_PART_INDICATOR | LV_STATE_CHECKED);
+
+    // Indicator style: shadow
+    lv_obj_set_style_shadow_width(sw, main_style.value_1.shadow_width, LV_PART_INDICATOR);
+    lv_obj_set_style_shadow_color(sw, main_style.value_1.color_shadow, LV_PART_INDICATOR);
+
+    // ----------------------------------------- LV_PART_KNOB -----------------------------------------*/
+
+    // Indicator style: radius
+    lv_obj_set_style_radius(sw, main_style.value_1.radius_rounded, LV_PART_KNOB);
+
+    // Allow knob span to range of object
+    lv_obj_set_style_pad_all(sw, 0, LV_PART_KNOB);
+
+    // Knob style: outline
+    lv_obj_set_style_outline_width(sw, main_style.value_1.outline_width, LV_PART_KNOB);
+    lv_obj_set_style_outline_color(sw, main_style.value_1.color_outline, LV_PART_KNOB);
+
+    // Knob style: border
+    lv_obj_set_style_border_width(sw, main_style.value_1.border_width, LV_PART_KNOB);
+    lv_obj_set_style_border_color(sw, main_style.value_1.color_border, LV_PART_KNOB);
+
+    // Knob style: background
+    lv_obj_set_style_bg_color(sw, main_style.color_knob_on, LV_PART_KNOB);
+    lv_obj_set_style_bg_color(sw, main_style.color_knob_off, (lv_style_selector_t)LV_PART_KNOB | LV_STATE_CHECKED);
+
+    // Knob style: shadow
+    lv_obj_set_style_shadow_width(sw, main_style.value_1.shadow_width, LV_PART_KNOB);
+    lv_obj_set_style_shadow_color(sw, main_style.value_1.color_shadow, LV_PART_KNOB);
+
     return sw;
 }
 
@@ -1565,16 +1750,17 @@ button_t create_button(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    const char * text,
-    lv_text_align_t text_align,
-    bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font,
-    int32_t radius,
-    lv_color_t color_bg,
-    lv_color_t color_text
+    const char * text
     )
 {
+    const lv_font_t * font = &main_style.subtitle_1.font;
+    int32_t radius              = main_style.subtitle_1.radius_rounded;
+    lv_color_t color_bg         = main_style.subtitle_1.color_bg;
+    lv_color_t color_text       = main_style.value_1.color_font;
+    bool show_scrollbar         = false;
+    bool enable_scrolling       = false;
+    lv_text_align_t text_align  = LV_TEXT_ALIGN_CENTER;
+
     button_t result = {};
 
     // ---- Panel Style ----
@@ -1597,19 +1783,19 @@ button_t create_button(
     lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_btn_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.subtitle_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.subtitle_1.color_outline, LV_PART_MAIN);
 
     // Main style: border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_btn_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.subtitle_1.color_border, LV_PART_MAIN);
 
     // Main style: background
     lv_obj_set_style_bg_color(result.panel, color_bg, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(result.panel, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.panel, default_btn_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(result.panel, main_style.subtitle_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.panel, main_style.subtitle_1.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(result.panel, text_align, LV_PART_MAIN);
@@ -1629,11 +1815,11 @@ button_t create_button(
 
     // Main style: outline
     lv_obj_set_style_outline_width(result.button, 0, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.button, default_btn_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.button, main_style.subtitle_1.color_outline, LV_PART_MAIN);
 
     // Main style: border
     lv_obj_set_style_border_width(result.button, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.button, default_btn_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.button, main_style.subtitle_1.color_border, LV_PART_MAIN);
 
     // Main style: background
     lv_obj_set_style_bg_color(result.button, color_bg, LV_PART_MAIN);
@@ -1641,7 +1827,7 @@ button_t create_button(
 
     // Main style: shadow
     lv_obj_set_style_shadow_width(result.button, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.button, default_btn_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.button, main_style.subtitle_1.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(result.button, text_align, LV_PART_MAIN);
@@ -1649,7 +1835,7 @@ button_t create_button(
     lv_obj_set_style_text_color(result.button, color_text, LV_PART_MAIN);
 
     // ---- Label Style ----
-    
+
     result.label = lv_label_create(result.button);
 
     // Set text first
@@ -1660,19 +1846,19 @@ button_t create_button(
 
     // Main style: outline
     lv_obj_set_style_outline_width(result.label, 0, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.label, default_btn_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.label, main_style.subtitle_1.color_outline, LV_PART_MAIN);
 
     // Main style: border
     lv_obj_set_style_border_width(result.label, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.label, default_btn_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.label, main_style.subtitle_1.color_border, LV_PART_MAIN);
 
     // Main style: background
     lv_obj_set_style_bg_color(result.label, color_bg, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(result.button, LV_OPA_0, LV_PART_MAIN);
 
     // Main style: shadow
-    lv_obj_set_style_shadow_width(result.label, shadow_width, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.label, default_btn_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(result.label, main_style.subtitle_1.shadow_width, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.label, main_style.subtitle_1.color_shadow, LV_PART_MAIN);
 
     // Main style: text
     lv_obj_set_style_text_align(result.label, text_align, LV_PART_MAIN);
@@ -1736,12 +1922,13 @@ stepper_panel_t create_stepper_panel(
     int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub,
     const char * title_text,
     const char * value_text
     )
 {
+    const lv_font_t * font_title = &main_style.title_1.font;
+    const lv_font_t * font_sub   = &main_style.subtitle_1.font;
+
     stepper_panel_t result = {};
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
@@ -1766,16 +1953,21 @@ stepper_panel_t create_stepper_panel(
     lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
+    if (dev_outlines_enable == true) {
+        lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    }
+    else {
+        lv_obj_set_style_outline_width(result.panel, 0, LV_PART_MAIN);
+    }
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
     lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
 
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
@@ -1788,7 +1980,7 @@ stepper_panel_t create_stepper_panel(
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(sub_row_padding*2);
 
     /* --- Row Controls ------------------------------------------------------------------ */
     lv_obj_t * row_0 = lv_obj_create(result.panel);
@@ -1811,7 +2003,7 @@ stepper_panel_t create_stepper_panel(
     lv_obj_set_style_pad_row(row_0, sub_row_padding, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(row_0, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(row_0, main_style.title_1.outline_width, LV_PART_MAIN);
     lv_obj_set_style_outline_color(row_0, lv_color_make(0,0,0), LV_PART_MAIN);
     lv_obj_set_style_outline_pad(row_0, 0, LV_PART_MAIN);
 
@@ -1849,13 +2041,10 @@ stepper_panel_t create_stepper_panel(
         LV_TEXT_ALIGN_CENTER,
         font_sub,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.subtitle_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Minus
@@ -1865,14 +2054,7 @@ stepper_panel_t create_stepper_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "-",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        font_title,
-        radius,
-        default_bg_hue,
-        default_btn_toggle_value_hue
+        "-"
     );
 
     // Value
@@ -1886,13 +2068,10 @@ stepper_panel_t create_stepper_panel(
         LV_TEXT_ALIGN_CENTER,
         font_sub,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.subtitle_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.value_1.color_font
     );
 
     // Plus
@@ -1902,14 +2081,7 @@ stepper_panel_t create_stepper_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "+",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        font_title,
-        radius,
-        default_bg_hue,
-        default_btn_toggle_value_hue
+        "+"
     );
 
     lv_obj_set_size(result.title_label, obj_w_0, obj_height);
@@ -1967,12 +2139,13 @@ label_pair_panel_t create_label_pair_panel(
     int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub,
     const char * label_0_text,
     const char * label_1_text
     )
 {
+    const lv_font_t * font_title = &main_style.subtitle_1.font;
+    const lv_font_t * font_sub   = &main_style.subtitle_1.font;
+
     label_pair_panel_t result = {};
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
@@ -1997,16 +2170,21 @@ label_pair_panel_t create_label_pair_panel(
     lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
+    if (dev_outlines_enable == true) {
+        lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    }
+    else {
+        lv_obj_set_style_outline_width(result.panel, 0, LV_PART_MAIN);
+    }
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
     lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
 
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
@@ -2019,7 +2197,7 @@ label_pair_panel_t create_label_pair_panel(
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(sub_row_padding*2);
 
     /* --- Row Labels ------------------------------------------------------------------ */
     lv_obj_t * row_0 = lv_obj_create(result.panel);
@@ -2042,7 +2220,7 @@ label_pair_panel_t create_label_pair_panel(
     lv_obj_set_style_pad_row(row_0, sub_row_padding, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(row_0, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(row_0, main_style.title_1.outline_width, LV_PART_MAIN);
     lv_obj_set_style_outline_color(row_0, lv_color_make(0,0,0), LV_PART_MAIN);
     lv_obj_set_style_outline_pad(row_0, 0, LV_PART_MAIN);
 
@@ -2084,13 +2262,10 @@ label_pair_panel_t create_label_pair_panel(
         LV_TEXT_ALIGN_CENTER,
         font_title,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.subtitle_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.subtitle_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Right Label
@@ -2104,13 +2279,10 @@ label_pair_panel_t create_label_pair_panel(
         LV_TEXT_ALIGN_CENTER,
         font_sub,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.subtitle_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.subtitle_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.label_0, obj_w_0, obj_height);
@@ -2309,30 +2481,4 @@ void display_sdcard_image_screen(
     );
 
     lv_scr_load(*screen);
-}
-
-/** -------------------------------------------------------------------------------------
- * @brief Sets global color scheme to default color scheme.
- */
-void setColorsDefault()
-{
-    main_bg_hue      = default_bg_hue;
-    main_outline_hue = default_outline_hue;
-    main_border_hue  = default_border_hue;
-    main_shadow_hue  = default_shadow_hue;
-    main_title_hue   = default_title_hue;
-    main_value_hue   = default_value_hue;
-}
-
-/** -------------------------------------------------------------------------------------
- * @brief Sets global color scheme to custom color scheme.
- */
-void setColorsCustom()
-{
-    main_bg_hue      = custom_bg_hue;
-    main_outline_hue = custom_outline_hue;
-    main_border_hue  = custom_border_hue;
-    main_shadow_hue  = custom_shadow_hue;
-    main_title_hue   = custom_title_hue;
-    main_value_hue   = custom_value_hue;
 }

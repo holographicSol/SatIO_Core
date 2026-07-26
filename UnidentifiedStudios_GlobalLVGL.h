@@ -53,6 +53,9 @@
 
 #include "UnidentifiedStudios_Config.h"
 
+// Some containers outlines are not intended to be seen, they are purely for verifying alignment.
+#define dev_outlines_enable false
+
 // /* Enable complex draw engine (required for anti-aliasing) */
 // #define LV_USE_DRAW_SW              1
 
@@ -102,106 +105,157 @@ LV_FONT_DECLARE(font_cobalt_alien_25);
 // ---------------------------
 // Size
 // ---------------------------
-extern int32_t outline_width;
-extern int32_t border_width;
-extern int32_t shadow_width;
-extern int32_t general_menu_w_px;
-extern int32_t general_menu_h_px;
-extern int32_t general_menu_row_h_px;
-extern int32_t interactive_menu_row_h_px;
-// ---------------------------
-// Radius
-// ---------------------------
-extern int32_t radius_square;
-extern int32_t radius_rounded;
-extern int32_t radius_circle;
-extern int32_t general_radius;
-// ---------------------------
-// Current Hue
-// ---------------------------
-extern uint32_t current_hue;
-// ---------------------------
-// Rainbow Color
-// ---------------------------
-extern lv_color_t rainbow_outline_hue;
-extern lv_color_t rainbow_title_hue;
-extern lv_color_t rainbow_value_hue;
-// ---------------------------
-// Rainbow Contrast Color
-// ---------------------------
-extern lv_color_t rainbow_contrast_outline_hue;
-extern lv_color_t rainbow_contrast_title_hue;
-extern lv_color_t rainbow_contrast_value_hue;
-// ---------------------------
-// Default Color
-// ---------------------------
-extern lv_color_t default_bg_hue;
-extern lv_color_t default_bg_title_hue;
-extern lv_color_t default_outline_hue;
-extern lv_color_t default_border_hue;
-extern lv_color_t default_shadow_hue;
-extern lv_color_t default_title_hue;
-extern lv_color_t default_subtitle_hue;
-extern lv_color_t default_value_hue;
-// ---------------------------
-// Default Button
-// ---------------------------
-extern lv_color_t default_btn_bg;
-extern lv_color_t default_btn_outline_hue;
-extern lv_color_t default_btn_border_hue;
-extern lv_color_t default_btn_shadow_hue;
-extern lv_color_t default_btn_value_hue;
-// ---------------------------
-// Default Button Off
-// ---------------------------
-extern lv_color_t default_btn_off_bg;
-extern lv_color_t default_btn_off_outline_hue;
-extern lv_color_t default_btn_off_border_hue;
-extern lv_color_t default_btn_off_shadow_hue;
-extern lv_color_t default_btn_off_value_hue;
-// ---------------------------
-// Default Button On
-// ---------------------------
-extern lv_color_t default_btn_on_bg;
-extern lv_color_t default_btn_on_outline_hue;
-extern lv_color_t default_btn_on_border_hue;
-extern lv_color_t default_btn_on_shadow_hue;
-extern lv_color_t default_btn_on_value_hue;
-// ---------------------------
-// Default Button Toggle
-// ---------------------------
-extern lv_color_t default_btn_toggle_outline_hue;
-extern lv_color_t default_btn_toggle_value_hue;
-// ---------------------------
-// Default Switch
-// ---------------------------
-extern lv_color_t default_sw_off_bg;
-extern lv_color_t default_sw_off_knob_bg;
-extern lv_color_t default_sw_on_bg;
-extern lv_color_t default_sw_on_knob_bg;
-// ---------------------------
-// Custom Color
-// ---------------------------
-extern lv_color_t custom_bg_hue;
-extern lv_color_t custom_title_bg_hue;
-extern lv_color_t custom_outline_hue;
-extern lv_color_t custom_border_hue;
-extern lv_color_t custom_shadow_hue;
-extern lv_color_t custom_title_hue;
-extern lv_color_t custom_subtitle_hue;
-extern lv_color_t custom_value_hue;
-// -------------------------------------
-// Current Color (set as default/custom)
-// -------------------------------------
-extern lv_color_t main_bg_hue;
-extern lv_color_t main_title_bg_hue;
-extern lv_color_t main_outline_hue;
-extern lv_color_t main_border_hue;
-extern lv_color_t main_shadow_hue;
-extern lv_color_t main_title_hue;
-extern lv_color_t main_subtitle_hue;
-extern lv_color_t main_value_hue;
-extern int32_t slider_outline_width;
+extern int32_t general_window_w_px;
+extern int32_t general_window_h_px;
+extern int32_t general_panel_row_h_px;
+extern int32_t general_slider_h_px;
+extern int32_t general_switch_h_px;
+extern int32_t general_switch_w_px;
+
+/** ---------------------------------------------------------------------------------------
+ * @brief One style category's properties (e.g. the "outline" or "title" category).
+ *
+ * width:   line/stroke width for chrome categories (outline/border/shadow); letter
+ *          spacing for text categories (font/title/subtitle/value).
+ * opa:     opacity.
+ * color:   the category's color.
+ * padding: outline_pad for outline; shadow_spread for shadow; pad_row/pad_column
+ *          (layout gap) for row; text_line_space for font/title/subtitle/value.
+ */
+
+typedef struct {
+    int32_t    outline_width;
+    int32_t    border_width;
+    int32_t    shadow_width;
+    lv_opa_t   opa_bg;
+    lv_opa_t   opa_font;
+    lv_opa_t   opa_outline;
+    lv_opa_t   opa_border;
+    lv_opa_t   opa_shadow;
+    lv_color_t color_bg;
+    lv_color_t color_outline;
+    lv_color_t color_border;
+    lv_color_t color_shadow;
+    lv_color_t color_font;
+    lv_color_t iterhue_color_bg;
+    lv_color_t iterhue_color_outline;
+    lv_color_t iterhue_color_border;
+    lv_color_t iterhue_color_shadow;
+    lv_color_t iterhue_color_font;
+    lv_font_t  font;
+    int32_t radius_square;
+    int32_t radius_rounded;
+    int32_t radius_circle;
+    int32_t padall;
+} ui_style_prop_t;
+
+typedef struct {
+    int32_t    outline_width;
+    int32_t    border_width;
+    int32_t    shadow_width;
+    lv_opa_t   opa_bg;
+    lv_opa_t   opa_font;
+    lv_opa_t   opa_outline;
+    lv_opa_t   opa_border;
+    lv_opa_t   opa_shadow;
+    lv_color_t color_bg;
+    lv_color_t color_outline;
+    lv_color_t color_border;
+    lv_color_t color_shadow;
+    lv_color_t color_font;
+    lv_color_t iterhue_color_bg;
+    lv_color_t iterhue_color_outline;
+    lv_color_t iterhue_color_border;
+    lv_color_t iterhue_color_shadow;
+    lv_color_t iterhue_color_font;
+    lv_color_t orbit_above;
+    lv_color_t orbit_below;
+    lv_color_t object_0;
+    lv_color_t object_1;
+    lv_color_t object_2;
+    lv_color_t object_3;
+    lv_color_t object_4;
+    lv_color_t object_5;
+    lv_color_t object_6;
+    lv_color_t object_7;
+    lv_color_t object_8;
+    lv_color_t object_9;
+    lv_color_t object_10;
+    lv_color_t object_sun_altitude_line;
+    lv_font_t  font_1;
+    lv_font_t  font_2;
+    int32_t radius_square;
+    int32_t radius_rounded;
+    int32_t radius_circle;
+    int32_t padall;
+} ui_style_astro_t;
+
+typedef struct {
+    int32_t    outline_width;
+    int32_t    border_width;
+    int32_t    shadow_width;
+    lv_opa_t   opa_bg;
+    lv_opa_t   opa_font;
+    lv_opa_t   opa_outline;
+    lv_opa_t   opa_border;
+    lv_opa_t   opa_shadow;
+    lv_color_t color_bg;
+    lv_color_t color_outline;
+    lv_color_t color_border;
+    lv_color_t color_shadow;
+    lv_color_t color_font;
+    lv_color_t iterhue_color_bg;
+    lv_color_t iterhue_color_outline;
+    lv_color_t iterhue_color_border;
+    lv_color_t iterhue_color_shadow;
+    lv_color_t iterhue_color_font;
+    lv_color_t object_0;
+    lv_color_t object_1;
+    lv_color_t object_2;
+    lv_color_t object_3;
+    lv_color_t object_4;
+    lv_color_t object_5;
+    lv_color_t object_6;
+    lv_color_t object_7;
+    lv_color_t object_8;
+    lv_color_t object_9;
+    lv_color_t object_10;
+    lv_color_t scope_target;
+    lv_font_t  font_1;
+    lv_font_t  font_2;
+    int32_t radius_square;
+    int32_t radius_rounded;
+    int32_t radius_circle;
+    int32_t padall;
+} ui_style_starnav_t;
+
+/** ---------------------------------------------------------------------------------------
+ * @brief UI Color Style.
+ *
+ * A full palette for one UI color scheme. default_style_slate, custom_style, and main_style
+ * are all instances of this same type so a whole scheme can be swapped in with one
+ * struct copy; every lv object is styled by reading from main_style.
+ */
+typedef struct {
+    char *name;
+    ui_style_prop_t title_1; // primary titles
+    ui_style_prop_t title_2; // secondary titles (contrast to primary)
+    ui_style_prop_t subtitle_1; // primary subtitles
+    ui_style_prop_t subtitle_2; // secondary subtitles (contrast to primary)
+    ui_style_prop_t value_1; // primary values
+    ui_style_prop_t value_2; // secondary values (contrast to primary)
+
+    ui_style_astro_t astroclock;
+    ui_style_starnav_t starnav;
+
+    ui_style_prop_t kb;
+    lv_color_t      color_on;
+    lv_color_t      color_off;
+    lv_color_t      color_knob_on;
+    lv_color_t      color_knob_off;
+} ui_style_t;
+
+extern ui_style_t main_style;
 
 /** ---------------------------------------------------------------------------------------
  * @brief Button Struct
@@ -291,6 +345,16 @@ typedef struct {
     lv_obj_t * label_1;
 } label_pair_panel_t;
 
+/**
+ * @brief Sets main style to the "Slate" color scheme.
+ */
+void setStyleDefaultSlate();
+
+/**
+ * @brief Sets main style to the "Alien" color scheme.
+ */
+void setStyleDefaultAlien();
+
 /** -------------------------------------------------------------------------------------
  * @brief Create System Tray.
  *
@@ -299,14 +363,10 @@ typedef struct {
  * customizing grid button labels/behavior is left to the caller.
  *
  * @param parent Specify parent object.
- * @param font_title Specify title font.
- * @param font_subtitle Specify subtitle font.
  * @param slider_initial_value Initial value for the brightness slider.
  */
 system_tray_t create_system_tray(
     lv_obj_t * parent,
-    const lv_font_t * font_title,
-    const lv_font_t * font_subtitle,
     int32_t slider_initial_value
 );
 
@@ -321,8 +381,6 @@ system_tray_t create_system_tray(
  * @param pos_y Offset from alignment.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Specify title font.
- * @param font_subtitle Specify subtitle font.
  * @return title_bar_t.
  */
 title_bar_t create_title_bar (
@@ -333,9 +391,7 @@ title_bar_t create_title_bar (
     int32_t pos_x,
     int32_t pos_y,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_subtitle
+    bool enable_scrolling
     );
 
 /** -------------------------------------------------------------------------------------
@@ -377,9 +433,6 @@ lv_obj_t * create_slider(
  * @param text_align Text alignment on label.
  * @param font Specify text font.
  * @param transparent_bg Tranparent background.
- * @param show_scrollbar Show/hide scrollbar.
- * @param enable_scrolling Enable/disable scrolling.
- * @param outline_width Specify panel outline width.
  * @param radius Specify panel outline radius.
  * @param expected_number_of_lines Specify expected number of lines (used for alignment).
  * @param color_bg Background color.
@@ -397,9 +450,6 @@ lv_obj_t * create_label(
     lv_text_align_t text_align,
     const lv_font_t * font,
     bool transparent_bg,
-    bool show_scrollbar,
-    bool enable_scrolling,
-    int32_t outline_width,
     int32_t radius,
     int32_t expected_number_of_lines,
     lv_color_t color_bg,
@@ -558,8 +608,6 @@ lv_obj_t * create_textarea(
  *                      LV_KEYBOARD_MODE_USER_2
  *                      LV_KEYBOARD_MODE_USER_3
  *                      LV_KEYBOARD_MODE_USER_4
- * @param font_title Specify title font.
- * @param font_subtitle Specify subtitle font.
  * @return keyboard_t.
  */
 keyboard_t create_keyboard(
@@ -571,9 +619,7 @@ keyboard_t create_keyboard(
     int32_t pos_y,
     int32_t kb_ta_padding_px,
     int32_t ta_height_px,
-    lv_keyboard_mode_t keyboard_mode,
-    const lv_font_t * font_title,
-    const lv_font_t * font_subtitle
+    lv_keyboard_mode_t keyboard_mode
     );
 
 /** -------------------------------------------------------------------------------------
@@ -594,7 +640,6 @@ keyboard_t create_keyboard(
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param text_align Text alignment inside cells.
- * @param font Font used in cells.
  * @param transparent_bg Transparent background for cells.
  * @param transparent_outline Transparent outline for cells.
  * @return lv_obj_t* Pointer to the created grid container.
@@ -615,7 +660,6 @@ lv_obj_t * create_menu_grid(
     bool show_scrollbar,
     bool enable_scrolling,
     lv_text_align_t text_align,
-    const lv_font_t * font,
     bool transparent_bg,
     bool transparent_outline
 );
@@ -676,13 +720,6 @@ lv_obj_t * create_switch(
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
  * @param text Button display text.
- * @param text_align Text alignment.
- * @param show_scrollbar Show/hide scrollbar.
- * @param enable_scrolling Enable/disable scrolling.
- * @param font Font used for button text.
- * @param radius Corner radius.
- * @param color_bg Background color.
- * @param color_text Text color.
  * @return button_t structure containing panel, button and label objects.
  */
 button_t create_button(
@@ -692,14 +729,7 @@ button_t create_button(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    const char * text,
-    lv_text_align_t text_align,
-    bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font,
-    int32_t radius,
-    lv_color_t color_bg,
-    lv_color_t color_text
+    const char * text
 );
 
 /** -------------------------------------------------------------------------------------
@@ -708,9 +738,6 @@ button_t create_button(
  * @param parent Specify parent object.
  * @param sub_row_width Width of each sub-row.
  * @param sub_row_height Height of each sub-row.
- * @param inner_pad_all Uniform inner padding.
- * @param sub_row_padding Padding between sub-rows.
- * @param sub_column_padding Padding between sub-columns.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @return lv_obj_t* Pointer to the created row container.
@@ -719,9 +746,6 @@ lv_obj_t * create_row(
     lv_obj_t * parent,
     int32_t sub_row_width,
     int32_t sub_row_height,
-    int32_t inner_pad_all,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
     bool show_scrollbar,
     bool enable_scrolling
 );
@@ -746,8 +770,6 @@ lv_obj_t * create_row(
  * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @param title_text Title text.
  * @param value_text Initial value text.
  * @return stepper_panel_t structure.
@@ -770,8 +792,6 @@ stepper_panel_t create_stepper_panel(
     int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub,
     const char * title_text,
     const char * value_text
 );
@@ -796,8 +816,6 @@ stepper_panel_t create_stepper_panel(
  * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @param label_0_text Left label text.
  * @param label_1_text Right label text.
  * @return stepper_panel_t structure.
@@ -820,8 +838,6 @@ label_pair_panel_t create_label_pair_panel(
     int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub,
     const char * label_0_text,
     const char * label_1_text
 );
@@ -881,16 +897,6 @@ void cleanup_sdcard_image(sdcard_image_t ** image);
  * @param additional_cleanup_cb Optional callback for extra cleanup (may be NULL).
  */
 void lvgl_cleanup_all(sdcard_image_t ** image, void (*additional_cleanup_cb)(void));
-
-/** -------------------------------------------------------------------------------------
- * @brief Sets global color scheme to default color scheme.
- */
-void setColorsDefault();
-
-/** -------------------------------------------------------------------------------------
- * @brief Sets global color scheme to custom color scheme.
- */
-void setColorsCustom();
 
 /** -------------------------------------------------------------------------------------
  * @brief Show a centered full-screen image loaded from the SD card (e.g. a splash/

@@ -718,6 +718,16 @@ typedef struct {
 
 } uap_t;
 
+/** ---------------------------------------------------------------------------------------
+ * @brief Display Settings Container Struct
+ */
+typedef struct {
+    lv_obj_t * panel;
+    lv_obj_t * lbl_title_theme;
+    button_t   btn_theme_slate;
+    button_t   btn_theme_alien;
+} display_settings_container_t;
+
 /** -------------------------------------------------------------------------------------
  * @brief Create UAP.
  * 
@@ -739,7 +749,36 @@ uap_t create_uap(
     int32_t radius
     );
 
-/** --------------------------------------------------------------------------------------- 
+/** -------------------------------------------------------------------------------------
+ * @brief Create Display Settings Panel Container (THEME header + one selectable button
+ *        per available theme).
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @param font_title Title font.
+ * @param font_sub Subtitle/font for smaller text.
+ * @return display_settings_container_t structure.
+ */
+display_settings_container_t create_display_settings_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling,
+    const lv_font_t * font_title,
+    const lv_font_t * font_sub
+);
+
+/** ---------------------------------------------------------------------------------------
  * Callbacks.
 */
 
@@ -784,6 +823,8 @@ void dd_gpiope_port_i_event_cb(lv_event_t * e);
 void sw_gpiope_enabled_event_cb(lv_event_t * e);
 void btn_gpiope_mode_input_event_cb(lv_event_t * e);
 void btn_gpiope_mode_output_event_cb(lv_event_t * e);
+void btn_theme_slate_event_cb(lv_event_t * e);
+void btn_theme_alien_event_cb(lv_event_t * e);
 
 /** -------------------------------------------------------------------------------------
  * @brief Create Matrix Function Container.
@@ -796,15 +837,6 @@ void btn_gpiope_mode_output_event_cb(lv_event_t * e);
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param font_title Title font.
@@ -818,15 +850,6 @@ matrix_function_container_t create_matrix_function_container(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -842,15 +865,6 @@ matrix_function_container_t create_matrix_function_container(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param font_title Title font.
@@ -864,15 +878,6 @@ mapping_config_container_t create_mapping_config_container(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -888,15 +893,6 @@ mapping_config_container_t create_mapping_config_container(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param font_title Title font.
@@ -910,15 +906,6 @@ gpiope_container_t create_gpiope_container(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -934,19 +921,8 @@ gpiope_container_t create_gpiope_container(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return matrix_switch_container_t structure.
  */
 matrix_switch_container_t create_matrix_switch_panel(
@@ -956,19 +932,8 @@ matrix_switch_container_t create_matrix_switch_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     );
 
 /** -------------------------------------------------------------------------------------
@@ -980,19 +945,8 @@ matrix_switch_container_t create_matrix_switch_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gyro_0_container_t structure.
  */
 gyro_0_container_t create_gyro_panel(
@@ -1002,19 +956,8 @@ gyro_0_container_t create_gyro_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1026,19 +969,8 @@ gyro_0_container_t create_gyro_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gyro_cal_container_t structure.
  */
 gyro_cal_container_t create_cal_gyro_panel(
@@ -1048,19 +980,8 @@ gyro_cal_container_t create_cal_gyro_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1072,19 +993,8 @@ gyro_cal_container_t create_cal_gyro_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return SatIO_container_t structure.
  */
 SatIO_container_t create_SatIO_panel(
@@ -1094,19 +1004,8 @@ SatIO_container_t create_SatIO_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1118,19 +1017,8 @@ SatIO_container_t create_SatIO_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gngga_container_t structure.
  */
 gngga_container_t create_gngga_panel(
@@ -1140,19 +1028,8 @@ gngga_container_t create_gngga_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1164,19 +1041,8 @@ gngga_container_t create_gngga_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gnrmc_container_t structure.
  */
 gnrmc_container_t create_gnrmc_panel(
@@ -1186,19 +1052,8 @@ gnrmc_container_t create_gnrmc_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1210,19 +1065,8 @@ gnrmc_container_t create_gnrmc_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gpatt_container_t structure.
  */
 gpatt_container_t create_gpatt_panel(
@@ -1232,19 +1076,8 @@ gpatt_container_t create_gpatt_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1256,19 +1089,8 @@ gpatt_container_t create_gpatt_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gps_switch_container_t structure.
  */
 gps_switch_container_t create_gps_switch_panel(
@@ -1278,19 +1100,8 @@ gps_switch_container_t create_gps_switch_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
 );
 
 /** -------------------------------------------------------------------------------------
@@ -1335,6 +1146,11 @@ void display_uap_screen();
 void display_celestial_sphere_screen();
 
 /** -------------------------------------------------------------------------------------
+ * @brief Show Display Settings Screen.
+ */
+void display_settings_screen();
+
+/** -------------------------------------------------------------------------------------
  * @brief Flags to trigger screen loading.
  */
 extern bool flag_display_loading_screen;
@@ -1345,6 +1161,7 @@ extern bool flag_display_gyro_screen;
 extern bool flag_display_disp_screen;
 extern bool flag_display_uap_screen;
 extern bool flag_display_celestial_sphere_screen;
+extern bool flag_display_settings_screen;
 
 /** -------------------------------------------------------------------------------------
  * @brief Main function to update screen objects and load screens.

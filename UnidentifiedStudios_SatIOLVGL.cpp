@@ -82,6 +82,7 @@ lv_obj_t * serial_screen;
 lv_obj_t * mplex0_screen;
 lv_obj_t * uap_screen;
 lv_obj_t * celestial_sphere_screen;
+lv_obj_t * settings_screen;
 
 int32_t current_screen_number = -1;
 #define LOAD_SCREEN    -1
@@ -94,7 +95,7 @@ int32_t current_screen_number = -1;
 #define UAP_SCREEN     6
 
 #define CELESTIAL_SPHERE_SCREEN 600
-#define DEV_SCREEN_1 601
+#define SETTINGS_SCREEN 601 // display settings screen (formerly DEV_SCREEN_1)
 #define DEV_SCREEN_2 602
 #define DEV_SCREEN_3 603
 #define DEV_SCREEN_4 604
@@ -110,6 +111,7 @@ bool flag_display_mplex0_screen = false;
 bool flag_display_serial_screen = false;
 bool flag_display_uap_screen = false;
 bool flag_display_celestial_sphere_screen = false;
+bool flag_display_settings_screen = false;
 
 /** ---------------------------------------------------------------------------------------
  * @brief Global Objects
@@ -227,6 +229,10 @@ serial_container_t serial_c;
 // UAP
 // ---------------------------
 uap_t uap_c;
+// ---------------------------
+// Display Settings
+// ---------------------------
+display_settings_container_t display_settings_c;
 
 /* ----------------------------------------------------------------------------------------
  * @brief Custom LVGL log callback to redirect logs to ESP-IDF logging system.
@@ -858,6 +864,7 @@ void system_tray_grid_menu_2_event_cb(lv_event_t * e)
         // Switch logic
         switch(btn_index+600) {
             case CELESTIAL_SPHERE_SCREEN: flag_display_celestial_sphere_screen=true; break;
+            case SETTINGS_SCREEN:         flag_display_settings_screen=true; break;
             default: break;
         }
     }
@@ -1475,7 +1482,7 @@ static void gyro_cal_acc_timer_cb(lv_timer_t * timer)
 {
     (void)timer;
     if (gyro_cal_c.btn_cal_acc.label) {
-        lv_obj_set_style_text_color(gyro_cal_c.btn_cal_acc.label, default_btn_off_value_hue, LV_PART_MAIN);
+        lv_obj_set_style_text_color(gyro_cal_c.btn_cal_acc.label, main_style.value_1.color_font, LV_PART_MAIN);
     }
     gyro_cal_acc_timer = nullptr;
 }
@@ -1498,7 +1505,7 @@ void btn_cal_acc_event_cb(lv_event_t * e)
             gyro_cal_acc_timer = nullptr;
         }
         if (gyro_cal_c.btn_cal_acc.label) {
-            lv_obj_set_style_text_color(gyro_cal_c.btn_cal_acc.label, default_btn_on_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_text_color(gyro_cal_c.btn_cal_acc.label, main_style.value_1.color_font, LV_PART_MAIN);
         }
         gyro_cal_acc_timer = lv_timer_create(gyro_cal_acc_timer_cb, GYRO_CAL_ACC_FLASH_MS, NULL);
         lv_timer_set_repeat_count(gyro_cal_acc_timer, 1);
@@ -1515,7 +1522,7 @@ static void gyro_cal_mag_timer_cb(lv_timer_t * timer)
     (void)timer;
     WT901CalMagEnd();
     if (gyro_cal_c.btn_cal_mag.label) {
-        lv_obj_set_style_text_color(gyro_cal_c.btn_cal_mag.label, default_btn_off_value_hue, LV_PART_MAIN);
+        lv_obj_set_style_text_color(gyro_cal_c.btn_cal_mag.label, main_style.value_1.color_font, LV_PART_MAIN);
     }
     gyro_cal_mag_timer = nullptr;
 }
@@ -1538,7 +1545,7 @@ void btn_cal_mag_event_cb(lv_event_t * e)
         }
         WT901CalMagStart();
         if (gyro_cal_c.btn_cal_mag.label) {
-            lv_obj_set_style_text_color(gyro_cal_c.btn_cal_mag.label, default_btn_on_value_hue, LV_PART_MAIN);
+            lv_obj_set_style_text_color(gyro_cal_c.btn_cal_mag.label, main_style.value_1.color_font, LV_PART_MAIN);
         }
         gyro_cal_mag_timer = lv_timer_create(gyro_cal_mag_timer_cb, GYRO_CAL_MAG_DURATION_MS, NULL);
         lv_timer_set_repeat_count(gyro_cal_mag_timer, 1);
@@ -1886,19 +1893,8 @@ void sw_admplex_channel_event_cb(lv_event_t * e)
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gps_switch_container_t structure.
  */
 gps_switch_container_t create_gps_switch_panel(
@@ -1908,23 +1904,13 @@ gps_switch_container_t create_gps_switch_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     gps_switch_container_t result = {};
-    
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
+
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
 
@@ -1939,36 +1925,41 @@ gps_switch_container_t create_gps_switch_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    if (dev_outlines_enable == true) {
+        lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    }
+    else {
+        lv_obj_set_style_outline_width(result.panel, 0, LV_PART_MAIN);
+    }
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* --- Row Buttons ------------------------------------------------------------------ */
     lv_obj_t * row_0 = lv_obj_create(result.panel);
@@ -1986,12 +1977,12 @@ gps_switch_container_t create_gps_switch_panel(
     lv_obj_align(row_0, LV_ALIGN_CENTER, pos_x, pos_y);
 
     // Row Padding
-    lv_obj_set_style_pad_all(row_0, inner_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(row_0, sub_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(row_0, sub_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(row_0, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(row_0, col_gap, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(row_0, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(row_0, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(row_0, main_style.title_1.outline_width, LV_PART_MAIN);
     lv_obj_set_style_outline_color(row_0, lv_color_make(0,0,0), LV_PART_MAIN);
     lv_obj_set_style_outline_pad(row_0, 0, LV_PART_MAIN);
 
@@ -2011,8 +2002,8 @@ gps_switch_container_t create_gps_switch_panel(
         LV_FLEX_ALIGN_CENTER
     );
 
-    // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    // Set row object widths (4 equal buttons)
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
 
     // SatIO Panel View
     result.switch_SatIO_panel = create_button(
@@ -2021,14 +2012,7 @@ gps_switch_container_t create_gps_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "SatIO",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "SATIO"
     );
     lv_obj_add_event_cb(result.switch_SatIO_panel.button, switch_SatIO_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2039,14 +2023,7 @@ gps_switch_container_t create_gps_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "GNGGA",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "GNGGA"
     );
     lv_obj_add_event_cb(result.switch_gngga_panel.button, switch_gngga_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2057,14 +2034,7 @@ gps_switch_container_t create_gps_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "GNRMC",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "GNRMC"
     );
     lv_obj_add_event_cb(result.switch_gnrmc_panel.button, switch_gnrmc_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2075,14 +2045,7 @@ gps_switch_container_t create_gps_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "GPATT",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "GPATT"
     );
     lv_obj_add_event_cb(result.switch_gpatt_panel.button, switch_gpatt_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2103,19 +2066,8 @@ gps_switch_container_t create_gps_switch_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return matrix_switch_container_t structure.
  */
 matrix_switch_container_t create_matrix_switch_panel(
@@ -2125,23 +2077,13 @@ matrix_switch_container_t create_matrix_switch_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     matrix_switch_container_t result = {};
-    
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
+
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
 
@@ -2156,36 +2098,41 @@ matrix_switch_container_t create_matrix_switch_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    if (dev_outlines_enable == true) {
+        lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    }
+    else {
+        lv_obj_set_style_outline_width(result.panel, 0, LV_PART_MAIN);
+    }
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* --- Row Buttons ------------------------------------------------------------------ */
     lv_obj_t * row_0 = lv_obj_create(result.panel);
@@ -2203,12 +2150,12 @@ matrix_switch_container_t create_matrix_switch_panel(
     lv_obj_align(row_0, LV_ALIGN_CENTER, pos_x, pos_y);
 
     // Row Padding
-    lv_obj_set_style_pad_all(row_0, inner_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(row_0, sub_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(row_0, sub_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(row_0, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(row_0, col_gap, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(row_0, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(row_0, outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(row_0, main_style.title_1.outline_width, LV_PART_MAIN);
     lv_obj_set_style_outline_color(row_0, lv_color_make(0,0,0), LV_PART_MAIN);
     lv_obj_set_style_outline_pad(row_0, 0, LV_PART_MAIN);
 
@@ -2228,8 +2175,8 @@ matrix_switch_container_t create_matrix_switch_panel(
         LV_FLEX_ALIGN_CENTER
     );
 
-    // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    // Set row object widths (4 equal buttons)
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
 
     // OVERVIEW Panel View
     result.switch_overview_panel = create_button(
@@ -2238,14 +2185,7 @@ matrix_switch_container_t create_matrix_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "OVERVIEW",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "OVERVIEW"
     );
     lv_obj_add_event_cb(result.switch_overview_panel.button, switch_matrix_overview_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2256,14 +2196,7 @@ matrix_switch_container_t create_matrix_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "MATRIX",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "MATRIX"
     );
     lv_obj_add_event_cb(result.switch_matrix_panel.button, switch_matrix_matrix_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2274,14 +2207,7 @@ matrix_switch_container_t create_matrix_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "MAPPING",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "MAPPING"
     );
     lv_obj_add_event_cb(result.switch_mapping_panel.button, switch_matrix_mapping_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2292,14 +2218,7 @@ matrix_switch_container_t create_matrix_switch_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "GPIOPE",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "GPIOPE"
     );
     lv_obj_add_event_cb(result.switch_gpiope_panel.button, switch_matrix_gpiope_panel_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -2312,7 +2231,7 @@ matrix_switch_container_t create_matrix_switch_panel(
 }
 
 /** -------------------------------------------------------------------------------------
- * @brief Create GNGGA NMEA Panel Container.
+ * @brief Create GNGGA Panel Container.
  *
  * @param parent Specify parent object.
  * @param width_px Container width.
@@ -2320,19 +2239,8 @@ matrix_switch_container_t create_matrix_switch_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gngga_container_t structure.
  */
 gngga_container_t create_gngga_panel(
@@ -2342,22 +2250,12 @@ gngga_container_t create_gngga_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     gngga_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -2373,37 +2271,37 @@ gngga_container_t create_gngga_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* ---------------------------------------------------------- */
 
@@ -2411,20 +2309,12 @@ gngga_container_t create_gngga_panel(
     /* Row UTC Time                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_utc_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_utc_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_utc_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_utc_time = create_label(
         row_utc_time,
@@ -2435,15 +2325,12 @@ gngga_container_t create_gngga_panel(
         0,
         "UTC Time",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_utc_time = create_label(
@@ -2455,15 +2342,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_utc_time, obj_w_0, obj_height);
@@ -2473,20 +2357,12 @@ gngga_container_t create_gngga_panel(
     /* Row Latitude                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_latitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_latitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_latitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_latitude = create_label(
         row_latitude,
@@ -2497,15 +2373,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Latitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_latitude = create_label(
@@ -2517,15 +2390,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_latitude, obj_w_0, obj_height);
@@ -2535,20 +2405,12 @@ gngga_container_t create_gngga_panel(
     /* Row Longitude                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_longitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_longitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_longitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_longitude = create_label(
         row_longitude,
@@ -2559,15 +2421,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Longitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_longitude = create_label(
@@ -2579,15 +2438,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_longitude, obj_w_0, obj_height);
@@ -2597,20 +2453,12 @@ gngga_container_t create_gngga_panel(
     /* Row Solution Status                                        */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_solution_status = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_solution_status = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_solution_status, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_solution_status = create_label(
         row_solution_status,
@@ -2621,15 +2469,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Solution Status",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_solution_status = create_label(
@@ -2641,15 +2486,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_solution_status, obj_w_0, obj_height);
@@ -2659,20 +2501,12 @@ gngga_container_t create_gngga_panel(
     /* Row Satellites                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_satellites = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_satellites = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_satellites, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_sat_count = create_label(
         row_satellites,
@@ -2683,15 +2517,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Satellites",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_sat_count = create_label(
@@ -2703,15 +2534,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_sat_count, obj_w_0, obj_height);
@@ -2721,20 +2549,12 @@ gngga_container_t create_gngga_panel(
     /* Row GPS Precision                                          */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_gps_precision = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gps_precision = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gps_precision, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_gps_precision_factor = create_label(
         row_gps_precision,
@@ -2745,15 +2565,12 @@ gngga_container_t create_gngga_panel(
         0,
         "GPS Precision",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gps_precision_factor = create_label(
@@ -2765,15 +2582,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gps_precision_factor, obj_w_0, obj_height);
@@ -2783,20 +2597,12 @@ gngga_container_t create_gngga_panel(
     /* Row Altitude                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_altitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_altitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_altitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_altitude = create_label(
         row_altitude,
@@ -2807,15 +2613,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Altitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_altitude = create_label(
@@ -2827,15 +2630,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_altitude, obj_w_0, obj_height);
@@ -2845,20 +2645,12 @@ gngga_container_t create_gngga_panel(
     /* Row Geoidal                                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_geoidal = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_geoidal = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_geoidal, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_geoidal = create_label(
         row_geoidal,
@@ -2869,15 +2661,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Geoidal",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_geoidal = create_label(
@@ -2889,15 +2678,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_geoidal, obj_w_0, obj_height);
@@ -2907,20 +2693,12 @@ gngga_container_t create_gngga_panel(
     /* Row Differential Delay                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_differential_delay = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_differential_delay = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_differential_delay, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_differential_delay = create_label(
         row_differential_delay,
@@ -2931,15 +2709,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Diff Delay",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_differential_delay = create_label(
@@ -2951,15 +2726,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_differential_delay, obj_w_0, obj_height);
@@ -2969,20 +2741,12 @@ gngga_container_t create_gngga_panel(
     /* Row Bad Elements                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_bad_elements = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_bad_elements = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_bad_elements, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_bad_element_count = create_label(
         row_bad_elements,
@@ -2993,15 +2757,12 @@ gngga_container_t create_gngga_panel(
         0,
         "Bad Elements",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_bad_element_count = create_label(
@@ -3013,15 +2774,12 @@ gngga_container_t create_gngga_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_bad_element_count, obj_w_0, obj_height);
@@ -3031,7 +2789,7 @@ gngga_container_t create_gngga_panel(
 }
 
 /** -------------------------------------------------------------------------------------
- * @brief Create GNRMC NMEA Panel Container.
+ * @brief Create GNRMC Panel Container.
  *
  * @param parent Specify parent object.
  * @param width_px Container width.
@@ -3039,19 +2797,8 @@ gngga_container_t create_gngga_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gnrmc_container_t structure.
  */
 gnrmc_container_t create_gnrmc_panel(
@@ -3061,22 +2808,12 @@ gnrmc_container_t create_gnrmc_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     gnrmc_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -3092,56 +2829,48 @@ gnrmc_container_t create_gnrmc_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* ---------------------------------------------------------- */
     /* Row UTC Time                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_utc_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_utc_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_utc_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_utc_time = create_label(
         row_utc_time,
@@ -3152,15 +2881,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "UTC Time",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_utc_time = create_label(
@@ -3172,15 +2898,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_utc_time, obj_w_0, obj_height);
@@ -3190,20 +2913,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Positioning Status                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_positioning_status = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_positioning_status = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_positioning_status, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_positioning_status = create_label(
         row_positioning_status,
@@ -3214,15 +2929,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Pos Status",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_positioning_status = create_label(
@@ -3234,15 +2946,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_positioning_status, obj_w_0, obj_height);
@@ -3252,20 +2961,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Latitude                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_latitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_latitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_latitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_latitude = create_label(
         row_latitude,
@@ -3276,15 +2977,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Latitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_latitude = create_label(
@@ -3296,15 +2994,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_latitude, obj_w_0, obj_height);
@@ -3314,20 +3009,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Longitude                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_longitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_longitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_longitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_longitude = create_label(
         row_longitude,
@@ -3338,15 +3025,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Longitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_longitude = create_label(
@@ -3358,15 +3042,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_longitude, obj_w_0, obj_height);
@@ -3376,20 +3057,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Ground Speed                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_ground_speed = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_ground_speed = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_ground_speed, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_ground_speed = create_label(
         row_ground_speed,
@@ -3400,15 +3073,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Ground Speed",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_ground_speed = create_label(
@@ -3420,15 +3090,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_ground_speed, obj_w_0, obj_height);
@@ -3438,20 +3105,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Ground Heading                                         */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_ground_heading = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_ground_heading = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_ground_heading, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_ground_heading = create_label(
         row_ground_heading,
@@ -3462,15 +3121,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Ground Head",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_ground_heading = create_label(
@@ -3482,15 +3138,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_ground_heading, obj_w_0, obj_height);
@@ -3500,20 +3153,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row UTC Date                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_utc_date = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_utc_date = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_utc_date, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_utc_date = create_label(
         row_utc_date,
@@ -3524,15 +3169,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "UTC Date",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_utc_date = create_label(
@@ -3544,15 +3186,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_utc_date, obj_w_0, obj_height);
@@ -3562,20 +3201,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Installation Angle                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_installation_angle = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_installation_angle = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_installation_angle, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_installation_angle = create_label(
         row_installation_angle,
@@ -3586,15 +3217,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Inst Angle",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_installation_angle = create_label(
@@ -3606,15 +3234,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_installation_angle, obj_w_0, obj_height);
@@ -3624,20 +3249,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Installation Angle Direction                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_installation_angle_dir = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_installation_angle_dir = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_installation_angle_dir, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_installation_angle_direction = create_label(
         row_installation_angle_dir,
@@ -3648,15 +3265,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Inst Dir",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_installation_angle_direction = create_label(
@@ -3668,15 +3282,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_installation_angle_direction, obj_w_0, obj_height);
@@ -3686,20 +3297,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Mode Indication                                        */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_mode_indication = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_mode_indication = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_mode_indication, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_mode_indication = create_label(
         row_mode_indication,
@@ -3710,15 +3313,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Mode",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_mode_indication = create_label(
@@ -3730,15 +3330,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_mode_indication, obj_w_0, obj_height);
@@ -3748,20 +3345,12 @@ gnrmc_container_t create_gnrmc_panel(
     /* Row Bad Elements                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_bad_elements = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_bad_elements = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_bad_elements, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_bad_element_count = create_label(
         row_bad_elements,
@@ -3772,15 +3361,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "Bad Elements",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_bad_element_count = create_label(
@@ -3792,15 +3378,12 @@ gnrmc_container_t create_gnrmc_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_bad_element_count, obj_w_0, obj_height);
@@ -3818,19 +3401,8 @@ gnrmc_container_t create_gnrmc_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gpatt_container_t structure.
  */
 gpatt_container_t create_gpatt_panel(
@@ -3840,22 +3412,12 @@ gpatt_container_t create_gpatt_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     gpatt_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -3871,58 +3433,50 @@ gpatt_container_t create_gpatt_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* ---------------------------------------------------------- */
     /* Row Pitch                                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_pitch = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_pitch = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_pitch, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
-    result.lbl_pitch = create_label(           // fixed typo: lbl_pitch → lbl_pitch
+    result.lbl_pitch = create_label(
         row_pitch,
         obj_w_0,
         obj_height,
@@ -3931,15 +3485,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Pitch",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_pitch = create_label(
@@ -3951,15 +3502,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_pitch, obj_w_0, obj_height);
@@ -3969,20 +3517,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Roll                                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_roll = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_roll = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_roll, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_roll = create_label(
         row_roll,
@@ -3993,15 +3533,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Roll",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_roll = create_label(
@@ -4013,15 +3550,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_roll, obj_w_0, obj_height);
@@ -4031,20 +3565,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Yaw                                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_yaw = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_yaw = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_yaw, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_yaw = create_label(
         row_yaw,
@@ -4055,15 +3581,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Yaw",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_yaw = create_label(
@@ -4075,15 +3598,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_yaw, obj_w_0, obj_height);
@@ -4093,20 +3613,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Software Version                                       */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_software_version = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_software_version = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_software_version, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_software_version = create_label(
         row_software_version,
@@ -4117,15 +3629,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "SW Version",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_software_version = create_label(
@@ -4137,15 +3646,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_software_version, obj_w_0, obj_height);
@@ -4155,20 +3661,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Product ID                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_product_id = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_product_id = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_product_id, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_product_id = create_label(
         row_product_id,
@@ -4179,15 +3677,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Product ID",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_product_id = create_label(
@@ -4199,15 +3694,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_product_id, obj_w_0, obj_height);
@@ -4217,20 +3709,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row INS                                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_ins = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_ins = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_ins, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_ins = create_label(
         row_ins,
@@ -4241,15 +3725,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "INS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_ins = create_label(
@@ -4261,15 +3742,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_ins, obj_w_0, obj_height);
@@ -4279,20 +3757,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Hardware Version                                       */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_hardware_version = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_hardware_version = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_hardware_version, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_hardware_version = create_label(
         row_hardware_version,
@@ -4303,15 +3773,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "HW Version",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_hardware_version = create_label(
@@ -4323,15 +3790,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_hardware_version, obj_w_0, obj_height);
@@ -4341,20 +3805,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Run State Flag                                         */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_run_state_flag = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_run_state_flag = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_run_state_flag, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_run_state_flag = create_label(
         row_run_state_flag,
@@ -4365,15 +3821,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Run State",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_run_state_flag = create_label(
@@ -4385,15 +3838,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_run_state_flag, obj_w_0, obj_height);
@@ -4403,20 +3853,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Mis Angle Num                                          */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_mis_angle_num = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_mis_angle_num = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_mis_angle_num, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_mis_angle_num = create_label(
         row_mis_angle_num,
@@ -4427,15 +3869,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Mis Angle Num",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_mis_angle_num = create_label(
@@ -4447,15 +3886,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_mis_angle_num, obj_w_0, obj_height);
@@ -4465,20 +3901,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Static Flag                                            */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_static_flag = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_static_flag = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_static_flag, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_static_flag = create_label(
         row_static_flag,
@@ -4489,15 +3917,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Static Flag",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_static_flag = create_label(
@@ -4509,15 +3934,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_static_flag, obj_w_0, obj_height);
@@ -4527,20 +3949,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row User Code                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_user_code = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_user_code = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_user_code, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_user_code = create_label(
         row_user_code,
@@ -4551,15 +3965,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "User Code",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_user_code = create_label(
@@ -4571,15 +3982,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_user_code, obj_w_0, obj_height);
@@ -4589,20 +3997,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row GST Data                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_gst_data = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gst_data = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gst_data, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_gst_data = create_label(
         row_gst_data,
@@ -4613,15 +4013,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "GST Data",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gst_data = create_label(
@@ -4633,15 +4030,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gst_data, obj_w_0, obj_height);
@@ -4651,20 +4045,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Line Flag                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_line_flag = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_line_flag = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_line_flag, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_line_flag = create_label(
         row_line_flag,
@@ -4675,15 +4061,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Line Flag",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_line_flag = create_label(
@@ -4695,15 +4078,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_line_flag, obj_w_0, obj_height);
@@ -4713,20 +4093,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Mis Att Flag                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_mis_att_flag = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_mis_att_flag = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_mis_att_flag, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_mis_att_flag = create_label(
         row_mis_att_flag,
@@ -4737,15 +4109,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Mis Att Flag",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_mis_att_flag = create_label(
@@ -4757,15 +4126,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_mis_att_flag, obj_w_0, obj_height);
@@ -4775,20 +4141,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row IMU Kind                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_imu_kind = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_imu_kind = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_imu_kind, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_imu_kind = create_label(
         row_imu_kind,
@@ -4799,15 +4157,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "IMU Kind",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_imu_kind = create_label(
@@ -4819,15 +4174,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_imu_kind, obj_w_0, obj_height);
@@ -4837,20 +4189,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row UBI Car Kind                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_ubi_car_kind = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_ubi_car_kind = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_ubi_car_kind, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_ubi_car_kind = create_label(
         row_ubi_car_kind,
@@ -4861,15 +4205,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Ubi Car Kind",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_ubi_car_kind = create_label(
@@ -4881,15 +4222,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_ubi_car_kind, obj_w_0, obj_height);
@@ -4899,20 +4237,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Mileage                                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_mileage = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_mileage = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_mileage, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_mileage = create_label(
         row_mileage,
@@ -4923,15 +4253,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Mileage",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_mileage = create_label(
@@ -4943,15 +4270,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_mileage, obj_w_0, obj_height);
@@ -4961,20 +4285,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Run Inertial Flag                                      */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_run_inertial_flag = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_run_inertial_flag = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_run_inertial_flag, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_run_inetial_flag = create_label(
         row_run_inertial_flag,
@@ -4985,15 +4301,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Run Inertial",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_run_inetial_flag = create_label(
@@ -5005,15 +4318,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_run_inetial_flag, obj_w_0, obj_height);
@@ -5023,20 +4333,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Speed Num                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_speed_num = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_speed_num = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_speed_num, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_speed_num = create_label(
         row_speed_num,
@@ -5047,15 +4349,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Speed Num",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_speed_num = create_label(
@@ -5067,15 +4366,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_speed_num, obj_w_0, obj_height);
@@ -5085,20 +4381,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Scalable                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_scalable = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_scalable = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_scalable, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_scalable = create_label(
         row_scalable,
@@ -5109,15 +4397,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Scalable",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_scalable = create_label(
@@ -5129,15 +4414,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_scalable, obj_w_0, obj_height);
@@ -5147,20 +4429,12 @@ gpatt_container_t create_gpatt_panel(
     /* Row Bad Elements                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_bad_elements = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_bad_elements = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_bad_elements, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 200;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_bad_element_count = create_label(
         row_bad_elements,
@@ -5171,15 +4445,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "Bad Elements",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_bad_element_count = create_label(
@@ -5191,15 +4462,12 @@ gpatt_container_t create_gpatt_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_bad_element_count, obj_w_0, obj_height);
@@ -5217,19 +4485,8 @@ gpatt_container_t create_gpatt_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return SatIO_container_t structure.
  */
 SatIO_container_t create_SatIO_panel(
@@ -5239,22 +4496,12 @@ SatIO_container_t create_SatIO_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     SatIO_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -5270,56 +4517,48 @@ SatIO_container_t create_SatIO_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
     int32_t obj_w_2 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* ---------------------------------------------------------- */
     /* Title Location                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_positioning = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_positioning = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_positioning, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_location= create_label(
         row_title_positioning,
@@ -5330,15 +4569,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "POSITIONING",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_location, obj_w_0, obj_height);
@@ -5347,20 +4583,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row GPS Degrees Latitude                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_lat = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_lat = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_lat, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_deg_lat= create_label(
         row_lat,
@@ -5371,15 +4599,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[GPS] Degrees Latitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_deg_lat = create_label(
@@ -5391,15 +4616,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_deg_lat, obj_w_0, obj_height);
@@ -5409,20 +4631,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row GPS Degrees Longitude                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_lon = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_lon = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_lon, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_deg_lon = create_label(
         row_lon,
@@ -5433,15 +4647,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[GPS] Degrees Longitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_deg_lon = create_label(
@@ -5453,15 +4664,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_deg_lon, obj_w_0, obj_height);
@@ -5471,21 +4679,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row Degrees User Latitude                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_user_lat = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_user_lat = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_user_lat, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
     obj_w_2 = 30;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (sub_column_padding*3);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (main_style.title_1.padall*2) - (col_gap*2);
 
     result.lbl_user_deg_lat= create_label(
         row_user_lat,
@@ -5496,15 +4696,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[USER] Degrees Latitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_user_deg_lat = create_label(
@@ -5516,15 +4713,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_user_deg_lat, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_user_deg_lat, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -5537,14 +4731,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "+",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17, // font for labels
-        radius_rounded,
-        default_btn_bg,
-        default_btn_toggle_value_hue
+        "+"                   // label text
     );
     lv_obj_add_event_cb(result.btn_auto_set_user_lat.button, btn_auto_set_user_lat_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -5556,21 +4743,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row Degrees User Longitude                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_user_lon = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_user_lon = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_user_lon, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
     obj_w_2 = 30;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (sub_column_padding*3);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (main_style.title_1.padall*2) - (col_gap*2);
 
     result.lbl_user_deg_lon = create_label(
         row_user_lon,
@@ -5581,15 +4760,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[USER] Degrees Longitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_user_deg_lon = create_label(
@@ -5601,15 +4777,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_user_deg_lon, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_user_deg_lon, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -5622,14 +4795,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "+",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_toggle_value_hue
+        "+"                   // label text
     );
     lv_obj_add_event_cb(result.btn_auto_set_user_lon.button, btn_auto_set_user_lon_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -5641,20 +4807,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row System Degrees Latitude                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_sys_lat = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_sys_lat = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_sys_lat, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_sys_deg_lat= create_label(
         row_sys_lat,
@@ -5665,15 +4823,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[SYS] Degrees Latitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_sys_deg_lat = create_label(
@@ -5685,15 +4840,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_sys_deg_lat, obj_w_0, obj_height);
@@ -5703,20 +4855,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row System Degrees Longitude                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_sys_lon = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_sys_lon = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_sys_lon, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_sys_deg_lon = create_label(
         row_sys_lon,
@@ -5727,15 +4871,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[SYS] Degrees Longitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_sys_deg_lon = create_label(
@@ -5747,15 +4888,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_sys_deg_lon, obj_w_0, obj_height);
@@ -5765,21 +4903,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row Location Mode                                          */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_loc_mode = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_loc_mode = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_loc_mode, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
-    obj_w_2 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
+    obj_w_2 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_location_mode= create_label(
         row_loc_mode,
@@ -5790,15 +4920,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Location Mode",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.btn_location_mode_gps = create_button(
@@ -5808,14 +4935,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "GPS",                // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "GPS"                 // label text
     );
     lv_obj_add_event_cb(result.btn_location_mode_gps.button, btn_location_mode_gps_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -5826,14 +4946,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "User",               // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "User"                // label text
     );
     lv_obj_add_event_cb(result.btn_location_mode_user.button, btn_location_mode_user_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -5845,19 +4958,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title Altitude                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_altitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_altitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_altitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_altitude= create_label(
         row_title_altitude,
@@ -5868,15 +4973,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "ALTITUDE",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_altitude, obj_w_0, obj_height);
@@ -5885,20 +4987,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row GPS Altitude                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * gps_altitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * gps_altitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(gps_altitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_altitude = create_label(
         gps_altitude,
@@ -5909,15 +5003,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[GPS] Altitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_altitude = create_label(
@@ -5929,15 +5020,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_altitude, obj_w_0, obj_height);
@@ -5947,21 +5035,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row User Altitude                                          */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_user_alt = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_user_alt = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_user_alt, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
     obj_w_2 = 30;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (sub_column_padding*3);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (main_style.title_1.padall*2) - (col_gap*2);
 
     result.lbl_user_altitude = create_label(
         row_user_alt,
@@ -5972,15 +5052,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[USER] Altitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_user_altitude = create_label(
@@ -5992,15 +5069,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_user_deg_lon, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_user_altitude, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -6013,14 +5087,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "+",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_toggle_value_hue
+        "+"                   // label text
     );
     lv_obj_add_event_cb(result.btn_auto_set_user_altitude.button, btn_auto_set_user_altitude_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6032,20 +5099,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row System Altitude                                        */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_sys_alt = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_sys_alt = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_sys_alt, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_sys_altitude = create_label(
         row_sys_alt,
@@ -6056,15 +5115,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[SYS] Altitude",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_sys_altitude = create_label(
@@ -6076,15 +5132,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_sys_altitude, obj_w_0, obj_height);
@@ -6095,21 +5148,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row Altitude Mode                                          */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_alt_mode = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_alt_mode = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_alt_mode, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
-    obj_w_2 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
+    obj_w_2 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_altitude_mode= create_label(
         row_alt_mode,
@@ -6120,15 +5165,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Altitude Mode",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.btn_altitude_mode_gps = create_button(
@@ -6138,14 +5180,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "GPS",                // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "GPS"                 // label text
     );
     lv_obj_add_event_cb(result.btn_altitude_mode_gps.button, btn_altitude_mode_gps_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6156,14 +5191,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,      // alignment
         0,                    // pos x
         0,                    // pos y
-        "User",               // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "User"                // label text
     );
     lv_obj_add_event_cb(result.btn_altitude_mode_user.button, btn_altitude_mode_user_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6175,18 +5203,10 @@ SatIO_container_t create_SatIO_panel(
     /* ---------------------------------------------------------- */
     /* Title Speed                                                */
     /* ---------------------------------------------------------- */
-    lv_obj_t * row_title_speed = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_speed = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_speed, col_gap, LV_PART_MAIN);
 
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_speed = create_label(
         row_title_speed,
@@ -6197,15 +5217,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "SPEED",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_speed, obj_w_0, obj_height);
@@ -6214,19 +5231,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row GPS Speed                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_gps_speed = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gps_speed = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gps_speed, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_speed = create_label(
         row_gps_speed,
@@ -6237,15 +5246,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[GPS] Speed",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_speed = create_label(
@@ -6257,15 +5263,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_speed, obj_w_0, obj_height);
@@ -6275,20 +5278,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row User Speed                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_user_speed = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_user_speed = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_user_speed, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
     obj_w_2 = 30;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (sub_column_padding*3);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (main_style.title_1.padall*2) - (col_gap*2);
 
     result.lbl_user_speed = create_label(
         row_user_speed,
@@ -6299,15 +5294,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[USER] Speed",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_user_speed = create_label(
@@ -6319,15 +5311,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_user_speed, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_user_speed, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -6340,14 +5329,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "+",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_toggle_value_hue
+        "+"
     );
     lv_obj_add_event_cb(result.btn_auto_set_user_speed.button, btn_auto_set_user_speed_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6359,19 +5341,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row System Speed                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_sys_speed = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_sys_speed = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_sys_speed, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_sys_speed = create_label(
         row_sys_speed,
@@ -6382,15 +5356,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[SYS] Speed",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_sys_speed = create_label(
@@ -6402,15 +5373,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_sys_speed, obj_w_0, obj_height);
@@ -6420,20 +5388,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Speed Mode                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_speed_mode = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_speed_mode = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_speed_mode, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
-    obj_w_2 = (((sub_row_width/4) *1)) - (sub_column_padding*2);    
+    obj_w_1 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
+    obj_w_2 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;    
 
     result.lbl_speed_mode = create_label(
         row_speed_mode,
@@ -6444,15 +5404,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Speed Mode",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.btn_speed_mode_gps = create_button(
@@ -6462,14 +5419,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "GPS",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "GPS"
     );
     lv_obj_add_event_cb(result.btn_speed_mode_gps.button, btn_speed_mode_gps_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6480,14 +5430,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "User",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "User"
     );
     lv_obj_add_event_cb(result.btn_speed_mode_user.button, btn_speed_mode_user_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6499,19 +5442,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title Heading                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_heading = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_heading = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_heading, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_heading = create_label(
         row_title_heading,
@@ -6522,15 +5457,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "HEADING",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_heading, obj_w_0, obj_height);
@@ -6539,20 +5471,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row GPS Ground Heading Name                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_gps_gh_name = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gps_gh_name = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gps_gh_name, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_ground_heading_name = create_label(
         row_gps_gh_name,
@@ -6563,15 +5487,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[GPS] GH Name",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_ground_heading_name = create_label(
@@ -6583,15 +5504,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_ground_heading_name, obj_w_0, obj_height);
@@ -6601,20 +5519,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row GPS Ground Heading                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_gps_ground_heading = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gps_ground_heading = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gps_ground_heading, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_ground_heading = create_label(
         row_gps_ground_heading,
@@ -6625,15 +5535,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[GPS] Ground Heading",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_ground_heading = create_label(
@@ -6645,15 +5552,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_ground_heading, obj_w_0, obj_height);
@@ -6663,21 +5567,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row User Ground Heading                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_user_ground_heading = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_user_ground_heading = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_user_ground_heading, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
     obj_w_2 = 30;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (sub_column_padding*3);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0 - obj_w_2) - (main_style.title_1.padall*2) - (col_gap*2);
 
     result.lbl_user_ground_heading = create_label(
         row_user_ground_heading,
@@ -6688,15 +5584,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[USER] Ground Heading",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_user_ground_heading = create_label(
@@ -6708,15 +5601,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_user_ground_heading, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_user_ground_heading, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -6729,14 +5619,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "+",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_toggle_value_hue
+        "+"
     );
     lv_obj_add_event_cb(result.btn_auto_set_user_ground_heading.button, btn_auto_set_user_ground_heading_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6748,20 +5631,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row System Ground Heading                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_sys_ground_heading = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_sys_ground_heading = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_sys_ground_heading, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_sys_ground_heading = create_label(
         row_sys_ground_heading,
@@ -6772,15 +5647,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "[SYS] Ground Heading",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_sys_ground_heading = create_label(
@@ -6792,15 +5664,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_sys_ground_heading, obj_w_0, obj_height);
@@ -6810,21 +5679,13 @@ SatIO_container_t create_SatIO_panel(
     /* Row Ground Heading Mode                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_ground_heading_mode = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_ground_heading_mode = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_ground_heading_mode, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
-    obj_w_2 = (((sub_row_width/4) *1)) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
+    obj_w_2 = (((sub_row_width/4) *1)) - (main_style.title_1.padall*2) - col_gap;
 
     result.lbl_ground_heading_mode = create_label(
         row_ground_heading_mode,
@@ -6835,15 +5696,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "GH Mode",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.btn_ground_heading_mode_gps = create_button(
@@ -6853,14 +5711,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "GPS",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "GPS"
     );
     lv_obj_add_event_cb(result.btn_ground_heading_mode_gps.button, btn_ground_heading_mode_gps_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6871,14 +5722,7 @@ SatIO_container_t create_SatIO_panel(
         LV_ALIGN_CENTER,
         0,
         0,
-        "User",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_off_bg,
-        default_btn_off_value_hue
+        "User"
     );
     lv_obj_add_event_cb(result.btn_ground_heading_mode_user.button, btn_ground_heading_mode_user_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -6890,19 +5734,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title Mileage                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_mileage = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_mileage = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_mileage, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_mileage = create_label(
         row_title_mileage,
@@ -6913,15 +5749,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "MILEAGE",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_mileage, obj_w_0, obj_height);
@@ -6930,20 +5763,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Mileage                                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_mileage = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_mileage = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_mileage, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_mileage = create_label(
         row_mileage,
@@ -6954,15 +5779,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Mileage",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_mileage = create_label(
@@ -6974,15 +5796,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_mileage, obj_w_0, obj_height);
@@ -6992,19 +5811,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title Local Time                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_local_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_local_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_local_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_local_time = create_label(
         row_title_local_time,
@@ -7015,15 +5826,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LOCAL TIME",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_local_time, obj_w_0, obj_height);
@@ -7032,20 +5840,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row UTC Second Offset                                      */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_utc_offset = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_utc_offset = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_utc_offset, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_utc_second_offset = create_label(
         row_utc_offset,
@@ -7056,15 +5856,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "UTC Offset (s)",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_utc_second_offset = create_label(
@@ -7076,15 +5873,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_utc_second_offset, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_utc_second_offset, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -7097,20 +5891,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row UTC Auto Offset Flag                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_utc_auto_offset = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_utc_auto_offset = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_utc_auto_offset, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_utc_auto_offset_flag = create_label(
         row_utc_auto_offset,
@@ -7121,15 +5907,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Auto UTC Offset",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_utc_auto_offset_flag = create_label(
@@ -7141,15 +5924,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_utc_auto_offset_flag, obj_w_0, obj_height);
@@ -7159,20 +5939,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Set Time Automatically                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_auto_time_set = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_auto_time_set = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_auto_time_set, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_set_time_automatically = create_label(
         row_auto_time_set,
@@ -7183,15 +5955,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Auto Time Set",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_set_time_automatically = create_label(
@@ -7203,15 +5972,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_set_time_automatically, obj_w_0, obj_height);
@@ -7221,20 +5987,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Local Year Day                                         */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_local_yday = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_local_yday = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_local_yday, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_local_yday = create_label(
         row_local_yday,
@@ -7245,15 +6003,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Local Year Day",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_local_yday = create_label(
@@ -7265,15 +6020,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_local_yday, obj_w_0, obj_height);
@@ -7283,20 +6035,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Local Weekday Name                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_local_weekday = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_local_weekday = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_local_weekday, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_local_wday_name = create_label(
         row_local_weekday,
@@ -7307,15 +6051,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Local Weekday",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_local_wday_name = create_label(
@@ -7327,15 +6068,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_local_wday_name, obj_w_0, obj_height);
@@ -7345,20 +6083,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Local Month Name                                       */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_local_month = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_local_month = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_local_month, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_local_month_name = create_label(
         row_local_month,
@@ -7369,15 +6099,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Local Month",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_local_month_name = create_label(
@@ -7389,15 +6116,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_local_month_name, obj_w_0, obj_height);
@@ -7407,20 +6131,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Formatted Local Time                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_formatted_local_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_formatted_local_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_formatted_local_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_formatted_local_time = create_label(
         row_formatted_local_time,
@@ -7431,15 +6147,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Local Time",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_formatted_local_time = create_label(
@@ -7451,15 +6164,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_formatted_local_time, obj_w_0, obj_height);
@@ -7469,20 +6179,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Formatted Local Date                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_formatted_local_date = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_formatted_local_date = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_formatted_local_date, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_formatted_local_date = create_label(
         row_formatted_local_date,
@@ -7493,15 +6195,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Local Date",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_formatted_local_date = create_label(
@@ -7513,15 +6212,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_formatted_local_date, obj_w_0, obj_height);
@@ -7531,20 +6227,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Local Unix Time (μs)                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_local_unix_us = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_local_unix_us = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_local_unix_us, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_local_unixtime_us = create_label(
         row_local_unix_us,
@@ -7555,15 +6243,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "Local Unix uS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_local_unixtime_us = create_label(
@@ -7575,15 +6260,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_local_unixtime_us, obj_w_0, obj_height);
@@ -7593,19 +6275,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title RTC                                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_rtc_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_rtc_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_rtc_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_rtc_time = create_label(
         row_title_rtc_time,
@@ -7616,15 +6290,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC TIME",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_rtc_time, obj_w_0, obj_height);
@@ -7633,20 +6304,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Formatted RTC Time                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_formatted_rtc_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_formatted_rtc_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_formatted_rtc_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_formatted_rtc_time = create_label(
         row_formatted_rtc_time,
@@ -7657,15 +6320,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Time",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_formatted_rtc_time = create_label(
@@ -7677,15 +6337,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_formatted_rtc_time, obj_w_0, obj_height);
@@ -7695,20 +6352,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Formatted RTC Date                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_formatted_rtc_date = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_formatted_rtc_date = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_formatted_rtc_date, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_formatted_rtc_date = create_label(
         row_formatted_rtc_date,
@@ -7719,15 +6368,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Date",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_formatted_rtc_date = create_label(
@@ -7739,15 +6385,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_formatted_rtc_date, obj_w_0, obj_height);
@@ -7757,20 +6400,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row RTC Unix Time                                          */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_rtc_unix_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_rtc_unix_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_rtc_unix_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_rtc_unixtime = create_label(
         row_rtc_unix_time,
@@ -7781,15 +6416,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Unix",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_rtc_unixtime = create_label(
@@ -7801,15 +6433,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_rtc_unixtime, obj_w_0, obj_height);
@@ -7819,19 +6448,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title RTC Sync                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_rtc_sync = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_rtc_sync = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_rtc_sync, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_rtc_sync = create_label(
         row_title_rtc_sync,
@@ -7842,15 +6463,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC SYNC",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_rtc_sync, obj_w_0, obj_height);
@@ -7859,20 +6477,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Formatted RTC Sync Time                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_formatted_rtc_sync_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_formatted_rtc_sync_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_formatted_rtc_sync_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_formatted_rtc_sync_time = create_label(
         row_formatted_rtc_sync_time,
@@ -7883,15 +6493,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Sync Time",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_formatted_rtc_sync_time = create_label(
@@ -7903,15 +6510,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_formatted_rtc_sync_time, obj_w_0, obj_height);
@@ -7921,20 +6525,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row Formatted RTC Sync Date                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_formatted_rtc_sync_date = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_formatted_rtc_sync_date = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_formatted_rtc_sync_date, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_formatted_rtc_sync_date = create_label(
         row_formatted_rtc_sync_date,
@@ -7945,15 +6541,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Sync Date",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_formatted_rtc_sync_date = create_label(
@@ -7965,15 +6558,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_formatted_rtc_sync_date, obj_w_0, obj_height);
@@ -7983,20 +6573,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row RTC Sync Latitude                                      */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_rtc_sync_latitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_rtc_sync_latitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_rtc_sync_latitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_rtcsync_latitude = create_label(
         row_rtc_sync_latitude,
@@ -8007,15 +6589,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Sync Lat",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_rtcsync_latitude = create_label(
@@ -8027,15 +6606,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_rtcsync_latitude, obj_w_0, obj_height);
@@ -8045,20 +6621,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row RTC Sync Longitude                                     */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_rtc_sync_longitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_rtc_sync_longitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_rtc_sync_longitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_rtcsync_longitude = create_label(
         row_rtc_sync_longitude,
@@ -8069,15 +6637,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Sync Lon",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_rtcsync_longitude = create_label(
@@ -8089,15 +6654,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_rtcsync_longitude, obj_w_0, obj_height);
@@ -8107,20 +6669,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row RTC Sync Altitude                                      */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_rtc_sync_altitude = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_rtc_sync_altitude = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_rtc_sync_altitude, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_rtcsync_altitude = create_label(
         row_rtc_sync_altitude,
@@ -8131,15 +6685,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "RTC Sync Alt",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_rtcsync_altitude = create_label(
@@ -8151,15 +6702,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_rtcsync_altitude, obj_w_0, obj_height);
@@ -8169,19 +6717,11 @@ SatIO_container_t create_SatIO_panel(
     /* Title LMST                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_LMST_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_LMST_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_LMST_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
-    obj_w_0 = sub_row_width - (sub_column_padding);
+    obj_w_0 = sub_row_width - (main_style.title_1.padall);
 
     result.lbl_title_LMST_time = create_label(
         row_title_LMST_time,
@@ -8192,15 +6732,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST (Local Mean Solar Time)",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_LMST_time, obj_w_0, obj_height);
@@ -8209,20 +6746,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Time                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_time = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_time = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_time, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_time = create_label(
         row_LMST_time,
@@ -8233,15 +6762,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Time",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_time = create_label(
@@ -8253,15 +6779,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_time, obj_w_0, obj_height);
@@ -8271,20 +6794,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Date                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_date = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_date = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_date, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_date = create_label(
         row_LMST_date,
@@ -8295,15 +6810,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Date",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_date = create_label(
@@ -8315,15 +6827,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_date, obj_w_0, obj_height);
@@ -8333,20 +6842,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Daylight Hours                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_day_hours = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_day_hours = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_day_hours, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_day_hours = create_label(
         row_LMST_day_hours,
@@ -8357,15 +6858,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Daylight Hours HH.MM",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_day_hours = create_label(
@@ -8377,15 +6875,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_day_hours, obj_w_0, obj_height);
@@ -8395,20 +6890,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Night Hours                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_night_hours = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_night_hours = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_night_hours, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_night_hours = create_label(
         row_LMST_night_hours,
@@ -8419,15 +6906,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Night Hours HH.MM",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_night_hours = create_label(
@@ -8439,15 +6923,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_night_hours, obj_w_0, obj_height);
@@ -8457,20 +6938,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Anomaly                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_anomaly = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_anomaly = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_anomaly, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_anomaly = create_label(
         row_LMST_anomaly,
@@ -8481,15 +6954,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Anomaly",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_anomaly = create_label(
@@ -8501,15 +6971,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_anomaly, obj_w_0, obj_height);
@@ -8519,20 +6986,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Current Twilight Zone Name                        */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_current_twilight_zone_name = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_current_twilight_zone_name = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_current_twilight_zone_name, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_current_twilight_zone_name = create_label(
         row_LMST_current_twilight_zone_name,
@@ -8543,15 +7002,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Current TZ",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_current_twilight_zone_name = create_label(
@@ -8563,15 +7019,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_current_twilight_zone_name, obj_w_0, obj_height);
@@ -8581,19 +7034,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Astronomical Twilight Dawn                         */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_astronomical_twilight_dawn = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_astronomical_twilight_dawn = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_astronomical_twilight_dawn, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_astronomical_twilight_dawn = create_label(
         row_LMST_astronomical_twilight_dawn,
@@ -8604,15 +7049,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Astro Twilight Dawn",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_astronomical_twilight_dawn = create_label(
@@ -8624,15 +7066,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_astronomical_twilight_dawn, obj_w_0, obj_height);
@@ -8642,19 +7081,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Nautical Twilight Dawn                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_nautical_twilight_dawn = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_nautical_twilight_dawn = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_nautical_twilight_dawn, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_nautical_twilight_dawn = create_label(
         row_LMST_nautical_twilight_dawn,
@@ -8665,15 +7096,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Nautical Twilight Dawn",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_nautical_twilight_dawn = create_label(
@@ -8685,15 +7113,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_nautical_twilight_dawn, obj_w_0, obj_height);
@@ -8703,19 +7128,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Civil Twilight Dawn                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_civil_twilight_dawn = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_civil_twilight_dawn = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_civil_twilight_dawn, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_civil_twilight_dawn = create_label(
         row_LMST_civil_twilight_dawn,
@@ -8726,15 +7143,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Civil Twilight Dawn",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_civil_twilight_dawn = create_label(
@@ -8746,15 +7160,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_civil_twilight_dawn, obj_w_0, obj_height);
@@ -8764,20 +7175,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Sunrise                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_sunrise = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_sunrise = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_sunrise, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_sunrise = create_label(
         row_LMST_sunrise,
@@ -8788,15 +7191,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Sunrise HH.MM",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_sunrise = create_label(
@@ -8808,15 +7208,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_sunrise, obj_w_0, obj_height);
@@ -8826,20 +7223,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Golden Hour Dawn                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_golden_hour_dawn = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_golden_hour_dawn = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_golden_hour_dawn, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_golden_hour_dawn = create_label(
         row_LMST_golden_hour_dawn,
@@ -8850,15 +7239,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Golden Hour Dawn",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_golden_hour_dawn = create_label(
@@ -8870,15 +7256,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_golden_hour_dawn, obj_w_0, obj_height);
@@ -8888,19 +7271,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Full Day Light                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_FullDayLight = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_FullDayLight = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_FullDayLight, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_FullDayLight = create_label(
         row_LMST_FullDayLight,
@@ -8911,15 +7286,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Full Day Light",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_FullDayLight = create_label(
@@ -8931,15 +7303,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_FullDayLight, obj_w_0, obj_height);
@@ -8949,19 +7318,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Golden Hour Dusk                                   */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_golden_hour_dusk = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_golden_hour_dusk = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_golden_hour_dusk, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_golden_hour_dusk = create_label(
         row_LMST_golden_hour_dusk,
@@ -8972,15 +7333,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Golden Hour Dusk",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_golden_hour_dusk = create_label(
@@ -8992,15 +7350,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_golden_hour_dusk, obj_w_0, obj_height);
@@ -9010,20 +7365,12 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Sunset                                            */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_sunset = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_sunset = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_sunset, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_sunset = create_label(
         row_LMST_sunset,
@@ -9034,15 +7381,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Sunset HH.MM",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_sunset = create_label(
@@ -9054,15 +7398,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_sunset, obj_w_0, obj_height);
@@ -9072,19 +7413,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Civil Twilight Dusk                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_civil_twilight_dusk = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_civil_twilight_dusk = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_civil_twilight_dusk, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_civil_twilight_dusk = create_label(
         row_LMST_civil_twilight_dusk,
@@ -9095,15 +7428,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Civil Twilight Dusk",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_civil_twilight_dusk = create_label(
@@ -9115,15 +7445,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_civil_twilight_dusk, obj_w_0, obj_height);
@@ -9133,19 +7460,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Nautical Twilight Dusk                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_nautical_twilight_dusk = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_nautical_twilight_dusk = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_nautical_twilight_dusk, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_nautical_twilight_dusk = create_label(
         row_LMST_nautical_twilight_dusk,
@@ -9156,15 +7475,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Nautical Twilight Dusk",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_nautical_twilight_dusk = create_label(
@@ -9176,15 +7492,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_nautical_twilight_dusk, obj_w_0, obj_height);
@@ -9194,19 +7507,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Astronomical Twilight Dusk                         */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_astronomical_twilight_dusk = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_astronomical_twilight_dusk = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_astronomical_twilight_dusk, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_astronomical_twilight_dusk = create_label(
         row_LMST_astronomical_twilight_dusk,
@@ -9217,15 +7522,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Astro Twilight Dusk",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_astronomical_twilight_dusk = create_label(
@@ -9237,15 +7539,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_astronomical_twilight_dusk, obj_w_0, obj_height);
@@ -9255,19 +7554,11 @@ SatIO_container_t create_SatIO_panel(
     /* Row LMST Astronomical Night                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_LMST_astronomical_night = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_LMST_astronomical_night = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_LMST_astronomical_night, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = sub_row_width - obj_w_0 - (sub_column_padding * 2);
+    obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
 
     result.lbl_LMST_astronomical_night = create_label(
         row_LMST_astronomical_night,
@@ -9278,15 +7569,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "LMST Astronomical Night",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_LMST_astronomical_night = create_label(
@@ -9298,15 +7586,12 @@ SatIO_container_t create_SatIO_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_LMST_astronomical_night, obj_w_0, obj_height);
@@ -9324,19 +7609,8 @@ SatIO_container_t create_SatIO_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gyro_0_container_t structure.
  */
 gyro_0_container_t create_gyro_panel(
@@ -9346,22 +7620,12 @@ gyro_0_container_t create_gyro_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     gyro_0_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -9377,51 +7641,43 @@ gyro_0_container_t create_gyro_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* ---------------------------------------------------------- */
     /* Row 0: Angle                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_0 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_0 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_0, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
@@ -9433,7 +7689,7 @@ gyro_0_container_t create_gyro_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
 
     result.lbl_gyro_0_ang_x = create_label(
         row_0,
@@ -9444,15 +7700,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "ANGLE",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gyro_0_ang_x = create_label(
@@ -9464,15 +7717,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_ang_y = create_label(
@@ -9484,15 +7734,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_ang_z = create_label(
@@ -9504,15 +7751,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gyro_0_ang_x, obj_w_0, obj_height);
@@ -9524,16 +7768,8 @@ gyro_0_container_t create_gyro_panel(
     /* Row 3: Acc                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_3 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_3 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_3, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
@@ -9545,7 +7781,7 @@ gyro_0_container_t create_gyro_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
 
     result.lbl_gyro_0_acc_x = create_label(
         row_3,
@@ -9556,15 +7792,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "G-FORCE",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gyro_0_acc_x = create_label(
@@ -9576,15 +7809,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_acc_y = create_label(
@@ -9596,15 +7826,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_acc_z = create_label(
@@ -9616,15 +7843,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gyro_0_acc_x, obj_w_0, obj_height);
@@ -9636,16 +7860,8 @@ gyro_0_container_t create_gyro_panel(
     /* Row 6: Gyro                                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_6 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_6 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_6, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
@@ -9657,7 +7873,7 @@ gyro_0_container_t create_gyro_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
 
     result.lbl_gyro_0_gyr_x = create_label(
         row_6,
@@ -9668,15 +7884,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "GYRO",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gyro_0_gyr_x = create_label(
@@ -9688,15 +7901,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_gyr_y = create_label(
@@ -9708,15 +7918,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_gyr_z = create_label(
@@ -9728,15 +7935,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gyro_0_gyr_x, obj_w_0, obj_height);
@@ -9748,16 +7952,8 @@ gyro_0_container_t create_gyro_panel(
     /* Row 9: Mag                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_9 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_9 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_9, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
@@ -9769,7 +7965,7 @@ gyro_0_container_t create_gyro_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/4) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
 
     result.lbl_gyro_0_mag_x = create_label(
         row_9,
@@ -9780,15 +7976,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "MAG",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gyro_0_mag_x = create_label(
@@ -9800,15 +7993,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_mag_y = create_label(
@@ -9820,15 +8010,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.val_gyro_0_mag_z = create_label(
@@ -9840,15 +8027,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gyro_0_mag_x, obj_w_0, obj_height);
@@ -9860,16 +8044,8 @@ gyro_0_container_t create_gyro_panel(
     /* Row 12: Current UI Baud Rate                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_12 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_12 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_12, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
@@ -9881,7 +8057,7 @@ gyro_0_container_t create_gyro_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
 
     result.lbl_gyro_0_current_uiBaud = create_label(
         row_12,
@@ -9892,15 +8068,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "Baud Rate",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.val_gyro_0_current_uiBaud = create_label(
@@ -9912,15 +8085,12 @@ gyro_0_container_t create_gyro_panel(
         0,
         "",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.value_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     lv_obj_set_size(result.lbl_gyro_0_current_uiBaud, obj_w_0, obj_height);
@@ -9938,19 +8108,8 @@ gyro_0_container_t create_gyro_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
- * @param font_title Title font.
- * @param font_sub Subtitle/font for smaller text.
  * @return gyro_cal_container_t structure.
  */
 gyro_cal_container_t create_cal_gyro_panel(
@@ -9960,22 +8119,12 @@ gyro_cal_container_t create_cal_gyro_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
-    bool enable_scrolling,
-    const lv_font_t * font_title,
-    const lv_font_t * font_sub
+    bool enable_scrolling
     )
 {
     gyro_cal_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -9991,48 +8140,40 @@ gyro_cal_container_t create_cal_gyro_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* --- Row Buttons ------------------------------------------------------------------ */
-    lv_obj_t * row_0 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_0 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_0, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
@@ -10044,7 +8185,7 @@ gyro_cal_container_t create_cal_gyro_panel(
     );
 
     // Set row object widths
-    obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
 
     // Calibrate Acceleration -> This is a oneshot function, one click calibrates acc.
     result.btn_cal_acc = create_button(
@@ -10053,14 +8194,7 @@ gyro_cal_container_t create_cal_gyro_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "CAL ACC",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "CAL ACC"
     );
     lv_obj_add_event_cb(result.btn_cal_acc.button, btn_cal_acc_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -10071,14 +8205,7 @@ gyro_cal_container_t create_cal_gyro_panel(
         obj_height,
         LV_ALIGN_CENTER,
         0, 0,
-        "CAL MAG",
-        LV_TEXT_ALIGN_CENTER,
-        false,
-        false,
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "CAL MAG"
     );
     lv_obj_add_event_cb(result.btn_cal_mag.button, btn_cal_mag_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -10097,15 +8224,6 @@ gyro_cal_container_t create_cal_gyro_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param font_title Title font.
@@ -10119,15 +8237,6 @@ admplex0_container_t create_admplex0_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -10135,6 +8244,7 @@ admplex0_container_t create_admplex0_panel(
     )
 {
     admplex0_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -10150,37 +8260,37 @@ admplex0_container_t create_admplex0_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
-    int32_t title_width = sub_row_width - (sub_column_padding);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
+    int32_t title_width = sub_row_width - (main_style.title_1.padall);
 
     /* ---------------------------------------------------------- */
     /* Channels (ADMplex 0): 2 rows each, name+data then           */
@@ -10188,8 +8298,7 @@ admplex0_container_t create_admplex0_panel(
     /* together.                                                   */
     /* ---------------------------------------------------------- */
 
-    int32_t chan_third_w = (sub_row_width/3) - sub_column_padding;
-    int32_t chan_sw_w = obj_height*2;
+    int32_t chan_third_w = (sub_row_width/3) - main_style.title_1.padall;
 
     for (uint8_t i_chan=0; i_chan<MAX_ANALOG_DIGITAL_MULTIPLEXER_CHANNELS; i_chan++) {
 
@@ -10197,16 +8306,8 @@ admplex0_container_t create_admplex0_panel(
         snprintf(chan_title_buf, sizeof(chan_title_buf), "Channel %u", (unsigned)i_chan);
 
         // Row A: name + data
-        lv_obj_t * row_chan_a = create_row(
-            result.panel,
-            sub_row_width,
-            sub_row_height,
-            inner_pad_all,
-            sub_row_padding,
-            sub_column_padding,
-            false,
-            false
-        );
+        lv_obj_t * row_chan_a = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+        lv_obj_set_style_pad_column(row_chan_a, col_gap, LV_PART_MAIN);
 
         lv_obj_set_flex_flow(row_chan_a, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(
@@ -10216,7 +8317,7 @@ admplex0_container_t create_admplex0_panel(
             LV_FLEX_ALIGN_CENTER
         );
 
-        obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+        obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
 
         result.lbl_title_chan[i_chan] = create_label(
             row_chan_a,
@@ -10227,15 +8328,12 @@ admplex0_container_t create_admplex0_panel(
             0,
             chan_title_buf,
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.subtitle_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_subtitle_hue
+            main_style.title_1.color_bg,
+            main_style.subtitle_1.color_font
         );
 
         result.lbl_val_chan[i_chan] = create_label(
@@ -10247,31 +8345,20 @@ admplex0_container_t create_admplex0_panel(
             0,
             "",
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.value_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_value_hue
+            main_style.title_1.color_bg,
+            main_style.value_1.color_font
         );
 
         lv_obj_set_size(result.lbl_title_chan[i_chan], obj_w_0, obj_height);
         lv_obj_set_size(result.lbl_val_chan[i_chan], obj_w_0, obj_height);
 
         // Row B: achieved rate out of configured rate, set rate, enable/disable
-        lv_obj_t * row_chan_b = create_row(
-            result.panel,
-            sub_row_width,
-            sub_row_height,
-            inner_pad_all,
-            sub_row_padding,
-            sub_column_padding,
-            false,
-            false
-        );
+        lv_obj_t * row_chan_b = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+        lv_obj_set_style_pad_column(row_chan_b, col_gap, LV_PART_MAIN);
 
         lv_obj_set_flex_flow(row_chan_b, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(
@@ -10290,15 +8377,12 @@ admplex0_container_t create_admplex0_panel(
             0,
             "",
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.subtitle_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_subtitle_hue
+            main_style.title_1.color_bg,
+            main_style.subtitle_1.color_font
         );
         lv_obj_set_flex_grow(result.lbl_rate_chan[i_chan], 1);
 
@@ -10315,15 +8399,12 @@ admplex0_container_t create_admplex0_panel(
             0,
             "",
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.value_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_value_hue
+            main_style.title_1.color_bg,
+            main_style.value_1.color_font
         );
         lv_obj_add_flag(result.lbl_freq_chan[i_chan], LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(result.lbl_freq_chan[i_chan], set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -10332,8 +8413,8 @@ admplex0_container_t create_admplex0_panel(
 
         result.sw_chan_enabled[i_chan] = create_switch(
             row_chan_b,
-            chan_sw_w,
-            obj_height,
+            general_switch_w_px,
+            general_switch_h_px,
             LV_ALIGN_CENTER,
             0,
             0
@@ -10342,23 +8423,15 @@ admplex0_container_t create_admplex0_panel(
 
         lv_obj_set_height(result.lbl_rate_chan[i_chan], obj_height);
         lv_obj_set_height(result.lbl_freq_chan[i_chan], obj_height);
-        lv_obj_set_size(result.sw_chan_enabled[i_chan], chan_sw_w, obj_height);
+        lv_obj_set_size(result.sw_chan_enabled[i_chan], general_switch_w_px, general_switch_h_px);
     }
 
     /* ---------------------------------------------------------- */
     /* Title ADMplex 1                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_admplex_1 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_admplex_1 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_admplex_1, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_title_admplex_1, LV_FLEX_FLOW_ROW);
@@ -10379,15 +8452,12 @@ admplex0_container_t create_admplex0_panel(
         0,
         "ADMPLEX 1",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.title_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_admplex_1, title_width, obj_height);
@@ -10404,16 +8474,8 @@ admplex0_container_t create_admplex0_panel(
         snprintf(chan_title_buf_1, sizeof(chan_title_buf_1), "Channel %u", (unsigned)i_chan);
 
         // Row A: name + data
-        lv_obj_t * row1_chan_a = create_row(
-            result.panel,
-            sub_row_width,
-            sub_row_height,
-            inner_pad_all,
-            sub_row_padding,
-            sub_column_padding,
-            false,
-            false
-        );
+        lv_obj_t * row1_chan_a = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+        lv_obj_set_style_pad_column(row1_chan_a, col_gap, LV_PART_MAIN);
 
         lv_obj_set_flex_flow(row1_chan_a, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(
@@ -10423,7 +8485,7 @@ admplex0_container_t create_admplex0_panel(
             LV_FLEX_ALIGN_CENTER
         );
 
-        obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+        obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
 
         result.lbl_title_chan1[i_chan] = create_label(
             row1_chan_a,
@@ -10434,15 +8496,12 @@ admplex0_container_t create_admplex0_panel(
             0,
             chan_title_buf_1,
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.subtitle_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_subtitle_hue
+            main_style.title_1.color_bg,
+            main_style.subtitle_1.color_font
         );
 
         result.lbl_val_chan1[i_chan] = create_label(
@@ -10454,31 +8513,20 @@ admplex0_container_t create_admplex0_panel(
             0,
             "",
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.value_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_value_hue
+            main_style.title_1.color_bg,
+            main_style.value_1.color_font
         );
 
         lv_obj_set_size(result.lbl_title_chan1[i_chan], obj_w_0, obj_height);
         lv_obj_set_size(result.lbl_val_chan1[i_chan], obj_w_0, obj_height);
 
         // Row B: achieved rate out of configured rate, set rate, enable/disable
-        lv_obj_t * row1_chan_b = create_row(
-            result.panel,
-            sub_row_width,
-            sub_row_height,
-            inner_pad_all,
-            sub_row_padding,
-            sub_column_padding,
-            false,
-            false
-        );
+        lv_obj_t * row1_chan_b = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+        lv_obj_set_style_pad_column(row1_chan_b, col_gap, LV_PART_MAIN);
 
         lv_obj_set_flex_flow(row1_chan_b, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(
@@ -10497,15 +8545,12 @@ admplex0_container_t create_admplex0_panel(
             0,
             "",
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.subtitle_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_subtitle_hue
+            main_style.title_1.color_bg,
+            main_style.subtitle_1.color_font
         );
         lv_obj_set_flex_grow(result.lbl_rate_chan1[i_chan], 1);
 
@@ -10522,15 +8567,12 @@ admplex0_container_t create_admplex0_panel(
             0,
             "",
             LV_TEXT_ALIGN_CENTER,
-            &font_cobalt_alien_17,
+            &main_style.value_1.font,
             false,
-            false,
-            false,
-            2,
-            general_radius,
+            main_style.title_1.radius_square,
             1,
-            default_bg_hue,
-            default_value_hue
+            main_style.title_1.color_bg,
+            main_style.value_1.color_font
         );
         lv_obj_add_flag(result.lbl_freq_chan1[i_chan], LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(result.lbl_freq_chan1[i_chan], set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -10539,8 +8581,8 @@ admplex0_container_t create_admplex0_panel(
 
         result.sw_chan1_enabled[i_chan] = create_switch(
             row1_chan_b,
-            chan_sw_w,
-            obj_height,
+            general_switch_w_px,
+            general_switch_h_px,
             LV_ALIGN_CENTER,
             0,
             0
@@ -10549,7 +8591,7 @@ admplex0_container_t create_admplex0_panel(
 
         lv_obj_set_height(result.lbl_rate_chan1[i_chan], obj_height);
         lv_obj_set_height(result.lbl_freq_chan1[i_chan], obj_height);
-        lv_obj_set_size(result.sw_chan1_enabled[i_chan], chan_sw_w, obj_height);
+        lv_obj_set_size(result.sw_chan1_enabled[i_chan], general_switch_w_px, general_switch_h_px);
     }
 
     return result;
@@ -10562,15 +8604,6 @@ serial_container_t create_serial_panel(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -10578,6 +8611,7 @@ serial_container_t create_serial_panel(
     )
 {
     serial_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -10593,58 +8627,52 @@ serial_container_t create_serial_panel(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
-    int32_t title_width = sub_row_width - (sub_column_padding);
+    int32_t title_width = sub_row_width - (main_style.title_1.padall);
 
     // Set row object widths
-    obj_w_0 = ((sub_row_width/16) *13);
-    obj_w_1 = (sub_row_width - obj_w_0) - (sub_column_padding*3);
+    obj_w_1 = general_switch_w_px;
+    // create_switch() adds its own left+right margin (main_style.title_1.outline_width each side)
+    // since the switch has no LV_PART_MAIN outline to bleed into the row's gap.
+    obj_w_0 = (sub_row_width - obj_w_1) - (main_style.title_1.padall*2) - col_gap - (main_style.title_1.outline_width*2);
 
     /* ---------------------------------------------------------- */
     /* Title All                                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_output_all = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_output_all = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_output_all, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_title_output_all, LV_FLEX_FLOW_ROW);
@@ -10665,15 +8693,12 @@ serial_container_t create_serial_panel(
         0,
         "ALL",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.title_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_output_all, title_width, obj_height);
@@ -10682,16 +8707,8 @@ serial_container_t create_serial_panel(
     /* Output All                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_all = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_all = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_all, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -10712,21 +8729,18 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT ALL",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     // Switch Output All
     result.sw_output_all = create_switch(
         row_output_all,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -10734,22 +8748,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_all, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_all, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_all, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_all, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Title GPS                                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_output_gps = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_output_gps = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_output_gps, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_title_output_gps, LV_FLEX_FLOW_ROW);
@@ -10770,15 +8776,12 @@ serial_container_t create_serial_panel(
         0,
         "GPS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.title_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_output_gps, title_width, obj_height);
@@ -10787,16 +8790,8 @@ serial_container_t create_serial_panel(
     /* Output SatIO                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_SatIO = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_SatIO = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_SatIO, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -10817,21 +8812,18 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT SatIO",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     // Switch Output All
     result.sw_output_SatIO = create_switch(
         row_output_SatIO,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -10839,22 +8831,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_SatIO, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_SatIO, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_SatIO, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_SatIO, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output GNGGA                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_gngga = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_gngga = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gngga, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -10875,22 +8859,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT GNGGA",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output GNGGA
     result.sw_output_gngga = create_switch(
         row_output_gngga,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -10898,22 +8879,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_gngga, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_gngga, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_gngga, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_gngga, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output GNRMC                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_gnrmc = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_gnrmc = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gnrmc, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -10934,22 +8907,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT GNRMC",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output GNRMC
     result.sw_output_gnrmc = create_switch(
         row_output_gnrmc,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -10957,22 +8927,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_gnrmc, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_gnrmc, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_gnrmc, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_gnrmc, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output GPATT                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_gpatt = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_gpatt = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gpatt, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -10993,22 +8955,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT GPATT",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output GPATT
     result.sw_output_gpatt = create_switch(
         row_output_gpatt,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11016,22 +8975,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_gpatt, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_gpatt, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_gpatt, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_gpatt, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output INS                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_ins = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_ins = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_ins, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11052,22 +9003,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT INS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output INS
     result.sw_output_ins = create_switch(
         row_output_ins,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11075,22 +9023,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_ins, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_ins, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_ins, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_ins, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Title Gyro                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_output_gyro = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_output_gyro = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_output_gyro, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_title_output_gyro, LV_FLEX_FLOW_ROW);
@@ -11111,15 +9051,12 @@ serial_container_t create_serial_panel(
         0,
         "GYRO",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.title_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_output_gyro, title_width, obj_height);
@@ -11128,16 +9065,8 @@ serial_container_t create_serial_panel(
     /* Output GYRO 0                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_gyro_0 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_gyro_0 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gyro_0, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11158,22 +9087,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT GYRO 0",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output GYRO 0
     result.sw_output_gyro_0 = create_switch(
         row_output_gyro_0,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11181,22 +9107,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_gyro_0, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_gyro_0, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_gyro_0, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_gyro_0, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Title AUX                                                  */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_output_aux = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_output_aux = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_output_aux, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_title_output_aux, LV_FLEX_FLOW_ROW);
@@ -11217,15 +9135,12 @@ serial_container_t create_serial_panel(
         0,
         "MATRIX & AUX",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.title_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_output_aux, title_width, obj_height);
@@ -11234,16 +9149,8 @@ serial_container_t create_serial_panel(
     /* Output MATRIX                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_matrix = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_matrix = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_matrix, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11264,22 +9171,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT MATRIX",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output MATRIX
     result.sw_output_matrix = create_switch(
         row_output_matrix,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11287,22 +9191,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_matrix, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_matrix, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_matrix, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_matrix, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output INPUT CONTROLLER                                    */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_input_controller = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_input_controller = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_input_controller, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11323,22 +9219,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT INPUT CONTROLLER",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output INPUT CONTROLLER
     result.sw_output_input_controller = create_switch(
         row_output_input_controller,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11346,22 +9239,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_input_controller, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_input_controller, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_input_controller, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_input_controller, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output ADMplex 0                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_admplex_0 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_admplex_0 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_admplex_0, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11382,22 +9267,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT ADMplex 0",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output ADMplex 0
     result.sw_output_admplex_0 = create_switch(
         row_output_admplex_0,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11405,22 +9287,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_admplex_0, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_admplex_0, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_admplex_0, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_admplex_0, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output ADMplex 1                                           */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_admplex_1 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_admplex_1 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_admplex_1, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11441,22 +9315,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT ADMplex 1",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output ADMplex 1
     result.sw_output_admplex_1 = create_switch(
         row_output_admplex_1,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11464,22 +9335,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_admplex_1, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_admplex_1, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_admplex_1, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_admplex_1, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Title Universe                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_title_output_uni = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_title_output_uni = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_output_uni, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_title_output_uni, LV_FLEX_FLOW_ROW);
@@ -11500,15 +9363,12 @@ serial_container_t create_serial_panel(
         0,
         "UNIVERSE",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.title_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_title_hue,
-        default_title_hue
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
     );
 
     lv_obj_set_size(result.lbl_title_output_uni, title_width, obj_height);
@@ -11517,16 +9377,8 @@ serial_container_t create_serial_panel(
     /* Output SUN                                                 */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_sun = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_sun = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_sun, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11547,22 +9399,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT SUN",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output SUN
     result.sw_output_sun = create_switch(
         row_output_sun,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11570,22 +9419,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_sun, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_sun, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_sun, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_sun, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output MERCURY                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_mercury = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_mercury = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_mercury, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11606,22 +9447,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT MERCURY",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output MERCURY
     result.sw_output_mercury = create_switch(
         row_output_mercury,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11629,22 +9467,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_mercury, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_mercury, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_mercury, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_mercury, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output VENUS                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_venus = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_venus = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_venus, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11665,22 +9495,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT VENUS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output VENUS
     result.sw_output_venus = create_switch(
         row_output_venus,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11688,22 +9515,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_venus, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_venus, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_venus, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_venus, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output EARTH                                               */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_earth = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_earth = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_earth, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11724,22 +9543,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT EARTH",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output EARTH
     result.sw_output_earth = create_switch(
         row_output_earth,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11747,22 +9563,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_earth, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_earth, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_earth, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_earth, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output LUNA                                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_luna = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_luna = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_luna, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11783,22 +9591,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT LUNA",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output LUNA
     result.sw_output_luna = create_switch(
         row_output_luna,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11806,22 +9611,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_luna, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_luna, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_luna, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_luna, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output MARS                                                */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_mars = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_mars = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_mars, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11842,22 +9639,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT MARS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output MARS
     result.sw_output_mars = create_switch(
         row_output_mars,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11865,22 +9659,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_mars, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_mars, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_mars, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_mars, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output JUPITER                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_jupiter = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_jupiter = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_jupiter, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11901,22 +9687,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT JUPITER",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output JUPITER
     result.sw_output_jupiter = create_switch(
         row_output_jupiter,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11924,22 +9707,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_jupiter, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_jupiter, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_jupiter, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_jupiter, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output SATURN                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_saturn = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_saturn = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_saturn, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -11960,22 +9735,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT SATURN",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output SATURN
     result.sw_output_saturn = create_switch(
         row_output_saturn,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -11983,22 +9755,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_saturn, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_saturn, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_saturn, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_saturn, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output URANUS                                              */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_uranus = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_uranus = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_uranus, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -12019,22 +9783,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT URANUS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output URANUS
     result.sw_output_uranus = create_switch(
         row_output_uranus,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -12042,22 +9803,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_uranus, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_uranus, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_uranus, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_uranus, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output NEPTUNE                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_neptune = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_neptune = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_neptune, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -12078,22 +9831,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT NEPTUNE",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output NEPTUNE
     result.sw_output_neptune = create_switch(
         row_output_neptune,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -12101,22 +9851,14 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_neptune, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_neptune, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_neptune, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_neptune, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
     /* Output METEORS                                             */
     /* ---------------------------------------------------------- */
 
-    lv_obj_t * row_output_meteors = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_output_meteors = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_meteors, col_gap, LV_PART_MAIN);
 
     // Adjust Flex
     lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
@@ -12137,22 +9879,19 @@ serial_container_t create_serial_panel(
         0,
         "OUTPUT METEORS",
         LV_TEXT_ALIGN_CENTER,
-        &font_cobalt_alien_17,
+        &main_style.subtitle_1.font,
         false,
-        false,
-        false,
-        2,
-        general_radius,
+        main_style.title_1.radius_square,
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Output METEORS
     result.sw_output_meteors = create_switch(
         row_output_meteors,
-        obj_w_1,
-        row_height,
+        general_switch_w_px,
+        general_switch_h_px,
         LV_ALIGN_CENTER,
         0,
         0
@@ -12160,7 +9899,7 @@ serial_container_t create_serial_panel(
     lv_obj_add_event_cb(result.sw_output_meteors, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_size(result.lbl_output_meteors, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_output_meteors, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_output_meteors, general_switch_w_px, general_switch_h_px);
 
     return result;
 }
@@ -12176,15 +9915,6 @@ serial_container_t create_serial_panel(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param font_title Title font.
@@ -12198,21 +9928,6 @@ matrix_function_container_t create_matrix_function_container(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-
-    int32_t outline_padding,
-
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-
-    int32_t row_height,
-
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -12234,32 +9949,32 @@ matrix_function_container_t create_matrix_function_container(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
-    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.panel, main_style.title_1.border_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
@@ -12270,24 +9985,26 @@ matrix_function_container_t create_matrix_function_container(
     int32_t obj_w_5 = 0;
     int32_t obj_w_6 = 0;
     int32_t obj_w_7 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
+
+    // create_row() defaults pad_column to padall, but each object's outline is drawn
+    // outside its box with outline_pad 0 - so when padall == outline.width (as it does
+    // here), two neighboring outlines extend toward each other by exactly the gap and
+    // land on the same pixels, leaving no visible black space between them (reads as
+    // objects touching, even though the logical gap is nonzero). col_gap adds the
+    // outline width back on top of padall so a real gap survives once both outlines
+    // are drawn; every row below overrides pad_column to col_gap and sizes its
+    // children so they sum to sub_row_width - 2*padall - (N-1)*col_gap.
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- Row Index ------------------------------------------------------- */
 
-    lv_obj_t * row_index = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_index = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_index, col_gap, LV_PART_MAIN);
 
-    // Set row object widths
+    // Set row object widths (4 children: label|dropdown pair x2, equal halves)
     obj_w_0 = 100;
-    obj_w_1 = (sub_row_width/2) - obj_w_0 - (sub_column_padding*2);
+    obj_w_1 = ((sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 2) - obj_w_0;
 
     // Switch Label
     result.label_switch_index_select = create_label(
@@ -12299,15 +10016,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                  // pos y
         "Switch",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,   // font
-        false,              // transparent background
-        false,              // show scrollbar
-        false,              // enable scrolling
-        2,                  // outline width
-        general_radius,     // outline radius
+        &main_style.subtitle_1.font,   // font
+        false,                  // outline width
+        main_style.title_1.radius_square,     // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Switch Value
@@ -12341,15 +10055,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Function",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Function Value
@@ -12381,21 +10092,13 @@ matrix_function_container_t create_matrix_function_container(
     
     /* --- Function Name ------------------------------------------------------- */
     
-    lv_obj_t * row_input_value = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_input_value = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_input_value, col_gap, LV_PART_MAIN);
 
-    // Set row object widths
+    // Set row object widths (2 children: label, dropdown)
     obj_w_0 = 100;
-    obj_w_1 = (sub_row_width) - obj_w_0 - (sub_column_padding*2);
-    
+    obj_w_1 = (sub_row_width) - obj_w_0 - (main_style.title_1.padall*2) - col_gap;
+
     // Label Function Name
     result.label_function_name = create_label(
         row_input_value,      // parent
@@ -12406,15 +10109,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Input",              // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value Function Name
@@ -12444,21 +10144,13 @@ matrix_function_container_t create_matrix_function_container(
     
     /* --- X Value ------------------------------------------------------------- */
     
-    lv_obj_t * row_value_x = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_value_x = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_value_x, col_gap, LV_PART_MAIN);
 
-    // Set row object widths
+    // Set row object widths (3 children: label, value, mode)
     obj_w_0 = 40; // label
     obj_w_2 = 110; // mode
-    obj_w_1 = (sub_row_width) - obj_w_0 - obj_w_2 - (sub_column_padding*3);
+    obj_w_1 = (sub_row_width) - obj_w_0 - obj_w_2 - (main_style.title_1.padall*2) - (col_gap*2);
     
     // Label X
     result.label_x = create_label(
@@ -12470,15 +10162,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "X",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // User X
@@ -12491,15 +10180,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_x, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_x, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -12555,21 +10241,13 @@ matrix_function_container_t create_matrix_function_container(
     
     /* --- Y Value ------------------------------------------------------------- */
     
-    lv_obj_t * row_value_y = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_value_y = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_value_y, col_gap, LV_PART_MAIN);
 
-    // Set row object widths
+    // Set row object widths (3 children: label, value, mode)
     obj_w_0 = 40; // label
     obj_w_2 = 110; // mode
-    obj_w_1 = (sub_row_width) - obj_w_0 - obj_w_2 - (sub_column_padding*3);
+    obj_w_1 = (sub_row_width) - obj_w_0 - obj_w_2 - (main_style.title_1.padall*2) - (col_gap*2);
 
     // Label Y
     result.label_y = create_label(
@@ -12581,15 +10259,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Y",                  // initial text
         LV_TEXT_ALIGN_CENTER,   // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // User Y
@@ -12602,15 +10277,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_y, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_y, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -12666,21 +10338,13 @@ matrix_function_container_t create_matrix_function_container(
 
     /* --- Z Value ------------------------------------------------------------- */
     
-    lv_obj_t * row_value_z = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_value_z = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_value_z, col_gap, LV_PART_MAIN);
 
-    // Set row object widths
+    // Set row object widths (3 children: label, value, mode)
     obj_w_0 = 40; // label
     obj_w_2 = 110; // mode
-    obj_w_1 = (sub_row_width) - obj_w_0 - obj_w_2 - (sub_column_padding*3);
+    obj_w_1 = (sub_row_width) - obj_w_0 - obj_w_2 - (main_style.title_1.padall*2) - (col_gap*2);
 
     // Label Z
     result.label_z = create_label(
@@ -12692,15 +10356,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Z",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // User Z
@@ -12713,15 +10374,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_z, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_z, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -12777,22 +10435,15 @@ matrix_function_container_t create_matrix_function_container(
     
     /* --- Operator ------------------------------------------------------------ */
     
-    lv_obj_t * row_operator = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_operator = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_operator, col_gap, LV_PART_MAIN);
 
-    // Set row object widths
+    // Set row object widths (4 children, 2 label|value pairs of equal total width)
     obj_w_0 = 80; // label
-    obj_w_1 = (((sub_row_width/2) *1) - obj_w_0) - (sub_column_padding*2);
-    obj_w_2 = 60;
-    obj_w_3 = (((sub_row_width/2) *1) - obj_w_2) - (sub_column_padding*2);
+    obj_w_2 = 60; // label
+    int32_t operator_pair_w = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 2;
+    obj_w_1 = operator_pair_w - obj_w_0;
+    obj_w_3 = operator_pair_w - obj_w_2;
 
     // Label Operator
     result.label_operator = create_label(
@@ -12804,15 +10455,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Operator",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value Operator
@@ -12845,15 +10493,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Invert",             // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Inverted Logic Value
@@ -12889,24 +10534,17 @@ matrix_function_container_t create_matrix_function_container(
     
     /* Map Slot & Output Mode ------------------------------------------ */
 
-    lv_obj_t * row_map_output = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_map_output = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_map_output, col_gap, LV_PART_MAIN);
 
-    // Set row object widths (three pairs: Map | Flux | Output)
+    // Set row object widths (three equal-width pairs: Map | Flux | Output)
     obj_w_0 = 40; // Map label
-    obj_w_1 = (((sub_row_width/3) *1) - obj_w_0) - (sub_column_padding*2); // Map value
     obj_w_4 = 40; // Flux label
-    obj_w_5 = (((sub_row_width/3) *1) - obj_w_4) - (sub_column_padding*2); // Flux value
     obj_w_2 = 40; // Output label
-    obj_w_3 = (((sub_row_width/3) *1) - obj_w_2) - (sub_column_padding*2); // Output value
+    int32_t map_output_pair_w = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*5)) / 3;
+    obj_w_1 = map_output_pair_w - obj_w_0; // Map value
+    obj_w_5 = map_output_pair_w - obj_w_4; // Flux value
+    obj_w_3 = map_output_pair_w - obj_w_2; // Output value
 
     // Label Map Slot
     result.label_map_slot = create_label(
@@ -12918,15 +10556,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Map",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Map Slot Value
@@ -12959,15 +10594,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Flux",               // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Flux Value (fluctuation threshold before a write is issued, see setOutputValues())
@@ -12980,15 +10612,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "0",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.value_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_flux, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_flux, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13004,15 +10633,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "Out",                // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Output Mode Value
@@ -13047,24 +10673,17 @@ matrix_function_container_t create_matrix_function_container(
            (Map Slot and Output Mode moved out to the row above; this row now
            fits three fields: User Value (leftmost), GPIOPE Address, GPIOPE PM.) - */
 
-    lv_obj_t * row_gpiope = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gpiope = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gpiope, col_gap, LV_PART_MAIN);
 
     // Set row object widths (three equal-width pairs: User Value | GPIOPE Address | GPIOPE PM)
     obj_w_4 = 70; // User Value label
-    obj_w_5 = (((sub_row_width/3) *1) - obj_w_4) - (sub_column_padding*2); // User Value value
     obj_w_0 = 70; // GPIOPE Address label
-    obj_w_1 = (((sub_row_width/3) *1) - obj_w_0) - (sub_column_padding*2); // GPIOPE Address dropdown
     obj_w_2 = 70; // GPIOPE PM label
-    obj_w_3 = (((sub_row_width/3) *1) - obj_w_2) - (sub_column_padding*2); // GPIOPE PM value
+    int32_t gpiope_pair_w = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*5)) / 3;
+    obj_w_5 = gpiope_pair_w - obj_w_4; // User Value value
+    obj_w_1 = gpiope_pair_w - obj_w_0; // GPIOPE Address dropdown
+    obj_w_3 = gpiope_pair_w - obj_w_2; // GPIOPE PM value
 
     // Label User Value
     result.label_user_output_value = create_label(
@@ -13076,15 +10695,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                     // pos y
         "User",                // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                 // transparent background
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        2,                     // outline width
-        general_radius,        // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                     // outline width
+        main_style.title_1.radius_square,        // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // User Value Value (matrixData.user_output_value, used when output mode is "User")
@@ -13097,15 +10713,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                     // pos y
         "0",                   // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                 // transparent background
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        2,                     // outline width
-        general_radius,        // outline radius
+        &main_style.value_1.font,     // font
+        false,                     // outline width
+        main_style.title_1.radius_square,        // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_user_output_value, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_user_output_value, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13121,15 +10734,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                     // pos y
         "GPIOPE AD",           // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                 // transparent background
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        2,                     // outline width
-        general_radius,        // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                     // outline width
+        main_style.title_1.radius_square,        // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // GPIOPE Address Value (7-bit I2C address: 0-127)
@@ -13162,15 +10772,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                     // pos y
         "GPIOPE PM",           // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                 // transparent background
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        2,                     // outline width
-        general_radius,        // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                     // outline width
+        main_style.title_1.radius_square,        // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // GPIOPE Port Map Value
@@ -13183,15 +10790,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                     // pos y
         "",                    // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                 // transparent background
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        2,                     // outline width
-        general_radius,        // outline radius
+        &main_style.value_1.font,     // font
+        false,                     // outline width
+        main_style.title_1.radius_square,        // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_port_map, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_port_map, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13207,16 +10811,8 @@ matrix_function_container_t create_matrix_function_container(
 
     /* ------------- Intent  ------------------------------- */
 
-    lv_obj_t * row_intent_info = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_intent_info = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_intent_info, col_gap, LV_PART_MAIN);
 
     lv_obj_set_flex_flow(row_intent_info, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
@@ -13226,8 +10822,11 @@ matrix_function_container_t create_matrix_function_container(
         LV_FLEX_ALIGN_CENTER
     );
 
-    obj_w_0 = (((sub_row_width/3) / 2) *1) - (sub_column_padding*1);
-    obj_w_1 = ((sub_row_width/3) *1) - (sub_column_padding*1);
+    // 5 children: F, CA, value, CI, SI. The value spans one third of the row; the two
+    // indicator pairs (F+CA, CI+SI) each span a matching third, so each indicator is
+    // half of a third minus the gap between the pair.
+    obj_w_1 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
+    obj_w_0 = (obj_w_1 - col_gap) / 2;
 
     result.indicator_function_non_zero = create_label(
         row_intent_info,      // parent
@@ -13238,15 +10837,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "F",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        radius_rounded,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_btn_bg,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.switch_logic_per_second = create_label(
@@ -13256,17 +10852,14 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "CA",                 // initial text
+        "0",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        radius_rounded,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_btn_bg,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // mapped value
@@ -13279,15 +10872,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "0",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        radius_rounded,       // outline radius
+        &main_style.value_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_btn_bg,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.indicator_computer_intent = create_label(
@@ -13299,15 +10889,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "CI",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        radius_rounded,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_btn_bg,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     result.indicator_switch_intent = create_label(
@@ -13319,29 +10906,18 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "SI",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        radius_rounded,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_btn_bg,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     /* ------------- Switches  ------------------------------- */
 
-    lv_obj_t * row_switches_0 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_switches_0 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_switches_0, col_gap, LV_PART_MAIN);
 
     lv_obj_set_flex_flow(row_switches_0, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
@@ -13351,7 +10927,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_FLEX_ALIGN_CENTER
     );
 
-    obj_w_0 = ((sub_row_width/3) *1) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*2)) / 3;
 
     // Computer Assist Toggle
     result.matrix_switch_computer_assist = create_button(
@@ -13361,14 +10937,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "ASSIST",             // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "ASSIST"              // label text
     );
     lv_obj_add_event_cb(result.matrix_switch_computer_assist.button, current_matrix_computer_assist_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -13382,15 +10951,12 @@ matrix_function_container_t create_matrix_function_container(
         0,                    // pos y
         "0",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        radius_rounded,       // outline radius
+        &main_style.value_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_rounded,       // outline radius
         1,
-        default_btn_bg,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     // Matrix Switch Override
@@ -13401,14 +10967,7 @@ matrix_function_container_t create_matrix_function_container(
         LV_ALIGN_CENTER,      // parent alignment
         0,                    // pos x
         0,                    // pos y
-        "OVERRIDE",           // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "OVERRIDE"            // label text
     );
     lv_obj_add_event_cb(result.matrix_switch_override.button, current_matrix_override_off_event_cb, LV_EVENT_CLICKED, NULL);
     
@@ -13424,15 +10983,6 @@ matrix_function_container_t create_matrix_function_container(
  * @param alignment Alignment on parent.
  * @param pos_x Offset from alignment.
  * @param pos_y Offset from alignment.
- * @param radius Corner radius.
- * @param outer_pad_all Outer padding.
- * @param inner_pad_all Inner uniform padding.
- * @param outline_padding Padding for outline.
- * @param main_row_padding Main row padding.
- * @param main_column_padding Main column padding.
- * @param sub_row_padding Sub-row padding.
- * @param sub_column_padding Sub-column padding.
- * @param row_height Height of each row.
  * @param show_scrollbar Show/hide scrollbar.
  * @param enable_scrolling Enable/disable scrolling.
  * @param font_title Title font.
@@ -13446,15 +10996,6 @@ mapping_config_container_t create_mapping_config_container(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -13462,6 +11003,7 @@ mapping_config_container_t create_mapping_config_container(
     )
 {
     mapping_config_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
     
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -13477,54 +11019,46 @@ mapping_config_container_t create_mapping_config_container(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
     
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* --- Slot ------------------------------------------------------- */
 
-    lv_obj_t * row_map_slot = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_map_slot = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_map_slot, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     
     result.slot = create_label(
         row_map_slot,         // parent
@@ -13535,15 +11069,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "Map Slot",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Select Map Mode
@@ -13573,20 +11104,12 @@ mapping_config_container_t create_mapping_config_container(
     
     /* --- Function Name ------------------------------------------------------- */
     
-    lv_obj_t * row_c0 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_c0 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_c0, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     
     // C0
     result.c0 = create_label(
@@ -13598,15 +11121,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "C0",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Select C0
@@ -13636,20 +11156,12 @@ mapping_config_container_t create_mapping_config_container(
     
     /* --- C1 Value ------------------------------------------------------------- */
     
-    lv_obj_t * row_c1 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_c1 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_c1, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     
     // Label C1
     result.c1 = create_label(
@@ -13661,15 +11173,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "C1",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value C1
@@ -13682,15 +11191,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_c1, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_c1, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13702,20 +11208,12 @@ mapping_config_container_t create_mapping_config_container(
     
     /* --- C2 Value ------------------------------------------------------------- */
     
-    lv_obj_t * row_c2 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_c2 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_c2, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     // Label C2
     result.c2 = create_label(
@@ -13727,15 +11225,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "C2",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value C2
@@ -13748,15 +11243,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_c2, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_c2, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13768,20 +11260,12 @@ mapping_config_container_t create_mapping_config_container(
 
     /* --- C3 Value ------------------------------------------------------------- */
     
-    lv_obj_t * row_c3 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_c3 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_c3, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     // Label C3
     result.c3 = create_label(
@@ -13793,15 +11277,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "C3",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value C3
@@ -13814,15 +11295,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_c3, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_c3, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13834,20 +11312,12 @@ mapping_config_container_t create_mapping_config_container(
     
     /* --- C4 Value ------------------------------------------------------------ */
     
-    lv_obj_t * row_c4 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_c4 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_c4, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     // Label C4
     result.c4 = create_label(
@@ -13859,15 +11329,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "C4",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value C4
@@ -13880,15 +11347,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_c4, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_c4, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13900,20 +11364,12 @@ mapping_config_container_t create_mapping_config_container(
     
     /* --- C5 Value ---------------------------------------------------------- */
     
-    lv_obj_t * row_c5 = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_c5 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_c5, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     // Label C5
     result.c5 = create_label(
@@ -13925,15 +11381,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "C5",                 // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value C5
@@ -13946,15 +11399,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "",                   // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     lv_obj_add_flag(result.val_c5, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_c5, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -13966,20 +11416,12 @@ mapping_config_container_t create_mapping_config_container(
     
     /* --- Map Mode --------------------------------------------------------- */
     
-    lv_obj_t * row_map_mode = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_map_mode = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_map_mode, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     
     // Map Mode
     result.mode = create_label(
@@ -13991,15 +11433,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "Map Mode",           // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Select Map Mode
@@ -14028,20 +11467,12 @@ mapping_config_container_t create_mapping_config_container(
 
     /* --- Map Input Value --------------------------------------------------- */
     
-    lv_obj_t * row_input_valu = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_input_valu = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_input_valu, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     // Label Input
     result.input_value = create_label(
@@ -14053,15 +11484,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "Input Value",        // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value Input
@@ -14074,15 +11502,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "0",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.value_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     // Critical for alignment
@@ -14091,20 +11516,12 @@ mapping_config_container_t create_mapping_config_container(
 
     /* --- Map Result ---------------------------------------------------------- */
     
-    lv_obj_t * row_map_result = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_map_result = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_map_result, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     // Label Output
     result.map_result = create_label(
@@ -14116,15 +11533,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "Output Value",       // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.subtitle_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
     
     // Value Output
@@ -14137,15 +11551,12 @@ mapping_config_container_t create_mapping_config_container(
         0,                    // pos y
         "0",                  // initial text
         LV_TEXT_ALIGN_CENTER, // font alignment
-        &font_cobalt_alien_17,     // font
-        false,                // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        2,                    // outline width
-        general_radius,       // outline radius
+        &main_style.value_1.font,     // font
+        false,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     // Critical for alignment
@@ -14167,15 +11578,6 @@ gpiope_container_t create_gpiope_container(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t radius,
-    int32_t outer_pad_all,
-    int32_t inner_pad_all,
-    int32_t outline_padding,
-    int32_t main_row_padding,
-    int32_t main_column_padding,
-    int32_t sub_row_padding,
-    int32_t sub_column_padding,
-    int32_t row_height,
     bool show_scrollbar,
     bool enable_scrolling,
     const lv_font_t * font_title,
@@ -14183,6 +11585,7 @@ gpiope_container_t create_gpiope_container(
     )
 {
     gpiope_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
 
     /* --- MAIN PANEL ------------------------------------------------------------------ */
     result.panel = lv_obj_create(parent);
@@ -14198,54 +11601,46 @@ gpiope_container_t create_gpiope_container(
     // Size & Position
     lv_obj_set_size(result.panel, width_px, height_px);
     lv_obj_align(result.panel, alignment, pos_x, pos_y);
-    lv_obj_set_style_radius(result.panel, radius, LV_PART_MAIN);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
 
     // Main Padding
-    lv_obj_set_style_pad_all(result.panel, outer_pad_all, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(result.panel, main_column_padding, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(result.panel, main_row_padding, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
-    lv_obj_set_style_outline_pad(result.panel, outline_padding, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
 
     // Border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Background
-    lv_obj_set_style_bg_color(result.panel, default_bg_hue, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
 
     // Flex
     lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     // Row sizes
-    int32_t sub_row_width = width_px - (outer_pad_all*2);
-    int32_t sub_row_height = row_height-(outline_padding*2);
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
 
     // Row Object sizes
     int32_t obj_w_0 = 0;
     int32_t obj_w_1 = 0;
-    int32_t obj_height = sub_row_height-(outline_width*2)-(sub_row_padding*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
 
     /* --- Input/Output Mode --------------------------------------------- */
 
-    lv_obj_t * row_gpiope_mode = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_gpiope_mode = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_gpiope_mode, col_gap, LV_PART_MAIN);
 
     // Set row object widths (two equal-width buttons spanning the full row)
-    obj_w_0 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
-    obj_w_1 = (((sub_row_width/2) *1)) - (sub_column_padding*1);
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
+    obj_w_1 = (sub_row_width - (main_style.title_1.padall*2) - col_gap) / 2;
 
     result.btn_gpiope_mode_input = create_button(
         row_gpiope_mode,      // parent
@@ -14253,14 +11648,7 @@ gpiope_container_t create_gpiope_container(
         obj_height,           // height px
         LV_ALIGN_CENTER,      // alignment
         0, 0,
-        "INPUT",              // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "INPUT"               // label text
     );
     lv_obj_add_event_cb(result.btn_gpiope_mode_input.button, btn_gpiope_mode_input_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -14270,14 +11658,7 @@ gpiope_container_t create_gpiope_container(
         obj_height,           // height px
         LV_ALIGN_CENTER,      // alignment
         0, 0,
-        "OUTPUT",             // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_off_value_hue
+        "OUTPUT"              // label text
     );
     lv_obj_add_event_cb(result.btn_gpiope_mode_output.button, btn_gpiope_mode_output_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -14286,20 +11667,12 @@ gpiope_container_t create_gpiope_container(
 
     /* --- Address ------------------------------------------------------- */
 
-    lv_obj_t * row_address = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_address = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_address, col_gap, LV_PART_MAIN);
 
     // Set row object widths
     obj_w_0 = 250; // label
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.label_address = create_label(
         row_address,          // parent
@@ -14310,15 +11683,12 @@ gpiope_container_t create_gpiope_container(
         0,                     // pos y
         "GPIOPE Address",      // initial text
         LV_TEXT_ALIGN_CENTER,  // font alignment
-        &font_cobalt_alien_17,      // font
-        false,                 // transparent background
-        false,                 // show scrollbar
-        false,                 // enable scrolling
-        2,                     // outline width
-        general_radius,        // outline radius
+        &main_style.subtitle_1.font,      // font
+        false,                     // outline width
+        main_style.title_1.radius_square,        // outline radius
         1,
-        default_bg_hue,
-        default_subtitle_hue
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
     );
 
     // Select Address (0-127)
@@ -14347,234 +11717,206 @@ gpiope_container_t create_gpiope_container(
 
     /* --- Name ------------------------------------------------------- */
 
-    lv_obj_t * row_name = create_row(
-        result.panel,
-        sub_row_width,
-        sub_row_height,
-        inner_pad_all,
-        sub_row_padding,
-        sub_column_padding,
-        false,
-        false
-    );
+    lv_obj_t * row_name = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_name, col_gap, LV_PART_MAIN);
 
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
 
     result.label_name = create_label(
         row_name, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Name", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Name", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_name = create_label(
         row_name, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_name, obj_w_0, obj_height);
     lv_obj_set_size(result.val_name, obj_w_1, obj_height);
 
     /* --- Current Pin ------------------------------------------------------- */
 
-    lv_obj_t * row_current_pin = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_current_pin = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_current_pin, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_current_pin = create_label(
         row_current_pin, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Current Pin", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Current Pin", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_current_pin = create_label(
         row_current_pin, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_current_pin, obj_w_0, obj_height);
     lv_obj_set_size(result.val_current_pin, obj_w_1, obj_height);
 
     /* --- Pin Min ------------------------------------------------------- */
 
-    lv_obj_t * row_pin_min = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_pin_min = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_pin_min, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_pin_min = create_label(
         row_pin_min, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Pin Min", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Pin Min", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_pin_min = create_label(
         row_pin_min, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_pin_min, obj_w_0, obj_height);
     lv_obj_set_size(result.val_pin_min, obj_w_1, obj_height);
 
     /* --- Pin Max ------------------------------------------------------- */
 
-    lv_obj_t * row_pin_max = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_pin_max = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_pin_max, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_pin_max = create_label(
         row_pin_max, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Pin Max", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Pin Max", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_pin_max = create_label(
         row_pin_max, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_pin_max, obj_w_0, obj_height);
     lv_obj_set_size(result.val_pin_max, obj_w_1, obj_height);
 
     /* --- Max Pins ------------------------------------------------------- */
 
-    lv_obj_t * row_max_pins = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_max_pins = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_max_pins, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_max_pins = create_label(
         row_max_pins, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Max Pins", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Max Pins", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_max_pins = create_label(
         row_max_pins, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_max_pins, obj_w_0, obj_height);
     lv_obj_set_size(result.val_max_pins, obj_w_1, obj_height);
 
     /* --- Num Analog Pins ------------------------------------------------------- */
 
-    lv_obj_t * row_num_analog_pins = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_num_analog_pins = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_num_analog_pins, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_num_analog_pins = create_label(
         row_num_analog_pins, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Num Analog Pins", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Num Analog Pins", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_num_analog_pins = create_label(
         row_num_analog_pins, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_num_analog_pins, obj_w_0, obj_height);
     lv_obj_set_size(result.val_num_analog_pins, obj_w_1, obj_height);
 
     /* --- Num Digital Pins ------------------------------------------------------- */
 
-    lv_obj_t * row_num_digital_pins = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_num_digital_pins = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_num_digital_pins, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_num_digital_pins = create_label(
         row_num_digital_pins, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Num Digital Pins", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Num Digital Pins", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_num_digital_pins = create_label(
         row_num_digital_pins, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_num_digital_pins, obj_w_0, obj_height);
     lv_obj_set_size(result.val_num_digital_pins, obj_w_1, obj_height);
 
     /* --- Max Input Values ------------------------------------------------------- */
 
-    lv_obj_t * row_max_input_values = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_max_input_values = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_max_input_values, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_max_input_values = create_label(
         row_max_input_values, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Max Input Values", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Max Input Values", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_max_input_values = create_label(
         row_max_input_values, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_max_input_values, obj_w_0, obj_height);
     lv_obj_set_size(result.val_max_input_values, obj_w_1, obj_height);
 
     /* --- Max Output Values ------------------------------------------------------- */
 
-    lv_obj_t * row_max_output_values = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_max_output_values = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_max_output_values, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_max_output_values = create_label(
         row_max_output_values, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Max Output Values", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Max Output Values", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_max_output_values = create_label(
         row_max_output_values, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_max_output_values, obj_w_0, obj_height);
     lv_obj_set_size(result.val_max_output_values, obj_w_1, obj_height);
 
     /* --- Query Cursor ------------------------------------------------------- */
 
-    lv_obj_t * row_query_cursor = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_query_cursor = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_query_cursor, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_query_cursor = create_label(
         row_query_cursor, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Query Cursor", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Query Cursor", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_query_cursor = create_label(
         row_query_cursor, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_query_cursor, obj_w_0, obj_height);
     lv_obj_set_size(result.val_query_cursor, obj_w_1, obj_height);
 
     /* --- Port Index (capped to selected device's max_pins) ------------------------------------------------------- */
 
-    lv_obj_t * row_port_i = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_port_i = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_port_i, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_port_i = create_label(
         row_port_i, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Port Index", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Port Index", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.dd_port_i = create_dropdown_menu(
         row_port_i, NULL, 0, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0, font_sub
@@ -14589,21 +11931,19 @@ gpiope_container_t create_gpiope_container(
 
     /* --- PWM Off (modulation_time[i][0]) ------------------------------------------------------- */
 
-    lv_obj_t * row_pwm_off = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_pwm_off = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_pwm_off, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_pwm_off = create_label(
         row_pwm_off, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "PWM Off (uS)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "PWM Off (uS)", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_pwm_off = create_label(
         row_pwm_off, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_pwm_off, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_pwm_off, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -14613,21 +11953,19 @@ gpiope_container_t create_gpiope_container(
 
     /* --- PWM On (modulation_time[i][1]) ------------------------------------------------------- */
 
-    lv_obj_t * row_pwm_on = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_pwm_on = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_pwm_on, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_pwm_on = create_label(
         row_pwm_on, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "PWM On (uS)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "PWM On (uS)", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_pwm_on = create_label(
         row_pwm_on, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_pwm_on, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_pwm_on, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -14637,42 +11975,38 @@ gpiope_container_t create_gpiope_container(
 
     /* --- Input Value (read-only) ------------------------------------------------------- */
 
-    lv_obj_t * row_input_value = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_input_value = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_input_value, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_input_value = create_label(
         row_input_value, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Input Value", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Input Value", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_input_value = create_label(
         row_input_value, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_set_size(result.label_input_value, obj_w_0, obj_height);
     lv_obj_set_size(result.val_input_value, obj_w_1, obj_height);
 
     /* --- Port Map (physical pin) ------------------------------------------------------- */
 
-    lv_obj_t * row_port_map = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_port_map = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_port_map, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_port_map = create_label(
         row_port_map, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Port Map (Pin)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Port Map (Pin)", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_port_map = create_label(
         row_port_map, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_port_map, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_port_map, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -14682,41 +12016,36 @@ gpiope_container_t create_gpiope_container(
 
     /* --- Enabled ------------------------------------------------------- */
 
-    lv_obj_t * row_enabled = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_enabled = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_enabled, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
     result.label_enabled = create_label(
         row_enabled, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Enabled", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Enabled", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.sw_enabled = create_switch(
-        row_enabled, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0
+        row_enabled, general_switch_w_px, general_switch_h_px, LV_ALIGN_CENTER, 0, 0
     );
     lv_obj_add_event_cb(result.sw_enabled, sw_gpiope_enabled_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_set_size(result.label_enabled, obj_w_0, obj_height);
-    lv_obj_set_size(result.sw_enabled, obj_w_1, obj_height);
+    lv_obj_set_size(result.sw_enabled, general_switch_w_px, general_switch_h_px);
 
     /* --- Channel Frequency (uS) ------------------------------------------------------- */
 
-    lv_obj_t * row_chan_freq = create_row(
-        result.panel, sub_row_width, sub_row_height, inner_pad_all,
-        sub_row_padding, sub_column_padding, false, false
-    );
+    lv_obj_t * row_chan_freq = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_chan_freq, col_gap, LV_PART_MAIN);
     obj_w_0 = 250;
-    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (sub_column_padding*2);
+    obj_w_1 = (((sub_row_width/1) *1) - obj_w_0) - (main_style.title_1.padall*2) - col_gap;
     result.label_chan_freq = create_label(
         row_chan_freq, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "Chan Freq (uS)", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_subtitle_hue
+        "Chan Freq (uS)", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.subtitle_1.color_font
     );
     result.val_chan_freq = create_label(
         row_chan_freq, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
-        "", LV_TEXT_ALIGN_CENTER, &font_cobalt_alien_17,
-        false, false, false, 2, general_radius, 1, default_bg_hue, default_value_hue
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1, main_style.title_1.color_bg, main_style.value_1.color_font
     );
     lv_obj_add_flag(result.val_chan_freq, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(result.val_chan_freq, set_keyboard_context_cb, LV_EVENT_CLICKED, NULL);
@@ -14771,19 +12100,19 @@ uap_t create_uap(
     lv_obj_set_style_radius(result.panel, 0, LV_PART_MAIN);
 
     // Main style: outline
-    lv_obj_set_style_outline_width(result.panel, outline_width, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.panel, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
     
     // Main style: border
     lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Main style: background
     lv_obj_set_style_bg_opa(result.panel, LV_OPA_0, LV_PART_MAIN);
 
     // Main style: shadow
     lv_obj_set_style_shadow_width(result.panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.panel, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.panel, main_style.title_1.color_shadow, LV_PART_MAIN);
 
     // Remove padding
     lv_obj_set_style_pad_all(result.panel, 0, LV_PART_MAIN);
@@ -14813,18 +12142,18 @@ uap_t create_uap(
 
     // Main style: outline
     lv_obj_set_style_outline_width(result.roll_panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_outline_color(result.roll_panel, default_outline_hue, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.roll_panel, main_style.title_1.color_outline, LV_PART_MAIN);
     
     // Main style: border
     lv_obj_set_style_border_width(result.roll_panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result.roll_panel, default_border_hue, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.roll_panel, main_style.title_1.color_border, LV_PART_MAIN);
 
     // Main style: background
     lv_obj_set_style_bg_opa(result.roll_panel, LV_OPA_0, LV_PART_MAIN);
 
     // Main style: shadow
     lv_obj_set_style_shadow_width(result.roll_panel, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_color(result.roll_panel, default_shadow_hue, LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(result.roll_panel, main_style.title_1.color_shadow, LV_PART_MAIN);
 
     // Remove padding
     lv_obj_set_style_pad_all(result.roll_panel, 2, LV_PART_MAIN);
@@ -14916,14 +12245,14 @@ uap_t create_uap(
         
         // Main style: border
         lv_obj_set_style_border_width(center_rect, 0, LV_PART_MAIN);
-        lv_obj_set_style_border_color(center_rect, default_border_hue, LV_PART_MAIN);
+        lv_obj_set_style_border_color(center_rect, main_style.title_1.color_border, LV_PART_MAIN);
 
         // Main style: background
         lv_obj_set_style_bg_opa(center_rect, LV_OPA_0, LV_PART_MAIN);
 
         // Main style: shadow
         lv_obj_set_style_shadow_width(center_rect, 0, LV_PART_MAIN);
-        lv_obj_set_style_shadow_color(center_rect, default_shadow_hue, LV_PART_MAIN);
+        lv_obj_set_style_shadow_color(center_rect, main_style.title_1.color_shadow, LV_PART_MAIN);
 
         // Remove padding
         lv_obj_set_style_pad_all(center_rect, 0, LV_PART_MAIN);
@@ -15041,14 +12370,11 @@ uap_t create_uap(
         "ROL ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.gyro_angle_y_label = create_label(
@@ -15061,14 +12387,11 @@ uap_t create_uap(
         "PIT ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     ); 
     
     result.gyro_angle_z_label = create_label(
@@ -15081,14 +12404,11 @@ uap_t create_uap(
         "YAW ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     ); 
 
     result.gyro_gforce_x_label = create_label(
@@ -15101,14 +12421,11 @@ uap_t create_uap(
         "GROL ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.gyro_gforce_y_label = create_label(
@@ -15121,14 +12438,11 @@ uap_t create_uap(
         "GPIT ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     ); 
     
     result.gyro_gforce_z_label = create_label(
@@ -15141,14 +12455,11 @@ uap_t create_uap(
         "GYAW ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     ); 
 
     result.latitude_label = create_label(
@@ -15161,14 +12472,11 @@ uap_t create_uap(
         "LAT ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.longitude_label = create_label(
@@ -15181,14 +12489,11 @@ uap_t create_uap(
         "LON ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.speed_label = create_label(
@@ -15201,14 +12506,11 @@ uap_t create_uap(
         "SPE ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
 
     result.altitude_label = create_label(
@@ -15221,15 +12523,170 @@ uap_t create_uap(
         "ALT ",               // initial text
         LV_TEXT_ALIGN_LEFT,   // font alignment
         &font_mono_bold_14,     // font
-        true,                 // transparent background
-        false,                // show scrollbar
-        false,                // enable scrolling
-        0,                    // outline width
-        general_radius,       // outline radius
+        true,                    // outline width
+        main_style.title_1.radius_square,       // outline radius
         1,
-        default_bg_hue,
-        default_value_hue
+        main_style.title_1.color_bg,
+        main_style.value_1.color_font
     );
+
+    return result;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create Display Settings Panel Container.
+ */
+display_settings_container_t create_display_settings_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling,
+    const lv_font_t * font_title,
+    const lv_font_t * font_sub
+    )
+{
+    display_settings_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
+
+    /* --- MAIN PANEL ------------------------------------------------------------------ */
+    result.panel = lv_obj_create(parent);
+
+    // Show scrollbar
+    if (show_scrollbar) {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_AUTO);
+    } else {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_OFF);}
+
+    // Enable scrolling
+    if (enable_scrolling) {lv_obj_set_scroll_dir(result.panel, LV_DIR_ALL);
+    } else {lv_obj_set_scroll_dir(result.panel, LV_DIR_NONE);}
+
+    // Size & Position
+    lv_obj_set_size(result.panel, width_px, height_px);
+    lv_obj_align(result.panel, alignment, pos_x, pos_y);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
+
+    // Main Padding
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Outline
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    // Row sizes
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
+    int32_t title_width = sub_row_width - (main_style.title_1.padall);
+    int32_t obj_w_0 = sub_row_width - (main_style.title_1.padall*2);
+
+    /* ---------------------------------------------------------- */
+    /* Title THEME                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_title_theme = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_title_theme, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_title_theme, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_title_theme,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Label Title THEME
+    result.lbl_title_theme = create_label(
+        row_title_theme,
+        title_width,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "THEME",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.title_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.title_1.color_font
+    );
+
+    lv_obj_set_size(result.lbl_title_theme, title_width, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Theme: Slate                                               */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_theme_slate = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_theme_slate, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_theme_slate, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_theme_slate,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Button Slate
+    result.btn_theme_slate = create_button(
+        row_theme_slate,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "Slate"
+    );
+
+    lv_obj_set_size(result.btn_theme_slate.panel, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Theme: Alien                                               */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_theme_alien = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_theme_alien, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_theme_alien, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_theme_alien,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Button Alien
+    result.btn_theme_alien = create_button(
+        row_theme_alien,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "Alien"
+    );
+
+    lv_obj_set_size(result.btn_theme_alien.panel, obj_w_0, obj_height);
 
     return result;
 }
@@ -15272,9 +12729,7 @@ void create_default_screen_objects(
         23,                      // pos y
         10,                      // padding between kb and text area
         36,                      // text area height
-        LV_KEYBOARD_MODE_NUMBER, // keyboard mode
-        &font_cobalt_alien_25,
-        &font_cobalt_alien_17
+        LV_KEYBOARD_MODE_NUMBER  // keyboard mode
     );
     
     // Plug in keyboard callback for kb_numdec
@@ -15294,9 +12749,7 @@ void create_default_screen_objects(
         23,                      // pos y
         10,                      // padding between kb and text area
         36,                      // text area height
-        LV_KEYBOARD_MODE_USER_1, // keyboard mode
-        &font_cobalt_alien_25,
-        &font_cobalt_alien_17
+        LV_KEYBOARD_MODE_USER_1  // keyboard mode
     );
     
     // Plug in keyboard callback for kb_alnumsym
@@ -15314,9 +12767,7 @@ void create_default_screen_objects(
         0, // pos x
         0, // pos y
         false, // show scrollbar
-        false,  // enable scrollbar
-        &font_cobalt_alien_25,
-        &font_cobalt_alien_17
+        false  // enable scrollbar
     );
 
     // ------------------------------ System Tray --------------------------------- //
@@ -15324,8 +12775,6 @@ void create_default_screen_objects(
     // Create system tray
     system_tray = create_system_tray(
         parent,
-        &font_cobalt_alien_25,
-        &font_cobalt_alien_17,
         slider_brightness_value
     );
 
@@ -15339,7 +12788,7 @@ void create_default_screen_objects(
         lv_obj_t * btn = lv_obj_get_child(system_tray.grid_menu_1, i);
         // Add callback
         lv_obj_add_event_cb(btn, system_tray_grid_menu_1_event_cb, LV_EVENT_CLICKED, NULL);
-        lv_obj_set_style_outline_color(btn, default_outline_hue, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(btn, main_style.title_1.color_outline, LV_PART_MAIN);
         // Get label
         lv_obj_t * label = lv_obj_get_child(btn, 0);
         if(label && lv_obj_has_class(label, &lv_label_class)) {
@@ -15363,14 +12812,14 @@ void create_default_screen_objects(
         lv_obj_t * btn = lv_obj_get_child(system_tray.grid_menu_2, i);
         // Add callback
         lv_obj_add_event_cb(btn, system_tray_grid_menu_2_event_cb, LV_EVENT_CLICKED, NULL);
-        lv_obj_set_style_outline_color(btn, default_outline_hue, LV_PART_MAIN);
+        lv_obj_set_style_outline_color(btn, main_style.title_1.color_outline, LV_PART_MAIN);
         // Get label
         lv_obj_t * label = lv_obj_get_child(btn, 0);
         if(label && lv_obj_has_class(label, &lv_label_class)) {
             // Set label text
             switch (i+600) {
                 case CELESTIAL_SPHERE_SCREEN: lv_label_set_text(label, "SPH"); break;
-                case DEV_SCREEN_1:      lv_label_set_text(label, ""); break;
+                case SETTINGS_SCREEN:   lv_label_set_text(label, "DIS"); break;
                 case DEV_SCREEN_2:      lv_label_set_text(label, ""); break;
                 case DEV_SCREEN_3:      lv_label_set_text(label, ""); break;
                 case DEV_SCREEN_4:      lv_label_set_text(label, ""); break;
@@ -15442,7 +12891,8 @@ void display_home_screen()
         LV_ALIGN_CENTER, // alignment
         0,               // pos x
         0,               // pos y
-        90               // angle offset
+        90,              // angle offset
+        true             // no_vid: play the spin-up animation
     );
 }
 
@@ -15485,13 +12935,12 @@ void display_matrix_screen()
         0,                    // pos x
         0,                    // pos y
         LV_ALIGN_CENTER,      // alignment
-        radius_rounded,       // item radius px
+        main_style.title_1.radius_rounded,       // item radius px
         15,                   // max cols visible (for scrollbar)
         3,                    // max rows visible (for scrollbar)
         false,                // show scrollbar
         false,                // enable scrolling
         LV_TEXT_ALIGN_CENTER, // text align
-        &font_cobalt_alien_17,     // font for labels
         true,
         false
     );
@@ -15511,19 +12960,10 @@ void display_matrix_screen()
         LV_ALIGN_CENTER,  // alignment
         0,                // pos x
         35,               // pos y
-        radius_rounded,   // radius
-        0,                // outer_pad_all
-        4,                // inner_pad_all
-        0,                // outline_padding
-        1,                // main_row_padding
-        4,                // main_column_padding
-        2,                // sub_row_padding
-        8,                // sub_column_padding
-        40,               // row height
         false,            // show scrollbar
         false,            // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        &main_style.title_1.font, // font for titles,
+        &main_style.subtitle_1.font  // font for text,
     );
     lv_obj_add_flag(mfc.panel, LV_OBJ_FLAG_HIDDEN);
 
@@ -15535,19 +12975,10 @@ void display_matrix_screen()
         LV_ALIGN_CENTER,  // alignment
         0,                // pos x
         35,               // pos y
-        radius_rounded,   // radius
-        0,                // outer_pad_all
-        4,                // inner_pad_all
-        0,                // outline_padding
-        1,                // main_row_padding
-        4,                // main_column_padding
-        2,                // sub_row_padding
-        8,                // sub_column_padding
-        40,               // row height
         true,             // show scrollbar
         false,            // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        &main_style.title_1.font, // font for titles,
+        &main_style.subtitle_1.font  // font for text,
     );
     lv_obj_add_flag(mcc.panel, LV_OBJ_FLAG_HIDDEN);
 
@@ -15559,19 +12990,10 @@ void display_matrix_screen()
         LV_ALIGN_CENTER,  // alignment
         0,                // pos x
         35,               // pos y
-        radius_rounded,   // radius
-        0,                // outer_pad_all
-        4,                // inner_pad_all
-        0,                // outline_padding
-        1,                // main_row_padding
-        4,                // main_column_padding
-        2,                // sub_row_padding
-        8,                // sub_column_padding
-        40,               // row height
         true,             // show scrollbar
         true,             // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        &main_style.title_1.font, // font for titles,
+        &main_style.subtitle_1.font  // font for text,
     );
     lv_obj_add_flag(gpc.panel, LV_OBJ_FLAG_HIDDEN);
     current_gpiope_address = 0;
@@ -15585,19 +13007,8 @@ void display_matrix_screen()
         LV_ALIGN_CENTER,  // alignment
         0,                // pos x
         -200,             // pos y
-        radius_rounded,   // radius
-        0,                // outer_pad_all
-        1,                // inner_pad_all
-        0,                // outline_padding
-        1,                // main_row_padding
-        1,                // main_column_padding
-        1,                // sub_row_padding
-        10,               // sub_column_padding
-        42,               // row height
         false,            // show scrollbar
-        false,            // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        false             // enable scrolling
     );
 
     // Select Matrix File Slot
@@ -15610,7 +13021,7 @@ void display_matrix_screen()
         LV_ALIGN_TOP_MID,  // alignment
         0,                 // pos x
         90,                // pos y
-        &font_cobalt_alien_17   // font
+        &main_style.subtitle_1.font   // font
     );
     lv_dropdown_set_selected(dd_matrix_file_slot_select, SatIOFileData.i_current_matrix_file_path);
     lv_obj_add_event_cb(dd_matrix_file_slot_select, dd_matrix_file_slot_select_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
@@ -15623,14 +13034,7 @@ void display_matrix_screen()
         LV_ALIGN_TOP_LEFT,    // alignment
         130,                  // pos x
         90,                   // pos y
-        "N",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_on_value_hue
+        "N"                   // label text
     );
     lv_obj_add_event_cb(matrix_new.button, matrix_new_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -15642,14 +13046,7 @@ void display_matrix_screen()
         LV_ALIGN_TOP_LEFT,    // alignment
         184,                  // pos x
         90,                   // pos y
-        "S",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_on_value_hue
+        "S"                   // label text
     );
     lv_obj_add_event_cb(matrix_save.button, matrix_save_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -15661,14 +13058,7 @@ void display_matrix_screen()
         LV_ALIGN_TOP_RIGHT,   // alignment
         -184,                 // pos x
         90,                   // pos y
-        "L",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_on_value_hue
+        "L"                   // label text
     );
     lv_obj_add_event_cb(matrix_load.button, matrix_load_event_cb, LV_EVENT_CLICKED, NULL);
 
@@ -15680,14 +13070,7 @@ void display_matrix_screen()
         LV_ALIGN_TOP_RIGHT,   // alignment
         -130,                 // pos x
         90,                   // pos y
-        "D",                  // label text
-        LV_TEXT_ALIGN_CENTER, // text align
-        false,                // show scrollbar
-        false,                // enable scrolling
-        &font_cobalt_alien_17,     // font for labels,
-        radius_rounded,
-        default_btn_bg,
-        default_btn_on_value_hue
+        "D"                   // label text
     );
     lv_obj_add_event_cb(matrix_delete.button, matrix_delete_event_cb, LV_EVENT_CLICKED, NULL);
 }
@@ -15723,115 +13106,60 @@ void display_gps_screen()
     gps_switch_panel = create_gps_switch_panel(
         gps_screen,       // parent
         450,              // width px
-        40+(4*2),         // height px
+        general_panel_row_h_px, // height px
         LV_ALIGN_TOP_MID, // alignment
         0,                // pos x
         95,               // pos y
-        radius_rounded,   // radius
-        1,                // outer_pad_all
-        1,                // inner_pad_all
-        1,                // outline_padding
-        1,                // main_row_padding
-        1,                // main_column_padding
-        1,                // sub_row_padding
-        10,               // sub_column_padding
-        48,               // row height
         false,            // show scrollbar
-        false,            // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        false             // enable scrolling
     );
 
     // SatIO
     SatIO_c = create_SatIO_panel(
         gps_screen,        // parent
-        general_menu_w_px, // width px
-        general_menu_h_px, // height px
+        general_window_w_px, // width px
+        general_window_h_px, // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        radius_rounded,    // radius
-        2,                 // outer_pad_all
-        4,                 // inner_pad_all
-        2,                 // outline_padding
-        2,                 // main_row_padding
-        4,                 // main_column_padding
-        2,                 // sub_row_padding
-        8,                 // sub_column_padding
-        general_menu_row_h_px, // row height
         true,              // show scrollbar
-        true,              // enable scrolling
-        &font_cobalt_alien_25,  // font for titles,
-        &font_cobalt_alien_17   // font for text,
+        true               // enable scrolling
     );
 
     // GNGGA
     gngga_c = create_gngga_panel(
         gps_screen,        // parent
-        general_menu_w_px, // width px
-        general_menu_h_px, // height px
+        general_window_w_px, // width px
+        general_window_h_px, // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        radius_rounded,    // radius
-        2,                 // outer_pad_all
-        4,                 // inner_pad_all
-        2,                 // outline_padding
-        2,                 // main_row_padding
-        4,                 // main_column_padding
-        2,                 // sub_row_padding
-        8,                 // sub_column_padding
-        general_menu_row_h_px, // row height
         true,              // show scrollbar
-        true,              // enable scrolling
-        &font_cobalt_alien_25,  // font for titles,
-        &font_cobalt_alien_17   // font for text,
+        true               // enable scrolling
     );
 
     // GNRMC
     gnrmc_c = create_gnrmc_panel(
         gps_screen,        // parent
-        general_menu_w_px, // width px
-        general_menu_h_px, // height px
+        general_window_w_px, // width px
+        general_window_h_px, // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        radius_rounded,    // radius
-        2,                 // outer_pad_all
-        4,                 // inner_pad_all
-        2,                 // outline_padding
-        2,                 // main_row_padding
-        4,                 // main_column_padding
-        2,                 // sub_row_padding
-        8,                 // sub_column_padding
-        general_menu_row_h_px, // row height
         true,              // show scrollbar
-        true,              // enable scrolling
-        &font_cobalt_alien_25,  // font for titles,
-        &font_cobalt_alien_17   // font for text,
+        true               // enable scrolling
     );
 
     // GPATT
     gpatt_c = create_gpatt_panel(
         gps_screen,        // parent
-        general_menu_w_px, // width px
-        general_menu_h_px, // height px
+        general_window_w_px, // width px
+        general_window_h_px, // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        radius_rounded,    // radius
-        2,                 // outer_pad_all
-        4,                 // inner_pad_all
-        2,                 // outline_padding
-        2,                 // main_row_padding
-        4,                 // main_column_padding
-        2,                 // sub_row_padding
-        8,                 // sub_column_padding
-        general_menu_row_h_px, // row height
         true,              // show scrollbar
-        true,              // enable scrolling
-        &font_cobalt_alien_25,  // font for titles,
-        &font_cobalt_alien_17   // font for text,
+        true               // enable scrolling
     );
 }
 
@@ -15864,23 +13192,12 @@ void display_gyro_screen()
     gyro_0_c = create_gyro_panel(
         gyro_screen,      // parent
         650,              // width px
-        (general_menu_row_h_px*5)-(outline_width*2)-(2*2), // height px
+        (general_panel_row_h_px*5)-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2), // height px
         LV_ALIGN_CENTER,  // alignment
         0,                // pos x
         0,                // pos y
-        radius_rounded,   // radius
-        2,                // outer_pad_all
-        4,                // inner_pad_all
-        2,                // outline_padding
-        2,                // main_row_padding
-        4,                // main_column_padding
-        2,                // sub_row_padding
-        8,                // sub_column_padding
-        general_menu_row_h_px, // row height
         false,             // show scrollbar
-        false,             // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        false              // enable scrolling
     );
 
     // Calibration buttons (CAL ACC + CAL MAG)
@@ -15891,19 +13208,8 @@ void display_gyro_screen()
         LV_ALIGN_BOTTOM_MID,  // alignment
         0,                // pos x
         -100,              // pos y
-        radius_rounded,   // radius
-        2,                // outer_pad_all
-        4,                // inner_pad_all
-        2,                // outline_padding
-        2,                // main_row_padding
-        4,                // main_column_padding
-        2,                // sub_row_padding
-        8,                // sub_column_padding
-        general_menu_row_h_px, // row height
         false,            // show scrollbar
-        false,            // enable scrolling
-        &font_cobalt_alien_25, // font for titles,
-        &font_cobalt_alien_17  // font for text,
+        false             // enable scrolling
     );
 }
 
@@ -15935,24 +13241,15 @@ void display_mplex0_screen()
     // Admplex 0
     admlpex0_c = create_admplex0_panel(
         mplex0_screen,     // parent
-        general_menu_w_px, // width px
-        general_menu_h_px, // height px
+        general_window_w_px, // width px
+        general_window_h_px, // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        radius_rounded,    // radius
-        2,                 // outer_pad_all
-        4,                 // inner_pad_all
-        2,                 // outline_padding
-        2,                 // main_row_padding
-        4,                 // main_column_padding
-        2,                 // sub_row_padding
-        8,                 // sub_column_padding
-        general_menu_row_h_px, // row height
         true,              // show scrollbar
         true,              // enable scrolling
-        &font_cobalt_alien_25,  // font for titles,
-        &font_cobalt_alien_17   // font for text,
+        &main_style.title_1.font,  // font for titles,
+        &main_style.subtitle_1.font   // font for text,
     );
 }
 
@@ -15984,24 +13281,15 @@ void display_serial_screen()
     // Serial
     serial_c = create_serial_panel(
         serial_screen,     // parent
-        general_menu_w_px, // width px
-        general_menu_h_px, // height px
+        general_window_w_px, // width px
+        general_window_h_px, // height px
         LV_ALIGN_CENTER,   // alignment
         0,                 // pos x
         0,                 // pos y
-        radius_rounded,    // radius
-        2,                 // outer_pad_all
-        4,                 // inner_pad_all
-        2,                 // outline_padding
-        2,                 // main_row_padding
-        4,                 // main_column_padding
-        2,                 // sub_row_padding
-        8,                 // sub_column_padding
-        general_menu_row_h_px, // row height
         true,              // show scrollbar
         true,              // enable scrolling
-        &font_cobalt_alien_25,  // font for titles,
-        &font_cobalt_alien_17   // font for text,
+        &main_style.title_1.font,  // font for titles,
+        &main_style.subtitle_1.font   // font for text,
     );
 }
 
@@ -16038,7 +13326,7 @@ void display_uap_screen()
         LV_ALIGN_CENTER,
         0,
         0,
-        general_radius
+        main_style.title_1.radius_square
     );
 }
 
@@ -16084,6 +13372,83 @@ void display_celestial_sphere_screen() {
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief Builds (or rebuilds) the Display Settings screen in place.
+ *
+ * Shared by display_settings_screen() (guarded, normal navigation) and the theme
+ * buttons' event callbacks, which force a rebuild so the change of main_style is
+ * reflected immediately on the screen the user is looking at.
+ */
+static void build_display_settings_screen()
+{
+    current_screen_number = SETTINGS_SCREEN;
+
+    // Always create a fresh screen
+    settings_screen = lv_obj_create(NULL);
+
+    // Load screen
+    lv_scr_load_anim(settings_screen, SCR_LOAD_ANIM, SCR_LOAD_ANIM_TIME, SCR_LOAD_ANIM_DELAY, SCR_LOAD_ANIM_AUTO_DEL);
+
+    // Defaults
+    create_default_screen_objects(settings_screen);
+
+    // Display Settings
+    display_settings_c = create_display_settings_panel(
+        settings_screen,   // parent
+        200,               // width px
+        (general_panel_row_h_px*3)-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2), // height px
+        LV_ALIGN_CENTER,   // alignment
+        0,                 // pos x
+        0,                 // pos y
+        false,             // show scrollbar
+        false,             // enable scrolling
+        &main_style.title_1.font,     // font for titles,
+        &main_style.subtitle_1.font   // font for text,
+    );
+
+    lv_obj_add_event_cb(display_settings_c.btn_theme_slate.button, btn_theme_slate_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(display_settings_c.btn_theme_alien.button, btn_theme_alien_event_cb, LV_EVENT_CLICKED, NULL);
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Show Display Settings Screen.
+ */
+void display_settings_screen()
+{
+    // Set Display Flag
+    flag_display_settings_screen = false;
+
+    // Check Current Screen
+    lv_obj_t * current_screen = lv_scr_act();
+    if (current_screen == settings_screen) {
+        return;
+    }
+
+    build_display_settings_screen();
+}
+
+/** ---------------------------------------------------------------------------------------
+ * @brief Event callback: switch to the "Slate" theme and refresh the settings screen
+ *        immediately so the change is visible without navigating away and back.
+ */
+void btn_theme_slate_event_cb(lv_event_t * e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    setStyleDefaultSlate();
+    build_display_settings_screen();
+}
+
+/** ---------------------------------------------------------------------------------------
+ * @brief Event callback: switch to the "Alien" theme and refresh the settings screen
+ *        immediately so the change is visible without navigating away and back.
+ */
+void btn_theme_alien_event_cb(lv_event_t * e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    setStyleDefaultAlien();
+    build_display_settings_screen();
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Wrapper around lv_dropdown_set_selected that reads the current selection
  *        first and skips the call when the index is already correct.  Each
  *        lv_dropdown_set_selected() unconditionally invalidates the widget and
@@ -16118,26 +13483,6 @@ static void sync_switch_state(lv_obj_t *sw, bool enabled) {
  */
 void update_display_lvgl()
 {
-
-    // ---------------------
-    // Rainbow Effect
-    // ---------------------
-    // Advance hue every 3 frames.  When the hue is unchanged, the 6 rainbow
-    // colors below stay the same; lv_obj_set_style_* calls with an identical
-    // color are a no-op in LVGL 9, so rainbow-coloured widgets are not
-    // re-rendered in the intervening frames.
-    // static uint8_t rainbow_frame_ctr = 0U;
-    // if (rainbow_frame_ctr == 0U) { current_hue = (current_hue + 1) % 360; }
-    // rainbow_frame_ctr = (rainbow_frame_ctr + 1U) % 3U;
-    // // Rainbow Major
-    // rainbow_outline_hue = lv_color_hsv_to_rgb((current_hue + 300) % 360, 100, 100);
-    // rainbow_title_hue   = lv_color_hsv_to_rgb((current_hue + 250) % 360, 100, 100);
-    // rainbow_value_hue   = lv_color_hsv_to_rgb((current_hue + 200) % 360, 100, 100);
-    // // Rainbow Minor
-    // rainbow_contrast_outline_hue = lv_color_hsv_to_rgb((current_hue + 150) % 360, 100, 100);
-    // rainbow_contrast_title_hue   = lv_color_hsv_to_rgb((current_hue + 100) % 360, 100, 100);
-    // rainbow_contrast_value_hue   = lv_color_hsv_to_rgb((current_hue + 50) % 360, 100, 100);
-
     // ---------------------
     // Check Load Screen Flags
     // ---------------------
@@ -16149,94 +13494,78 @@ void update_display_lvgl()
     else if (flag_display_serial_screen==true) {display_serial_screen();}
     else if (flag_display_uap_screen==true) {display_uap_screen();}
     else if (flag_display_celestial_sphere_screen==true) {display_celestial_sphere_screen();}
+    else if (flag_display_settings_screen==true) {display_settings_screen();}
     
-    // // ---------------------
-    // // KB Alnumsym
-    // // ---------------------
-    // if (kb_alnumsym.kb != NULL && lv_obj_is_valid(kb_alnumsym.kb)) {
-    //     if (!lv_obj_has_flag(kb_alnumsym.kb, LV_OBJ_FLAG_HIDDEN)) {
-    //         // Rainbow keyboard full outline
-    //         lv_obj_set_style_outline_color(kb_alnumsym.kb, rainbow_outline_hue, LV_PART_MAIN);
-    //         // Rainbow keyboard full keys
-    //         lv_obj_set_style_text_color(kb_alnumsym.kb, rainbow_title_hue, LV_PART_ITEMS);
-    //         // Rainbow keyboard full checked keys
-    //         lv_obj_set_style_text_color(kb_alnumsym.kb, rainbow_value_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-    //         // Rainbow keyboard full text area outline
-    //         lv_obj_set_style_outline_color(kb_alnumsym.ta, rainbow_outline_hue, LV_PART_MAIN);
-    //         // Rainbow keyboard full text area text
-    //         lv_obj_set_style_text_color(kb_alnumsym.ta, rainbow_value_hue, LV_PART_MAIN);
-    //     }
-    // }
-    // // ---------------------
-    // // KB Numdedc
-    // // ---------------------
-    // if (kb_numdec.kb != NULL && lv_obj_is_valid(kb_numdec.kb)) {
-    //     if (!lv_obj_has_flag(kb_numdec.kb, LV_OBJ_FLAG_HIDDEN)) {
-    //         // Rainbow keyboard numdec full outline
-    //         lv_obj_set_style_outline_color(kb_numdec.kb, rainbow_outline_hue, LV_PART_MAIN);
-    //         // Rainbow keyboard numdec full keys
-    //         lv_obj_set_style_text_color(kb_numdec.kb, rainbow_title_hue, LV_PART_ITEMS);
-    //         // Rainbow keyboard numdec full checked keys
-    //         lv_obj_set_style_text_color(kb_numdec.kb, rainbow_value_hue, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
-    //         // Rainbow keyboard numdec full text area outline
-    //         lv_obj_set_style_outline_color(kb_numdec.ta, rainbow_outline_hue, LV_PART_MAIN);
-    //         // Rainbow keyboard numdec full text area text
-    //         lv_obj_set_style_text_color(kb_numdec.ta, rainbow_value_hue, LV_PART_MAIN);
-    //     }
-    // }
+    // ---------------------
+    // KB Alnumsym
+    // ---------------------
+    if (kb_alnumsym.kb != NULL && lv_obj_is_valid(kb_alnumsym.kb)) {
+        if (!lv_obj_has_flag(kb_alnumsym.kb, LV_OBJ_FLAG_HIDDEN)) {
+            // Rainbow keyboard full outline
+            lv_obj_set_style_outline_color(kb_alnumsym.kb, main_style.title_1.color_outline, LV_PART_MAIN);
+            // Rainbow keyboard full keys
+            lv_obj_set_style_text_color(kb_alnumsym.kb, main_style.title_1.color_font, LV_PART_ITEMS);
+            // Rainbow keyboard full checked keys
+            lv_obj_set_style_text_color(kb_alnumsym.kb, main_style.value_1.color_font, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
+            // Rainbow keyboard full text area outline
+            lv_obj_set_style_outline_color(kb_alnumsym.ta, main_style.title_1.color_outline, LV_PART_MAIN);
+            // Rainbow keyboard full text area text
+            lv_obj_set_style_text_color(kb_alnumsym.ta, main_style.value_1.color_font, LV_PART_MAIN);
+        }
+    }
+    // ---------------------
+    // KB Numdedc
+    // ---------------------
+    if (kb_numdec.kb != NULL && lv_obj_is_valid(kb_numdec.kb)) {
+        if (!lv_obj_has_flag(kb_numdec.kb, LV_OBJ_FLAG_HIDDEN)) {
+            // Rainbow keyboard numdec full outline
+            lv_obj_set_style_outline_color(kb_numdec.kb, main_style.title_1.color_outline, LV_PART_MAIN);
+            // Rainbow keyboard numdec full keys
+            lv_obj_set_style_text_color(kb_numdec.kb, main_style.title_1.color_font, LV_PART_ITEMS);
+            // Rainbow keyboard numdec full checked keys
+            lv_obj_set_style_text_color(kb_numdec.kb, main_style.value_1.color_font, (lv_style_selector_t)LV_PART_ITEMS | LV_STATE_CHECKED);
+            // Rainbow keyboard numdec full text area outline
+            lv_obj_set_style_outline_color(kb_numdec.ta, main_style.title_1.color_outline, LV_PART_MAIN);
+            // Rainbow keyboard numdec full text area text
+            lv_obj_set_style_text_color(kb_numdec.ta, main_style.value_1.color_font, LV_PART_MAIN);
+        }
+    }
     
     // ---------------------
     // Title Bar
     // ---------------------
     if (main_title_bar.panel) {
 
-        // Title Bar Outline
-        // lv_obj_set_style_outline_color(main_title_bar.panel, rainbow_outline_hue, LV_PART_MAIN);
-
         // Title Bar Local Time
         set_label_text_if_changed(main_title_bar.time_label, SatIOData.localTime.formatted_time_HHMMSS);
-        // lv_obj_set_style_text_color(main_title_bar.time_label, rainbow_title_hue, LV_PART_MAIN);
 
         // Title Bar Local Date
         set_label_text_if_changed(main_title_bar.date_label, SatIOData.localTime.formatted_date_DDMMYY);
-        // lv_obj_set_style_text_color(main_title_bar.date_label, rainbow_title_hue, LV_PART_MAIN);
 
         // GPS Sync
         if (SatIOData.GPSTime.sync == true) {
             lv_obj_add_flag(main_title_bar.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(main_title_bar.datetime_sync, LV_OBJ_FLAG_HIDDEN);
-            // lv_obj_set_style_outline_color(main_title_bar.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            // lv_obj_set_style_text_color(main_title_bar.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
         }
         // GPS Signal
         else {
             lv_obj_add_flag(main_title_bar.datetime_sync, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(main_title_bar.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); set_label_text_if_changed(main_title_bar.gps_signal_strength, gps_sig); }
-            // lv_obj_set_style_outline_color(main_title_bar.gps_signal_strength, rainbow_contrast_outline_hue, LV_PART_MAIN);
-            // lv_obj_set_style_text_color(main_title_bar.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
         }
 
         // SD Card Mounted / Success Flag
         if (sdcardFlagData.success_flag==2) {
-            // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
-            // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             set_label_text_if_changed(main_title_bar.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
-            // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
-            // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             set_label_text_if_changed(main_title_bar.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
-                // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
                 set_label_text_if_changed(main_title_bar.sdcard_mounted, "SD");
             }
             else {
-                // lv_obj_set_style_outline_color(main_title_bar.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                // lv_obj_set_style_text_color(main_title_bar.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
                 set_label_text_if_changed(main_title_bar.sdcard_mounted, "SD!");
             }
         }
@@ -16247,35 +13576,28 @@ void update_display_lvgl()
     // ---------------------
     if (system_tray.is_open) {
 
-        // Rainbow System Tray Outline
-        // lv_obj_set_style_outline_color(system_tray.panel, rainbow_outline_hue, LV_PART_MAIN);
+        // // System Tray Brightness Slider Knob
+        // lv_obj_set_style_bg_color(system_tray.slider_brightness, main_style.value_1.color_font, LV_PART_KNOB);
 
-        // // Rainbow System Tray Brightness Slider Outline
-        // lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_MAIN);
-
-        // // Rainbow System Tray Brightness Slider Knob
-        // lv_obj_set_style_bg_color(system_tray.slider_brightness, rainbow_contrast_value_hue, LV_PART_KNOB);
-
-        // // Rainbow System Tray Brightness Slider Indicator
-        // lv_obj_set_style_outline_color(system_tray.slider_brightness, rainbow_contrast_outline_hue, LV_PART_INDICATOR);
+        // // System Tray Brightness Slider Indicator
+        // lv_obj_set_style_outline_color(system_tray.slider_brightness, main_style.title_1.color_outline, LV_PART_INDICATOR);
 
         // System Tray Local Time
         set_label_text_if_changed(system_tray.local_time, SatIOData.localTime.formatted_time_HHMMSS);
-        // lv_obj_set_style_text_color(system_tray.local_time, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(system_tray.local_time, main_style.title_1.color_font, LV_PART_MAIN);
 
         // System Tray Local Date
         set_label_text_if_changed(system_tray.local_date, SatIOData.localTime.formatted_date_DDMMYY);
-        // lv_obj_set_style_text_color(system_tray.local_date, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(system_tray.local_date, main_style.title_1.color_font, LV_PART_MAIN);
 
         // System Tray Human Date
         { char human_date[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(human_date, sizeof(human_date), "%s %d %s", SatIOData.localTime.wday_name, SatIOData.localTime.mday, SatIOData.localTime.month_name); set_label_text_if_changed(system_tray.human_date, human_date); }
-        // lv_obj_set_style_text_color(system_tray.human_date, rainbow_title_hue, LV_PART_MAIN);
+        // lv_obj_set_style_text_color(system_tray.human_date, main_style.title_1.color_font, LV_PART_MAIN);
 
         // GPS Sync
         if (SatIOData.GPSTime.sync == true) {
             lv_obj_add_flag(system_tray.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(system_tray.datetime_sync, LV_OBJ_FLAG_HIDDEN);
-            // lv_obj_set_style_outline_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(system_tray.datetime_sync, lv_color_make(0, 255, 0), LV_PART_MAIN);
         }
         // GPS Signal
@@ -16283,50 +13605,27 @@ void update_display_lvgl()
             lv_obj_add_flag(system_tray.datetime_sync, LV_OBJ_FLAG_HIDDEN);
             lv_obj_remove_flag(system_tray.gps_signal_strength, LV_OBJ_FLAG_HIDDEN);
             { char gps_sig[MAX_GLOBAL_ELEMENT_SIZE*3]; snprintf(gps_sig, sizeof(gps_sig), "%d:%.1f", atoi(gnggaData.satellite_count), atof(gnggaData.gps_precision_factor)); set_label_text_if_changed(system_tray.gps_signal_strength, gps_sig); }
-            // lv_obj_set_style_outline_color(system_tray.gps_signal_strength, main_outline_hue, LV_PART_MAIN);
-            // lv_obj_set_style_text_color(system_tray.gps_signal_strength, rainbow_contrast_title_hue, LV_PART_MAIN);
         }
 
         // SD Card Mounted / Success Flag
         if (sdcardFlagData.success_flag==2) {
-            // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
             set_label_text_if_changed(system_tray.sdcard_mounted, "ok");
         }
         else if (sdcardFlagData.success_flag==1) {
-            // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
             set_label_text_if_changed(system_tray.sdcard_mounted, "!");
         }
         else {
             if (sdcardData.sdcard_mounted) {
-                // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
+                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(0, 255, 0), LV_PART_MAIN);
                 set_label_text_if_changed(system_tray.sdcard_mounted, "SD");
             }
-            else {
-                // lv_obj_set_style_outline_color(system_tray.sdcard_mounted, main_outline_hue, LV_PART_MAIN);
-                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, rainbow_contrast_title_hue, LV_PART_MAIN);
+            else {;
+                // lv_obj_set_style_text_color(system_tray.sdcard_mounted, lv_color_make(255, 0, 0), LV_PART_MAIN);
                 set_label_text_if_changed(system_tray.sdcard_mounted, "SD!");
             }
         }
-
-        // Grid Menu 1
-        // if (system_tray.grid_menu_1) {
-
-        //     uint32_t grid_child_cnt = lv_obj_get_child_cnt(system_tray.grid_menu_1);
-        //     for(uint32_t i = 0; i < grid_child_cnt; i++) {
-        //         // vTaskDelay(pdMS_TO_TICKS(5));
-        //         lv_obj_t * btn = lv_obj_get_child(system_tray.grid_menu_1, i);
-        //         lv_obj_set_style_outline_color(btn, rainbow_contrast_outline_hue, LV_PART_MAIN);
-        //         // Get label
-        //         lv_obj_t * label = lv_obj_get_child(btn, 0);
-        //         if(label && lv_obj_has_class(label, &lv_label_class)) {
-        //             // Color label
-        //             lv_obj_set_style_text_color(label,  lv_color_hsv_to_rgb((current_hue + (i * 60)) % 360, 100, 100), LV_PART_MAIN);
-        //         }
-        //     }
-        // }
     }
 
     // ---------------------
@@ -16355,13 +13654,13 @@ void update_display_lvgl()
         // branch below -- set_style_text_color_if_changed() already makes
         // repeated calls with the same color a cheap no-op.
         set_style_text_color_if_changed(matrix_switch_panel.switch_overview_panel.label,
-            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(matrix_switch_panel.switch_matrix_panel.label,
-            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MATRIX) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MATRIX) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(matrix_switch_panel.switch_mapping_panel.label,
-            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MAPPING) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_MAPPING) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(matrix_switch_panel.switch_gpiope_panel.label,
-            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_GPIOPE) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_GPIOPE) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
 
         if (current_matrix_panel_view==MATRIX_SWITCH_PANEL_NUMBER_OVERVIEW) {
 
@@ -16378,18 +13677,18 @@ void update_display_lvgl()
 
 
                     /* Computer Assist (yellow outline) */
-                    if (matrixData.computer_assist[0][i]==true) {set_style_outline_color_if_changed(btn, lv_color_make(255, 255, 0), LV_PART_MAIN);}
-                    else {set_style_outline_color_if_changed(btn, lv_color_make(58, 58, 58), LV_PART_MAIN);}
+                    if (matrixData.computer_assist[0][i]==true) {set_style_outline_color_if_changed(btn, main_style.color_on, LV_PART_MAIN);}
+                    else {set_style_outline_color_if_changed(btn, main_style.color_off, LV_PART_MAIN);}
 
                     lv_obj_t * label = lv_obj_get_child(btn, 0);
                     if(label && lv_obj_has_class(label, &lv_label_class)) {
 
                         /* Switch Intention (blue text) */
-                        if (matrixData.switch_intention[0][i]==true) {set_style_text_color_if_changed(label, lv_color_make(0, 0, 255), LV_PART_MAIN);}
+                        if (matrixData.switch_intention[0][i]==true) {set_style_text_color_if_changed(label, main_style.color_on, LV_PART_MAIN);}
                         else {
                             /* Computer Intention (yellow text) */
-                            if (matrixData.computer_intention[0][i]==true) {set_style_text_color_if_changed(label, lv_color_make(255, 255, 0), LV_PART_MAIN);}
-                            else {set_style_text_color_if_changed(label, lv_color_make(58, 58, 58), LV_PART_MAIN);}
+                            if (matrixData.computer_intention[0][i]==true) {set_style_text_color_if_changed(label, main_style.color_on, LV_PART_MAIN);}
+                            else {set_style_text_color_if_changed(label, main_style.color_off, LV_PART_MAIN);}
                         }
                     }
                 }
@@ -16490,17 +13789,16 @@ void update_display_lvgl()
 
                 // Switch Logic: Enabled/disabled. Is logic actually configured on the switch (function 0 must be set or logic will be ignored).
                 if (matrixData.matrix_function[0][current_matrix_i][0] > INDEX_MATRIX_SWITCH_FUNCTION_NONE) {
-                    set_style_outline_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.indicator_function_non_zero, main_style.color_on, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_function_non_zero, main_style.color_on, LV_PART_MAIN);
                 }
                 else {
-                    set_style_outline_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.indicator_function_non_zero, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.indicator_function_non_zero, main_style.color_off, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_function_non_zero, main_style.color_off, LV_PART_MAIN);
                 }
 
                 // Switch Logic p/s: How many times a second switch logic is calculated
-                set_style_outline_color_if_changed(mfc.switch_logic_per_second, lv_color_make(255, 0, 0), LV_PART_MAIN);
-                set_style_text_color_if_changed(mfc.switch_logic_per_second, lv_color_make(255, 0, 0), LV_PART_MAIN);
+                set_style_text_color_if_changed(mfc.switch_logic_per_second, main_style.color_on, LV_PART_MAIN);
                 { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%ld", systemData.counters_mtx.task_ffreq_t); set_label_text_if_changed(mfc.switch_logic_per_second, buf); }
 
                 /**
@@ -16511,13 +13809,13 @@ void update_display_lvgl()
                  */
                 if (matrixData.computer_intention[0][current_matrix_i]) {
                     // Computer Intent True
-                    set_style_outline_color_if_changed(mfc.potential_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.potential_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.potential_output_value, main_style.color_on, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.potential_output_value, main_style.color_on, LV_PART_MAIN);
                 }
                 else {
                     // Computer Intent False
-                    set_style_outline_color_if_changed(mfc.potential_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.potential_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.potential_output_value, main_style.color_off, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.potential_output_value, main_style.color_off, LV_PART_MAIN);
                 }
                 if (matrixData.output_mode[0][current_matrix_i]==1) {
                     // Mapped Value
@@ -16530,22 +13828,22 @@ void update_display_lvgl()
 
                 // Computer Intention: True/False. Does the computer want to attempt switching.
                 if (matrixData.computer_intention[0][current_matrix_i]) {
-                    set_style_outline_color_if_changed(mfc.indicator_computer_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.indicator_computer_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.indicator_computer_intent, main_style.color_on, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_computer_intent, main_style.color_on, LV_PART_MAIN);
                 }
                 else {
-                    set_style_outline_color_if_changed(mfc.indicator_computer_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.indicator_computer_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.indicator_computer_intent, main_style.color_off, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_computer_intent, main_style.color_off, LV_PART_MAIN);
                 }
 
                 // Switch Intention: True/False. Will the computer actually attempt to switch.
                 if (matrixData.switch_intention[0][current_matrix_i]) {
-                    set_style_outline_color_if_changed(mfc.indicator_switch_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.indicator_switch_intent, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.indicator_switch_intent, main_style.color_on, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_switch_intent, main_style.color_on, LV_PART_MAIN);
                 }
                 else {
-                    set_style_outline_color_if_changed(mfc.indicator_switch_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.indicator_switch_intent, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.indicator_switch_intent, main_style.color_off, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.indicator_switch_intent, main_style.color_off, LV_PART_MAIN);
                 }
 
                 // ----------------------------------------------------------------------------------------------------------------------------
@@ -16553,30 +13851,30 @@ void update_display_lvgl()
                 // Computer Assist
                 if (mfc.matrix_switch_computer_assist.panel) {
                     if (matrixData.computer_assist[0][current_matrix_i]==true) {
-                        set_style_outline_color_if_changed(mfc.matrix_switch_computer_assist.panel, lv_color_make(255, 255, 0), LV_PART_MAIN);
-                        set_style_text_color_if_changed(mfc.matrix_switch_computer_assist.label, lv_color_make(255, 255, 0), LV_PART_MAIN);
+                        // set_style_outline_color_if_changed(mfc.matrix_switch_computer_assist.panel, main_style.color_on, LV_PART_MAIN);
+                        set_style_text_color_if_changed(mfc.matrix_switch_computer_assist.label, main_style.color_on, LV_PART_MAIN);
                     }
                     else {
-                        set_style_outline_color_if_changed(mfc.matrix_switch_computer_assist.panel, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                        set_style_text_color_if_changed(mfc.matrix_switch_computer_assist.label, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                        // set_style_outline_color_if_changed(mfc.matrix_switch_computer_assist.panel, main_style.color_off, LV_PART_MAIN);
+                        set_style_text_color_if_changed(mfc.matrix_switch_computer_assist.label, main_style.color_off, LV_PART_MAIN);
                     }
                 }
 
                 // Output Value
                 if (matrixData.switch_intention[0][current_matrix_i]==true) {
-                    set_style_outline_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(0, 0, 255), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.matrix_switch_output_value, main_style.color_on, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.matrix_switch_output_value, main_style.color_on, LV_PART_MAIN);
                 }
                 else {
-                    set_style_outline_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.matrix_switch_output_value, lv_color_make(58, 58, 58), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.matrix_switch_output_value, main_style.color_off, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.matrix_switch_output_value, main_style.color_off, LV_PART_MAIN);
                 }
                 if (mfc.matrix_switch_output_value) { char buf[MAX_GLOBAL_ELEMENT_SIZE]; snprintf(buf, sizeof(buf), "%d", (int)matrixData.output_value[0][current_matrix_i]); set_label_text_if_changed(mfc.matrix_switch_output_value, buf); }
 
                 // Override
                 if (mfc.matrix_switch_override.panel) {
-                    set_style_outline_color_if_changed(mfc.matrix_switch_override.panel, lv_color_make(255, 0, 0), LV_PART_MAIN);
-                    set_style_text_color_if_changed(mfc.matrix_switch_override.label, lv_color_make(255, 0, 0), LV_PART_MAIN);
+                    // set_style_outline_color_if_changed(mfc.matrix_switch_override.panel, main_style.color_on, LV_PART_MAIN);
+                    set_style_text_color_if_changed(mfc.matrix_switch_override.label, main_style.color_on, LV_PART_MAIN);
                 }
 
                 // ----------------------------------------------------------------------------------------------------------------------------
@@ -16627,23 +13925,15 @@ void update_display_lvgl()
                 // Input/Output mode buttons
                 if (current_gpiope_output_mode) {
                     // Input lowlight
-                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_input.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_input.label, main_style.color_off, LV_PART_MAIN);
                     // Output emphasis
-                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_output.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_output.label, main_style.color_on, LV_PART_MAIN);
                 }
                 else {
                     // Output lowlight
-                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_output.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_output.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_output.label, main_style.color_off, LV_PART_MAIN);
                     // Input emphasis
-                    set_style_outline_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(gpc.btn_gpiope_mode_input.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_input.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_text_color_if_changed(gpc.btn_gpiope_mode_input.label, main_style.color_on, LV_PART_MAIN);
                 }
 
                 // Device Address
@@ -16710,13 +14000,13 @@ void update_display_lvgl()
         // below -- set_style_text_color_if_changed() already makes repeated
         // calls with the same color a cheap no-op.
         set_style_text_color_if_changed(gps_switch_panel.switch_SatIO_panel.label,
-            (current_gps_panel==0) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_gps_panel==0) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(gps_switch_panel.switch_gngga_panel.label,
-            (current_gps_panel==1) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_gps_panel==1) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(gps_switch_panel.switch_gnrmc_panel.label,
-            (current_gps_panel==2) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_gps_panel==2) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(gps_switch_panel.switch_gpatt_panel.label,
-            (current_gps_panel==3) ? rainbow_contrast_value_hue : default_btn_off_value_hue, LV_PART_MAIN);
+            (current_gps_panel==3) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
 
         if (current_gps_panel == 0) {
             if (SatIO_c.panel) {
@@ -16729,7 +14019,7 @@ void update_display_lvgl()
                 lv_obj_remove_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
 
                 // Panel
-                set_style_outline_color_if_changed(SatIO_c.panel, default_outline_hue, LV_PART_MAIN);
+                set_style_outline_color_if_changed(SatIO_c.panel, main_style.title_1.color_outline, LV_PART_MAIN);
 
                 // ────────────────────────────────────────────────
                 // GPS Degrees Latitude
@@ -16766,23 +14056,23 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 if (SatIOData.location_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_user.label, main_style.color_off, LV_PART_MAIN);
                     // GPS emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_gps.label, main_style.color_on, LV_PART_MAIN);
                 }
                 else if (SatIOData.location_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_gps.label, main_style.color_off, LV_PART_MAIN);
                     // User emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_location_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_location_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_location_mode_user.label, main_style.color_on, LV_PART_MAIN);
                 }
 
 
@@ -16894,23 +14184,23 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 if (SatIOData.altitude_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_user.label, main_style.color_off, LV_PART_MAIN);
                     // GPS emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_gps.label, main_style.color_on, LV_PART_MAIN);
                 }
                 else if (SatIOData.altitude_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_gps.label, main_style.color_off, LV_PART_MAIN);
                     // User emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_altitude_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_altitude_mode_user.label, main_style.color_on, LV_PART_MAIN);
                 }
 
                 // ────────────────────────────────────────────────
@@ -16933,23 +14223,23 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 if (SatIOData.speed_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_user.label, main_style.color_off, LV_PART_MAIN);
                     // GPS emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_gps.label, main_style.color_on, LV_PART_MAIN);
                 }
                 else if (SatIOData.speed_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_gps.label, main_style.color_off, LV_PART_MAIN);
                     // User emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_speed_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_speed_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_speed_mode_user.label, main_style.color_on, LV_PART_MAIN);
                 }
 
                 // ────────────────────────────────────────────────
@@ -16977,23 +14267,23 @@ void update_display_lvgl()
                 // ────────────────────────────────────────────────
                 if (SatIOData.ground_heading_value_mode==SATIO_MODE_GPS) {
                     // User lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_user.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_user.label, main_style.color_off, LV_PART_MAIN);
                     // GPS emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.label, main_style.color_on, LV_PART_MAIN);
                 }
                 else if (SatIOData.ground_heading_value_mode==SATIO_MODE_USER) {
                     // GPS lowlight
-                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, default_btn_off_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.label, default_btn_off_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_gps.label, main_style.color_off, LV_PART_MAIN);
                     // User emphasis
-                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_on_outline_hue, LV_PART_MAIN);
-                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, default_btn_on_bg, LV_PART_MAIN);
-                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_user.label, rainbow_contrast_value_hue, LV_PART_MAIN);
+                    set_style_outline_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+                    set_style_bg_color_if_changed(SatIO_c.btn_ground_heading_mode_user.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+                    set_style_text_color_if_changed(SatIO_c.btn_ground_heading_mode_user.label, main_style.color_on, LV_PART_MAIN);
                 }
 
 
@@ -17524,65 +14814,10 @@ void initSatIOUI() {
     uap_screen      = lv_obj_create(NULL);
     celestial_sphere_screen = lv_obj_create(NULL);
 
-    // Default
-    default_bg_hue                  = lv_color_make(0,0,0);
-    default_bg_title_hue            = lv_color_make(12,12,12);
-    default_outline_hue             = lv_color_make(28,28,28);
-    default_border_hue              = lv_color_make(0,0,0);
-    default_shadow_hue              = lv_color_make(0,0,0);
-    default_title_hue               = lv_color_make(255,0, 0);
-    default_subtitle_hue            = lv_color_make(0,0, 255);
-    default_value_hue               = lv_color_make(0,255,0);
-
-    // Default Button
-    default_btn_bg                  = lv_color_make(12,12,12);
-    default_btn_outline_hue         = lv_color_make(28,28,28);
-    default_btn_border_hue          = lv_color_make(0,0,0);
-    default_btn_shadow_hue          = lv_color_make(0,0,0);
-    default_btn_value_hue           = lv_color_make(42,42,42);
-    // Default Button Off
-    default_btn_off_bg              = lv_color_make(0,0,0);
-    default_btn_off_outline_hue     = lv_color_make(28,28,28);
-    default_btn_off_border_hue      = lv_color_make(0,0,0);
-    default_btn_off_shadow_hue      = lv_color_make(0,0,0);
-    default_btn_off_value_hue       = lv_color_make(42,42,42);
-    // Default Button On
-    default_btn_on_bg               = lv_color_make(12,12,12);
-    default_btn_on_outline_hue      = lv_color_make(28,28,28);
-    default_btn_on_border_hue       = lv_color_make(0,0,0);
-    default_btn_on_shadow_hue       = lv_color_make(0,0,0);
-    default_btn_on_value_hue        = lv_color_make(0,255,0);
-    // Default Button Toggle
-    default_btn_toggle_outline_hue  = lv_color_make(28,28,28);
-    default_btn_toggle_value_hue    = lv_color_make(0,0,255);
-
-    // Default Switch
-    default_sw_off_bg               = lv_color_make(28, 28, 28);
-    default_sw_off_knob_bg          = lv_color_make(0, 0, 255);
-    default_sw_on_bg                = lv_color_make(32, 32, 32);
-    default_sw_on_knob_bg           = lv_color_make(0, 255, 0);
-
-    // Custom (intended to be changed by user -> sets main_hue)
-    // custom_bg_hue                = lv_color_make(0,0,0);
-    // custom_title_bg_hue          = lv_color_make(12,12,12);
-    // custom_outline_hue           = lv_color_make(0,0,0);
-    // custom_border_hue            = lv_color_make(0,0,0);
-    // custom_shadow_hue            = lv_color_make(0,0,0);
-    // custom_title_hue             = lv_color_make(0,0, 255);
-    // custom_subtitle_hue          = lv_color_make(0,0, 255);
-    // custom_value_hue             = lv_color_make(0,255,0);
-
-    // Rainbow Hue Major
-    rainbow_outline_hue          = lv_color_make(0,0,0);
-    rainbow_title_hue            = lv_color_make(0,0,255);
-    rainbow_value_hue            = lv_color_make(0,255,0);
-    // Rainbow Hue Minor
-    rainbow_contrast_outline_hue = lv_color_make(0,0,0);
-    rainbow_contrast_title_hue   = lv_color_make(0,0,255);
-    rainbow_contrast_value_hue   = lv_color_make(0,255,0);
-
-    // Set Current Pallette
-    setColorsDefault();
+    // --------------------------------------------------------------
+    // Setup Styles
+    // --------------------------------------------------------------
+    setStyleDefaultSlate();
 
     // --------------------------------------------------------------
     // SD Card Initialization

@@ -43,6 +43,10 @@ enum AstroTarget : int32_t {
 // MISRA: every parameter uses a fixed-width type, so the function has the
 // same argument widths on every target that builds it.
 // Builds the astro clock inside parent and starts its periodic update timer.
+// When no_vid is false, every object in the clock spins through a few
+// seconds of synthetic (non-ephemeris) motion before astro_clock_update()
+// takes over with real positions; when true, the clock is left showing real
+// positions from the first update, with no spin-up.
 void astro_clock_begin(
     lv_obj_t * parent,
     int32_t width_px,
@@ -52,7 +56,8 @@ void astro_clock_begin(
     lv_align_t alignment,
     int32_t pos_x,
     int32_t pos_y,
-    int32_t angle_offset
+    int32_t angle_offset,
+    bool no_vid
     );
 
 // Stops the update timer and releases the resources astro_clock_begin created.
