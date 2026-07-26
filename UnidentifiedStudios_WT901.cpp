@@ -10,6 +10,7 @@
 #include "driver/uart.h"
 #include "esp_log.h"
 #include <string.h>
+#include "UnidentifiedStudios_Quaternion.h"
 
 // UART2 configuration for WT901
 #define WT901_UART_NUM    UART_NUM_2
@@ -37,6 +38,7 @@ struct GyroData gyroData = {
   .gyro_0_mag_x = 0,
   .gyro_0_mag_y = 0,
   .gyro_0_mag_z = 0,
+  .gyro_0_quaternion = {},
   .gyro_0_c_uiBaud={
     0,      // 0 (unused)
     4800,   // 1 WIT_BAUD_4800
@@ -184,6 +186,11 @@ bool readGyro(void)
         //     updated = true;
         // }
         // ----------------------------------------------------------------------------------------------------
+
+        // Get Rotation Vector
+        gyroData.gyro_0_quaternion = quaternionFromEuler(deg2rad(gyroData.gyro_0_ang_x), deg2rad(gyroData.gyro_0_ang_y), deg2rad(gyroData.gyro_0_ang_z)); 
+        quaternionRotateVector(gyroData.gyro_0_quaternion, 0.0, 0.0, 1.0, &gyroData.gyro_0_quaternion.vx, &gyroData.gyro_0_quaternion.vy, &gyroData.gyro_0_quaternion.vz);
+
         updated = true;
     }
     return updated; /* Rule 15.5: single point of exit */

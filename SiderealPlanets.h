@@ -170,7 +170,7 @@ class SiderealPlanets {
 	double getEarthEclipticLongitude(void);
 	double getDegreesAltitudeOffsetByElevationM(double meters);
 	double inRange90(double degrees);
-	SiderealAttitudeData getSiderealAttitude(float roll, float pitch, float yaw);
+	SiderealAttitudeData getSiderealAttitude(double roll, double pitch, double yaw);
 
   // library-accessible "private" interface
   private:

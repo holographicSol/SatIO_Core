@@ -39,6 +39,7 @@
 #include "UnidentifiedStudios_SdCardHelper.h"
 #include "UnidentifiedStudios_ArgParser.h"
 #include "UnidentifiedStudios_SystemData.h"
+#include "UnidentifiedStudios_Quaternion.h"
 
 bool debug_bool=true;
 void debug(String debug_str) {if (debug_bool==true) {printf("%s\n", debug_str.c_str());}}

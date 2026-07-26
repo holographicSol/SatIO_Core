@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include "UnidentifiedStudios_Config.h"
+#include "UnidentifiedStudios_Quaternion.h"
 
 #define MAX_GYRO_BAUDRATES  10  // Number of entries in gyro_0_c_uiBaud, including the unused index 0
 #define GYRO_0_ACC_UPDATE   0x01
@@ -40,6 +41,7 @@ struct GyroData {
   int16_t gyro_0_mag_x;         // Magnetic field x
   int16_t gyro_0_mag_y;         // Magnetic field y
   int16_t gyro_0_mag_z;         // Magnetic field z
+  Quaternion gyro_0_quaternion;
   int32_t gyro_0_c_uiBaud[MAX_GYRO_BAUDRATES];  // Baud rates for scanning
   int32_t gyro_0_current_uiBaud; // Current baud rate
 };

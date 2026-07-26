@@ -1291,9 +1291,9 @@ static void taskUniverse(void *pvParameters) {
       // Gyro Ra/Dec
       // ------------------------------------------------
       siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
-        gyroData.gyro_0_ang_x,  // roll
-        gyroData.gyro_0_ang_y,  // pitch
-        gyroData.gyro_0_ang_z   // yaw
+        gyroData.gyro_0_quaternion.vx,  // roll
+        gyroData.gyro_0_quaternion.vy,  // pitch
+        gyroData.gyro_0_quaternion.vz   // yaw
       );
       esp_task_wdt_reset();
       #endif

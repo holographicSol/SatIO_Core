@@ -12,21 +12,15 @@ extern "C" {
     // Declare your sidereal data structures here or include the proper header
 }
 
-/**
- * @brief Quaternion (w,x,y,z), Hamilton convention.
- */
-struct Quaternion {
-    double w;
-    double x;
-    double y;
-    double z;
-};
+double deg2rad(double n) {
+  return n * 1.745329252e-2;
+}
 
 /**
  * @brief Builds a quaternion from roll/pitch/yaw (radians), using the
  * aerospace ZYX intrinsic (yaw-pitch-roll) convention: R = Rz(yaw)*Ry(pitch)*Rx(roll).
  */
-static Quaternion quaternionFromEuler(double roll_rad, double pitch_rad, double yaw_rad) {
+Quaternion quaternionFromEuler(double roll_rad, double pitch_rad, double yaw_rad) {
     double cr = cos(roll_rad * 0.5),  sr = sin(roll_rad * 0.5);
     double cp = cos(pitch_rad * 0.5), sp = sin(pitch_rad * 0.5);
     double cy = cos(yaw_rad * 0.5),   sy = sin(yaw_rad * 0.5);
@@ -42,7 +36,7 @@ static Quaternion quaternionFromEuler(double roll_rad, double pitch_rad, double 
 /**
  * @brief Rotates vector (vx,vy,vz) by quaternion q: v' = q * v * conjugate(q).
  */
-static void quaternionRotateVector(const Quaternion &q, double vx, double vy, double vz,
+void quaternionRotateVector(const Quaternion &q, double vx, double vy, double vz,
                                     double *out_x, double *out_y, double *out_z) {
     double tx = 2.0 * ((q.y * vz) - (q.z * vy));
     double ty = 2.0 * ((q.z * vx) - (q.x * vz));

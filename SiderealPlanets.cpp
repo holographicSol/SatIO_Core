@@ -431,14 +431,15 @@ double SiderealPlanets::clampUnit(double d) {
 
 /**
  * @brief Calculate RA & Dec, azimuth and altitude for a given roll/pitch/yaw attitude.
- * @param roll  Rotation about the boresight's forward axis, degrees.
- * @param pitch Rotation about the lateral axis (nose up/down from level), degrees.
- * @param yaw   Rotation about the vertical axis (heading from North), degrees.
+ * @param x roll  Rotation about the boresight's forward axis, degrees.
+ * @param y pitch Rotation about the lateral axis (nose up/down from level), degrees.
+ * @param z yaw   Rotation about the vertical axis (heading from North), degrees.
  * @return SiderealAttitudeData SiderealAttitudeData data structure
  * @note Relies on latitude/longitude and GMT date/time already having been
- * set (via setLatLong()/setGMTdate()/setGMTtime()) by the caller.
+ * set (via setLatLong()/setGMTdate()/setGMTtime()) by the calle. Also use of rotation
+ * vecotors are preferred as input but that is up to the caller.
  */
-SiderealAttitudeData SiderealPlanets::getSiderealAttitude(float roll, float pitch, float yaw) {
+SiderealAttitudeData SiderealPlanets::getSiderealAttitude(double x, double y, double z) {
 
     SiderealAttitudeData radecData = {
         0,   // ra_h
@@ -455,17 +456,11 @@ SiderealAttitudeData SiderealPlanets::getSiderealAttitude(float roll, float pitc
         {0}   // padded_dec_str
     };
 
-    // Rotate the body boresight -- (0,0,1), i.e. local zenith when level -- by
-    // roll/pitch/yaw to get a pointing vector in the local North/East/Up frame.
-    Quaternion attitude = quaternionFromEuler(deg2rad(roll), deg2rad(pitch), deg2rad(yaw));
-    double north, east, up;
-    quaternionRotateVector(attitude, 0.0, 0.0, 1.0, &north, &east, &up);
-
-    double az_deg = rad2deg(atan2(east, north));
+    double az_deg = rad2deg(atan2(y, x));
     if (az_deg < 0.0) {
         az_deg += 360.0;
     }
-    double alt_deg = rad2deg(asin(up));
+    double alt_deg = rad2deg(asin(z));
 
     setAltAz(alt_deg, az_deg);
     doAltAz2RAdec();

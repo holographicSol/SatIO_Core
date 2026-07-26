@@ -13,8 +13,10 @@ idf_component_register(
         SiderealPlanets.cpp
         UnidentifiedStudios_ArgParser.cpp
         UnidentifiedStudios_AstroClock.cpp
+        UnidentifiedStudios_CelestialSphere.cpp
         UnidentifiedStudios_CMD.cpp
         UnidentifiedStudios_Config.cpp
+        UnidentifiedStudios_GlobalLVGL.cpp
         UnidentifiedStudios_GPIOPortExpander.cpp
         UnidentifiedStudios_HexToDig.cpp
         UnidentifiedStudios_I2C.cpp
@@ -24,6 +26,7 @@ idf_component_register(
         UnidentifiedStudios_Matrix.cpp
         UnidentifiedStudios_Meteors.cpp
         UnidentifiedStudios_Multiplexers.cpp
+        UnidentifiedStudios_ObjectTypeIcons.cpp
         UnidentifiedStudios_SatIO.cpp
         UnidentifiedStudios_SatIOFile.cpp
         UnidentifiedStudios_SatIOLVGL.cpp
@@ -32,6 +35,7 @@ idf_component_register(
         UnidentifiedStudios_StrVal.cpp
         UnidentifiedStudios_SystemData.cpp
         UnidentifiedStudios_TaskHandler.cpp
+        UnidentifiedStudios_Quaternion.cpp
         UnidentifiedStudios_WT901.cpp
         UnidentifiedStudios_WTGPS300P.cpp
         wit_c_sdk.cpp
