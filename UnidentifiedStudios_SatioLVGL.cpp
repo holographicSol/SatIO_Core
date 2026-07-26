@@ -13484,8 +13484,6 @@ static void sync_switch_state(lv_obj_t *sw, bool enabled) {
 void update_display_lvgl()
 {
 
-    iterHue();
-
     // ---------------------
     // Check Load Screen Flags
     // ---------------------

@@ -391,11 +391,9 @@ void setStyleDefaultAlien();
  * guard for the same reason -- the guard would just add a comparison ahead of
  * a write that happens anyway, since the color is expected to differ every time.
  *
- * Called once per tick from update_display_lvgl() (see
- * UnidentifiedStudios_SatioLVGL.cpp), which already runs on a recurring task
- * -- don't also drive this from a separate timer, or the phase advances
- * twice as fast as intended and duplicates work inside that task's
- * bsp_display_lock()+dataMutex critical section for no benefit.
+ * Driven by its own dedicated timer (see start_iterhue_timer() in
+ * UnidentifiedStudios_GlobalLVGL.cpp) so its speed stays independent of
+ * update_display_lvgl()'s own (variable) call rate.
  */
 void iterHue();
 

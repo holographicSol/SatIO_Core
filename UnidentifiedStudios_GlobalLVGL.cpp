@@ -20,6 +20,21 @@ int32_t general_switch_w_px = 52;
 
 ui_style_t main_style;
 
+static lv_timer_t * iterhue_timer = nullptr;
+
+static void iterhue_timer_cb(lv_timer_t * timer) {
+    (void)timer;
+    iterHue();
+}
+
+// Own timer, fixed period -- keeps the shimmer's speed decoupled from
+// update_display_lvgl()'s (variable) call rate. Idempotent.
+static void start_iterhue_timer() {
+    if (iterhue_timer == nullptr) {
+        iterhue_timer = lv_timer_create(iterhue_timer_cb, 30, nullptr);
+    }
+}
+
 /** -------------------------------------------------------------------------------------
  * @brief Advances *hue_phase by step_deg and ping-pongs it between hue_min
  *        and hue_max (never wraps/jumps), converting to RGB at the given
@@ -241,10 +256,9 @@ void setStyleDefaultSlate()
     main_style.iterhue_step_deg = 1;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
-    // Seed every iterhue_color_* field with a real color immediately, rather
-    // than leaving them at zero-initialized black until update_display_lvgl()'s
-    // next call to iterHue() (see UnidentifiedStudios_SatioLVGL.cpp).
+    // Seed immediately so nothing renders black before the timer's first tick.
     iterHue();
+    start_iterhue_timer();
 }
 
 /** -------------------------------------------------------------------------------------
@@ -389,10 +403,9 @@ void setStyleDefaultAlien()
     main_style.iterhue_step_deg = 2;
     main_style.iterhue_current_hue = main_style.iterhue_hue_min;
 
-    // Seed every iterhue_color_* field with a real color immediately, rather
-    // than leaving them at zero-initialized black until update_display_lvgl()'s
-    // next call to iterHue() (see UnidentifiedStudios_SatioLVGL.cpp).
+    // Seed immediately so nothing renders black before the timer's first tick.
     iterHue();
+    start_iterhue_timer();
 }
 
 

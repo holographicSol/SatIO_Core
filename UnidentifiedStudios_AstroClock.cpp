@@ -640,6 +640,8 @@ void astro_clock_update(void) {
                     mercury.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_outline_color(mercury.obj, main_style.astroclock.iterhue_color_outline, 0);
+
             lv_obj_clear_flag(mercury.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(mercury.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -661,6 +663,8 @@ void astro_clock_update(void) {
                     venus.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_outline_color(venus.obj, main_style.astroclock.iterhue_color_outline, 0);
+
             lv_obj_clear_flag(venus.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(venus.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -828,6 +832,8 @@ void astro_clock_update(void) {
                     mars.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_outline_color(mars.obj, main_style.astroclock.iterhue_color_outline, 0);
+
             lv_obj_clear_flag(mars.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(mars.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -849,6 +855,8 @@ void astro_clock_update(void) {
                     jupiter.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_outline_color(jupiter.obj, main_style.astroclock.iterhue_color_outline, 0);
+
             lv_obj_clear_flag(jupiter.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(jupiter.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -913,6 +921,8 @@ void astro_clock_update(void) {
                     uranus.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_outline_color(uranus.obj, main_style.astroclock.iterhue_color_outline, 0);
+
             lv_obj_clear_flag(uranus.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(uranus.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -934,6 +944,8 @@ void astro_clock_update(void) {
                     neptune.last_below = static_cast<int8_t>(below);
                 }
             }
+            lv_obj_set_style_outline_color(neptune.obj, main_style.astroclock.iterhue_color_outline, 0);
+
             lv_obj_clear_flag(neptune.orbit, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(neptune.obj, LV_OBJ_FLAG_HIDDEN);
         } else {
@@ -2047,19 +2059,32 @@ void astro_clock_begin(
         sun.obj = create_planet(astro_container, sun.radius, sun.color);
         lv_obj_set_pos(sun.obj, SOLAR_CENTER_X - sun.radius, SOLAR_CENTER_Y - sun.radius);
 
-        // Planets
+        // Planets. Outline shimmers via iterhue on all but sun/earth/luna/saturn
+        // (those already shimmer their own way -- fill or, for saturn, its ring).
         neptune.obj = create_planet(astro_container, neptune.radius, neptune.color);
+        lv_obj_set_style_outline_width(neptune.obj, 2, 0);
+        lv_obj_set_style_outline_color(neptune.obj, main_style.astroclock.iterhue_color_outline, 0);
         uranus.obj = create_planet(astro_container, uranus.radius, uranus.color);
+        lv_obj_set_style_outline_width(uranus.obj, 2, 0);
+        lv_obj_set_style_outline_color(uranus.obj, main_style.astroclock.iterhue_color_outline, 0);
         saturn.obj = create_planet(astro_container, saturn.radius, saturn.color);
         saturn_ring = lv_line_create(astro_container);
         lv_obj_set_style_line_color(saturn_ring, main_style.astroclock.iterhue_color_bg, LV_PART_MAIN);  // Shimmers; refreshed each tick in astro_clock_update()
         lv_obj_set_style_line_width(saturn_ring, 2, LV_PART_MAIN);
         lv_obj_set_style_line_rounded(saturn_ring, true, LV_PART_MAIN);
         jupiter.obj = create_planet(astro_container, jupiter.radius, jupiter.color);
+        lv_obj_set_style_outline_width(jupiter.obj, 2, 0);
+        lv_obj_set_style_outline_color(jupiter.obj, main_style.astroclock.iterhue_color_outline, 0);
         mars.obj = create_planet(astro_container, mars.radius, mars.color);
+        lv_obj_set_style_outline_width(mars.obj, 2, 0);
+        lv_obj_set_style_outline_color(mars.obj, main_style.astroclock.iterhue_color_outline, 0);
         earth.obj = create_planet(astro_container, earth.radius, earth.color);
         venus.obj = create_planet(astro_container, venus.radius, venus.color);
+        lv_obj_set_style_outline_width(venus.obj, 2, 0);
+        lv_obj_set_style_outline_color(venus.obj, main_style.astroclock.iterhue_color_outline, 0);
         mercury.obj = create_planet(astro_container, mercury.radius, mercury.color);
+        lv_obj_set_style_outline_width(mercury.obj, 2, 0);
+        lv_obj_set_style_outline_color(mercury.obj, main_style.astroclock.iterhue_color_outline, 0);
         luna.obj = create_planet(astro_container, luna.radius, luna.color);
 
         // Luna shadow arc for phase visualization
