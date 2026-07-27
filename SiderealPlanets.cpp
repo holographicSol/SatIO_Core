@@ -488,7 +488,7 @@ RaDec SiderealPlanets::doEcliptic2RAdec(const SiderealContext& ctx, double eclip
   return { rad2deg(RArad) / 15., rad2deg(DeclinationRad) };
 }
 
-RaDec SiderealPlanets::doPrecessFrom2000(const SiderealContext& ctx, double raHours, double decDeg) {
+RaDec SiderealPlanets::precessUsingMatrix(double raHours, double decDeg, const double matrix[4][4]) {
   double RArad = deg2rad(raHours * 15.0);
   double DeclinationRad = deg2rad(decDeg);
   double cosRA = cos(RArad), sinRA = sin(RArad);
@@ -499,11 +499,11 @@ RaDec SiderealPlanets::doPrecessFrom2000(const SiderealContext& ctx, double raHo
   cv[1] = cosRA * cosDec;
   cv[2] = sinRA * cosDec;
   cv[3] = sinDec;
-  // multiply otherPrecessionMatrix by cv
+  // multiply matrix by cv
   for(j = 1; j < 4; j++) {
     sm = 0.0;
 	for(i = 1; i < 4; i++) {
-      sm += ctx.otherPrecessionMatrix[i][j] * cv[i];
+      sm += matrix[i][j] * cv[i];
 	}
 	hl[j] = sm;
   }
@@ -519,35 +519,12 @@ RaDec SiderealPlanets::doPrecessFrom2000(const SiderealContext& ctx, double raHo
   return { rad2deg(RArad) / 15., rad2deg(DeclinationRad) };
 }
 
+RaDec SiderealPlanets::doPrecessFrom2000(const SiderealContext& ctx, double raHours, double decDeg) {
+  return precessUsingMatrix(raHours, decDeg, ctx.otherPrecessionMatrix);
+}
+
 RaDec SiderealPlanets::doPrecessTo2000(const SiderealContext& ctx, double raHours, double decDeg) {
-  double RArad = deg2rad(raHours * 15.0);
-  double DeclinationRad = deg2rad(decDeg);
-  double cosRA = cos(RArad), sinRA = sin(RArad);
-  double cosDec = cos(DeclinationRad), sinDec = sin(DeclinationRad);
-  // convert input to column vector
-  double cv[4], hl[4], sm;
-  int i, j;
-  cv[1] = cosRA * cosDec;
-  cv[2] = sinRA * cosDec;
-  cv[3] = sinDec;
-  // multiply precessionMatrix by cv
-  for(j = 1; j < 4; j++) {
-    sm = 0.0;
-	for(i = 1; i < 4; i++) {
-      sm += ctx.precessionMatrix[i][j] * cv[i];
-	}
-	hl[j] = sm;
-  }
-  for(i = 1; i < 4; i++) {
-    cv[i] = hl[i];
-  }
-  // convert column vector into output
-  if (abs(cv[1]) < 1e-20) cv[1] = 1e-20;
-  RArad = atan(cv[2] / cv[1]);
-  DeclinationRad = asin(cv[3]);
-  if (cv[1] < 0) RArad += FPI;
-  RArad = inRange2PI(RArad);
-  return { rad2deg(RArad) / 15., rad2deg(DeclinationRad) };
+  return precessUsingMatrix(raHours, decDeg, ctx.precessionMatrix);
 }
 
 AnomalyResult SiderealPlanets::doAnomaly(double meanAnomalyDeg, double eccentricity) {
@@ -1302,28 +1279,28 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
   return result;
 }
 
+double SiderealPlanets::refractionMagnitude(double altitudeRad, double pressure, double temperature, double previousMagnitude) {
+  //Valid for any values above -5 degrees
+  if (altitudeRad >= 2.617994e-1) {
+    return 7.888888e-5 * pressure / ((273 + temperature) * tan(altitudeRad));
+  }
+  if (altitudeRad >= -8.7e-2) {
+    double yd = altitudeRad * 5.729578e1;
+    double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
+    double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
+    return (a / b) * 1.745329e-2;
+  }
+  return previousMagnitude;
+}
+
 double SiderealPlanets::applyRefractionC(double altitudeRad, double pressure, double temperature) {
   double rf = 0.;
-  double y1 = altitudeRad;
-  double r1 = 0.0, r2 = r1, q;
-  double y = y1;
+  double r1 = 0.0, r2 = r1;
   do {
 	r1 = r2;
-	y = y1 + r1;
-	q = y;
-    if (y >= 2.617994e-1) {
-      rf = 7.888888e-5 * pressure / ((273 + temperature) * tan(y));
-    } else {
-      if (y >= -8.7e-2) {
-        double yd = y * 5.729578e1;
-        double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
-        double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
-        rf = (a / b) * 1.745329e-2;
-      }
-    }
+	rf = refractionMagnitude(altitudeRad + r1, pressure, temperature, rf);
 	r2 = rf;
   } while (r2 != 0. && abs(r2 - r1) > 1e-6);
-  (void)q;
   return altitudeRad + rf;
 }
 
@@ -1334,18 +1311,7 @@ double SiderealPlanets::applyRefractionF(double altitudeRad, double pressure, do
 }
 
 double SiderealPlanets::applyAntiRefractionC(double altitudeRad, double pressure, double temperature) {
-  double rf = 0.;
-  //Valid for any values above -5 degrees
-  if (altitudeRad >= 2.617994e-1) {
-    rf = -7.888888e-5 * pressure / ((273 + temperature) * tan(altitudeRad));
-  } else {
-    if (altitudeRad >= -8.7e-2) {
-      double yd = altitudeRad * 5.729578e1;
-      double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
-      double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
-      rf = -(a / b) * 1.745329e-2;
-    }
-  }
+  double rf = -refractionMagnitude(altitudeRad, pressure, temperature, 0.);
   return altitudeRad + rf;
 }
 
@@ -1387,6 +1353,16 @@ RiseSetResult SiderealPlanets::doRiseSetTimes(const SiderealContext& ctx, double
 double sun_horizonVerticalDisplacement = 1.454441e-2; // here for reference. if DI is unknown then set
 DI 0.0 for stars or use suns DI for planeets.
 */
+void SiderealPlanets::refineContextForGMTtime(SiderealContext& ctx, double gmtTime, const std::function<void()>& recompute) {
+  ctx.GMTtime = gmtTime;
+  double originalMjd1900 = ctx.mjd1900;
+  double zoneAdjustedTime = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+  if (zoneAdjustedTime > 24.) ctx.mjd1900 -= 1;
+  if (zoneAdjustedTime < 0.)  ctx.mjd1900 += 1;
+  recompute();
+  ctx.mjd1900 = originalMjd1900;
+}
+
 RiseSetResult SiderealPlanets::doXRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI) {
   double horizonVerticalDisplacement = DI;
   double tmpGMT = ctx.GMTtime;
@@ -1400,27 +1376,18 @@ RiseSetResult SiderealPlanets::doXRiseSetTimes(SiderealContext ctx, double raHou
   double GU_local = doLST2GMT(ctx, LA_local);
   double GD_local = doLST2GMT(ctx, LB_local);
 
-  ctx.GMTtime = GU_local;
-  double DN_local = ctx.mjd1900;
-  double A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
-  if (A_local > 24.) ctx.mjd1900 -= 1;
-  if (A_local < 0.)  ctx.mjd1900 += 1;
-  ctx.mjd1900 = DN_local;
+  refineContextForGMTtime(ctx, GU_local, [](){});
   ctx.GMTtime = tmpGMT;
   rs = doRiseSetTimes(ctx, raHours, decDeg, rad2deg(horizonVerticalDisplacement));
   if (rs.visible == false) return rs;
-  LA_local = rs.lstRising; //AA_local = azimuthRising;
+  LA_local = rs.lstRising;
 
-  ctx.GMTtime = GD_local;
-  A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
-  if (A_local > 24.) ctx.mjd1900 -= 1;
-  if (A_local < 0.)  ctx.mjd1900 += 1;
-  ctx.mjd1900 = DN_local;
+  refineContextForGMTtime(ctx, GD_local, [](){});
   ctx.GMTtime = tmpGMT;
   rs = doRiseSetTimes(ctx, raHours, decDeg, rad2deg(horizonVerticalDisplacement));
   if (rs.visible == false) return rs;
 
-  LB_local = rs.lstSetting; //AB_local = azimuthSetting;
+  LB_local = rs.lstSetting;
   rs.lstRising = LA_local;
   return rs;
 }
@@ -1448,29 +1415,18 @@ RiseSetResult SiderealPlanets::doSunRiseSetTimes(SiderealContext ctx) {
   double GU_local = doLST2GMT(ctx, LA_local);
   double GD_local = doLST2GMT(ctx, LB_local);
 
-  ctx.GMTtime = GU_local;
-  double DN_local = ctx.mjd1900;
-  double A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
-  if (A_local > 24.) ctx.mjd1900 -= 1;
-  if (A_local < 0.)  ctx.mjd1900 += 1;
-  sun = doSun(ctx);
-  ctx.mjd1900 = DN_local;
+  refineContextForGMTtime(ctx, GU_local, [&](){ sun = doSun(ctx); });
   ctx.GMTtime = tmpGMT;
   rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
   if (rs.visible == false) return rs;
-  LA_local = rs.lstRising; //AA_local = azimuthRising;
+  LA_local = rs.lstRising;
 
-  ctx.GMTtime = GD_local;
-  A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
-  if (A_local > 24.) ctx.mjd1900 -= 1;
-  if (A_local < 0.)  ctx.mjd1900 += 1;
-  sun = doSun(ctx);
-  ctx.mjd1900 = DN_local;
+  refineContextForGMTtime(ctx, GD_local, [&](){ sun = doSun(ctx); });
   ctx.GMTtime = tmpGMT;
   rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
   if (rs.visible == false) return rs;
 
-  LB_local = rs.lstSetting; //AB_local = azimuthSetting;
+  LB_local = rs.lstSetting;
   rs.lstRising = LA_local;
   return rs;
 }
@@ -1500,54 +1456,29 @@ RiseSetResult SiderealPlanets::doMoonRiseSetTimes(SiderealContext ctx) {
 
   double LA_local = rs.lstRising; //localSiderealTime of rising - first guesstimate
   double LB_local = rs.lstSetting; //localSiderealTime of setting - first guesstimate
+  auto recomputeMoon = [&](){
+    moon = doMoon(ctx); //Already does nutation too
+    moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
+    TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
+    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
+  };
   for(int K_local=1; K_local <= 3; K_local++) {
     // local sidereal time to local civil time
     double GU_local = doLST2GMT(ctx, LA_local);
-    // local sidereal time to local civil time
     double GD_local = doLST2GMT(ctx, LB_local);
-	//find a better time of rising
-    ctx.GMTtime = GU_local;
-    // find time
-    double DN_local = ctx.mjd1900;
-    double A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
-    if (A_local > 24.) ctx.mjd1900 -= 1;
-    if (A_local < 0.) ctx.mjd1900 += 1;
-    //local rise-set routine
-    moon = doMoon(ctx); //Already does nutation too
-    moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
-    TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
-    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
+
+    //find a better time of rising
+    refineContextForGMTtime(ctx, GU_local, recomputeMoon);
     rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-    if (rs.visible == false) {
-		ctx.mjd1900=DN_local;
-		return rs;
-	}
-    ctx.mjd1900=DN_local;
-    //find a better time of setting
+    if (rs.visible == false) return rs;
     LA_local = rs.lstRising;
-    //AA_local = azimuthRising;
-    ctx.GMTtime = GD_local;
-    // find time
-    DN_local = ctx.mjd1900;
-    A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
-    if (A_local > 24.) ctx.mjd1900 -= 1;
-    if (A_local < 0.) ctx.mjd1900 += 1;
-    //local rise-set routine
-    moon = doMoon(ctx); //Already does nutation too
-    moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
-    TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
-    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
+
+    //find a better time of setting
+    refineContextForGMTtime(ctx, GD_local, recomputeMoon);
     rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-    if (rs.visible == false) {
-		ctx.mjd1900=DN_local;
-		return rs;
-	}
-    ctx.mjd1900=DN_local;
+    if (rs.visible == false) return rs;
     LB_local = rs.lstSetting;
-    //AB_local = azimuthSetting;
   }
-  //azimuthRising = AA_local;
-  //azimuthSetting = AB_local;
   rs.lstRising = LA_local;
   rs.lstSetting = LB_local;
   return rs;

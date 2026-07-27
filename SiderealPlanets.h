@@ -33,6 +33,7 @@ TODO:
 #include <stdint.h>
 #include <math.h>
 #include <array>
+#include <functional>
 
 #if defined(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
@@ -259,6 +260,29 @@ class SiderealPlanets {
     static const double FPIdiv2;
     static const double FminusPIdiv2;
     static const double FPIdiv4;
+
+    // Shared by doPrecessFrom2000()/doPrecessTo2000(), which differ only in
+    // which of ctx's two precession matrices they multiply by.
+    static RaDec precessUsingMatrix(double raHours, double decDeg, const double matrix[4][4]);
+
+    // Shared piecewise refraction formula (returns the same positive-signed
+    // magnitude applyRefractionC() has always added). Below the -8.7e-2 rad
+    // (~-5 deg) validity floor it returns previousMagnitude unchanged, matching
+    // the original's behavior of leaving `rf` untouched in that case.
+    // applyRefractionC() adds the result inside a convergence loop (feeding its
+    // own previous rf back in); applyAntiRefractionC() subtracts a single
+    // call (previousMagnitude=0, matching its original unlooped `rf = 0.` init).
+    static double refractionMagnitude(double altitudeRad, double pressure, double temperature, double previousMagnitude);
+
+    // Shared by doXRiseSetTimes()/doSunRiseSetTimes()/doMoonRiseSetTimes(): sets
+    // ctx.GMTtime to gmtTime, nudges ctx.mjd1900 by +-1 day if that GMT time
+    // (plus zone/DST offsets) crosses midnight, calls recompute() with the
+    // day-adjusted context, then restores ctx.mjd1900. The three callers differ
+    // only in what recompute() does (nothing, doSun(), or doMoon()+parallax) --
+    // doRiseSetTimes() itself never reads ctx.mjd1900/ctx.GMTtime, so exactly
+    // when the caller restores ctx.GMTtime relative to this call doesn't
+    // affect its result.
+    static void refineContextForGMTtime(SiderealContext& ctx, double gmtTime, const std::function<void()>& recompute);
 
     // day_of_week()/calcLocalHour() (the original library's DST auto-detection)
     // are dropped along with setTimeZone()/useAutoDST()/setDST()/rejectDST():
