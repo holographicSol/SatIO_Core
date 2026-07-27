@@ -769,6 +769,20 @@ static void taskGyro(void *pvParameters) {
         outputSerialGyro0();
         #endif
 
+        // ------------------------------------------------
+        // Gyro Ra/Dec -- moved here (out of taskUniverse) so gyro sensor
+        // fusion builds its data/fused-data package all in one place instead
+        // of dangling off the end of the universe task. Reads whichever
+        // sidereal context taskUniverse most recently built.
+        // ------------------------------------------------
+        siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
+          currentSiderealContext,
+          gyroData.gyro_0_quaternion.vx,  // vector x (from roll)
+          gyroData.gyro_0_quaternion.vy,  // vector y (fom pitch)
+          gyroData.gyro_0_quaternion.vz   // vector z (from yaw)
+        );
+        esp_task_wdt_reset();
+
         // ----------------------------------------------
         // Estimate INS data. (Can be used without GPS).
         // INS data produced from user/gps=system is fed back into INS in loop.
@@ -1261,11 +1275,20 @@ static void taskUniverse(void *pvParameters) {
       esp_task_wdt_reset();
 
       // ------------------------------------------------
+      // Zenith Ra/Dec (grouped with setSiderealData()/storeLST() above,
+      // since it depends only on currentSiderealContext, not on
+      // trackPlanets()/meteor tracking below it). The gyro attitude fix
+      // that used to live here moved into taskGyro -- see SatIO_USE_GYRO_0.
+      // ------------------------------------------------
+      siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(currentSiderealContext, 0, 0, 1);
+      esp_task_wdt_reset();
+
+      // ------------------------------------------------
       // Track Planets
       // ------------------------------------------------
       static int64_t trackplanets_last_uS = 0;
       if ((esp_timer_get_time() - trackplanets_last_uS) >= (int64_t)pwrConfigCurrent.TASK_MAX_FREQ_TRACKPLANETS) {
-        trackPlanets();
+        trackPlanets(currentSiderealContext);
         trackplanets_last_uS = esp_timer_get_time();
         stepFFCounter(systemData.counters_track_planets, 1);
         esp_task_wdt_reset();
@@ -1280,23 +1303,6 @@ static void taskUniverse(void *pvParameters) {
         stepFFCounter(systemData.counters_meteors, 1);
         esp_task_wdt_reset();
       }
-      // ------------------------------------------------
-      // Zenith Ra/Dec
-      // ------------------------------------------------
-      siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(0, 0, 1);
-      esp_task_wdt_reset();
-
-      #ifdef SatIO_USE_GYRO_0
-      // ------------------------------------------------
-      // Gyro Ra/Dec
-      // ------------------------------------------------
-      siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
-        gyroData.gyro_0_quaternion.vx,  // vector x (from roll)
-        gyroData.gyro_0_quaternion.vy,  // vector y (fom pitch)
-        gyroData.gyro_0_quaternion.vz   // vector z (from yaw)
-      );
-      esp_task_wdt_reset();
-      #endif
 
       // -----------------------------------------------------------
       // StarNav

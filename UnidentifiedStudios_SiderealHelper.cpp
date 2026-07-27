@@ -26,6 +26,7 @@ static inline double rad2deg(double radians) { return radians * 180.0 / M_PI; }
 
 SiderealPlanets myAstro;
 SiderealObjects myAstroObj;
+SiderealContext currentSiderealContext{};
 
 struct SiderealPlantetsStruct siderealPlanetData = {
     .track_sun = true,
@@ -639,40 +640,43 @@ static void setHerschel400(T *obj, int index)
 // ----------------------------------------------------------------------------------------
 // Track Planets.
 // ----------------------------------------------------------------------------------------
-void trackSun(void)
+void trackSun(const SiderealContext& ctx, const SunResult& sun)
 {
-    myAstro.doSun();
-    siderealPlanetData.sun_ra = myAstro.getRAdec();
-    siderealPlanetData.sun_dec = myAstro.getDeclinationDec();
-    myAstro.doRAdec2AltAz();
-    siderealPlanetData.sun_az = myAstro.getAzimuth();
-    siderealPlanetData.sun_alt = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
-    siderealPlanetData.sun_helio_ecliptic_lat = myAstro.getHelioLat();
-    siderealPlanetData.sun_helio_ecliptic_long = myAstro.getHelioLong();
-    siderealPlanetData.sun_radius_vector = myAstro.getRadiusVec();
-    siderealPlanetData.sun_distance = myAstro.getDistance();
-    siderealPlanetData.sun_ecliptic_lat = myAstro.getEclipticLatitude();
-    siderealPlanetData.sun_ecliptic_long = myAstro.getEclipticLongitude();
-    siderealPlanetData.earth_ecliptic_lat = myAstro.getEclipticLatitude();
-    siderealPlanetData.earth_ecliptic_long = myAstro.getEclipticLongitude();
-    myAstro.doSunRiseSetTimes();
-    siderealPlanetData.sun_r = myAstro.getSunriseTime();
-    siderealPlanetData.sun_s = myAstro.getSunsetTime();
+    siderealPlanetData.sun_ra = sun.eq.ra_hours;
+    siderealPlanetData.sun_dec = sun.eq.dec_deg;
+    AltAz altAz = myAstro.doRAdec2AltAz(ctx, sun.eq.ra_hours, sun.eq.dec_deg);
+    siderealPlanetData.sun_az = altAz.az_deg;
+    siderealPlanetData.sun_alt = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
+    // The Sun has no heliocentric position of its own -- the original read
+    // these back from whichever planet's doPlans() last happened to run
+    // (stale/uninitialized shared state, not a real Sun-relative-to-itself
+    // quantity), which no longer exists to (mis)read now that state isn't shared.
+    siderealPlanetData.sun_helio_ecliptic_lat = NAN;
+    siderealPlanetData.sun_helio_ecliptic_long = NAN;
+    siderealPlanetData.sun_radius_vector = NAN;
+    siderealPlanetData.sun_distance = NAN;
+    siderealPlanetData.sun_ecliptic_lat = sun.eclipticLatitudeDeg;
+    siderealPlanetData.sun_ecliptic_long = sun.eclipticLongitudeDeg;
+    siderealPlanetData.earth_ecliptic_lat = sun.eclipticLatitudeDeg;
+    siderealPlanetData.earth_ecliptic_long = sun.eclipticLongitudeDeg;
+    RiseSetResult rs = myAstro.doSunRiseSetTimes(ctx);
+    siderealPlanetData.sun_r = myAstro.getSunriseTime(ctx, rs);
+    siderealPlanetData.sun_s = myAstro.getSunsetTime(ctx, rs);
 }
 
-void trackLuna(void)
+void trackLuna(const SiderealContext& ctx)
 {
-    myAstro.doMoon();
-    siderealPlanetData.luna_ra = myAstro.getRAdec();
-    siderealPlanetData.luna_dec = myAstro.getDeclinationDec();
-    myAstro.doRAdec2AltAz();
-    siderealPlanetData.luna_az = myAstro.getAzimuth();
-    siderealPlanetData.luna_alt = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
-    myAstro.doMoonRiseSetTimes();
-    siderealPlanetData.luna_r = myAstro.getMoonriseTime();
-    siderealPlanetData.luna_s = myAstro.getMoonsetTime();
-    siderealPlanetData.luna_p = myAstro.getMoonPhase();
-    siderealPlanetData.luna_lum = myAstro.getLunarLuminance();
+    MoonResult moon = myAstro.doMoon(ctx);
+    siderealPlanetData.luna_ra = moon.eq.ra_hours;
+    siderealPlanetData.luna_dec = moon.eq.dec_deg;
+    AltAz altAz = myAstro.doRAdec2AltAz(ctx, moon.eq.ra_hours, moon.eq.dec_deg);
+    siderealPlanetData.luna_az = altAz.az_deg;
+    siderealPlanetData.luna_alt = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
+    RiseSetResult rs = myAstro.doMoonRiseSetTimes(ctx);
+    siderealPlanetData.luna_r = myAstro.getMoonriseTime(ctx, rs);
+    siderealPlanetData.luna_s = myAstro.getMoonsetTime(ctx, rs);
+    siderealPlanetData.luna_p = myAstro.getMoonPhase(ctx, moon);
+    siderealPlanetData.luna_lum = myAstro.getLunarLuminance(ctx, moon);
 }
 
 /*
@@ -683,10 +687,8 @@ void trackLuna(void)
  * table plus one generic function (trackOuterPlanet()/clearOuterPlanet()
  * below) replaces what would otherwise be 7 duplicated ~14-line bodies.
  */
-typedef boolean (SiderealPlanets::*DoPlanetFn)(void);
-
 typedef struct {
-    DoPlanetFn do_planet;
+    int planetNumber; // 1=Mercury..7=Neptune, matches SiderealPlanets::doPlans()
     double SiderealPlantetsStruct::*ra;
     double SiderealPlantetsStruct::*dec;
     double SiderealPlantetsStruct::*az;
@@ -702,7 +704,7 @@ typedef struct {
 } OuterPlanetSpec;
 
 static const OuterPlanetSpec mercury_spec = {
-    &SiderealPlanets::doMercury,
+    1,
     &SiderealPlantetsStruct::mercury_ra, &SiderealPlantetsStruct::mercury_dec,
     &SiderealPlantetsStruct::mercury_az, &SiderealPlantetsStruct::mercury_alt,
     &SiderealPlantetsStruct::mercury_helio_ecliptic_lat, &SiderealPlantetsStruct::mercury_helio_ecliptic_long,
@@ -711,7 +713,7 @@ static const OuterPlanetSpec mercury_spec = {
     &SiderealPlantetsStruct::mercury_r, &SiderealPlantetsStruct::mercury_s
 };
 static const OuterPlanetSpec venus_spec = {
-    &SiderealPlanets::doVenus,
+    2,
     &SiderealPlantetsStruct::venus_ra, &SiderealPlantetsStruct::venus_dec,
     &SiderealPlantetsStruct::venus_az, &SiderealPlantetsStruct::venus_alt,
     &SiderealPlantetsStruct::venus_helio_ecliptic_lat, &SiderealPlantetsStruct::venus_helio_ecliptic_long,
@@ -720,7 +722,7 @@ static const OuterPlanetSpec venus_spec = {
     &SiderealPlantetsStruct::venus_r, &SiderealPlantetsStruct::venus_s
 };
 static const OuterPlanetSpec mars_spec = {
-    &SiderealPlanets::doMars,
+    3,
     &SiderealPlantetsStruct::mars_ra, &SiderealPlantetsStruct::mars_dec,
     &SiderealPlantetsStruct::mars_az, &SiderealPlantetsStruct::mars_alt,
     &SiderealPlantetsStruct::mars_helio_ecliptic_lat, &SiderealPlantetsStruct::mars_helio_ecliptic_long,
@@ -729,7 +731,7 @@ static const OuterPlanetSpec mars_spec = {
     &SiderealPlantetsStruct::mars_r, &SiderealPlantetsStruct::mars_s
 };
 static const OuterPlanetSpec jupiter_spec = {
-    &SiderealPlanets::doJupiter,
+    4,
     &SiderealPlantetsStruct::jupiter_ra, &SiderealPlantetsStruct::jupiter_dec,
     &SiderealPlantetsStruct::jupiter_az, &SiderealPlantetsStruct::jupiter_alt,
     &SiderealPlantetsStruct::jupiter_helio_ecliptic_lat, &SiderealPlantetsStruct::jupiter_helio_ecliptic_long,
@@ -738,7 +740,7 @@ static const OuterPlanetSpec jupiter_spec = {
     &SiderealPlantetsStruct::jupiter_r, &SiderealPlantetsStruct::jupiter_s
 };
 static const OuterPlanetSpec saturn_spec = {
-    &SiderealPlanets::doSaturn,
+    5,
     &SiderealPlantetsStruct::saturn_ra, &SiderealPlantetsStruct::saturn_dec,
     &SiderealPlantetsStruct::saturn_az, &SiderealPlantetsStruct::saturn_alt,
     &SiderealPlantetsStruct::saturn_helio_ecliptic_lat, &SiderealPlantetsStruct::saturn_helio_ecliptic_long,
@@ -747,7 +749,7 @@ static const OuterPlanetSpec saturn_spec = {
     &SiderealPlantetsStruct::saturn_r, &SiderealPlantetsStruct::saturn_s
 };
 static const OuterPlanetSpec uranus_spec = {
-    &SiderealPlanets::doUranus,
+    6,
     &SiderealPlantetsStruct::uranus_ra, &SiderealPlantetsStruct::uranus_dec,
     &SiderealPlantetsStruct::uranus_az, &SiderealPlantetsStruct::uranus_alt,
     &SiderealPlantetsStruct::uranus_helio_ecliptic_lat, &SiderealPlantetsStruct::uranus_helio_ecliptic_long,
@@ -756,7 +758,7 @@ static const OuterPlanetSpec uranus_spec = {
     &SiderealPlantetsStruct::uranus_r, &SiderealPlantetsStruct::uranus_s
 };
 static const OuterPlanetSpec neptune_spec = {
-    &SiderealPlanets::doNeptune,
+    7,
     &SiderealPlantetsStruct::neptune_ra, &SiderealPlantetsStruct::neptune_dec,
     &SiderealPlantetsStruct::neptune_az, &SiderealPlantetsStruct::neptune_alt,
     &SiderealPlantetsStruct::neptune_helio_ecliptic_lat, &SiderealPlantetsStruct::neptune_helio_ecliptic_long,
@@ -765,23 +767,23 @@ static const OuterPlanetSpec neptune_spec = {
     &SiderealPlantetsStruct::neptune_r, &SiderealPlantetsStruct::neptune_s
 };
 
-static void trackOuterPlanet(const OuterPlanetSpec *spec)
+static void trackOuterPlanet(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun, const OuterPlanetSpec *spec)
 {
-    (myAstro.*(spec->do_planet))();
-    siderealPlanetData.*(spec->ra) = myAstro.getRAdec();
-    siderealPlanetData.*(spec->dec) = myAstro.getDeclinationDec();
-    myAstro.doRAdec2AltAz();
-    siderealPlanetData.*(spec->az) = myAstro.getAzimuth();
-    siderealPlanetData.*(spec->alt) = myAstro.getAltitude() + myAstro.spData.DegreesAltitudeOffsetByElevationM;
-    siderealPlanetData.*(spec->helio_lat) = myAstro.getHelioLat();
-    siderealPlanetData.*(spec->helio_long) = myAstro.getHelioLong();
-    siderealPlanetData.*(spec->radius_vector) = myAstro.getRadiusVec();
-    siderealPlanetData.*(spec->distance) = myAstro.getDistance();
-    siderealPlanetData.*(spec->ecliptic_lat) = myAstro.getEclipticLatitude();
-    siderealPlanetData.*(spec->ecliptic_long) = myAstro.getEclipticLongitude();
-    myAstro.doXRiseSetTimes(1.454441e-2); /* toDo: actual horizontal displacement */
-    siderealPlanetData.*(spec->r) = myAstro.getRiseTime();
-    siderealPlanetData.*(spec->s) = myAstro.getSetTime();
+    PlanetResult p = myAstro.doPlans(ctx, elements, sun, spec->planetNumber);
+    siderealPlanetData.*(spec->ra) = p.eq.ra_hours;
+    siderealPlanetData.*(spec->dec) = p.eq.dec_deg;
+    AltAz altAz = myAstro.doRAdec2AltAz(ctx, p.eq.ra_hours, p.eq.dec_deg);
+    siderealPlanetData.*(spec->az) = altAz.az_deg;
+    siderealPlanetData.*(spec->alt) = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
+    siderealPlanetData.*(spec->helio_lat) = p.helioLatitudeDeg;
+    siderealPlanetData.*(spec->helio_long) = p.helioLongitudeDeg;
+    siderealPlanetData.*(spec->radius_vector) = p.radiusVector;
+    siderealPlanetData.*(spec->distance) = p.distance;
+    siderealPlanetData.*(spec->ecliptic_lat) = p.eclipticLatitudeDeg;
+    siderealPlanetData.*(spec->ecliptic_long) = p.eclipticLongitudeDeg;
+    RiseSetResult rs = myAstro.doXRiseSetTimes(ctx, p.eq.ra_hours, p.eq.dec_deg, 1.454441e-2); /* toDo: actual horizontal displacement */
+    siderealPlanetData.*(spec->r) = myAstro.getRiseTime(ctx, rs);
+    siderealPlanetData.*(spec->s) = myAstro.getSetTime(ctx, rs);
 }
 
 static void clearOuterPlanet(const OuterPlanetSpec *spec)
@@ -800,13 +802,13 @@ static void clearOuterPlanet(const OuterPlanetSpec *spec)
     siderealPlanetData.*(spec->s) = NAN;
 }
 
-void trackMercury(void) { trackOuterPlanet(&mercury_spec); }
-void trackVenus(void)   { trackOuterPlanet(&venus_spec); }
-void trackMars(void)    { trackOuterPlanet(&mars_spec); }
-void trackJupiter(void) { trackOuterPlanet(&jupiter_spec); }
-void trackSaturn(void)  { trackOuterPlanet(&saturn_spec); }
-void trackUranus(void)  { trackOuterPlanet(&uranus_spec); }
-void trackNeptune(void) { trackOuterPlanet(&neptune_spec); }
+void trackMercury(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackOuterPlanet(ctx, elements, sun, &mercury_spec); }
+void trackVenus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)   { trackOuterPlanet(ctx, elements, sun, &venus_spec); }
+void trackMars(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)    { trackOuterPlanet(ctx, elements, sun, &mars_spec); }
+void trackJupiter(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackOuterPlanet(ctx, elements, sun, &jupiter_spec); }
+void trackSaturn(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackOuterPlanet(ctx, elements, sun, &saturn_spec); }
+void trackUranus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackOuterPlanet(ctx, elements, sun, &uranus_spec); }
+void trackNeptune(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackOuterPlanet(ctx, elements, sun, &neptune_spec); }
 
 // ----------------------------------------------------------------------------------------
 // Clear Planet Data.
@@ -956,18 +958,18 @@ static void trackObjectImpl(T *obj, int index, int object_table_i, int object_i)
         raRef(obj, index) = myAstroObj.getRAdec();
         decRef(obj, index) = myAstroObj.getDeclinationDec();
 
-        // Feed Ra/Dec into myAstro because myAstro has RA/Dec to Alt/Az conversion functions.
-        myAstro.setRAdec(raRef(obj, index), decRef(obj, index));
-
-        // Convert RA/Dec to Alt/Az.
-        myAstro.doRAdec2AltAz();
-        azRef(obj, index) = myAstro.getAzimuth();
-        altRef(obj, index) = myAstro.getAltitude();
+        // Convert RA/Dec to Alt/Az (myAstro has the RA/Dec<->Alt/Az conversion
+        // functions). Uses whichever sidereal context setSiderealData() most
+        // recently built -- trackObject() is called both from taskUniverse
+        // (right after that build) and from the CLI's starnav command.
+        AltAz altAz = myAstro.doRAdec2AltAz(currentSiderealContext, raRef(obj, index), decRef(obj, index));
+        azRef(obj, index) = altAz.az_deg;
+        altRef(obj, index) = altAz.alt_deg;
 
         // Rise/set times. 0 for stars; consider non-zero values for planets, galaxies, etc.
-        myAstro.doXRiseSetTimes(0.0);
-        rRef(obj, index) = myAstro.getRiseTime();
-        sRef(obj, index) = myAstro.getSetTime();
+        RiseSetResult rs = myAstro.doXRiseSetTimes(currentSiderealContext, raRef(obj, index), decRef(obj, index), 0.0);
+        rRef(obj, index) = myAstro.getRiseTime(currentSiderealContext, rs);
+        sRef(obj, index) = myAstro.getSetTime(currentSiderealContext, rs);
     }
 }
 
@@ -1027,25 +1029,26 @@ void starNavConstellation() {
 // ----------------------------------------------------------------------------------------
 // Track All Planets.
 // ----------------------------------------------------------------------------------------
-void trackPlanets(void)
+void trackPlanets(const SiderealContext& ctx)
 {
     // -------------------------------------------------------
-    // Get Sun first.
+    // Get Sun/orbital elements first -- computed once here and threaded
+    // into every track*() call below instead of each one recomputing them.
     // -------------------------------------------------------
-    myAstro.doPlanetElements();
-    myAstro.doSun();
-    trackSun();
+    PlanetElements elements = myAstro.doPlanetElements(ctx);
+    SunResult sun = myAstro.doSun(ctx);
+    trackSun(ctx, sun);
     // -------------------------------------------------------
     // Now do the other planets.
     // -------------------------------------------------------
-    trackLuna();
-    trackMercury();
-    trackVenus();
-    trackMars();
-    trackJupiter();
-    trackSaturn();
-    trackUranus();
-    trackNeptune();
+    trackLuna(ctx);
+    trackMercury(ctx, elements, sun);
+    trackVenus(ctx, elements, sun);
+    trackMars(ctx, elements, sun);
+    trackJupiter(ctx, elements, sun);
+    trackSaturn(ctx, elements, sun);
+    trackUranus(ctx, elements, sun);
+    trackNeptune(ctx, elements, sun);
 }
 
 /**
@@ -1059,38 +1062,29 @@ void setSiderealData(double latitude, double longitude,
     double local_hour, double local_minute, double local_second,
     double altitude)
 {
+    // local_hour/local_minute/local_second are unused: the original
+    // setLocalTime() path was already inert in this codebase (it always
+    // no-op'd, since DstSelected is never set true -- see
+    // SiderealPlanets::buildSiderealContext()'s header comment).
+    (void)local_hour;
+    (void)local_minute;
+    (void)local_second;
+
     // ----------------------------------------------------------------------------------
-    // Use degrees latitude & longitude converted from GNGGA/GNRMC data.
+    // Establish latitude/longitude/GMT date+time/elevation -- and everything
+    // derived from them (Julian date, sidereal time, nutation, obliquity,
+    // precession) -- once, here, externally. Every sidereal calculation this
+    // cycle takes the resulting context as an explicit argument instead of
+    // reaching for instance state.
     // ----------------------------------------------------------------------------------
-    myAstro.setLatLong(latitude, longitude);
-    // ----------------------------------------------------------------------------------
-    // RTC should be UTC (GMT).
-    // ----------------------------------------------------------------------------------
-    myAstro.setGMTdate((int)utc_year, (int)utc_month, (int)utc_mday);
-    myAstro.setGMTtime((int)utc_hour, (int)utc_minute, (float)utc_second);
-    // ----------------------------------------------------------------------------------
-    // Set/reject DST.
-    // ----------------------------------------------------------------------------------
-    // myAstro.rejectDST();
-    // myAstro.setDST();
-    // myAstro.useAutoDST(); // make optional and or use user defined UTC offset time.
-    // ----------------------------------------------------------------------------------
-    // Local time (RTC+-).
-    // ----------------------------------------------------------------------------------
-    myAstro.setLocalTime((int)local_hour, (int)local_minute, (float)local_second);
-    // ----------------------------------------------------------------------------------
-    // Elevation (experimental).
-    // ----------------------------------------------------------------------------------
-    myAstro.setElevationM(altitude);
-    myAstro.spData.DegreesAltitudeOffsetByElevationM = myAstro.inRange90(myAstro.getDegreesAltitudeOffsetByElevationM(altitude));
+    currentSiderealContext = myAstro.buildSiderealContext(
+        latitude, longitude,
+        (int)utc_year, (int)utc_month, (int)utc_mday,
+        (int)utc_hour, (int)utc_minute, (float)utc_second,
+        altitude);
 
     // -------------------------------------------------------
     // Get Sidereal Time Data.
     // -------------------------------------------------------
-    siderealPlanetData.local_sidereal_time = myAstro.getLocalSiderealTime();
-}
-
-void myAstroBegin(void)
-{
-    myAstro.begin();
+    siderealPlanetData.local_sidereal_time = currentSiderealContext.LocalSiderealTime;
 }

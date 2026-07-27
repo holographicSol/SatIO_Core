@@ -464,7 +464,6 @@ extern "C" void app_main(void)
     // Universe
     #ifdef SatIO_USE_UNIVERSE
     printf("creating universe task\n");
-    myAstroBegin();
     createTaskUniverse(); // (target: +1Hz)
     #endif
 

@@ -168,6 +168,12 @@ struct SiderealPlantetsStruct {
 };
 extern struct SiderealPlantetsStruct siderealPlanetData;
 
+// The observer's location/date/time and everything derived from it (Julian
+// date, sidereal time, nutation, obliquity, precession), built once per cycle
+// by setSiderealData() -> SiderealPlanets::buildSiderealContext(). Read-only
+// after that: safe for any task to copy and use concurrently.
+extern SiderealContext currentSiderealContext;
+
 // ----------------------------------------------------------------------------------------
 // Object Data Structure.
 // ----------------------------------------------------------------------------------------
@@ -267,7 +273,7 @@ void starNavConstellation();
  * Tracks every enabled body (Sun, Moon, and planets) for the current
  * sidereal data set by setSiderealData().
  */
-void trackPlanets(void);
+void trackPlanets(const SiderealContext& ctx);
 
 /**
  * Offsets the local zenith RA/Dec by a gyroscope yaw/pitch delta, handling
@@ -279,23 +285,23 @@ void trackPlanets(void);
 SiderealAttitudeData gyroOffsetZenithRADec(double gyro_yaw_deg, double gyro_pitch_deg);
 
 /** Tracks the Sun: RA/Dec, Alt/Az, ecliptic position, sunrise/sunset. */
-void trackSun(void);
+void trackSun(const SiderealContext& ctx, const SunResult& sun);
 /** Tracks the Moon: RA/Dec, Alt/Az, moonrise/moonset, phase, luminance. */
-void trackLuna(void);
+void trackLuna(const SiderealContext& ctx);
 /** Tracks Mercury: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackMercury(void);
+void trackMercury(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Venus: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackVenus(void);
+void trackVenus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Mars: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackMars(void);
+void trackMars(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Jupiter: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackJupiter(void);
+void trackJupiter(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Saturn: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackSaturn(void);
+void trackSaturn(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Uranus: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackUranus(void);
+void trackUranus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Neptune: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
-void trackNeptune(void);
+void trackNeptune(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 
 /** Resets the Sun's tracked fields to NAN. */
 void clearSun(void);
@@ -317,8 +323,5 @@ void clearUranus(void);
 void clearNeptune(void);
 /** Resets every tracked body's fields to NAN. */
 void clearTrackPlanets(void);
-
-/** Initializes the underlying SiderealPlanets instance (myAstro). */
-void myAstroBegin(void);
 
 #endif

@@ -43,7 +43,7 @@ TODO:
 #define EARTH_OBLIQ  23.439281f  // obliquity of ecliptic (degrees)
 
 /**
- * @brief Store sidereal attitude data relative to sensor's attitudes. 
+ * @brief Store sidereal attitude data relative to sensor's attitudes.
  */
 typedef struct {
     // Right Ascension
@@ -65,163 +65,194 @@ typedef struct {
 } SiderealAttitudeData;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// modified: everything below this line replaces the library's original
+// instance-state design (public setters mutating private members that later
+// do*()/get*() calls read back off `this`). That made the class unsafe to call
+// from more than one FreeRTOS task at a time -- two tasks driving myAstro at
+// once would race on its member variables. Now, latitude/longitude/date/time
+// are established once, externally, via buildSiderealContext(), and every
+// function that needs them takes the resulting SiderealContext as an explicit
+// argument instead of reading it off `this`. SiderealContext is a small,
+// copyable, read-only-after-construction snapshot, so multiple tasks/functions
+// can safely hold their own copy and call these functions concurrently.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Structure to hold data
-// We need to populate this when we calculate data
-struct SiderealPlanetsData {
-  public:
-    double Latitude;
-    double Longitude;
-    double GMTdate;
-    double GMTtime;
-    double DST;
-    double timeZone;
-    double LST;
-    double RightAscension;
-    double Declination;
-    double Altitude;
-	double Azimuth;
-	double DegreesAltitudeOffsetByElevationM;
+/**
+ * @brief Observer location + date/time + everything derived from just those
+ * (Julian date, sidereal time, nutation, obliquity, precession matrices) --
+ * established once per calculation cycle by SiderealPlanets::buildSiderealContext(),
+ * then passed by value/const-ref into every function that needs it.
+ */
+struct SiderealContext {
+    // Observer location
+    double decLat, decLong;
+    double radLat, radLong;
+    double cosLat, sinLat;
+    double seaLevelHeightMeters;
+    double altitudeOffsetByElevationDeg; // degrees to add to Alt, derived from elevation
+
+    // GMT date/time
+    int GMTyear, GMTmonth, GMTday;
+    int GMThour, GMTminute;
+    float GMTseconds;
+    double GMTtime; // decimal hours, GMT/UTC
+
+    // Time zone / DST -- kept for parity with the original API only. No live
+    // caller in this codebase ever enables DST (setSiderealData() never calls
+    // useAutoDST()/setDST()/rejectDST()), so these are always 0/false today.
+    float TimeZoneOffset;
+    int DSToffset;
+
+    // Derived once, here, and reused by every calculation this cycle instead
+    // of being lazily memoized (and re-derived) across many mutating calls.
+    double mjd1900;
+    double GMTsiderealTime;
+    double LocalSiderealTime;
+    double nutationInLongitude, nutationInObliquity;
+    double obliquityEcliptic;
+    double sineObliquity, cosineObliquity;
+    double precessionMatrix[4][4];
+    double otherPrecessionMatrix[4][4];
+};
+
+struct RaDec { double ra_hours; double dec_deg; };
+struct AltAz { double alt_deg;  double az_deg;  };
+
+struct AnomalyResult {
+    double meanAnomalyRad;
+    double eccentricAnomalyRad;
+    double trueAnomalyRad;
+};
+
+struct SunResult {
+    RaDec eq;                          // apparent geocentric RA/Dec
+    double trueGeocentricLongitudeRad; // needed by getLunarLuminance()/doPlans()
+    double earthDistanceAU;            // needed by doPlans()
+    double meanAnomalyRad;             // needed by doPlans()
+    double eclipticLongitudeDeg, eclipticLatitudeDeg; // apparent ecliptic position (latitude always 0 for the Sun)
+};
+
+struct MoonResult {
+    RaDec eq;                              // apparent geocentric RA/Dec
+    double geocentricEclipticLongitudeRad; // needed by getLunarLuminance()
+    double geocentricEclipticLatitudeRad;  // needed by getLunarLuminance()
+    double moonMeanAnomalyRad;             // needed by getLunarLuminance()
+    double sunMeanAnomalyRad;              // needed by getLunarLuminance() (doMoon()'s own recomputation)
+    double horizontalParallaxDeg;          // needed by doLunarParallax()/doMoonRiseSetTimes()
+};
+
+struct PlanetElements {
+    // planetaryOrbitalElements[i][j]: i = planet number (1=Mercury..7=Neptune), j = element index.
+    double table[8][10];
+};
+
+struct PlanetResult {
+    RaDec eq;
+    double helioLongitudeDeg, helioLatitudeDeg;
+    double radiusVector;
+    double distance;
+    // Pre-nutation/aberration-adjustment geocentric ecliptic position (the
+    // original library computed RA/Dec from the *adjusted* longitude/latitude
+    // but left the unadjusted pair in the member getEclipticLongitude()/
+    // getEclipticLatitude() read back afterward -- preserved here as-is).
+    double eclipticLongitudeDeg, eclipticLatitudeDeg;
+};
+
+struct RiseSetResult {
+    bool visible; // false if circumpolar (never sets) or never rises
+    double azimuthRisingRad, azimuthSettingRad;
+    double lstRising, lstSetting;
 };
 
 // Sidereal_Planets library description
 class SiderealPlanets {
   // user-accessible "public" interface
   public:
-    SiderealPlanetsData spData;
-    boolean begin(void);
-	double decimalDegrees(int degrees, int minutes, float seconds);
-	boolean setTimeZone(int zone);
-	boolean setTimeZone(float zone);
-    boolean useAutoDST(void);
-	void setDST(void);
-	void rejectDST(void);
-    boolean setLatLong(double latitude, double longitude);
-	boolean setGMTdate(int year, int month, int day);
-    boolean setGMTtime(int hours, int minutes, float seconds);
-    boolean setLocalTime(int hours, int minutes, float seconds);
-	double getLatitude(void);
-	double getLongitude(void);
-	double getGMT(void);
-	double getLT(void);
-	double modifiedJulianDate1900(void);
-    double getLocalSiderealTime(void);
-    double getGMTsiderealTime(void);
-	double doLST2LT(double LST);
-	double doLST2GMT(double LST);
-	boolean setElevationM(double height);
-	boolean setElevationF(double height);
-    boolean setRAdec(double RightAscension, double Declination);
-    boolean setAltAz(double Altitude, double Azimuth);
-    double getRAdec(void);
-    double getDeclinationDec(void);
-    double getAltitude(void);
-    double getAzimuth(void);
-    boolean doRAdec2AltAz(void);
-    boolean doAltAz2RAdec(void);
-	boolean doNutation(void);
-	double getDP(void);
-	double getDO(void);
-	double doObliquity(void);
-	boolean setEcliptic(double longitude, double latitude);
-	double getEclipticLongitude(void);
-	double getEclipticLatitude(void);
-	boolean doEcliptic2RAdec(void);
-    boolean doPrecessFrom2000(void);
-	boolean doPrecessTo2000(void);
-	boolean doLunarParallax(void);
-	float getLunarLuminance(void);
-	int getMoonPhase(void);
-	boolean setEquatHorizontalParallax(double hp); //For testing only
-	double getEquatHorizontalParallax(void);
-    boolean doRefractionF(double pressure, double temperature);
-    boolean doRefractionC(double pressure, double temperature);
-	boolean doAntiRefractionF(double pressure, double temperature);
-	boolean doAntiRefractionC(double pressure, double temperature);
-	boolean doRiseSetTimes(double DI);
-	double getRiseTime(void);
-	double getSetTime(void);
-	double doAnomaly(double meanAnomaly, double eccentricity);
-	double getTrueAnomaly(void);
-    boolean doSun(void);
-    boolean doMoon(void);
-	boolean doPlanetElements(void);
-	double getPL(int i, int j);
-	boolean doPlans(int planetNumber);
-	double getHelioLong(void);
-	double getHelioLat(void);
-	double getRadiusVec(void);
-	double getDistance(void);
-    boolean doMercury(void);
-    boolean doVenus(void);
-	boolean doMars(void);
-    boolean doJupiter(void);
-    boolean doSaturn(void);
-    boolean doUranus(void);
-	boolean doNeptune(void);
-	boolean doSunRiseSetTimes(void);
-	double getSunriseTime(void);
-	double getSunsetTime(void);
-	boolean doMoonRiseSetTimes(void);
-	double getMoonriseTime(void);
-	double getMoonsetTime(void);
-	void printDegMinSecs(double n);
-	boolean doXRiseSetTimes(double DIdeg);
-	double getEarthEclipticLongitude(void);
-	double getDegreesAltitudeOffsetByElevationM(double meters);
-	double inRange90(double degrees);
-	SiderealAttitudeData getSiderealAttitude(double x, double y, double z);
+	static double decimalDegrees(int degrees, int minutes, float seconds);
 
-  // library-accessible "private" interface
+	// The one function that establishes latitude/longitude/date/time/elevation,
+	// once, externally. Everything else below takes the resulting context (and,
+	// for the Sun/Moon/planet pipeline, each other's results) as explicit
+	// arguments instead of reaching for instance state.
+	static SiderealContext buildSiderealContext(
+	    double latitude, double longitude,
+	    int year, int month, int day,
+	    int gmtHours, int gmtMinutes, float gmtSeconds,
+	    double elevationMeters);
+
+	static double getDegreesAltitudeOffsetByElevationM(double meters);
+	static double doLST2LT(const SiderealContext& ctx, double localSiderealTime);
+	static double doLST2GMT(const SiderealContext& ctx, double localSiderealTime);
+
+    /**
+     * @brief Calculate RA & Dec, azimuth and altitude for a given roll/pitch/yaw attitude.
+     * @param ctx context built by buildSiderealContext() for the observer's location/date/time.
+     * @param x roll  Rotation about the boresight's forward axis, degrees.
+     * @param y pitch Rotation about the lateral axis (nose up/down from level), degrees.
+     * @param z yaw   Rotation about the vertical axis (heading from North), degrees.
+     * @return SiderealAttitudeData SiderealAttitudeData data structure
+     * @note Self-contained (no shared mutable state touched), so this may be called
+     * concurrently from more than one task, each with its own ctx snapshot.
+     */
+	static SiderealAttitudeData getSiderealAttitude(const SiderealContext& ctx, double x, double y, double z);
+	static AltAz doRAdec2AltAz(const SiderealContext& ctx, double raHours, double decDeg);
+	static RaDec doAltAz2RAdec(const SiderealContext& ctx, double altDeg, double azDeg);
+
+	static RaDec doEcliptic2RAdec(const SiderealContext& ctx, double eclipticLongitudeRad, double eclipticLatitudeRad);
+	static RaDec doPrecessFrom2000(const SiderealContext& ctx, double raHours, double decDeg);
+	static RaDec doPrecessTo2000(const SiderealContext& ctx, double raHours, double decDeg);
+
+	static SunResult doSun(const SiderealContext& ctx);
+	static MoonResult doMoon(const SiderealContext& ctx);
+	static RaDec doLunarParallax(const SiderealContext& ctx, const MoonResult& moon);
+	static float getLunarLuminance(const SiderealContext& ctx, const MoonResult& moon);
+	static int getMoonPhase(const SiderealContext& ctx, const MoonResult& moon);
+
+	static PlanetElements doPlanetElements(const SiderealContext& ctx);
+	static PlanetResult doPlans(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun, int planetNumber);
+
+	static RiseSetResult doRiseSetTimes(const SiderealContext& ctx, double raHours, double decDeg, double DIdeg);
+	static RiseSetResult doXRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI);
+	static RiseSetResult doSunRiseSetTimes(SiderealContext ctx);
+	static RiseSetResult doMoonRiseSetTimes(SiderealContext ctx);
+	static double getRiseTime(const SiderealContext& ctx, const RiseSetResult& rs);
+	static double getSetTime(const SiderealContext& ctx, const RiseSetResult& rs);
+	static double getSunriseTime(const SiderealContext& ctx, const RiseSetResult& rs);
+	static double getSunsetTime(const SiderealContext& ctx, const RiseSetResult& rs);
+	static double getMoonriseTime(const SiderealContext& ctx, const RiseSetResult& rs);
+	static double getMoonsetTime(const SiderealContext& ctx, const RiseSetResult& rs);
+
+	static AnomalyResult doAnomaly(double meanAnomalyDeg, double eccentricity);
+
+	static double applyRefractionC(double altitudeRad, double pressure, double temperature);
+	static double applyRefractionF(double altitudeRad, double pressure, double temperature);
+	static double applyAntiRefractionC(double altitudeRad, double pressure, double temperature);
+	static double applyAntiRefractionF(double altitudeRad, double pressure, double temperature);
+
+	static void printDegMinSecs(double n);
+	static double inRange90(double degrees);
+	static double clampUnit(double d);
+	static double inRange24(double d);
+	static double inRange60(double d);
+	static double inRange360(double d);
+	static double inRange2PI(double d);
+	static double deg2rad(double n);
+	static double rad2deg(double n);
+
+  // library-internal helpers
   private:
-    const double F2PI = 2.0 * M_PI;
-    const double FPI  = M_PI;
-    const double FPIdiv2 = M_PI_2;
-    const double FminusPIdiv2 = -M_PI_2;
-    const double FPIdiv4 = M_PI_4;
+    static const double F2PI;
+    static const double FPI;
+    static const double FPIdiv2;
+    static const double FminusPIdiv2;
+    static const double FPIdiv4;
 
-    float TimeZoneOffset;
-	int DSToffset;
-	double decLat, decLong, radLat, radLong, cosLat, sinLat, mjd1900;
-	boolean autoDST, useDST, leapYear, DstSelected, GmtDateInput, GmtTimeInput;
-	boolean MJDdone, precessArrayDone;
-	boolean obliquityDone, nutationDone, Ecl2RaDecDone, risetDone;
-	boolean doMoonDone; // Keep track if doMoon() has been called
-	boolean getLunarLuminanceDone; // Keep track if getLunarLuminance() has been called
-	int GMTyear, GMTmonth, GMTday, GMTminute, GMThour;
-	float GMTseconds;
-	double julianCenturies1900, GMTtime, GMTsiderealTime, LocalSiderealTime;
-	double seaLevelHeightMeters, EquatHorizontalParallax;
-	double RAdec, DeclinationDec, AltDec, AzDec;
-	double RArad, DeclinationRad, AltRad, AzRad;
-	double sinRA, sinDec, sinAlt, sinAz;
-	double cosRA, cosDec, cosAlt, cosAz;
-	double precessionMatrix[4][4], otherPrecessionMatrix[4][4]; //precession arrays
-    double trueAnomaly, eccentricAnomaly, meanAnomaly;
-	double nutationInLongitude, nutationInObliquity, obliquityEcliptic; //nutation, obliquity
-	double EclLongitude, EclLatitude, sineObliquity, cosineObliquity, SP_meanAnomaly, sunTrueGeocentricLongitude, sunEarthDistance, apparentEclipticLongitude;
-	double sunMeanAnomaly, moonMeanAnomaly, moonGeocentricEclipticLongitude, moonGeocentricEclipticLatitude;
-	float LunarIrradiance;
-	double azimuthRising, azimuthSetting, localSiderealTimeRising, localSiderealTimeSetting, heliocenttricEclipticLongitude, heliocenttricEclipticLatitude, radiusVectorPlanet, distanceEarthNotCorrected, moonHorizontalParallax;
-	double planetaryOrbitalElements[8][10]; //array for planetary elements
-
-    void doAutoDST(void);
-	byte calcLocalHour(int year, byte month, byte day, byte hour, byte offset);
-	char day_of_week(int year, int month, int day);
-	double inRange60(double d);
-	double inRange24(double d);
-	double inRange360(double d);
-	double inRange2PI(double d);
-	double clampUnit(double d);
-	double deg2rad(double n);
-	double rad2deg(double n);
-	boolean doPrecessArray(void);
-
-    int monthDays[25] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    union FourByte {
-      unsigned long bit32;
-      unsigned int bit16[2];
-      unsigned char bit8[4];
-    };
+    // day_of_week()/calcLocalHour() (the original library's DST auto-detection)
+    // are dropped along with setTimeZone()/useAutoDST()/setDST()/rejectDST():
+    // no live caller in this codebase ever enables DST, so TimeZoneOffset/
+    // DSToffset are always 0 -- buildSiderealContext() hardcodes that instead.
+    // monthDays[] (the original setGMTdate()'s day-of-month validation table)
+    // is dropped for the same reason: nothing ever checked that boolean
+    // either, so there's nothing left to validate against it.
 };
 #endif

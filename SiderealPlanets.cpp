@@ -26,33 +26,13 @@ Distributed as-is; no warranty is given.
 #define Serial SERIAL_PORT_USBVIRTUAL
 #endif
 
-// Public Methods //////////////////////////////////////////////////////////
-// Start by doing any setup, and verifying that doubles are supported
-boolean SiderealPlanets::begin(void) {
-  //float  fpi = 3.14159265358979;
-  //double dpi = 3.14159265358979;
-  //if (dpi == (double)fpi ) return false; //double and float are the same here!
+const double SiderealPlanets::F2PI = 2.0 * M_PI;
+const double SiderealPlanets::FPI  = M_PI;
+const double SiderealPlanets::FPIdiv2 = M_PI_2;
+const double SiderealPlanets::FminusPIdiv2 = -M_PI_2;
+const double SiderealPlanets::FPIdiv4 = M_PI_4;
 
-  DSToffset = 0; // GMT is default
-  TimeZoneOffset = 0.0;
-  decLat = 51.178889; // Default in decimal Degrees
-  decLong = -1.826111;
-  autoDST = false;
-  useDST = false;
-  leapYear = false;
-  DstSelected = false;
-  GmtDateInput = false;
-  GmtTimeInput = false;
-  MJDdone = false;
-  precessArrayDone = false;
-  obliquityDone = false;
-  nutationDone = false;
-  Ecl2RaDecDone = false;
-  risetDone = false;
-  doMoonDone = false;
-  getLunarLuminanceDone = false;
-  return true;
-}
+// Public Methods //////////////////////////////////////////////////////////
 
 double SiderealPlanets::decimalDegrees(int degrees, int minutes, float seconds) {
   int sign = 1;
@@ -72,336 +52,227 @@ double SiderealPlanets::decimalDegrees(int degrees, int minutes, float seconds) 
   return decDeg * sign;
 }
 
-boolean SiderealPlanets::setTimeZone(int zone) {
-  if (zone < -12 || zone > 12) return false; //bad input
-  return setTimeZone((float)zone);
-}
+// ------------------------------------------------------------------------------------------------------------------------------
+// modified: this is the one place that establishes latitude/longitude/date/time/
+// elevation "once, externally" (replacing setLatLong()/setGMTdate()/setGMTtime()/
+// setLocalTime()/setElevationM()), and derives everything else that used to be
+// lazily memoized across many mutating calls (Julian date, sidereal time,
+// nutation, obliquity, precession matrices) exactly once, here, instead. The
+// original input-validation/rejection logic (out-of-range month/day/hour would
+// silently no-op and return false) is not replicated: setSiderealData(), the
+// only caller, never checked those booleans, and GPS/RTC-sourced values are
+// always in range, so replicating the rejection paths would add risk for a
+// case that can't happen here. DST/time-zone are always 0 for the same reason
+// -- see SiderealContext's declaration.
+// ------------------------------------------------------------------------------------------------------------------------------
+SiderealContext SiderealPlanets::buildSiderealContext(
+    double latitude, double longitude,
+    int year, int month, int day,
+    int gmtHours, int gmtMinutes, float gmtSeconds,
+    double elevationMeters) {
+  SiderealContext ctx{};
 
-boolean SiderealPlanets::setTimeZone(float zone) {
-  if (zone < -12.0 || zone > 12.0) return false; //bad input
-  TimeZoneOffset = zone;
-  doAutoDST();
-  return true;
-}
+  // Observer location (was setLatLong())
+  ctx.decLat = latitude;
+  ctx.radLat = deg2rad(ctx.decLat);
+  ctx.decLong = longitude;
+  ctx.radLong = deg2rad(ctx.decLong);
+  ctx.cosLat = cos(ctx.radLat);
+  ctx.sinLat = sin(ctx.radLat);
 
-// Select automatic determination of DST usage
-boolean SiderealPlanets::useAutoDST(void) {
-  // See https://github.com/nseidle/Daylight_Savings_Time_Example
-  autoDST = true;
-  DstSelected = true;
-  doAutoDST();
-  return useDST;
-}
+  // GMT date/time (was setGMTdate()/setGMTtime())
+  ctx.GMTyear = year;
+  ctx.GMTmonth = month;
+  ctx.GMTday = day;
+  ctx.GMThour = gmtHours;
+  ctx.GMTminute = gmtMinutes;
+  ctx.GMTseconds = gmtSeconds;
+  ctx.GMTtime = ctx.GMThour + (ctx.GMTminute / 60.0) + (ctx.GMTseconds / 3600.0);
 
-// Enable DST in calculations
-void SiderealPlanets::setDST(void) {
-  useDST = true;
-  autoDST = false;
-  DstSelected = true;
-  DSToffset = 1;
-}
+  // Time zone / DST -- no live caller enables DST (see SiderealContext).
+  ctx.TimeZoneOffset = 0.0f;
+  ctx.DSToffset = 0;
 
-// Disable DST use in all calculations
-void SiderealPlanets::rejectDST(void) {
-  useDST = false;
-  autoDST = false;
-  DstSelected = true;
-  DSToffset = 0;
-}
+  // Elevation (was setElevationM() + external getDegreesAltitudeOffsetByElevationM()/inRange90())
+  ctx.seaLevelHeightMeters = elevationMeters;
+  ctx.altitudeOffsetByElevationDeg = inRange90(getDegreesAltitudeOffsetByElevationM(elevationMeters));
 
-void SiderealPlanets::doAutoDST(void) {
-  if (GmtTimeInput && GmtDateInput && DstSelected && autoDST)
-    calcLocalHour( GMTyear, (byte)GMTmonth, (byte)GMTday, (byte)GMThour, (byte)TimeZoneOffset);
-}
-
-// See https://github.com/nseidle/Daylight_Savings_Time_Example
-//Given a year/month/day/current UTC/local offset give me local time
-byte SiderealPlanets::calcLocalHour(int year, byte month, byte day, byte hour, byte local_hour_offset)
-{
-  //Since 2007 DST starts on the second Sunday in March and ends the first Sunday of November
-  //Let's just assume it's going to be this way for awhile (silly US government!)
-  //Example from: http://stackoverflow.com/questions/5590429/calculating-daylight-savings-time-from-only-date
-
-  byte DoW = day_of_week(year, month, day); //Get the day of the week. 0 = Sunday, 6 = Saturday
-  int previousSunday = day - DoW;
-
-  boolean dst = false; //Assume we're not in DST
-  if(month > 3 && month < 11) dst = true; //DST is happening!
-
-  //In March, we are DST if our previous Sunday was on or after the 8th.
-  if (month == 3)
+  // Modified Julian Date 1900 (was modifiedJulianDate1900())
   {
-    if(previousSunday >= 8) dst = true; 
-  } 
-  //In November we must be before the first Sunday to be dst.
-  //That means the previous Sunday must be before the 1st.
-  if(month == 11)
-  {
-    if(previousSunday <= 0) dst = true;
-  }
-  
-  if(dst == true) hour++;
-
-  //Convert UTC hours to local current time using local_hour
-  if(hour < local_hour_offset)
-    hour += 24; //Add 24 hours before subtracting local offset
-  hour -= local_hour_offset;
-  if(hour > 12) hour -= 12; //Get rid of military time
-  
-  /*
-  Serial.print("Hour: ");
-  Serial.println(hour);
-  Serial.print("Day of week: ");
-  if(DoW == 0) Serial.println("Sunday");
-  if(DoW == 1) Serial.println("Monday");
-  if(DoW == 2) Serial.println("Tuesday");
-  if(DoW == 3) Serial.println("Wednesday");
-  if(DoW == 4) Serial.println("Thursday");
-  if(DoW == 5) Serial.println("Friday!");
-  if(DoW == 6) Serial.println("Saturday");
-  */
-  useDST = dst; //set the flag that we are using it or not
-  if (autoDST) {
-    if (dst == true)
-	  DSToffset = 1; // this is the one hour difference
-    else
-      DSToffset = 0;
-  }
-  return(hour);
-}
-
-//Given the current year/month/day
-//Returns 0 (Sunday) through 6 (Saturday) for the day of the week
-//From: http://en.wikipedia.org/wiki/Calculating_the_day_of_the_week
-//This function assumes the month from the caller is 1-12
-char SiderealPlanets::day_of_week(int year, int month, int day)
-{
-  //Devised by Tomohiko Sakamoto in 1993, it is accurate for any Gregorian date:
-  static int t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4  };
-  year -= month < 3;
-  return (year + year/4 - year/100 + year/400 + t[month-1] + day) % 7;
-}
-
-double SiderealPlanets::modifiedJulianDate1900(void) {
-  // Based on Year 1900
-  if (MJDdone) return mjd1900;
-  int y1 = GMTyear;
-  long m1 = GMTmonth;
-  long b = 0;
-  boolean doextra = false;
-  if (y1 < 1) y1 += 1; //Account for there being no year zero
-  if (GMTmonth < 3) {
-	m1 =  GMTmonth + 12;
-	y1 -= 1;
-  }
-  if (y1 > 1582) {
-	doextra = true;
-  } else {
-	if (y1 < 1582) {
-      doextra = false;
-	} else {
-      if (y1 == 1582 && GMTmonth < 10) {
-        doextra = false;
-	  } else {
-        if ((y1 == 1582 && GMTmonth == 10 && GMTday < 5)) {
-          doextra = false;
-		} else {
-          if (GMTmonth > 10 || GMTday > 14) {
-            doextra = true;
-		  } else {
-            return -9999999.; //not allowed
-		  }
-		}
-	  }
-	}
-  }
-  if (doextra) {
-	long a = y1 / 100;
-	b = 2 - a + (a / 4);
-  }
-  long c = (365.25 * (double)y1);
-  c -= 694025;
-  if (y1 < 0) {
-    c = (365.25 * y1) - 0.75;
-	c -= 694025;
-  }
-  long d = (30.6001 * (m1 + 1));
-  mjd1900 = b + c + d + GMTday - 0.5;
-  MJDdone = true;
-  return mjd1900;
-}
-
-// Set the Latitude and Logitude used in calculations
-boolean SiderealPlanets::setLatLong(double latitude, double longitude) {
-  // Input latitude and longitude are in decimal degrees
-  // save these, and also save values in radians
-  if (decLat == latitude && decLong == longitude) return true; //Already did it
-  decLat = latitude;
-  radLat = deg2rad(decLat);
-  decLong = longitude;
-  radLong = deg2rad(decLong);
-  cosLat = cos(radLat);
-  sinLat = sin(radLat);
-  risetDone = false;
-  return true;
-}
-
-boolean SiderealPlanets::setGMTdate(int year, int month, int day) {
-  if (GMTyear == year && GMTmonth == month && GMTday == day) return true; //Already did it
-  if (year == 0) return false;
-  GMTyear = year;
-  // Is this a leap year?
-  if (year % 4 == 0) {
-    if (year % 100 == 0) {
-      if (year % 400 == 0)
-        leapYear = true;
-      else
-        leapYear = false;
+    int y1 = ctx.GMTyear;
+    long m1 = ctx.GMTmonth;
+    long b = 0;
+    boolean doextra = false;
+    if (y1 < 1) y1 += 1; //Account for there being no year zero
+    if (ctx.GMTmonth < 3) {
+      m1 = ctx.GMTmonth + 12;
+      y1 -= 1;
+    }
+    if (y1 > 1582) {
+      doextra = true;
     } else {
-      leapYear = true;
-	}
-  } else {
-    leapYear = false;
+      if (y1 < 1582) {
+        doextra = false;
+      } else {
+        if (y1 == 1582 && ctx.GMTmonth < 10) {
+          doextra = false;
+        } else {
+          if (y1 == 1582 && ctx.GMTmonth == 10 && ctx.GMTday < 5) {
+            doextra = false;
+          } else {
+            // The original's "not allowed" 1582-calendar-switch gap
+            // (Oct 5-14, 1582) returned a -9999999 sentinel here; unreachable
+            // for any real GPS/RTC date, so it's folded into doextra=false
+            // rather than threading a sentinel through SiderealContext.
+            doextra = (ctx.GMTmonth > 10 || ctx.GMTday > 14);
+          }
+        }
+      }
+    }
+    if (doextra) {
+      long a = y1 / 100;
+      b = 2 - a + (a / 4);
+    }
+    long c = (365.25 * (double)y1);
+    c -= 694025;
+    if (y1 < 0) {
+      c = (365.25 * y1) - 0.75;
+      c -= 694025;
+    }
+    long d = (30.6001 * (m1 + 1));
+    ctx.mjd1900 = b + c + d + ctx.GMTday - 0.5;
   }
-  if (month < 1 or month > 12) {
-	return false;
-  } else {
-	GMTmonth = month;
+
+  // GMT / Local Sidereal Time (was getGMTsiderealTime()/getLocalSiderealTime())
+  {
+    double days = ((long)(ctx.mjd1900 - 0.5)) + 0.5;
+    double t = (days / 36525.0) - 1.;
+    double r0 = t * (5.13366e-2 + (t * (2.586222e-5 - (t * 1.722e-9))));
+    double r1 = 6.697374558 + (2400.0 * (t - ((ctx.GMTyear - 2000.0) / 100.0)));
+    double t0 = inRange24(r0 + r1);
+    ctx.GMTsiderealTime = inRange24((ctx.GMTtime * 1.002737908) + t0);
   }
-  if (day < 1 or day > 31) {
-	return false;
-  } else {
-	if (leapYear)
-      if (monthDays[month + 12] < day) return false;
-    else
-      if (monthDays[month] < day) return false;
-    GMTday = day;
+  ctx.LocalSiderealTime = inRange24(ctx.GMTsiderealTime + (ctx.decLong / 15.04107));
+
+  // Nutation (was doNutation())
+  {
+    double t = (ctx.mjd1900) / 36525.0;
+    double t2 = t * t;
+    double a = 1.000021358e2 * t;
+    double b = 360.0 * (a - floor(a));
+    double L1_local = 2.796967e2 + 3.03e-4 * t2 + b;
+    double L2_local = 2.0 * deg2rad(L1_local);
+    a = 1.336855231e3 * t;
+    b = 360. * (a - floor(a));
+    double d1 = 2.704342e2 - 1.133e-3 * t2 + b;
+    double d2 = 2.0 * deg2rad(d1);
+    a = 9.999736056e1 * t;
+    b = 360.0 * (a - floor(a));
+    double M1_local = 3.584758e2 - 1.5e-4 * t2 + b;
+    M1_local = deg2rad(M1_local);
+    a = 1.325552359e3 * t;
+    b = 360.0 * (a - floor(a));
+    double M2_local = 2.961046e2 + 9.192e-3 * t2 + b;
+    M2_local = deg2rad(M2_local);
+    a = 5.372616667 * t;
+    b = 360. * (a - floor(a));
+    double N1_local = 2.591833e2 + 2.078e-3 * t2 - b;
+    N1_local = deg2rad(N1_local);
+    double N2_local = 2. * N1_local;
+
+    double nutationInLongitude = (-17.2327 - 1.737e-2 * t) * sin(N1_local);
+    nutationInLongitude = nutationInLongitude + (-1.2729 - 1.3e-4 * t) * sin(L2_local) + 2.088e-1 * sin(N2_local);
+    nutationInLongitude = nutationInLongitude - 2.037e-1 * sin(d2) + (1.261e-1 - 3.1e-4 * t) * sin(M1_local);
+    nutationInLongitude = nutationInLongitude + 6.75E-2 * sin(M2_local) - (4.97e-2 - 1.2e-4 * t) * sin(L2_local + M1_local);
+    nutationInLongitude = nutationInLongitude - 3.42e-2 * sin(d2 - N1_local) - 2.61e-2 * sin(d2 + M2_local);
+    nutationInLongitude = nutationInLongitude + 2.14e-2 * sin(L2_local - M1_local) - 1.49e-2 * sin(L2_local - d2 + M2_local);
+    nutationInLongitude = nutationInLongitude + 1.24E-2 * sin(L2_local - N1_local) + 1.14e-2 * sin(d2 - M2_local);
+
+    double nutationInObliquity = (9.21 + 9.1E-4 * t) * cos(N1_local);
+    nutationInObliquity = nutationInObliquity + (5.522e-1 - 2.9e-4 * t) * cos(L2_local) - 9.04e-2 * cos(N2_local);
+    nutationInObliquity = nutationInObliquity + 8.84e-2 * cos(d2) + 2.16e-2 * cos(L2_local + M1_local);
+    nutationInObliquity = nutationInObliquity + 1.83e-2 * cos(d2 - N1_local) + 1.13e-2 * cos(d2 + M2_local);
+    nutationInObliquity = nutationInObliquity + 9.3e-3 * cos(L2_local - M1_local) - 6.6e-3 * cos(L2_local - N1_local);
+
+    ctx.nutationInLongitude = nutationInLongitude / 3600.0;
+    ctx.nutationInObliquity = nutationInObliquity / 3600.0;
   }
-  GmtDateInput = true;
-  doAutoDST();
-  MJDdone = false;
-  precessArrayDone = false;
-  obliquityDone = false;
-  nutationDone = false;
-  Ecl2RaDecDone = false;
-  return true;
+
+  // Obliquity of the ecliptic (was doObliquity(), always included Nutation)
+  {
+    double t = (ctx.mjd1900 / 36525.0) - 1.0;
+    double a = (46.815 + (0.0006 - 0.00181 * t) * t) * t;
+    a = a / 3600.0;
+    ctx.obliquityEcliptic = 23.43929167 - a + ctx.nutationInObliquity;
+  }
+  {
+    double e = deg2rad(ctx.obliquityEcliptic);
+    ctx.sineObliquity = sin(e);
+    ctx.cosineObliquity = cos(e);
+  }
+
+  // Precession matrices (was doPrecessArray())
+  {
+    double t = (ctx.mjd1900 - 36525.0) / 36525.0;
+    double xa = (((0.000005 * t) + 0.0000839) * t + 0.6406161) * t;
+    double za = (((0.0000051 * t) + 0.0003041) * t + 0.6406161) * t;
+    double ta = (((-0.0000116 * t) - 0.0001185) * t + 0.556753) * t;
+    xa = deg2rad(xa);
+    za = deg2rad(za);
+    ta = deg2rad(ta);
+    double c1 = cos(xa);
+    double c2 = cos(za);
+    double c3 = cos(ta);
+    double s1 = sin(xa);
+    double s2 = sin(za);
+    double s3 = sin(ta);
+    ctx.precessionMatrix[1][1] = c1 * c3 * c2 - s1 * s2;
+	ctx.otherPrecessionMatrix[1][1] = ctx.precessionMatrix[1][1];
+    ctx.precessionMatrix[1][2] = -s1 * c3 * c2 - c1 * s2;
+	ctx.otherPrecessionMatrix[2][1] = ctx.precessionMatrix[1][2];
+    ctx.precessionMatrix[1][3] = -s3 * c2;
+	ctx.otherPrecessionMatrix[3][1] = ctx.precessionMatrix[1][3];
+    ctx.precessionMatrix[2][1] = c1 * c3 * s2 + s1 * c2;
+	ctx.otherPrecessionMatrix[1][2] = ctx.precessionMatrix[2][1];
+    ctx.precessionMatrix[2][2] = -s1 * c3 * s2 + c1 * c2;
+	ctx.otherPrecessionMatrix[2][2] = ctx.precessionMatrix[2][2];
+    ctx.precessionMatrix[2][3] = -s3 * s2;
+	ctx.otherPrecessionMatrix[3][2] = ctx.precessionMatrix[2][3];
+    ctx.precessionMatrix[3][1] = c1 * s3;
+	ctx.otherPrecessionMatrix[1][3] = ctx.precessionMatrix[3][1];
+    ctx.precessionMatrix[3][2] = -s1 * s3;
+	ctx.otherPrecessionMatrix[2][3] = ctx.precessionMatrix[3][2];
+    ctx.precessionMatrix[3][3] = c3;
+	ctx.otherPrecessionMatrix[3][3] = ctx.precessionMatrix[3][3];
+  }
+
+  return ctx;
 }
 
-boolean SiderealPlanets::setGMTtime(int hours, int minutes, float seconds) {
-  if (GMThour == hours && GMTminute == minutes && GMTseconds == seconds) return true; //Already done
-  if (hours < 0 || hours > 23)
-	return false;
-  else
-	GMThour = hours;
-  if (minutes < 0 || minutes > 59)
-	return false;
-  else
-	GMTminute = minutes;
-  if (seconds < 0. || seconds > 59.999999999)
-	return false;
-  else
-	GMTseconds = seconds;
-  GmtTimeInput = true;
-  doAutoDST();
-  GMTtime = GMThour + (GMTminute / 60.0) + (GMTseconds / 3600.0);
-  return true;
+double SiderealPlanets::getDegreesAltitudeOffsetByElevationM(double meters) {
+  const double R = 6371000.0;  // Mean Earth radius in meters
+  const double e = 0.0818;     // First eccentricity of the Earth's ellipsoid
+  return (meters / R) * sqrt((1 - pow(e, 2)) / (R + meters));
 }
 
-boolean SiderealPlanets::setLocalTime(int hours, int minutes, float seconds) {
-  // The user is responsible for setting the GMT date, the Time Zone,
-  // and DST before calling this so that we can set GMT also
-  if (GmtDateInput == false) return false;
-  if (DstSelected == false) return false;
-  // Cheat to do error checking, etc, to prep to set real GMT
-  if (hours < 0 || hours > 23) return false;
-  if (minutes < 0 || minutes > 59) return false;
-  if (seconds < 0. || seconds > 59.999999999) return false;
-  // if doAutoDST was set to do, we just did it anyway
-  GMThour = hours - TimeZoneOffset;
-  if (useDST) GMThour -= 1;
-  return setGMTtime(inRange24(GMThour), minutes, seconds);
-}
-
-double SiderealPlanets::getLatitude(void) {
-  return decLat;
-}
-
-double SiderealPlanets::getLongitude(void) {
-  return decLong;
-}
-
-double SiderealPlanets::getGMT(void) {
-  return GMTtime;
-}
-
-double SiderealPlanets::getLT(void) {
-  double localStandardTime = GMTtime + TimeZoneOffset;
-  if (useDST) localStandardTime += 1;
-  return inRange24(localStandardTime);
-}
-
-double SiderealPlanets::getLocalSiderealTime(void) {
-  LocalSiderealTime = inRange24(getGMTsiderealTime() + (decLong / 15.04107));
-  // printf("Local Sidereal Time: %f\n", LocalSiderealTime);
-  return LocalSiderealTime;
-}
-
-double SiderealPlanets::getGMTsiderealTime(void) {
-  modifiedJulianDate1900();
-  double days = ((long)(mjd1900 - 0.5)) + 0.5;
-  double t = (days / 36525.0) - 1.;
-  double r0 = t * (5.13366e-2 + (t * (2.586222e-5 - (t * 1.722e-9))));
-  double r1 = 6.697374558 + (2400.0 * (t - ((GMTyear - 2000.0) / 100.0)));
-  double t0 = inRange24(r0 + r1);
-  GMTsiderealTime = inRange24((GMTtime * 1.002737908) + t0);
-  return GMTsiderealTime;
-}
-
-double SiderealPlanets::doLST2LT(double localSiderealTime) {
+double SiderealPlanets::doLST2LT(const SiderealContext& ctx, double localSiderealTime) {
   //for computing rise/set times
-  modifiedJulianDate1900();
-  double days = ((long)(mjd1900 - 0.5)) + 0.5;
+  double days = ((long)(ctx.mjd1900 - 0.5)) + 0.5;
   double t = (days / 36525.0) - 1.;
   double r0 = t * (5.13366e-2 + (t * (2.586222e-5 - (t * 1.722e-9))));
-  double r1 = 6.697374558 + (2400.0 * (t - ((GMTyear - 2000.0) / 100.0)));
+  double r1 = 6.697374558 + (2400.0 * (t - ((ctx.GMTyear - 2000.0) / 100.0)));
   double t0 = inRange24(r0 + r1);
-  double julianCenturies1900 = inRange24(t0 - (DSToffset + TimeZoneOffset) * 1.002737908);
-  double GSTdecimalhours = inRange24(localSiderealTime - (decLong / 15.04107));
+  double julianCenturies1900 = inRange24(t0 - (ctx.DSToffset + ctx.TimeZoneOffset) * 1.002737908);
+  double GSTdecimalhours = inRange24(localSiderealTime - (ctx.decLong / 15.04107));
   if (GSTdecimalhours < julianCenturies1900) GSTdecimalhours += 24.;
   double localTimeDecimalHours = inRange24((GSTdecimalhours - julianCenturies1900) * 9.972695677e-1);
   return localTimeDecimalHours;
 }
 
-double SiderealPlanets::doLST2GMT(double localSiderealTime) {
+double SiderealPlanets::doLST2GMT(const SiderealContext& ctx, double localSiderealTime) {
   //for computing rise/set times of Sun
-  return doLST2LT(localSiderealTime) - (DSToffset + TimeZoneOffset);
+  return doLST2LT(ctx, localSiderealTime) - (ctx.DSToffset + ctx.TimeZoneOffset);
 }
-
-boolean SiderealPlanets::setElevationM(double height) {
-  seaLevelHeightMeters = height;
-  return true;
-}
-
-boolean SiderealPlanets::setElevationF(double height) {
-  seaLevelHeightMeters = height / 3.2808;
-  return true;
-}
-
-// ------------------------------------------------------------------------------------------------------------------------------
-// modified: allows adjusting degrees altitude by meters (useful if requiring adjustments by elevation)
-// ------------------------------------------------------------------------------------------------------------------------------
-const double R = 6371000.0;  // Mean Earth radius in meters
-const double e = 0.0818;     // First eccentricity of the Earth's ellipsoid (represents earths deviation from a perfect sphere)
-
-// return offset value
-double SiderealPlanets::getDegreesAltitudeOffsetByElevationM(double meters) {
-  return (meters / R) * sqrt((1 - pow(e, 2)) / (R + meters));
-}
-
-// return degrees altitude + offset value (with slightly different formula, possibly more accurate)
-// double SiderealPlanets::getDegreesAltitudeOffsetByElevationM(double deg_altitude, double meters) {
-//   return deg_altitude + (( meters / 6378000) * cos(deg_altitude) * (180/PI) );
-// }
 
 double SiderealPlanets::inRange90(double degrees) {
   if (degrees > 90.0) {
@@ -428,84 +299,6 @@ double SiderealPlanets::clampUnit(double d) {
   }
   return d;
 }
-
-/**
- * @brief Calculate RA & Dec, azimuth and altitude for a given roll/pitch/yaw attitude.
- * @param x roll  Rotation about the boresight's forward axis, degrees.
- * @param y pitch Rotation about the lateral axis (nose up/down from level), degrees.
- * @param z yaw   Rotation about the vertical axis (heading from North), degrees.
- * @return SiderealAttitudeData SiderealAttitudeData data structure
- * @note Relies on latitude/longitude and GMT date/time already having been
- * set (via setLatLong()/setGMTdate()/setGMTtime()) by the calle. Also use of rotation
- * vecotors are preferred as input but that is up to the caller.
- */
-SiderealAttitudeData SiderealPlanets::getSiderealAttitude(double x, double y, double z) {
-
-    SiderealAttitudeData radecData = {
-        0,   // ra_h
-        0,   // ra_m
-        0.0, // ra_s
-        0,   // dec_d
-        0,   // dec_m
-        0.0, // dec_s
-        0.0,  // az
-        0.0,  // alt
-        {0},  // formatted_ra_str
-        {0},  // formatted_dec_str
-        {0},  // padded_ra_str
-        {0}   // padded_dec_str
-    };
-
-    double az_deg = rad2deg(atan2(y, x));
-    if (az_deg < 0.0) {
-        az_deg += 360.0;
-    }
-    double alt_deg = rad2deg(asin(z));
-
-    setAltAz(alt_deg, az_deg);
-    doAltAz2RAdec();
-
-    double new_ra_hours = getRAdec();
-    double new_dec_deg = getDeclinationDec();
-
-    // Output in HH:MM:SS.S format
-    signed int ra_h = (int)new_ra_hours;
-    signed int ra_m = (int)((new_ra_hours - ra_h) * 60.0);
-    float ra_s = (float)(((new_ra_hours - ra_h) * 60.0 - ra_m) * 60.0);
-
-    // Output in DD:MM:SS.S format
-    signed int dec_d = (int)new_dec_deg;
-    signed int dec_m = (int)((new_dec_deg - dec_d) * 60.0);
-    float dec_s = (float)(((new_dec_deg - dec_d) * 60.0 - dec_m) * 60.0);
-
-    radecData.ra_h = ra_h;
-    radecData.ra_m = ra_m;
-    radecData.ra_s = ra_s;
-    radecData.dec_d = dec_d;
-    radecData.dec_m = dec_m;
-    radecData.dec_s = dec_s;
-    radecData.az = az_deg;
-    radecData.alt = alt_deg + spData.DegreesAltitudeOffsetByElevationM;
-
-    // Format RA
-    memset(radecData.formatted_ra_str, 0, sizeof(radecData.formatted_ra_str));
-    snprintf(radecData.formatted_ra_str, sizeof(radecData.formatted_ra_str), "%02d:%02d:%02.2f", ra_h, ra_m, ra_s);
-
-    // Format Dec
-    memset(radecData.formatted_dec_str, 0, sizeof(radecData.formatted_dec_str));
-    snprintf(radecData.formatted_dec_str, sizeof(radecData.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
-
-    // Format padded RA
-    memset(radecData.padded_ra_str, 0, sizeof(radecData.padded_ra_str));
-    snprintf(radecData.padded_ra_str, sizeof(radecData.padded_ra_str), "%02d%02d%02.2f", ra_h, ra_m, ra_s);
-
-    // Format padded Dec
-    memset(radecData.padded_dec_str, 0, sizeof(radecData.padded_dec_str));
-    snprintf(radecData.padded_dec_str, sizeof(radecData.padded_dec_str), "%+02d%02d%02.2f", dec_d, dec_m, dec_s);
-
-    return radecData;
-}
-// ------------------------------------------------------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------------------------------------------------------
 // modified: converts a true decimal-hours value (fraction = 1/60 hour) into
@@ -562,202 +355,140 @@ double SiderealPlanets::rad2deg(double n) {
   return n * 5.729577951e1;
 }
 
-boolean SiderealPlanets::setRAdec(double RightAscension, double Declination) {
-  if (RAdec == RightAscension && DeclinationDec == Declination) return true; //Already done
-  RAdec = RightAscension;
-  RArad = deg2rad(RAdec) * 15.;
-  sinRA = sin(RArad);
-  cosRA = cos(RArad);
-  DeclinationDec = Declination;
-  DeclinationRad = deg2rad(DeclinationDec);
-  sinDec = sin(DeclinationRad);
-  cosDec = cos(DeclinationRad);
-  doMoonDone = false;
-  return true;
+/**
+ * @brief Calculate RA & Dec, azimuth and altitude for a given roll/pitch/yaw attitude.
+ * @param ctx context built by buildSiderealContext() for the observer's location/date/time.
+ * @param x roll  Rotation about the boresight's forward axis, degrees.
+ * @param y pitch Rotation about the lateral axis (nose up/down from level), degrees.
+ * @param z yaw   Rotation about the vertical axis (heading from North), degrees.
+ * @return SiderealAttitudeData SiderealAttitudeData data structure
+ * @note Touches no shared mutable state, so this may be called concurrently
+ * from more than one task, each with its own ctx snapshot.
+ */
+SiderealAttitudeData SiderealPlanets::getSiderealAttitude(const SiderealContext& ctx, double x, double y, double z) {
+
+    SiderealAttitudeData radecData = {
+        0,   // ra_h
+        0,   // ra_m
+        0.0, // ra_s
+        0,   // dec_d
+        0,   // dec_m
+        0.0, // dec_s
+        0.0,  // az
+        0.0,  // alt
+        {0},  // formatted_ra_str
+        {0},  // formatted_dec_str
+        {0},  // padded_ra_str
+        {0}   // padded_dec_str
+    };
+
+    double az_deg = rad2deg(atan2(y, x));
+    if (az_deg < 0.0) {
+        az_deg += 360.0;
+    }
+    double alt_deg = rad2deg(asin(z));
+
+    RaDec rd = doAltAz2RAdec(ctx, alt_deg, az_deg);
+
+    double new_ra_hours = rd.ra_hours;
+    double new_dec_deg = rd.dec_deg;
+
+    // Output in HH:MM:SS.S format
+    signed int ra_h = (int)new_ra_hours;
+    signed int ra_m = (int)((new_ra_hours - ra_h) * 60.0);
+    float ra_s = (float)(((new_ra_hours - ra_h) * 60.0 - ra_m) * 60.0);
+
+    // Output in DD:MM:SS.S format
+    signed int dec_d = (int)new_dec_deg;
+    signed int dec_m = (int)((new_dec_deg - dec_d) * 60.0);
+    float dec_s = (float)(((new_dec_deg - dec_d) * 60.0 - dec_m) * 60.0);
+
+    radecData.ra_h = ra_h;
+    radecData.ra_m = ra_m;
+    radecData.ra_s = ra_s;
+    radecData.dec_d = dec_d;
+    radecData.dec_m = dec_m;
+    radecData.dec_s = dec_s;
+    radecData.az = az_deg;
+    radecData.alt = alt_deg + ctx.altitudeOffsetByElevationDeg;
+
+    // Format RA
+    memset(radecData.formatted_ra_str, 0, sizeof(radecData.formatted_ra_str));
+    snprintf(radecData.formatted_ra_str, sizeof(radecData.formatted_ra_str), "%02d:%02d:%02.2f", ra_h, ra_m, ra_s);
+
+    // Format Dec
+    memset(radecData.formatted_dec_str, 0, sizeof(radecData.formatted_dec_str));
+    snprintf(radecData.formatted_dec_str, sizeof(radecData.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
+
+    // Format padded RA
+    memset(radecData.padded_ra_str, 0, sizeof(radecData.padded_ra_str));
+    snprintf(radecData.padded_ra_str, sizeof(radecData.padded_ra_str), "%02d%02d%02.2f", ra_h, ra_m, ra_s);
+
+    // Format padded Dec
+    memset(radecData.padded_dec_str, 0, sizeof(radecData.padded_dec_str));
+    snprintf(radecData.padded_dec_str, sizeof(radecData.padded_dec_str), "%+02d%02d%02.2f", dec_d, dec_m, dec_s);
+
+    return radecData;
 }
 
-boolean SiderealPlanets::setAltAz(double Altitude, double Azimuth) {
-  if (AltDec == Altitude && AzDec == Azimuth) return true; //Already done
-  AltDec = Altitude;
-  AltRad = deg2rad(AltDec);
-  sinAlt = sin(AltRad);
-  cosAlt = cos(AltRad);
-  AzDec = Azimuth;
-  AzRad = deg2rad(AzDec);
-  sinAz = sin(AzRad);
-  cosAz = cos(AzRad);
-  return true;
-}
-
-double SiderealPlanets::getRAdec(void) {
-  RAdec = rad2deg(RArad) / 15.;
-  return RAdec;
-}
-
-double SiderealPlanets::getDeclinationDec(void) {
-  DeclinationDec = rad2deg(DeclinationRad);
-  return DeclinationDec;
-}
-
-double SiderealPlanets::getAltitude(void) {
-  AltDec = rad2deg(AltRad);
-  return AltDec;
-}
-
-double SiderealPlanets::getAzimuth(void) {
-  AzDec = rad2deg(AzRad);
-  return AzDec;
-}
-
-boolean SiderealPlanets::doRAdec2AltAz(void) {
-  double HAdec = inRange24(getLocalSiderealTime() - RAdec);
+AltAz SiderealPlanets::doRAdec2AltAz(const SiderealContext& ctx, double raHours, double decDeg) {
+  double decRad = deg2rad(decDeg);
+  double sinDec = sin(decRad), cosDec = cos(decRad);
+  double HAdec = inRange24(ctx.LocalSiderealTime - raHours);
   double HArad = deg2rad(HAdec * 15.04107);
   double cosHA = cos(HArad);
   double sinHA = sin(HArad);
-  sinAlt = (sinDec * sinLat) + (cosDec * cosLat * cosHA);
-  AltRad = asin(clampUnit(sinAlt));
-  cosAlt = cos(AltRad);
-  double b = cosLat * cosAlt;
+  double sinAlt = (sinDec * ctx.sinLat) + (cosDec * ctx.cosLat * cosHA);
+  double AltRad = asin(clampUnit(sinAlt));
+  double cosAlt = cos(AltRad);
+  double b = ctx.cosLat * cosAlt;
   if (b < 1e-10) b = 1e-10;
-  cosAz = (sinDec - (sinLat * sinAlt)) / b;
-  AzRad = acos(clampUnit(cosAz));
+  double cosAz = (sinDec - (ctx.sinLat * sinAlt)) / b;
+  double AzRad = acos(clampUnit(cosAz));
   if (sinHA > 0) AzRad = F2PI - AzRad;
-  sinAz = sin(AzRad);
-  return true;
+  return { rad2deg(AltRad), rad2deg(AzRad) };
 }
 
-boolean SiderealPlanets::doAltAz2RAdec(void) {
-  sinDec = (sinAlt * sinLat) + (cosAlt * cosLat * cosAz);
-  DeclinationRad = asin(clampUnit(sinDec));
-  cosDec = cos(DeclinationRad);
-  double b = cosLat * cosDec;
+RaDec SiderealPlanets::doAltAz2RAdec(const SiderealContext& ctx, double altDeg, double azDeg) {
+  double AltRad = deg2rad(altDeg);
+  double AzRad = deg2rad(azDeg);
+  double sinAlt = sin(AltRad), cosAlt = cos(AltRad);
+  double sinAz = sin(AzRad), cosAz = cos(AzRad);
+  double sinDec = (sinAlt * ctx.sinLat) + (cosAlt * ctx.cosLat * cosAz);
+  double DeclinationRad = asin(clampUnit(sinDec));
+  double cosDec = cos(DeclinationRad);
+  double b = ctx.cosLat * cosDec;
   if (b < 1e-10) b = 1e-10;
-  double cosHA = (sinAlt - (sinLat * sinDec)) / b;
+  double cosHA = (sinAlt - (ctx.sinLat * sinDec)) / b;
   double HArad = acos(clampUnit(cosHA));
   if (sinAz > 0) HArad = F2PI - HArad;
   double HAdec = rad2deg(HArad) / 15.04107;
-  double RAdec = inRange24(getLocalSiderealTime() - HAdec);
-  RArad = deg2rad(RAdec * 15.);
-  sinRA = sin(RArad);
-  cosRA = cos(RArad);
-  //cosDec = cos(DeclinationRad);
-  return true;
+  double RAdec = inRange24(ctx.LocalSiderealTime - HAdec);
+  return { RAdec, rad2deg(DeclinationRad) };
 }
 
-boolean SiderealPlanets::doNutation(void) {
-  //t = julian centuries since 2000 jan 1.5
-  if (nutationDone == true) return true;
-  double t = (modifiedJulianDate1900()) / 36525.0;
-  double t2 = t * t;
-  double a = 1.000021358e2 * t;
-  double b = 360.0 * (a - floor(a));
-  double L1_local = 2.796967e2 + 3.03e-4 * t2 + b;
-  double L2_local = 2.0 * deg2rad(L1_local);
-  a = 1.336855231e3 * t;
-  b = 360. * (a - floor(a));
-  double d1 = 2.704342e2 - 1.133e-3 * t2 + b;
-  double d2 = 2.0 * deg2rad(d1);
-  a = 9.999736056e1 * t;
-  b = 360.0 * (a - floor(a));
-  double M1_local = 3.584758e2 - 1.5e-4 * t2 + b;
-  M1_local = deg2rad(M1_local);
-  a = 1.325552359e3 * t;
-  b = 360.0 * (a - floor(a));
-  double M2_local = 2.961046e2 + 9.192e-3 * t2 + b;
-  M2_local = deg2rad(M2_local);
-  a = 5.372616667 * t;
-  b = 360. * (a - floor(a));
-  double N1_local = 2.591833e2 + 2.078e-3 * t2 - b;
-  N1_local = deg2rad(N1_local);
-  double N2_local = 2. * N1_local;
-  
-  nutationInLongitude = (-17.2327 - 1.737e-2 * t) * sin(N1_local);
-  nutationInLongitude = nutationInLongitude + (-1.2729 - 1.3e-4 * t) * sin(L2_local) + 2.088e-1 * sin(N2_local);
-  nutationInLongitude = nutationInLongitude - 2.037e-1 * sin(d2) + (1.261e-1 - 3.1e-4 * t) * sin(M1_local);
-  nutationInLongitude = nutationInLongitude + 6.75E-2 * sin(M2_local) - (4.97e-2 - 1.2e-4 * t) * sin(L2_local + M1_local);
-  nutationInLongitude = nutationInLongitude - 3.42e-2 * sin(d2 - N1_local) - 2.61e-2 * sin(d2 + M2_local);
-  nutationInLongitude = nutationInLongitude + 2.14e-2 * sin(L2_local - M1_local) - 1.49e-2 * sin(L2_local - d2 + M2_local);
-  nutationInLongitude = nutationInLongitude + 1.24E-2 * sin(L2_local - N1_local) + 1.14e-2 * sin(d2 - M2_local);
-  
-  nutationInObliquity = (9.21 + 9.1E-4 * t) * cos(N1_local);
-  nutationInObliquity = nutationInObliquity + (5.522e-1 - 2.9e-4 * t) * cos(L2_local) - 9.04e-2 * cos(N2_local);
-  nutationInObliquity = nutationInObliquity + 8.84e-2 * cos(d2) + 2.16e-2 * cos(L2_local + M1_local);
-  nutationInObliquity = nutationInObliquity + 1.83e-2 * cos(d2 - N1_local) + 1.13e-2 * cos(d2 + M2_local);
-  nutationInObliquity = nutationInObliquity + 9.3e-3 * cos(L2_local - M1_local) - 6.6e-3 * cos(L2_local - N1_local);
-  
-  nutationInLongitude = nutationInLongitude / 3600.0;
-  nutationInObliquity = nutationInObliquity / 3600.0;
-  nutationDone = true;
-  return true;
-}
-
-double SiderealPlanets::getDP(void) {
-  return nutationInLongitude;
-}
-double SiderealPlanets::getDO(void) {
-  return nutationInObliquity;
-}
-
-double SiderealPlanets::doObliquity(void) {
-  //Always include Nutation when computing Obliquity
-  if (obliquityDone == true) return obliquityEcliptic;
-  doNutation();
-  //modifiedJulianDate1900(); is mjd1900
-  double t = (modifiedJulianDate1900() / 36525.0) - 1.0;
-  double a = (46.815 + (0.0006 - 0.00181 * t) * t) * t;
-  a = a / 3600.0;
-  obliquityEcliptic = 23.43929167 - a + nutationInObliquity;
-  obliquityDone = true;
-  return obliquityEcliptic;
-}
-
-boolean SiderealPlanets::setEcliptic(double longitude, double latitude) {
-  EclLongitude = deg2rad(longitude);
-  EclLatitude = deg2rad(latitude);
-  return true;
-}
-
-double SiderealPlanets::getEclipticLongitude(void) {
-  return rad2deg(EclLongitude);
-}
-
-double SiderealPlanets::getEclipticLatitude(void) {
-  return rad2deg(EclLatitude);
-}
-
-boolean SiderealPlanets::doEcliptic2RAdec(void) {
+RaDec SiderealPlanets::doEcliptic2RAdec(const SiderealContext& ctx, double eclipticLongitudeRad, double eclipticLatitudeRad) {
   // Ecliptic coordinates to Right Ascension, Declination
-  if (Ecl2RaDecDone == false) {
-    obliquityDone = false;
-	doObliquity();
-	double e = deg2rad(obliquityEcliptic);
-	sineObliquity = sin(e);
-	cosineObliquity = cos(e);
-	Ecl2RaDecDone = true;
-  }
-  double CY_local = cos(EclLatitude);
-  double SY_local = sin(EclLatitude);
+  double CY_local = cos(eclipticLatitudeRad);
+  double SY_local = sin(eclipticLatitudeRad);
   if (abs(CY_local) < 1e-20) CY_local = 1e-20;
   double TY_local = SY_local / CY_local;
-  double CX_local = cos(EclLongitude);
-  double SX_local = sin(EclLongitude);
-  double S_local = (SY_local * cosineObliquity) - (CY_local * sineObliquity * SX_local * (-1.));
-  DeclinationRad = asin(S_local);
-  sinDec = S_local;
-  double A_local = (SX_local * cosineObliquity) + (TY_local * sineObliquity * (-1.));
-  RArad = atan(A_local / CX_local);
+  double CX_local = cos(eclipticLongitudeRad);
+  double SX_local = sin(eclipticLongitudeRad);
+  double S_local = (SY_local * ctx.cosineObliquity) - (CY_local * ctx.sineObliquity * SX_local * (-1.));
+  double DeclinationRad = asin(S_local);
+  double A_local = (SX_local * ctx.cosineObliquity) + (TY_local * ctx.sineObliquity * (-1.));
+  double RArad = atan(A_local / CX_local);
   if (CX_local < 0.) RArad += FPI;
   RArad = inRange2PI(RArad);
-  getRAdec();
-  getDeclinationDec();
-  sinRA = sin(RArad);
-  cosRA = cos(RArad);
-  cosDec = cos(DeclinationRad);
-  return true;
+  return { rad2deg(RArad) / 15., rad2deg(DeclinationRad) };
 }
 
-boolean SiderealPlanets::doPrecessFrom2000(void) {
-  doPrecessArray();
+RaDec SiderealPlanets::doPrecessFrom2000(const SiderealContext& ctx, double raHours, double decDeg) {
+  double RArad = deg2rad(raHours * 15.0);
+  double DeclinationRad = deg2rad(decDeg);
+  double cosRA = cos(RArad), sinRA = sin(RArad);
+  double cosDec = cos(DeclinationRad), sinDec = sin(DeclinationRad);
   // convert input to column vector
   double cv[4], hl[4], sm;
   int i, j;
@@ -768,7 +499,7 @@ boolean SiderealPlanets::doPrecessFrom2000(void) {
   for(j = 1; j < 4; j++) {
     sm = 0.0;
 	for(i = 1; i < 4; i++) {
-      sm += otherPrecessionMatrix[i][j] * cv[i];
+      sm += ctx.otherPrecessionMatrix[i][j] * cv[i];
 	}
 	hl[j] = sm;
   }
@@ -781,16 +512,14 @@ boolean SiderealPlanets::doPrecessFrom2000(void) {
   DeclinationRad = asin(cv[3]);
   if (cv[1] < 0) RArad += FPI;
   RArad = inRange2PI(RArad);
-  // Also update the 'other' internal stuff here
-  sinRA = sin(RArad);
-  cosRA = cos(RArad);
-  sinDec = sin(DeclinationRad);
-  cosDec = cos(DeclinationRad);
-  return true;
+  return { rad2deg(RArad) / 15., rad2deg(DeclinationRad) };
 }
 
-boolean SiderealPlanets::doPrecessTo2000(void) {
-  doPrecessArray();
+RaDec SiderealPlanets::doPrecessTo2000(const SiderealContext& ctx, double raHours, double decDeg) {
+  double RArad = deg2rad(raHours * 15.0);
+  double DeclinationRad = deg2rad(decDeg);
+  double cosRA = cos(RArad), sinRA = sin(RArad);
+  double cosDec = cos(DeclinationRad), sinDec = sin(DeclinationRad);
   // convert input to column vector
   double cv[4], hl[4], sm;
   int i, j;
@@ -801,7 +530,7 @@ boolean SiderealPlanets::doPrecessTo2000(void) {
   for(j = 1; j < 4; j++) {
     sm = 0.0;
 	for(i = 1; i < 4; i++) {
-      sm += precessionMatrix[i][j] * cv[i];
+      sm += ctx.precessionMatrix[i][j] * cv[i];
 	}
 	hl[j] = sm;
   }
@@ -814,362 +543,43 @@ boolean SiderealPlanets::doPrecessTo2000(void) {
   DeclinationRad = asin(cv[3]);
   if (cv[1] < 0) RArad += FPI;
   RArad = inRange2PI(RArad);
-  // Also update the 'other' internal stuff here
-  sinRA = sin(RArad);
-  cosRA = cos(RArad);
-  sinDec = sin(DeclinationRad);
-  cosDec = cos(DeclinationRad);
-  return true;
+  return { rad2deg(RArad) / 15., rad2deg(DeclinationRad) };
 }
 
-boolean SiderealPlanets::doPrecessArray(void) {
-  if (precessArrayDone == false) {
-    //t = julian centuries since 2000 jan 1.5
-    double t = (modifiedJulianDate1900() - 36525.0) / 36525.0;
-	// Generate parameters for matrix elements
-    double xa = (((0.000005 * t) + 0.0000839) * t + 0.6406161) * t;
-    double za = (((0.0000051 * t) + 0.0003041) * t + 0.6406161) * t;
-    double ta = (((-0.0000116 * t) - 0.0001185) * t + 0.556753) * t;
-    xa = deg2rad(xa);
-    za = deg2rad(za);
-    ta = deg2rad(ta);
-    double c1 = cos(xa);
-    double c2 = cos(za);
-    double c3 = cos(ta);
-    double s1 = sin(xa);
-    double s2 = sin(za);
-    double s3 = sin(ta);
-    // Generate matrix elements for the two matrixies needed
-    precessionMatrix[1][1] = c1 * c3 * c2 - s1 * s2;
-	otherPrecessionMatrix[1][1] = precessionMatrix[1][1];
-    precessionMatrix[1][2] = -s1 * c3 * c2 - c1 * s2;
-	otherPrecessionMatrix[2][1] = precessionMatrix[1][2];
-    precessionMatrix[1][3] = -s3 * c2;
-	otherPrecessionMatrix[3][1] = precessionMatrix[1][3];
-    precessionMatrix[2][1] = c1 * c3 * s2 + s1 * c2;
-	otherPrecessionMatrix[1][2] = precessionMatrix[2][1];
-    precessionMatrix[2][2] = -s1 * c3 * s2 + c1 * c2;
-	otherPrecessionMatrix[2][2] = precessionMatrix[2][2];
-    precessionMatrix[2][3] = -s3 * s2;
-	otherPrecessionMatrix[3][2] = precessionMatrix[2][3];
-    precessionMatrix[3][1] = c1 * s3;
-	otherPrecessionMatrix[1][3] = precessionMatrix[3][1];
-    precessionMatrix[3][2] = -s1 * s3;
-	otherPrecessionMatrix[2][3] = precessionMatrix[3][2];
-    precessionMatrix[3][3] = c3;
-	otherPrecessionMatrix[3][3] = precessionMatrix[3][3];
-    precessArrayDone = true;
-  }
-  return true;
-}
-
-boolean SiderealPlanets::doLunarParallax(void) {
-  //do on first call to this location
-  double u = atan(9.96647e-1 * sinLat / cosLat);
-  double c2 = cos(u);
-  double s2 = sin(u);
-  double ht = seaLevelHeightMeters / 6378140.0; // height in earth radii
-  double rs = (9.96647e-1 * s2) + (ht * sinLat);
-  double rc = c2 + (ht * cosLat);
-  
-  double rp = 1. / sin(deg2rad(EquatHorizontalParallax));
-  // x = Hour Angle, y = declination
-  double lst = getLocalSiderealTime();
-  double HAdec = inRange24(lst - RAdec);
-  double HArad = deg2rad(HAdec) * 15.04107;
-  double cosHA = cos(HArad);
-  double sinHA = sin(HArad);
-
-  double a = (rc * sinHA) / ((rp * cosDec) - (rc * cosHA));
-  double dx = atan(a); //correction to hour angle, in radians
-  double p = HArad + dx;
-  double cp = cos(p);
-  HArad = inRange2PI(p);
-  DeclinationRad = atan(cp * (rp * sinDec - rs) / (rp * cosDec * cosHA - rc));
-  // Also update the 'other' internal stuff here
-  HAdec = rad2deg(HArad) / 15.;
-  RAdec = inRange24(lst - HAdec);
-  RArad = deg2rad(RAdec) * 15.;
-  sinRA = sin(RArad);
-  cosRA = cos(RArad);
-  sinDec = sin(DeclinationRad);
-  cosDec = cos(DeclinationRad);
-  return true;
-}
-
-float SiderealPlanets::getLunarLuminance() {
-  double tmpRArad, tmpRAdec, tmpDeclinationRad, tmpDeclinationDec;
-  float SD_local, CD_local, D_local, Irad, K_local;
-  
-  // Make sure called doMoon() first, before calling this function
-  if (!doMoonDone) doMoon();
-  // Save off current RA/Dec, which we assume is for the Moon
-  tmpRArad = RArad;
-  tmpRAdec = RAdec;
-  tmpDeclinationRad = DeclinationRad;
-  tmpDeclinationDec = DeclinationDec;
-  
-  // Call Sun routine
-  doSun();
-  CD_local = cos(moonGeocentricEclipticLongitude - sunTrueGeocentricLongitude) * cos(moonGeocentricEclipticLatitude);
-  D_local = 1.570796327 - asin(CD_local);
-  SD_local =sin(D_local);
-  Irad = 1.468e-1 * SD_local * (1.0 - 5.49e-2 * sin(moonMeanAnomaly));
-  Irad = Irad / (1.0 - 1.67e-2 * sin(sunMeanAnomaly));
-  Irad = FPI - D_local - deg2rad(Irad);
-  K_local = (1.0 + cos(Irad)) / 2.0;
-  LunarIrradiance = int(K_local * 10000.0 + 0.5) / 10000.0;
-  // Restore RA/Dec
-  RArad = tmpRArad;
-  RAdec = tmpRAdec;
-  DeclinationRad = tmpDeclinationRad;
-  DeclinationDec = tmpDeclinationDec;
-  doMoonDone = true;
-  getLunarLuminanceDone = true;
-  return LunarIrradiance * 100.0;
-}
-
-int SiderealPlanets::getMoonPhase() {
-  /*
-  0. New Moon
-  1. Waxing Crescent
-  2. First Quarter
-  3. Waxing Gibbous
-  4. Full Moon
-  5. Waning Gibbous
-  6. Third Quarter
-  7. Waning Crescent
-  */
-  // Make sure doMoon() called first, before calling this function
-  double modphase = fmod((modifiedJulianDate1900() - 45212.25), 29.53059);
-  if (modphase < 0.) modphase = fmod((29.53059 + modphase), 29.53059);
-  if (!doMoonDone) doMoon();
-  if (!getLunarLuminanceDone) getLunarLuminance();
-  if (LunarIrradiance < 0.02) return 0; // New Moon
-  if (LunarIrradiance > 0.98) return 4; // Full Moon
-  if (modphase < (29.53059 / 2.)) {
-    if (LunarIrradiance < 0.45) return 1; // Waxing Crescent
-    if (LunarIrradiance > 0.55) return 3; // Waxing Gibbous
-    return 2; // First quarter
-  } else {
-    if (LunarIrradiance < 0.45) return 7; // Waning Crescent
-    if (LunarIrradiance > 0.55) return 5; // Waning Gibbous
-    return 6; // Third quarter
-  }
-  return 0;
-}
-
-boolean SiderealPlanets::setEquatHorizontalParallax(double hp) {
-  //This is here for testing only - not to be used in Real Life!
-  //That's why it's left undocumented
-  EquatHorizontalParallax = hp;
-  return true;
-}
-
-double SiderealPlanets::getEquatHorizontalParallax(void) {
-  //This is here for testing only - not to be used in Real Life!
-  //That's why it's left undocumented
-  return EquatHorizontalParallax;
-}
-
-boolean SiderealPlanets::doRefractionF(double pressure, double temperature) {
-  pressure *= 33.8639;
-  temperature = (temperature - 32.) * (5. / 9.);
-  doRefractionC(pressure, temperature);
-  return true;
-}
-
-boolean SiderealPlanets::doRefractionC(double pressure, double temperature) {
-  double rf = 0.;
-  AltDec = rad2deg(AltRad);
-  //Valid for any values above -5 degrees
-  double y = AltRad;
-  double y1 = AltRad;
-  double y2 = AltRad;
-  double r1 = 0.0;
-  double r2 = r1;
-  double q;
-  do {
-	r1 = r2;
-	y = y1 + r1;
-	q = y;
-    if (y >= 2.617994e-1) {
-      rf = 7.888888e-5 * pressure / ((273 + temperature) * tan(y));
-    } else {
-      if (y >= -8.7e-2) {
-        double yd = y * 5.729578e1;
-        double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
-        double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
-        rf = (a / b) * 1.745329e-2;
-      }
-    }
-	r2 = rf;
-  } while (r2 != 0. && abs(r2 - r1) > 1e-6);
-  y = y2;
-  AltRad = AltRad + rf;
-  sinAlt = sin(AltRad);
-  cosAlt = cos(AltRad);
-  //SerialUSB.print("Correction ");
-  //printDegMinSecs(rad2deg(rf));
-  //SerialUSB.println();
-  return true;
-}
-
-boolean SiderealPlanets::doAntiRefractionF(double pressure, double temperature) {
-  pressure *= 33.8639;
-  temperature = (temperature - 32.) * (5. / 9.);
-  doAntiRefractionC(pressure, temperature);
-  return true;
-}
-
-boolean SiderealPlanets::doAntiRefractionC(double pressure, double temperature) {
-  double rf = 0.;
-  AltDec = rad2deg(AltRad);
-  //Valid for any values above -5 degrees
-  if (AltRad >= 2.617994e-1) {
-    rf = -7.888888e-5 * pressure / ((273 + temperature) * tan(AltRad));
-  } else {
-    if (AltRad >= -8.7e-2) {
-      double yd = AltRad * 5.729578e1;
-      double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
-      double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
-      rf = -(a / b) * 1.745329e-2;
-    }
-  }
-  AltRad = AltRad + rf;
-  sinAlt = sin(AltRad);
-  cosAlt = cos(AltRad);
-  //SerialUSB.print("Correction ");
-  //printDegMinSecs(rad2deg(rf));
-  //SerialUSB.println();
-  return true;
-}
-
-boolean SiderealPlanets::doRiseSetTimes(double DIdeg) {
-  //horizonVerticalDisplacement = vertical displacement in radians
-  double horizonVerticalDisplacement = deg2rad(DIdeg);
-  double SD_local = sin(horizonVerticalDisplacement);
-  double CD_local = cos(horizonVerticalDisplacement);
-  double CH_local = -(SD_local + (sinLat * sinDec)) / (cosLat * cosDec);
-  if (CH_local < -1.0) return false; //circumpolar - never sets
-  if (CH_local > 1.0) return false; // never rises
-  double CA_local = (sinDec + (SD_local * sinLat)) / (CD_local * cosLat);
-  double H_local = acos(CH_local);
-  azimuthRising = acos(CA_local);
-  double B_local = rad2deg(H_local) / 15.04107;
-  double A_local = rad2deg(RArad) / 15.04107;
-  localSiderealTimeRising = inRange24(24.0 + A_local - B_local);
-  localSiderealTimeSetting = inRange24(A_local + B_local);
-  azimuthSetting = inRange2PI(F2PI - azimuthRising);
-  azimuthRising = inRange2PI(azimuthRising); //need for Moon rise/set
-  return true;
-}
-
-// ------------------------------------------------------------------------------------------------------
-// modified: allows calc rise/set of other celestial bodies (same as sun but we will not call doSun())
-// ------------------------------------------------------------------------------------------------------
-/*
-double sun_horizonVerticalDisplacement = 1.454441e-2; // here for reference. if DI is unknown then set
-DI 0.0 for stars or use suns DI for planeets.
-*/
-boolean SiderealPlanets::doXRiseSetTimes(double DI) {
-  double horizonVerticalDisplacement = DI;
-	double tmpGMT = GMTtime;
-	GMTtime = (12.0 + (TimeZoneOffset + DSToffset));
-	GMTtime = tmpGMT;
-	if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) return false;
-
-	double LA_local = localSiderealTimeRising; //localSiderealTime of rising - first guesstimate
-	double LB_local = localSiderealTimeSetting; //localSiderealTime of setting - first guesstimate
-	double GU_local = doLST2GMT(LA_local);
-	double GD_local = doLST2GMT(LB_local);
-
-	GMTtime = GU_local;
-	double DN_local = mjd1900;
-	double A_local = GMTtime + TimeZoneOffset + DSToffset;
-	if (A_local > 24.) mjd1900 -= 1;
-	if (A_local < 0.)  mjd1900 += 1;
-	mjd1900 = DN_local;
-	GMTtime = tmpGMT;
-	if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) return false;
-	LA_local = localSiderealTimeRising; //AA_local = azimuthRising;
-
-	GMTtime = GD_local;
-	A_local = GMTtime + TimeZoneOffset + DSToffset;
-	if (A_local > 24.) mjd1900 -= 1;
-	if (A_local < 0.)  mjd1900 += 1;
-	mjd1900 = DN_local;
-	GMTtime = tmpGMT;
-	if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) return false;
-
-	LB_local = localSiderealTimeSetting; //AB_local = azimuthSetting;
-	localSiderealTimeRising = LA_local;
-	return true;
-}
-// ------------------------------------------------------------------------------------------------------
-
-double SiderealPlanets::getRiseTime(void) {
-  // -------------------------------------------------
-  // original:
-  // -------------------------------------------------
-  //return doLST2LT(localSiderealTimeRising);
-  // -------------------------------------------------
-  // modified:
-  // -------------------------------------------------
-  return inRange60(doLST2LT(localSiderealTimeRising));
-}
-
-double SiderealPlanets::getSetTime(void) {
-  // -------------------------------------------------
-  // original:
-  // -------------------------------------------------
-  //return doLST2LT(localSiderealTimeSetting);
-  // -------------------------------------------------
-  // modified:
-  // -------------------------------------------------
-  return inRange60(doLST2LT(localSiderealTimeSetting));
-}
-
-double SiderealPlanets::doAnomaly(double meanAnomaly, double eccentricity) {
-  //Returns eccentric anomaly in degrees given the mean anomaly in degrees
+AnomalyResult SiderealPlanets::doAnomaly(double meanAnomalyDeg, double eccentricity) {
+  //Returns eccentric/true anomaly given the mean anomaly in degrees
   //and eccentricity for an elliptical orbit.
-  double m, d, a;
-  SP_meanAnomaly = deg2rad(meanAnomaly);
+  double meanAnomalyRad = deg2rad(meanAnomalyDeg);
+  double m = meanAnomalyRad - F2PI * floor(meanAnomalyRad / F2PI);
+  double eccentricAnomalyRad = m;
   boolean flag = false;
-  m = SP_meanAnomaly - F2PI * floor(SP_meanAnomaly / F2PI);
-  eccentricAnomaly = m;
   do {
     flag = false;
-    d = eccentricAnomaly - (eccentricity * sin(eccentricAnomaly)) - m;
+    double d = eccentricAnomalyRad - (eccentricity * sin(eccentricAnomalyRad)) - m;
     if (fabs(d) >= 1.0e-9) {
-      d = d / (1.0 - (eccentricity * cos(eccentricAnomaly)));
-      eccentricAnomaly = eccentricAnomaly - d;
+      d = d / (1.0 - (eccentricity * cos(eccentricAnomalyRad)));
+      eccentricAnomalyRad = eccentricAnomalyRad - d;
 	  flag = true;
     }
   } while (flag == true);
-  
-  a = sqrt((1.0 + eccentricity) / (1.0 - eccentricity)) * tan(eccentricAnomaly / 2.0);
-  trueAnomaly = 2.0 * atan(a);
-  return rad2deg(eccentricAnomaly);
+
+  double a = sqrt((1.0 + eccentricity) / (1.0 - eccentricity)) * tan(eccentricAnomalyRad / 2.0);
+  double trueAnomalyRad = 2.0 * atan(a);
+  return { meanAnomalyRad, eccentricAnomalyRad, trueAnomalyRad };
 }
 
-double SiderealPlanets::getTrueAnomaly(void) {
-  //Returns true anomaly in degrees after doAnomaly() has been called.
-  return rad2deg(trueAnomaly);
-}
-
-boolean SiderealPlanets::doSun(void) {
-  julianCenturies1900 = (modifiedJulianDate1900() / 36525.0) + (getGMT() / 8.766e5);
+SunResult SiderealPlanets::doSun(const SiderealContext& ctx) {
+  double julianCenturies1900 = (ctx.mjd1900 / 36525.0) + (ctx.GMTtime / 8.766e5);
   double T2_local = julianCenturies1900 * julianCenturies1900;
   double A_local = 1.000021359e2 * julianCenturies1900;
   double B_local = 360.0 * (A_local - floor(A_local));
   double L_local = 2.7969668e2 + 3.025e-4 * T2_local + B_local;
   A_local = 9.999736042e1 * julianCenturies1900;
   B_local = 360.0 * (A_local - floor(A_local));
-  meanAnomaly = 3.5847583e2 - (1.5e-4 + 3.3e-6 * julianCenturies1900) * T2_local + B_local;
+  double meanAnomaly = 3.5847583e2 - (1.5e-4 + 3.3e-6 * julianCenturies1900) * T2_local + B_local;
   double eccentricity = 1.675104e-2 - 4.18e-5 * julianCenturies1900 - 1.26e-7 * T2_local;
-  doAnomaly(meanAnomaly, eccentricity);
-  
+  AnomalyResult anomaly = doAnomaly(meanAnomaly, eccentricity);
+
   A_local = 6.255209472e1 * julianCenturies1900;
   B_local = 360.0 * (A_local - floor(A_local));
   double A1_local = deg2rad(153.23 + B_local);
@@ -1186,32 +596,35 @@ boolean SiderealPlanets::doSun(void) {
   A_local = 1.831353208e2 * julianCenturies1900;
   B_local = 360.0 * (A_local- floor(A_local));
   double H1_local = deg2rad(353.4 + B_local);
-  
+
   double D2_local = 1.34e-3 * cos(A1_local) + 1.54e-3 * cos(B1b) + 2e-3 * cos(C1_local);
   D2_local = D2_local + 1.79e-3 * sin(D1_local) + 1.78e-3 * sin(E1_local);
-  
+
   double D3_local = 5.43e-6 * sin(A1_local) + 1.575e-5 * sin(B1b);
   D3_local = D3_local + 1.627e-5 * sin(C1_local) + 3.076e-5 * cos(D1_local);
   D3_local = D3_local + 9.27e-6 * sin(H1_local);
-  
-  sunTrueGeocentricLongitude = trueAnomaly + deg2rad(L_local - meanAnomaly + D2_local);
+
+  double sunTrueGeocentricLongitude = anomaly.trueAnomalyRad + deg2rad(L_local - meanAnomaly + D2_local);
   // Distance from Earth in Astronomical Units = int(sunEarthDistance * 1e5 + 0.5) / 1e5
-  sunEarthDistance = 1.0000002 * (1.0 - eccentricity * cos(eccentricAnomaly)) + D3_local;
+  double sunEarthDistance = 1.0000002 * (1.0 - eccentricity * cos(anomaly.eccentricAnomalyRad)) + D3_local;
   // true geocentric longitude of the Sun
   sunTrueGeocentricLongitude = inRange2PI(sunTrueGeocentricLongitude);
-  
+
   // Apparent ecliptic longitude
-  doNutation();
-  apparentEclipticLongitude = rad2deg(sunTrueGeocentricLongitude) + nutationInLongitude - 5.69e-3;
-  Ecl2RaDecDone = false;
-  setEcliptic(apparentEclipticLongitude, 0.0);
-  doEcliptic2RAdec();
-  
-  return true;
+  double apparentEclipticLongitude = rad2deg(sunTrueGeocentricLongitude) + ctx.nutationInLongitude - 5.69e-3;
+
+  SunResult result;
+  result.eq = doEcliptic2RAdec(ctx, deg2rad(apparentEclipticLongitude), deg2rad(0.0));
+  result.trueGeocentricLongitudeRad = sunTrueGeocentricLongitude;
+  result.earthDistanceAU = sunEarthDistance;
+  result.meanAnomalyRad = anomaly.meanAnomalyRad;
+  result.eclipticLongitudeDeg = apparentEclipticLongitude;
+  result.eclipticLatitudeDeg = 0.0;
+  return result;
 }
 
-boolean SiderealPlanets::doMoon(void) {
-  julianCenturies1900 = (modifiedJulianDate1900() / 36525.0) + (getGMT() / 8.766e5);
+MoonResult SiderealPlanets::doMoon(const SiderealContext& ctx) {
+  double julianCenturies1900 = (ctx.mjd1900 / 36525.0) + (ctx.GMTtime / 8.766e5);
   double T2_local = julianCenturies1900 * julianCenturies1900;
   double M1_local = 2.732158213e1;
   double M2_local = 3.652596407e2;
@@ -1219,7 +632,7 @@ boolean SiderealPlanets::doMoon(void) {
   double M4_local = 2.953058868e1;
   double M5_local = 2.721222039e1;
   double M6_local = 6.798363307e3;
-  double Q_local = modifiedJulianDate1900()+(getGMT() / 24.0);
+  double Q_local = ctx.mjd1900 + (ctx.GMTtime / 24.0);
   M1_local = Q_local / M1_local;
   M2_local = Q_local / M2_local;
   M3_local = Q_local / M3_local;
@@ -1233,8 +646,8 @@ boolean SiderealPlanets::doMoon(void) {
   M5_local = 360. * (M5_local - floor(M5_local));
   M6_local = 360. * (M6_local - floor(M6_local));
   double moonMeanLongitude = 2.70434164E2 + M1_local - (1.133E-3 - 1.9E-6 * julianCenturies1900) * T2_local;
-  sunMeanAnomaly = 3.58475833E2 + M2_local - (1.5E-4 + 3.3E-6 * julianCenturies1900) * T2_local;
-  moonMeanAnomaly = 2.96104608E2 + M3_local+(9.192E-3 + 1.44E-5 * julianCenturies1900) * T2_local;
+  double sunMeanAnomaly = 3.58475833E2 + M2_local - (1.5E-4 + 3.3E-6 * julianCenturies1900) * T2_local;
+  double moonMeanAnomaly = 2.96104608E2 + M3_local+(9.192E-3 + 1.44E-5 * julianCenturies1900) * T2_local;
   double moonMeanElongation = 3.50737486E2 + M4_local - (1.436E-3 - 1.9E-6 * julianCenturies1900) * T2_local;
   double moonMeanDistanceAcendingNode = 11.250889 + M5_local - (3.211E-3 + 3E-7 * julianCenturies1900) * T2_local;
   double moonLongitudeAscendingNode = 2.59183275E2 - M6_local+(2.078E-3 + 2.2E-6 * julianCenturies1900) * T2_local;
@@ -1286,7 +699,7 @@ boolean SiderealPlanets::doMoon(void) {
   L_local = L_local + 5.5E-4 * sin(moonMeanAnomaly + 4 * moonMeanElongation) + 5.38E-4 * sin(4. * moonMeanAnomaly);
   L_local = L_local + E_local * 5.21E-4 * sin(4. * moonMeanElongation - sunMeanAnomaly) + 4.86E-4 * sin(2. * moonMeanAnomaly - moonMeanElongation);
   L_local = L_local + E2_local * 7.17E-4 * sin(moonMeanAnomaly - 2. * sunMeanAnomaly);
-  moonGeocentricEclipticLongitude = inRange2PI(moonMeanLongitude + deg2rad(L_local)); //Moon's geocentric ecliptic longitude
+  double moonGeocentricEclipticLongitude = inRange2PI(moonMeanLongitude + deg2rad(L_local)); //Moon's geocentric ecliptic longitude
 
   double G_local = 5.128189 * sin(moonMeanDistanceAcendingNode) + 2.80606e-1 * sin(moonMeanAnomaly + moonMeanDistanceAcendingNode);
   G_local = G_local + 2.77693E-1 * sin(moonMeanAnomaly - moonMeanDistanceAcendingNode) + 1.73238E-1 * sin(2. * moonMeanElongation - moonMeanDistanceAcendingNode);
@@ -1315,8 +728,8 @@ boolean SiderealPlanets::doMoon(void) {
   G_local = G_local + E2_local * 3.06E-4 * sin(2. * (moonMeanElongation - sunMeanAnomaly) - moonMeanDistanceAcendingNode) - 2.83E-4 * sin(moonMeanAnomaly + 3. * moonMeanDistanceAcendingNode);
   double W1 = 4.664E-4 * cos(moonLongitudeAscendingNode);
   double W2 = 7.54E-5 * cos(C_local);
-  moonGeocentricEclipticLatitude = deg2rad(G_local) * (1.0 - W1 - W2); // Moon's geocentric ecliptic latitude
-  moonHorizontalParallax = 9.50724E-1 + 5.1818E-2 * cos(moonMeanAnomaly) + 9.531E-3 * cos(2. * moonMeanElongation - moonMeanAnomaly);
+  double moonGeocentricEclipticLatitude = deg2rad(G_local) * (1.0 - W1 - W2); // Moon's geocentric ecliptic latitude
+  double moonHorizontalParallax = 9.50724E-1 + 5.1818E-2 * cos(moonMeanAnomaly) + 9.531E-3 * cos(2. * moonMeanElongation - moonMeanAnomaly);
   moonHorizontalParallax = moonHorizontalParallax + 7.843E-3 * cos(2. * moonMeanElongation) + 2.824E-3 * cos(2. * moonMeanAnomaly);
   moonHorizontalParallax = moonHorizontalParallax + 8.57E-4 * cos(2. * moonMeanElongation + moonMeanAnomaly) + E_local * 5.33E-4 * cos(2. * moonMeanElongation - sunMeanAnomaly);
   moonHorizontalParallax = moonHorizontalParallax + E_local * 4.01E-4 * cos(2. * moonMeanElongation - moonMeanAnomaly - sunMeanAnomaly);
@@ -1332,23 +745,95 @@ boolean SiderealPlanets::doMoon(void) {
   moonHorizontalParallax = moonHorizontalParallax - 2.9E-5 * cos(2. * (moonMeanDistanceAcendingNode - moonMeanElongation)) - E_local * 2.9E-5 * cos(2. * moonMeanAnomaly + sunMeanAnomaly);
   moonHorizontalParallax = moonHorizontalParallax + E2_local * 2.6E-5 * cos(2. * (moonMeanElongation - sunMeanAnomaly)) - 2.3E-5 * cos(2. * (moonMeanDistanceAcendingNode - moonMeanElongation) + moonMeanAnomaly);
   moonHorizontalParallax = moonHorizontalParallax + E_local * 1.9E-5 * cos(4. * moonMeanElongation - sunMeanAnomaly - moonMeanAnomaly);
-  EquatHorizontalParallax = moonHorizontalParallax;
-  moonHorizontalParallax = deg2rad(moonHorizontalParallax); // Horizntal parallax
+  double horizontalParallaxDeg = moonHorizontalParallax;
   // end of regular routine
-  //EclLongitude = moonGeocentricEclipticLongitude to SP_AL, EclLatitude = moonGeocentricEclipticLatitude
-  doNutation();
-  double SP_AL = rad2deg(moonGeocentricEclipticLongitude) + nutationInLongitude;
-  //setEcliptic(moonGeocentricEclipticLongitude, moonGeocentricEclipticLatitude);
-  EclLongitude = deg2rad(SP_AL);
-  EclLatitude = moonGeocentricEclipticLatitude;
-  doEcliptic2RAdec();
-  doMoonDone = true;
-  getLunarLuminanceDone = false;
-  return true;
+  double SP_AL = rad2deg(moonGeocentricEclipticLongitude) + ctx.nutationInLongitude;
+
+  MoonResult result;
+  result.eq = doEcliptic2RAdec(ctx, deg2rad(SP_AL), moonGeocentricEclipticLatitude);
+  result.geocentricEclipticLongitudeRad = moonGeocentricEclipticLongitude;
+  result.geocentricEclipticLatitudeRad = moonGeocentricEclipticLatitude;
+  result.moonMeanAnomalyRad = moonMeanAnomaly;
+  result.sunMeanAnomalyRad = sunMeanAnomaly;
+  result.horizontalParallaxDeg = horizontalParallaxDeg;
+  return result;
 }
 
-boolean SiderealPlanets::doPlanetElements(void) {
-  // 'i' in planetaryOrbitalElements[i][j] is the number of the planet to compute
+RaDec SiderealPlanets::doLunarParallax(const SiderealContext& ctx, const MoonResult& moon) {
+  double u = atan(9.96647e-1 * ctx.sinLat / ctx.cosLat);
+  double c2 = cos(u);
+  double s2 = sin(u);
+  double ht = ctx.seaLevelHeightMeters / 6378140.0; // height in earth radii
+  double rs = (9.96647e-1 * s2) + (ht * ctx.sinLat);
+  double rc = c2 + (ht * ctx.cosLat);
+
+  double rp = 1. / sin(deg2rad(moon.horizontalParallaxDeg));
+  double decRad = deg2rad(moon.eq.dec_deg);
+  double sinDec = sin(decRad), cosDec = cos(decRad);
+  // x = Hour Angle, y = declination
+  double lst = ctx.LocalSiderealTime;
+  double HAdec = inRange24(lst - moon.eq.ra_hours);
+  double HArad = deg2rad(HAdec) * 15.04107;
+  double cosHA = cos(HArad);
+  double sinHA = sin(HArad);
+
+  double a = (rc * sinHA) / ((rp * cosDec) - (rc * cosHA));
+  double dx = atan(a); //correction to hour angle, in radians
+  double p = HArad + dx;
+  double cp = cos(p);
+  HArad = inRange2PI(p);
+  double newDecRad = atan(cp * (rp * sinDec - rs) / (rp * cosDec * cosHA - rc));
+  HAdec = rad2deg(HArad) / 15.;
+  double newRaHours = inRange24(lst - HAdec);
+  return { newRaHours, rad2deg(newDecRad) };
+}
+
+float SiderealPlanets::getLunarLuminance(const SiderealContext& ctx, const MoonResult& moon) {
+  // Call Sun routine
+  SunResult sun = doSun(ctx);
+  float CD_local = cos(moon.geocentricEclipticLongitudeRad - sun.trueGeocentricLongitudeRad) * cos(moon.geocentricEclipticLatitudeRad);
+  float D_local = 1.570796327 - asin(CD_local);
+  float SD_local = sin(D_local);
+  float Irad = 1.468e-1 * SD_local * (1.0 - 5.49e-2 * sin(moon.moonMeanAnomalyRad));
+  Irad = Irad / (1.0 - 1.67e-2 * sin(moon.sunMeanAnomalyRad));
+  Irad = FPI - D_local - deg2rad(Irad);
+  float K_local = (1.0 + cos(Irad)) / 2.0;
+  float lunarIrradiance = int(K_local * 10000.0 + 0.5) / 10000.0;
+  return lunarIrradiance * 100.0;
+}
+
+int SiderealPlanets::getMoonPhase(const SiderealContext& ctx, const MoonResult& moon) {
+  /*
+  0. New Moon
+  1. Waxing Crescent
+  2. First Quarter
+  3. Waxing Gibbous
+  4. Full Moon
+  5. Waning Gibbous
+  6. Third Quarter
+  7. Waning Crescent
+  */
+  double modphase = fmod((ctx.mjd1900 - 45212.25), 29.53059);
+  if (modphase < 0.) modphase = fmod((29.53059 + modphase), 29.53059);
+  // getLunarLuminance() returns a 0..100 percentage; recover the 0..1 fraction
+  // the original phase thresholds (0.02/0.98/0.45/0.55) were written against.
+  float lunarIrradiance = getLunarLuminance(ctx, moon) / 100.0f;
+  if (lunarIrradiance < 0.02) return 0; // New Moon
+  if (lunarIrradiance > 0.98) return 4; // Full Moon
+  if (modphase < (29.53059 / 2.)) {
+    if (lunarIrradiance < 0.45) return 1; // Waxing Crescent
+    if (lunarIrradiance > 0.55) return 3; // Waxing Gibbous
+    return 2; // First quarter
+  } else {
+    if (lunarIrradiance < 0.45) return 7; // Waning Crescent
+    if (lunarIrradiance > 0.55) return 5; // Waning Gibbous
+    return 6; // Third quarter
+  }
+  return 0;
+}
+
+PlanetElements SiderealPlanets::doPlanetElements(const SiderealContext& ctx) {
+  // 'i' in elements.table[i][j] is the number of the planet to compute
   // 1=Mercury, 2=Venus, 3=Mars, 4=Jupiter, 5=Saturn, 6=Uranus, 7=Neptune
   const double readData[] = {
     //Mercury
@@ -1401,7 +886,8 @@ boolean SiderealPlanets::doPlanetElements(void) {
 	130.681389,1.098935,2.4987e-4,-4.718e-6,
 	30.10957,62.2,-6.87
   };
-  julianCenturies1900 = (modifiedJulianDate1900() / 36525.0) + (getGMT() / 8.766e5);
+  PlanetElements result{};
+  double julianCenturies1900 = (ctx.mjd1900 / 36525.0) + (ctx.GMTtime / 8.766e5);
   double A0_local, A1_local, A2_local, A3_local, AA_local, B_local;
   int i, j, k;
   k = 0; //data array index
@@ -1412,34 +898,23 @@ boolean SiderealPlanets::doPlanetElements(void) {
 	A3_local = readData[k++];
 	AA_local = A1_local * julianCenturies1900;
 	B_local = 360.0 * (AA_local - floor(AA_local));
-	planetaryOrbitalElements[i][1] = inRange360(A0_local + B_local + (A3_local * julianCenturies1900 + A2_local) * julianCenturies1900 * julianCenturies1900);
-	planetaryOrbitalElements[i][2] = (A1_local * 9.856263e-3) + (A2_local + A3_local) / 36525.0;
+	result.table[i][1] = inRange360(A0_local + B_local + (A3_local * julianCenturies1900 + A2_local) * julianCenturies1900 * julianCenturies1900);
+	result.table[i][2] = (A1_local * 9.856263e-3) + (A2_local + A3_local) / 36525.0;
 	for (j = 3; j <= 6; j++) {
 	  A0_local = readData[k++];
 	  A1_local = readData[k++];
 	  A2_local = readData[k++];
 	  A3_local = readData[k++];
-	  planetaryOrbitalElements[i][j] = ((A3_local * julianCenturies1900 + A2_local) * julianCenturies1900 + A1_local) * julianCenturies1900 + A0_local;
+	  result.table[i][j] = ((A3_local * julianCenturies1900 + A2_local) * julianCenturies1900 + A1_local) * julianCenturies1900 + A0_local;
 	}
-	planetaryOrbitalElements[i][7] = readData[k++];
-	planetaryOrbitalElements[i][8] = readData[k++];
-	planetaryOrbitalElements[i][9] = readData[k++];
+	result.table[i][7] = readData[k++];
+	result.table[i][8] = readData[k++];
+	result.table[i][9] = readData[k++];
   }
-  return true;
+  return result;
 }
 
-double SiderealPlanets::getPL(int i, int j) {
-  // get orbital element j for a planet i
-  return planetaryOrbitalElements[i][j];
-}
-
-double earthEclipticLongitude;
-
-double SiderealPlanets::getEarthEclipticLongitude() {
-  return earthEclipticLongitude;
-}
-
-boolean SiderealPlanets::doPlans(int planetNumber) {
+PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun, int planetNumber) {
   //Calculate apparent geocentric ecliptic coordinates,
   //allowing for light travel time, for the planets
   int K_local, J_local;
@@ -1450,20 +925,19 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
   double SA_local, CA_local, J1_local, J2_local, J3_local, J4_local, J5_local, J6_local, J7_local, J8_local, J9_local, JA_local, JB_local, JC_local;
   double  U1_local, U2_local, U3_local, U4_local, U5_local, U6_local, U7_local, U8_local, U9_local, UA_local, UB_local, UC_local, UD_local, UE_local, UF_local, UG_local, UI_local, UJ_local, UK_local, UL_local, UN_local, UO_local, UP_local, UQ_local, UR_local, UU_local, UV_local, UW_local, UX_local, UY_local, UZ_local;
   double  VA_local, VB_local, VC_local, VD_local, VE_local, VF_local, VG_local, VH_local, VI_local, VJ_local, VK_local;
-  
+
   // planetNumber=1; // debug
-  
-  if ((planetNumber < 1) || (planetNumber > 7)) {return false;} //bad planet value
-  doMoonDone = false;
-  doPlanetElements();
+
+  if ((planetNumber < 1) || (planetNumber > 7)) {return PlanetResult{};} //bad planet value
   double lightTravelTime = 0.;
-  doSun();
-  sunMeanAnomaly = SP_meanAnomaly; // SP_meanAnomaly is Mean Anomaly of the Sun in radians
-  radiusVectorEarth = sunEarthDistance;
-  earthEclipticLongitude = sunTrueGeocentricLongitude + FPI; //Earth's ecliptic longitude (radians)
+  sunMeanAnomaly = sun.meanAnomalyRad; // Mean Anomaly of the Sun in radians
+  radiusVectorEarth = sun.earthDistanceAU;
+  double earthEclipticLongitude = sun.trueGeocentricLongitudeRad + FPI; //Earth's ecliptic longitude (radians)
+  double julianCenturies1900 = (ctx.mjd1900 / 36525.0) + (ctx.GMTtime / 8.766e5);
+  double heliocenttricEclipticLongitude = 0, heliocenttricEclipticLatitude = 0, radiusVectorPlanet = 0, distanceEarthNotCorrected = 0;
   for (K_local = 1; K_local < 3; K_local++) {
 	for (J_local = 1; J_local < 8; J_local++) {
-	  planetAnomalies[J_local] = deg2rad(planetaryOrbitalElements[J_local][1] - planetaryOrbitalElements[J_local][3] - lightTravelTime * planetaryOrbitalElements[J_local][2]);
+	  planetAnomalies[J_local] = deg2rad(elements.table[J_local][1] - elements.table[J_local][3] - lightTravelTime * elements.table[J_local][2]);
 	}
 	perturbationLongitude = 0.;
 	perturbationRadiusVector = 0.;
@@ -1478,7 +952,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 	  perturbationLongitude = perturbationLongitude + 1.03e-3 * cos(2. * planetAnomalies[2] - planetAnomalies[1] - 2.08046);
 	  perturbationLongitude = perturbationLongitude + 9.1e-4 * cos(2. * planetAnomalies[4] - planetAnomalies[1] - 6.4582e-1);
 	  perturbationLongitude = perturbationLongitude + 7.8e-4 * cos(5. * planetAnomalies[2] - 3. * planetAnomalies[1] + 1.7692e-1);
-	  
+
 	  perturbationRadiusVector = 7.525e-6 * cos(2. * planetAnomalies[4] - planetAnomalies[1] + 9.25251e-1);
 	  perturbationRadiusVector = perturbationRadiusVector + 6.802e-6 * cos(5. * planetAnomalies[2] - 3. * planetAnomalies[1] - 4.53642);
 	  perturbationRadiusVector = perturbationRadiusVector + 5.457e-6 * cos(2. * planetAnomalies[2] - 2. * planetAnomalies[1] - 1.24246);
@@ -1488,13 +962,13 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 	  perturbationMeanLongitude = 7.7e-4 * sin(4.1406 + julianCenturies1900 * 2.6227);
 	  perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
 	  perturbationMeanAnomaly = perturbationMeanLongitude;
-	  
+
 	  perturbationLongitude = 3.13e-3 * cos(2. * sunMeanAnomaly - 2. * planetAnomalies[2] - 2.587);
 	  perturbationLongitude = perturbationLongitude + 1.98e-3 * cos(3. * sunMeanAnomaly - 3. * planetAnomalies[2] + 4.4768e-2);
 	  perturbationLongitude = perturbationLongitude + 1.36e-3 * cos(sunMeanAnomaly - planetAnomalies[2] - 2.0788);
 	  perturbationLongitude = perturbationLongitude + 9.6e-4 * cos(3. * sunMeanAnomaly - 2. * planetAnomalies[2] - 2.3721);
 	  perturbationLongitude = perturbationLongitude + 8.2e-4 * cos(planetAnomalies[4] - planetAnomalies[2] - 3.6318);
-	  
+
 	  perturbationRadiusVector = 2.2501e-5 * cos(2. * sunMeanAnomaly - 2. * planetAnomalies[2] - 1.01592);
 	  perturbationRadiusVector = perturbationRadiusVector + 1.9045e-5 * cos(3. * sunMeanAnomaly - 3.* planetAnomalies[2] + 1.61577);
 	  perturbationRadiusVector = perturbationRadiusVector + 6.887e-6 * cos(planetAnomalies[4] - planetAnomalies[2] - 2.06106);
@@ -1508,9 +982,9 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 	  SA_local = sin(A_local);
 	  CA_local = cos(A_local);
 	  perturbationMeanLongitude = -(1.133e-2 * SA_local + 9.33e-3 * CA_local);
-	  perturbationMeanLongitude = deg2rad(perturbationMeanLongitude); 
+	  perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
 	  perturbationMeanAnomaly = perturbationMeanLongitude;
-	  
+
 	  perturbationLongitude = 7.05e-3 * cos(planetAnomalies[4] - 8. * planetAnomalies[3] - 8.5448e-1);
 	  perturbationLongitude = perturbationLongitude + 6.07e-3 * cos(2. * planetAnomalies[4] - planetAnomalies[3] - 3.2873);
 	  perturbationLongitude = perturbationLongitude + 4.45e-3 * cos(2. * planetAnomalies[4] - 2. * planetAnomalies[3] - 3.3492);
@@ -1520,7 +994,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 	  perturbationLongitude = perturbationLongitude + 1.77e-3 * cos(3. * planetAnomalies[3] - planetAnomalies[2] - 1.0053);
 	  perturbationLongitude = perturbationLongitude + 1.36e-3 * cos(2. * sunMeanAnomaly - 4. * planetAnomalies[3] + 2.6894);
 	  perturbationLongitude = perturbationLongitude + 1.04e-3 * cos(planetAnomalies[4] + 3.0749e-1);
-	  
+
 	  perturbationRadiusVector = 5.3227e-5 * cos(planetAnomalies[4] - planetAnomalies[3] + 7.17864e-1);
 	  perturbationRadiusVector = perturbationRadiusVector + 5.0989e-5 * cos(2. * planetAnomalies[4] - 2. * planetAnomalies[3] - 1.77997);
 	  perturbationRadiusVector = perturbationRadiusVector + 3.8278e-5 * cos(2. * planetAnomalies[4] - planetAnomalies[3] - 1.71617);
@@ -1571,7 +1045,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		UV_local = sin(2. * J9_local);
 		UW_local = cos(2. * J9_local);
 	  }
-	  
+
       if (planetNumber == 4) {
         //Jupiter
 		perturbationMeanLongitude = (3.31364e-1 - (1.0281e-2 + 4.692e-3 * J1_local) * J1_local) * U5_local;
@@ -1586,7 +1060,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationMeanLongitude = perturbationMeanLongitude - 6.675e-3 * UC_local * U2_local - 2.664e-3 * UE_local * U2_local - 2.572e-3 * U9_local * U3_local;
 		perturbationMeanLongitude = perturbationMeanLongitude - 3.567e-3 * UB_local * U3_local + 2.094e-3 * UA_local * U4_local + 3.342e-3 * UC_local * U4_local;
 		perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
-		
+
 		perturbationEccentricity = (3606. + (130. - 43. * J1_local) * J1_local) * U5_local + (1289. - 580. * J1_local) * U6_local;
 		perturbationEccentricity = perturbationEccentricity - 6764. * U9_local * U1_local - 1110. * UB_local * U1_local - 224. * UD_local * U1_local - 204. * U1_local;
 		perturbationEccentricity = perturbationEccentricity + (1284. + 116. * J1_local) * UA_local * U1_local + 188. * UC_local * U1_local;
@@ -1598,7 +1072,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationEccentricity = perturbationEccentricity + 158. * UD_local * U4_local + 179. * U4_local + (1024. + 75. * J1_local) * UA_local * U4_local;
 		perturbationEccentricity = perturbationEccentricity - 437. * UC_local * U4_local - 132. * UE_local * U4_local;
 		perturbationEccentricity = perturbationEccentricity * 1.0e-7;
-		
+
 		VK_local = (7.192e-3 - 3.147e-3 * J1_local) * U5_local - 4.344e-3 * U1_local;
 		VK_local = VK_local + (J1_local * (1.97e-4 * J1_local - 6.75e-4) - 2.0428e-2) * U6_local;
 		VK_local = VK_local + 3.4036e-2 * UA_local * U1_local + (7.269e-3 + 6.72e-4 * J1_local) * U9_local * U1_local;
@@ -1607,8 +1081,8 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		VK_local = VK_local + 2.722e-3 * UB_local * U3_local + 4.483e-3 * UA_local * U3_local;
 		VK_local = VK_local - 2.642e-3 * UC_local * U3_local + 4.403e-3 * U9_local * U4_local;
 		VK_local = VK_local - 2.536e-3 * UB_local * U4_local + 5.547e-3 * UA_local * U4_local - 2.689e-3 * UC_local * U4_local;
-		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / planetaryOrbitalElements[planetNumber][4]);
-		
+		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / elements.table[planetNumber][4]);
+
 		perturbationSemiMajorAxis = 205. * UA_local - 263. * U6_local + 693. * UC_local + 312. * UE_local + 147. * UG_local + 299. * U9_local * U1_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis + 181. * UC_local * U1_local + 204. * UB_local * U2_local + 111. * UD_local * U2_local - 337. * UA_local * U2_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis - 111. * UC_local * U2_local;
@@ -1626,7 +1100,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		UP_local = cos(2. * J8_local);
 		UQ_local = sin(3. * J8_local);
 		UR_local = cos(3. * J8_local);
-		
+
 		perturbationMeanLongitude = 7.581e-3 * U7_local - 7.986e-3 * U8_local - 1.48811e-1 * U9_local;
 		perturbationMeanLongitude = perturbationMeanLongitude - (8.14181e-1 - (1.815e-2 - 1.6714e-2 * J1_local) * J1_local) * U5_local;
 		perturbationMeanLongitude = perturbationMeanLongitude - (1.0497e-2 - (1.60906e-1 - 4.1e-3 * J1_local) * J1_local) * U6_local;
@@ -1639,7 +1113,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationMeanLongitude = perturbationMeanLongitude + 6.369e-3 * U9_local * U3_local + 9.156e-3 * UB_local * U3_local + 7.525e-3 * UQ_local * U3_local;
 		perturbationMeanLongitude = perturbationMeanLongitude - 5.236e-3 * UA_local * U4_local - 7.736e-3 * UC_local * U4_local - 7.528e-3 * UR_local * U4_local;
 		perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
-		
+
 		perturbationEccentricity = (-7927. + (2548. + 91. * J1_local) * J1_local) * U5_local;
 		perturbationEccentricity = perturbationEccentricity + (13381. + (1226. - 253. * J1_local) * J1_local) * U6_local + (248. - 121. * J1_local) * U7_local;
 		perturbationEccentricity = perturbationEccentricity - (305. + 91. * J1_local) * VI_local + 412. * UB_local + 12415. * U1_local;
@@ -1659,7 +1133,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationEccentricity = perturbationEccentricity - 205. * U9_local * UI_local + 262. * UD_local * UI_local + 208. * UA_local * UJ_local - 271. * UE_local * UJ_local;
 		perturbationEccentricity = perturbationEccentricity - 382. * UE_local * UK_local - 376. * UD_local * UL_local;
 		perturbationEccentricity = perturbationEccentricity * 1.0e-7;
-		
+
 		VK_local = (7.7108e-2 + (7.186e-3 - 1.533e-3 * J1_local) * J1_local) * U5_local;
 		VK_local = VK_local - 7.075e-3 * U9_local;
 		VK_local = VK_local + (4.5803e-2 - (1.4766e-2 + 5.36e-4 * J1_local) * J1_local) * U6_local;
@@ -1672,7 +1146,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		VK_local = VK_local - (1.3667e-2 - 1.239e-3 * J1_local) * U9_local * U4_local;
 		VK_local = VK_local + (1.4861e-2 + 1.136e-3 * J1_local) * UA_local * U4_local;
 		VK_local = VK_local - (1.3064e-2 + 1.628e-3 * J1_local) * UC_local * U4_local;
-		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / planetaryOrbitalElements[planetNumber][4]);
+		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / elements.table[planetNumber][4]);
 		perturbationSemiMajorAxis = 572. * U5_local - 1590. * UB_local * U2_local + 2933. * U6_local - 647. * UD_local * U2_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis + 33629. * UA_local - 344. * UF_local * U2_local - 3081. * UC_local + 2885. * UA_local * U2_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis - 1423. * UE_local + (2172. + 102. * J1_local) * UC_local * U2_local - 671. * UG_local;
@@ -1684,7 +1158,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis + 398. * UD_local * UI_local - 890. * U2_local + 344. * UA_local * UJ_local + 2206. * U9_local * U2_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis - 427. * UE_local * UJ_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis * 1.0e-6;
-		
+
 		perturbationHeliocentricEclipticLatitude = 7.47e-4 * UA_local * U1_local + 1.069e-3 * UA_local * U2_local + 2.108e-3 * UB_local * U3_local;
 		perturbationHeliocentricEclipticLatitude = perturbationHeliocentricEclipticLatitude + 1.261e-3 * UC_local * U3_local + 1.236e-3 * UB_local * U4_local - 2.075e-3 * UC_local * U4_local;
 		perturbationHeliocentricEclipticLatitude = deg2rad(perturbationHeliocentricEclipticLatitude);
@@ -1699,7 +1173,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
 		VK_local = 1.20303e-1 * VJ_local + 6.197e-3 * UV_local;
 		VK_local = VK_local + (1.9472e-2 - 9.47e-4 * J1_local) * UU_local;
-		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / planetaryOrbitalElements[planetNumber][4]);
+		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / elements.table[planetNumber][4]);
 		perturbationEccentricity = (163. * J1_local - 3349.) * VJ_local + 20981. * UU_local + 1311. * UW_local;
 		perturbationEccentricity = perturbationEccentricity * 1.0e-7;
 		perturbationSemiMajorAxis = -3.825e-3 * UU_local;
@@ -1710,7 +1184,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
         perturbationLongitude = perturbationLongitude - 5.794e-3 * sin(JB_local) + 2.347e-3 * cos(JB_local);
 		perturbationLongitude = perturbationLongitude + 9.872e-3 * sin(JC_local) + 8.803e-3 * sin(2. * JC_local);
 		perturbationLongitude = perturbationLongitude - 4.308e-3 * sin(3. * JC_local);
-		
+
 		UX_local = sin(JB_local);
 		UY_local = cos(JB_local);
 		UZ_local = sin(J4_local);
@@ -1721,7 +1195,7 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationHeliocentricEclipticLatitude = perturbationHeliocentricEclipticLatitude - (3.47e-4 * UX_local + 8.53e-4 * UY_local + 5.17e-4 * sin(4. * JB_local)) * VA_local;
 		perturbationHeliocentricEclipticLatitude = perturbationHeliocentricEclipticLatitude + 4.03e-4 * (cos(2. * JC_local) * VB_local + sin(2. * JC_local) * VC_local);
 		perturbationHeliocentricEclipticLatitude = deg2rad(perturbationHeliocentricEclipticLatitude);
-		
+
 		perturbationRadiusVector = -25948. + 4985. * cos(JA_local) - 1230. * VA_local + 3354. * UY_local;
 		perturbationRadiusVector = perturbationRadiusVector + 904. * cos(2. * JC_local) + 894. * (cos(JC_local) - cos(3. * JC_local));
 		perturbationRadiusVector = perturbationRadiusVector + (5795. * VA_local - 1165. * UZ_local + 1388. * VC_local) * UX_local;
@@ -1735,11 +1209,11 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationMeanLongitude = (1.089e-3 * J1_local - 5.89833e-1) * VJ_local;
 		perturbationMeanLongitude = perturbationMeanLongitude + (4.658e-3 * J1_local - 5.6094e-2) * UU_local - 2.4286e-2 * UV_local;
 		perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
-		
+
 		VK_local = 2.4039e-2 * VJ_local - 2.5303e-2 * UU_local + 6.206e-3 * UV_local;
-		
+
 		VK_local = VK_local - 5.992e-3 * UW_local;
-		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / planetaryOrbitalElements[planetNumber][4]);
+		perturbationMeanAnomaly = perturbationMeanLongitude - (deg2rad(VK_local) / elements.table[planetNumber][4]);
 		perturbationEccentricity = 4389. * VJ_local + 1129. * UV_local + 4262. * UU_local + 1089. * UW_local;
 		perturbationEccentricity = perturbationEccentricity * 1.0e-7;
 		perturbationSemiMajorAxis = 8189. * UU_local - 817. * VJ_local + 781. * UW_local;
@@ -1757,17 +1231,17 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
 		perturbationRadiusVector = perturbationRadiusVector * 1.0e-6;
 	  }
 	}
-	SP_eccentricity = planetaryOrbitalElements[planetNumber][4] + perturbationEccentricity;
-	SP_meanAnomaly = planetAnomalies[planetNumber] + perturbationMeanAnomaly;
-	doAnomaly(rad2deg(SP_meanAnomaly), SP_eccentricity);
-	radiusVectorCorrected = (planetaryOrbitalElements[planetNumber][7] + perturbationSemiMajorAxis) * (1.0 - SP_eccentricity * SP_eccentricity) / (1.0 + SP_eccentricity * cos(trueAnomaly));
-	LP_local = rad2deg(trueAnomaly) + planetaryOrbitalElements[planetNumber][3] + rad2deg(perturbationMeanLongitude - perturbationMeanAnomaly);
+	SP_eccentricity = elements.table[planetNumber][4] + perturbationEccentricity;
+	double planetMeanAnomalyRad = planetAnomalies[planetNumber] + perturbationMeanAnomaly;
+	AnomalyResult planetAnomaly = doAnomaly(rad2deg(planetMeanAnomalyRad), SP_eccentricity);
+	radiusVectorCorrected = (elements.table[planetNumber][7] + perturbationSemiMajorAxis) * (1.0 - SP_eccentricity * SP_eccentricity) / (1.0 + SP_eccentricity * cos(planetAnomaly.trueAnomalyRad));
+	LP_local = rad2deg(planetAnomaly.trueAnomalyRad) + elements.table[planetNumber][3] + rad2deg(perturbationMeanLongitude - perturbationMeanAnomaly);
 	LP_local = deg2rad(LP_local);
-	LongitudeAscendingNode = deg2rad(planetaryOrbitalElements[planetNumber][6]);
+	LongitudeAscendingNode = deg2rad(elements.table[planetNumber][6]);
 	LO_local = LP_local - LongitudeAscendingNode;
 	SO_local = sin(LO_local);
 	CO_local = cos(LO_local);
-	inclination = deg2rad(planetaryOrbitalElements[planetNumber][5]);
+	inclination = deg2rad(elements.table[planetNumber][5]);
 	radiusVectorCorrected = radiusVectorCorrected + perturbationRadiusVector;
 	SP_local = SO_local * sin(inclination);
 	Y_local = SO_local * cos(inclination);
@@ -1803,194 +1277,284 @@ boolean SiderealPlanets::doPlans(int planetNumber) {
   //EclLongitude = geocentricEclipticLongitude, EclLatitude = geocentricEclipticLatitude
   double EPtemp = geocentricEclipticLongitude;
   double BPtemp = geocentricEclipticLatitude;
-  doNutation();
-  geocentricEclipticLongitude = geocentricEclipticLongitude + deg2rad(nutationInLongitude);
+  geocentricEclipticLongitude = geocentricEclipticLongitude + deg2rad(ctx.nutationInLongitude);
   A_local = earthEclipticLongitude + FPI - geocentricEclipticLongitude;
   double B_local = cos(A_local);
   double C_local = sin(A_local);
   geocentricEclipticLongitude = geocentricEclipticLongitude - (9.9387e-5 * B_local / cos(geocentricEclipticLatitude));
   geocentricEclipticLatitude = geocentricEclipticLatitude - (9.9387e-5 * C_local * sin(geocentricEclipticLatitude));
-  //setEcliptic(geocentricEclipticLongitude, geocentricEclipticLatitude);
-  EclLongitude = geocentricEclipticLongitude;
-  EclLatitude = geocentricEclipticLatitude;
-  doEcliptic2RAdec();
-  EclLongitude = EPtemp;
-  EclLatitude = BPtemp;
-  return true;
+
+  PlanetResult result;
+  result.eq = doEcliptic2RAdec(ctx, geocentricEclipticLongitude, geocentricEclipticLatitude);
+  result.helioLongitudeDeg = rad2deg(heliocenttricEclipticLongitude);
+  result.helioLatitudeDeg = rad2deg(heliocenttricEclipticLatitude);
+  result.radiusVector = radiusVectorPlanet;
+  result.distance = distanceEarthNotCorrected;
+  // getEclipticLongitude()/getEclipticLatitude() in the original read back the
+  // pre-adjustment EPtemp/BPtemp (see comment above), not the nutation/
+  // aberration-adjusted values just fed into doEcliptic2RAdec().
+  result.eclipticLongitudeDeg = rad2deg(EPtemp);
+  result.eclipticLatitudeDeg = rad2deg(BPtemp);
+  return result;
 }
 
-double SiderealPlanets::getHelioLong(void) {
-  return rad2deg(heliocenttricEclipticLongitude);
+double SiderealPlanets::applyRefractionC(double altitudeRad, double pressure, double temperature) {
+  double rf = 0.;
+  double y1 = altitudeRad;
+  double r1 = 0.0, r2 = r1, q;
+  double y = y1;
+  do {
+	r1 = r2;
+	y = y1 + r1;
+	q = y;
+    if (y >= 2.617994e-1) {
+      rf = 7.888888e-5 * pressure / ((273 + temperature) * tan(y));
+    } else {
+      if (y >= -8.7e-2) {
+        double yd = y * 5.729578e1;
+        double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
+        double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
+        rf = (a / b) * 1.745329e-2;
+      }
+    }
+	r2 = rf;
+  } while (r2 != 0. && abs(r2 - r1) > 1e-6);
+  (void)q;
+  return altitudeRad + rf;
 }
 
-double SiderealPlanets::getHelioLat(void) {
-  return rad2deg(heliocenttricEclipticLatitude);
+double SiderealPlanets::applyRefractionF(double altitudeRad, double pressure, double temperature) {
+  pressure *= 33.8639;
+  temperature = (temperature - 32.) * (5. / 9.);
+  return applyRefractionC(altitudeRad, pressure, temperature);
 }
 
-double SiderealPlanets::getRadiusVec(void) {
-  return (radiusVectorPlanet);
+double SiderealPlanets::applyAntiRefractionC(double altitudeRad, double pressure, double temperature) {
+  double rf = 0.;
+  //Valid for any values above -5 degrees
+  if (altitudeRad >= 2.617994e-1) {
+    rf = -7.888888e-5 * pressure / ((273 + temperature) * tan(altitudeRad));
+  } else {
+    if (altitudeRad >= -8.7e-2) {
+      double yd = altitudeRad * 5.729578e1;
+      double a = ((2e-5 * yd + 1.96e-2) * yd + 1.594e-1) * pressure;
+      double b = (273 + temperature) * ((8.45e-2 * yd + 5.05e-1) * yd + 1.0);
+      rf = -(a / b) * 1.745329e-2;
+    }
+  }
+  return altitudeRad + rf;
 }
 
-double SiderealPlanets::getDistance(void) {
-  return (distanceEarthNotCorrected);
+double SiderealPlanets::applyAntiRefractionF(double altitudeRad, double pressure, double temperature) {
+  pressure *= 33.8639;
+  temperature = (temperature - 32.) * (5. / 9.);
+  return applyAntiRefractionC(altitudeRad, pressure, temperature);
 }
 
-boolean SiderealPlanets::doMercury(void) {
-  doPlans(1);
-  return true;
+RiseSetResult SiderealPlanets::doRiseSetTimes(const SiderealContext& ctx, double raHours, double decDeg, double DIdeg) {
+  //horizonVerticalDisplacement = vertical displacement in radians
+  RiseSetResult result{};
+  double decRad = deg2rad(decDeg);
+  double sinDec = sin(decRad), cosDec = cos(decRad);
+  double RArad = deg2rad(raHours * 15.0);
+  double horizonVerticalDisplacement = deg2rad(DIdeg);
+  double SD_local = sin(horizonVerticalDisplacement);
+  double CD_local = cos(horizonVerticalDisplacement);
+  double CH_local = -(SD_local + (ctx.sinLat * sinDec)) / (ctx.cosLat * cosDec);
+  if (CH_local < -1.0) { result.visible = false; return result; } //circumpolar - never sets
+  if (CH_local > 1.0) { result.visible = false; return result; } // never rises
+  double CA_local = (sinDec + (SD_local * ctx.sinLat)) / (CD_local * ctx.cosLat);
+  double H_local = acos(CH_local);
+  double azimuthRising = acos(CA_local);
+  double B_local = rad2deg(H_local) / 15.04107;
+  double A_local = rad2deg(RArad) / 15.04107;
+  result.lstRising = inRange24(24.0 + A_local - B_local);
+  result.lstSetting = inRange24(A_local + B_local);
+  result.azimuthSettingRad = inRange2PI(F2PI - azimuthRising);
+  result.azimuthRisingRad = inRange2PI(azimuthRising); //need for Moon rise/set
+  result.visible = true;
+  return result;
 }
 
-boolean SiderealPlanets::doVenus(void) {
-  doPlans(2);
-  return true;
+// ------------------------------------------------------------------------------------------------
+// modified: allows calc rise/set of other celestial bodies (same as sun but we will not call doSun())
+// ------------------------------------------------------------------------------------------------
+/*
+double sun_horizonVerticalDisplacement = 1.454441e-2; // here for reference. if DI is unknown then set
+DI 0.0 for stars or use suns DI for planeets.
+*/
+RiseSetResult SiderealPlanets::doXRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI) {
+  double horizonVerticalDisplacement = DI;
+  double tmpGMT = ctx.GMTtime;
+  ctx.GMTtime = (12.0 + (ctx.TimeZoneOffset + ctx.DSToffset));
+  ctx.GMTtime = tmpGMT;
+  RiseSetResult rs = doRiseSetTimes(ctx, raHours, decDeg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) return rs;
+
+  double LA_local = rs.lstRising; //localSiderealTime of rising - first guesstimate
+  double LB_local = rs.lstSetting; //localSiderealTime of setting - first guesstimate
+  double GU_local = doLST2GMT(ctx, LA_local);
+  double GD_local = doLST2GMT(ctx, LB_local);
+
+  ctx.GMTtime = GU_local;
+  double DN_local = ctx.mjd1900;
+  double A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+  if (A_local > 24.) ctx.mjd1900 -= 1;
+  if (A_local < 0.)  ctx.mjd1900 += 1;
+  ctx.mjd1900 = DN_local;
+  ctx.GMTtime = tmpGMT;
+  rs = doRiseSetTimes(ctx, raHours, decDeg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) return rs;
+  LA_local = rs.lstRising; //AA_local = azimuthRising;
+
+  ctx.GMTtime = GD_local;
+  A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+  if (A_local > 24.) ctx.mjd1900 -= 1;
+  if (A_local < 0.)  ctx.mjd1900 += 1;
+  ctx.mjd1900 = DN_local;
+  ctx.GMTtime = tmpGMT;
+  rs = doRiseSetTimes(ctx, raHours, decDeg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) return rs;
+
+  LB_local = rs.lstSetting; //AB_local = azimuthSetting;
+  rs.lstRising = LA_local;
+  return rs;
+}
+// ------------------------------------------------------------------------------------------------------
+
+double SiderealPlanets::getRiseTime(const SiderealContext& ctx, const RiseSetResult& rs) {
+  return inRange60(doLST2LT(ctx, rs.lstRising));
 }
 
-boolean SiderealPlanets::doMars(void) {
-  doPlans(3);
-  return true;
+double SiderealPlanets::getSetTime(const SiderealContext& ctx, const RiseSetResult& rs) {
+  return inRange60(doLST2LT(ctx, rs.lstSetting));
 }
 
-boolean SiderealPlanets::doJupiter(void) {
-  doPlans(4);
-  return true;
-}
-
-boolean SiderealPlanets::doSaturn(void) {
-  doPlans(5);
-  return true;
-}
-
-boolean SiderealPlanets::doUranus(void) {
-  doPlans(6);
-  return true;
-}
-
-boolean SiderealPlanets::doNeptune(void) {
-  doPlans(7);
-  return true;
-}
-
-boolean SiderealPlanets::doSunRiseSetTimes(void) {
+RiseSetResult SiderealPlanets::doSunRiseSetTimes(SiderealContext ctx) {
   double horizonVerticalDisplacement = 1.454441e-2;
-  double tmpGMT = GMTtime;
-  GMTtime = (12.0 + (TimeZoneOffset + DSToffset));
-  doSun();
-  GMTtime = tmpGMT;
-  if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) return false;
-  
-  double LA_local = localSiderealTimeRising; //localSiderealTime of rising - first guesstimate
-  double LB_local = localSiderealTimeSetting; //localSiderealTime of setting - first guesstimate
-  double GU_local = doLST2GMT(LA_local);
-  double GD_local = doLST2GMT(LB_local);
-  
-  GMTtime = GU_local;
-  double DN_local = mjd1900;
-  double A_local = GMTtime + TimeZoneOffset + DSToffset;
-  if (A_local > 24.) mjd1900 -= 1;
-  if (A_local < 0.)  mjd1900 += 1;
-  doSun();
-  mjd1900 = DN_local;
-  GMTtime = tmpGMT;
-  if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) return false;
-  LA_local = localSiderealTimeRising; //AA_local = azimuthRising;
-  
-  GMTtime = GD_local;
-  A_local = GMTtime + TimeZoneOffset + DSToffset;
-  if (A_local > 24.) mjd1900 -= 1;
-  if (A_local < 0.)  mjd1900 += 1;
-  doSun();
-  mjd1900 = DN_local;
-  GMTtime = tmpGMT;
-  if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) return false;
-  
-  LB_local = localSiderealTimeSetting; //AB_local = azimuthSetting;
-  localSiderealTimeRising = LA_local;
-  return true;
+  double tmpGMT = ctx.GMTtime;
+  ctx.GMTtime = (12.0 + (ctx.TimeZoneOffset + ctx.DSToffset));
+  SunResult sun = doSun(ctx);
+  ctx.GMTtime = tmpGMT;
+  RiseSetResult rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) return rs;
+
+  double LA_local = rs.lstRising; //localSiderealTime of rising - first guesstimate
+  double LB_local = rs.lstSetting; //localSiderealTime of setting - first guesstimate
+  double GU_local = doLST2GMT(ctx, LA_local);
+  double GD_local = doLST2GMT(ctx, LB_local);
+
+  ctx.GMTtime = GU_local;
+  double DN_local = ctx.mjd1900;
+  double A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+  if (A_local > 24.) ctx.mjd1900 -= 1;
+  if (A_local < 0.)  ctx.mjd1900 += 1;
+  sun = doSun(ctx);
+  ctx.mjd1900 = DN_local;
+  ctx.GMTtime = tmpGMT;
+  rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) return rs;
+  LA_local = rs.lstRising; //AA_local = azimuthRising;
+
+  ctx.GMTtime = GD_local;
+  A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+  if (A_local > 24.) ctx.mjd1900 -= 1;
+  if (A_local < 0.)  ctx.mjd1900 += 1;
+  sun = doSun(ctx);
+  ctx.mjd1900 = DN_local;
+  ctx.GMTtime = tmpGMT;
+  rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) return rs;
+
+  LB_local = rs.lstSetting; //AB_local = azimuthSetting;
+  rs.lstRising = LA_local;
+  return rs;
 }
 
-double SiderealPlanets::getSunriseTime(void) {
-  return getRiseTime();
+double SiderealPlanets::getSunriseTime(const SiderealContext& ctx, const RiseSetResult& rs) {
+  return getRiseTime(ctx, rs);
 }
 
-double SiderealPlanets::getSunsetTime(void) {
-  return getSetTime();
+double SiderealPlanets::getSunsetTime(const SiderealContext& ctx, const RiseSetResult& rs) {
+  return getSetTime(ctx, rs);
 }
 
-boolean SiderealPlanets::doMoonRiseSetTimes(void) {
-  double DN_local, horizonVerticalDisplacement, A_local, TH_local, AA_local, AB_local, GU_local, GD_local;
-  double tmpGMT = GMTtime;
-  GMTtime = (12.0 + (TimeZoneOffset + DSToffset)); //Set to local mid-day
-  
+RiseSetResult SiderealPlanets::doMoonRiseSetTimes(SiderealContext ctx) {
+  double tmpGMT = ctx.GMTtime;
+  ctx.GMTtime = (12.0 + (ctx.TimeZoneOffset + ctx.DSToffset)); //Set to local mid-day
+
   //local rise-set routine
-  doMoon(); //Already does nutation too
-  TH_local = 2.7249e-1 * sin(moonHorizontalParallax);
-  horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallax;
+  MoonResult moon = doMoon(ctx); //Already does nutation too
+  double moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
+  double TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
+  double horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
   // return if moon doesn't cross horizon
-  if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) {
-	  GMTtime = tmpGMT;
-	  return false;
+  RiseSetResult rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
+  if (rs.visible == false) {
+	  return rs;
   }
 
-  double LA_local = localSiderealTimeRising; //localSiderealTime of rising - first guesstimate
-  double LB_local = localSiderealTimeSetting; //localSiderealTime of setting - first guesstimate
+  double LA_local = rs.lstRising; //localSiderealTime of rising - first guesstimate
+  double LB_local = rs.lstSetting; //localSiderealTime of setting - first guesstimate
   for(int K_local=1; K_local <= 3; K_local++) {
     // local sidereal time to local civil time
-    GU_local = doLST2GMT(LA_local);
+    double GU_local = doLST2GMT(ctx, LA_local);
     // local sidereal time to local civil time
-    GD_local = doLST2GMT(LB_local);
+    double GD_local = doLST2GMT(ctx, LB_local);
 	//find a better time of rising
-    GMTtime = GU_local;
+    ctx.GMTtime = GU_local;
     // find time
-    DN_local = mjd1900;
-    A_local = GMTtime + TimeZoneOffset + DSToffset;
-    if (A_local > 24.) mjd1900 -= 1;
-    if (A_local < 0.) mjd1900 += 1;
+    double DN_local = ctx.mjd1900;
+    double A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+    if (A_local > 24.) ctx.mjd1900 -= 1;
+    if (A_local < 0.) ctx.mjd1900 += 1;
     //local rise-set routine
-    doMoon(); //Already does nutation too
-    TH_local = 2.7249e-1 * sin(moonHorizontalParallax);
-    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallax;
-    if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) {
-		mjd1900=DN_local;
-		GMTtime = tmpGMT;
-		return false;
+    moon = doMoon(ctx); //Already does nutation too
+    moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
+    TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
+    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
+    rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
+    if (rs.visible == false) {
+		ctx.mjd1900=DN_local;
+		return rs;
 	}
-    mjd1900=DN_local;
+    ctx.mjd1900=DN_local;
     //find a better time of setting
-    LA_local = localSiderealTimeRising;
+    LA_local = rs.lstRising;
     //AA_local = azimuthRising;
-    GMTtime = GD_local;
+    ctx.GMTtime = GD_local;
     // find time
-    DN_local = mjd1900;
-    A_local = GMTtime + TimeZoneOffset + DSToffset;
-    if (A_local > 24.) mjd1900 -= 1;
-    if (A_local < 0.) mjd1900 += 1;
+    DN_local = ctx.mjd1900;
+    A_local = ctx.GMTtime + ctx.TimeZoneOffset + ctx.DSToffset;
+    if (A_local > 24.) ctx.mjd1900 -= 1;
+    if (A_local < 0.) ctx.mjd1900 += 1;
     //local rise-set routine
-    doMoon(); //Already does nutation too
-    TH_local = 2.7249e-1 * sin(moonHorizontalParallax);
-    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallax;
-    if (doRiseSetTimes(rad2deg(horizonVerticalDisplacement)) == false) {
-		mjd1900=DN_local;
-		GMTtime = tmpGMT;
-		return false;
+    moon = doMoon(ctx); //Already does nutation too
+    moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
+    TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
+    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
+    rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
+    if (rs.visible == false) {
+		ctx.mjd1900=DN_local;
+		return rs;
 	}
-    mjd1900=DN_local;
-    LB_local = localSiderealTimeSetting;
+    ctx.mjd1900=DN_local;
+    LB_local = rs.lstSetting;
     //AB_local = azimuthSetting;
   }
   //azimuthRising = AA_local;
   //azimuthSetting = AB_local;
-  localSiderealTimeRising = LA_local;
-  localSiderealTimeSetting = LB_local;
-  GMTtime = tmpGMT;
-  return true;
+  rs.lstRising = LA_local;
+  rs.lstSetting = LB_local;
+  return rs;
 }
 
-double SiderealPlanets::getMoonriseTime(void) {
-  return getRiseTime();
+double SiderealPlanets::getMoonriseTime(const SiderealContext& ctx, const RiseSetResult& rs) {
+  return getRiseTime(ctx, rs);
 }
 
-double SiderealPlanets::getMoonsetTime(void) {
-  return getSetTime();
+double SiderealPlanets::getMoonsetTime(const SiderealContext& ctx, const RiseSetResult& rs) {
+  return getSetTime(ctx, rs);
 }
 
 void SiderealPlanets::printDegMinSecs(double n) {
@@ -2005,3 +1569,4 @@ void SiderealPlanets::printDegMinSecs(double n) {
   Serial.print(min); Serial.print(":");
   Serial.print(abs(secs)); Serial.print(" ");
 }
+
