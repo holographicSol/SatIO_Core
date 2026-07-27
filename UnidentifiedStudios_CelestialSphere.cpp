@@ -503,25 +503,18 @@ void celestial_sphere_prebuild(void) {
     build_celestial_sphere();
 }
 
-// Converts whichever attitude current_mode selects (local_sidereal_attitude
-// for ZENITH, gyro_0_sidereal_attitude for GYRO) from its ra_h/ra_m/ra_s /
-// dec_d/dec_m/dec_s fields to decimal hours/degrees -- the same arithmetic
-// starNavConstellation() uses (UnidentifiedStudios_SiderealHelper.cpp) to
-// turn the boresight's already-tracked sexagesimal RA/Dec into decimal, no
-// trig involved.
+// Reads whichever attitude current_mode selects (local_sidereal_attitude for
+// ZENITH, gyro_0_sidereal_attitude for GYRO)'s pre-combined decimal RA/Dec --
+// SiderealPlanets::getSiderealAttitude() (SiderealPlanets.cpp) already fills
+// j2000_ra/j2000_dec alongside the sexagesimal ra_h/ra_m/ra_s/dec_d/dec_m/dec_s
+// fields, so no arithmetic is needed here.
 static void boresight_ra_dec_deg(double &ra_hours, double &dec_deg) {
     const SiderealAttitudeData &attitude = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
         ? siderealPlanetData.local_sidereal_attitude
         : siderealPlanetData.gyro_0_sidereal_attitude;
 
-    ra_hours = static_cast<double>(attitude.ra_h)
-        + (static_cast<double>(attitude.ra_m) / 60.0)
-        + (static_cast<double>(attitude.ra_s) / 3600.0);
-
-    const double dec_sign = (attitude.dec_d < 0) ? -1.0 : 1.0;
-    dec_deg = dec_sign * (fabs(static_cast<double>(attitude.dec_d))
-        + (static_cast<double>(attitude.dec_m) / 60.0)
-        + (static_cast<double>(attitude.dec_s) / 3600.0));
+    ra_hours = attitude.j2000_ra;
+    dec_deg = attitude.j2000_dec;
 }
 
 // ============================================================================
@@ -1625,10 +1618,9 @@ static void update_gyro_attitude_label(void) {
     }
 
     if (crosshair_constellation_value_label != nullptr) {
-        const char* name = (siderealPlanetData.gyro_0_constellation != nullptr)
-            ? siderealPlanetData.gyro_0_constellation->name
-            : "Unidentified";
-        set_label_text_if_changed(crosshair_constellation_value_label, name);
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s", siderealPlanetData.gyro_0_constellation.name);
+        set_label_text_if_changed(crosshair_constellation_value_label, buf);
     }
 }
 

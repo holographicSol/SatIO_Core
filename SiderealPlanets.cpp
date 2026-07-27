@@ -368,9 +368,11 @@ double SiderealPlanets::rad2deg(double n) {
 SiderealAttitudeData SiderealPlanets::getSiderealAttitude(const SiderealContext& ctx, double x, double y, double z) {
 
     SiderealAttitudeData radecData = {
+        0.0, // j2000_ra
         0,   // ra_h
         0,   // ra_m
         0.0, // ra_s
+        0.0, // j2000_dec
         0,   // dec_d
         0,   // dec_m
         0.0, // dec_s
@@ -403,9 +405,11 @@ SiderealAttitudeData SiderealPlanets::getSiderealAttitude(const SiderealContext&
     signed int dec_m = (int)((new_dec_deg - dec_d) * 60.0);
     float dec_s = (float)(((new_dec_deg - dec_d) * 60.0 - dec_m) * 60.0);
 
+    radecData.j2000_ra = new_ra_hours;
     radecData.ra_h = ra_h;
     radecData.ra_m = ra_m;
     radecData.ra_s = ra_s;
+    radecData.j2000_dec = new_dec_deg;
     radecData.dec_d = dec_d;
     radecData.dec_m = dec_m;
     radecData.dec_s = dec_s;
@@ -891,7 +895,7 @@ PlanetElements SiderealPlanets::doPlanetElements(const SiderealContext& ctx) {
   double A0_local, A1_local, A2_local, A3_local, AA_local, B_local;
   int i, j, k;
   k = 0; //data array index
-  for (i = 1; i < 8; i++) {
+  for (i = PLANET_MERCURY; i <= PLANET_NEPTUNE; i++) {
 	A0_local = readData[k++];
 	A1_local = readData[k++];
 	A2_local = readData[k++];
@@ -926,9 +930,9 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
   double  U1_local, U2_local, U3_local, U4_local, U5_local, U6_local, U7_local, U8_local, U9_local, UA_local, UB_local, UC_local, UD_local, UE_local, UF_local, UG_local, UI_local, UJ_local, UK_local, UL_local, UN_local, UO_local, UP_local, UQ_local, UR_local, UU_local, UV_local, UW_local, UX_local, UY_local, UZ_local;
   double  VA_local, VB_local, VC_local, VD_local, VE_local, VF_local, VG_local, VH_local, VI_local, VJ_local, VK_local;
 
-  // planetNumber=1; // debug
+  // planetNumber=PLANET_MERCURY; // debug
 
-  if ((planetNumber < 1) || (planetNumber > 7)) {return PlanetResult{};} //bad planet value
+  if ((planetNumber < PLANET_MERCURY) || (planetNumber > PLANET_NEPTUNE)) {return PlanetResult{};} //bad planet value
   double lightTravelTime = 0.;
   sunMeanAnomaly = sun.meanAnomalyRad; // Mean Anomaly of the Sun in radians
   radiusVectorEarth = sun.earthDistanceAU;
@@ -946,7 +950,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 	perturbationMeanAnomaly = 0.;
 	perturbationSemiMajorAxis = 0.;
 	perturbationHeliocentricEclipticLatitude = 0.;
-	if (planetNumber == 1) {
+	if (planetNumber == PLANET_MERCURY) {
       //Mercury
 	  perturbationLongitude = 2.04e-3 * cos(5. * planetAnomalies[2] - 2. * planetAnomalies[1] + 2.1328e-1);
 	  perturbationLongitude = perturbationLongitude + 1.03e-3 * cos(2. * planetAnomalies[2] - planetAnomalies[1] - 2.08046);
@@ -957,7 +961,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 	  perturbationRadiusVector = perturbationRadiusVector + 6.802e-6 * cos(5. * planetAnomalies[2] - 3. * planetAnomalies[1] - 4.53642);
 	  perturbationRadiusVector = perturbationRadiusVector + 5.457e-6 * cos(2. * planetAnomalies[2] - 2. * planetAnomalies[1] - 1.24246);
 	  perturbationRadiusVector = perturbationRadiusVector + 3.569e-6 * cos(5. * planetAnomalies[2] - planetAnomalies[1] - 1.35699);
-	} else if (planetNumber == 2) {
+	} else if (planetNumber == PLANET_VENUS) {
       //Venus
 	  perturbationMeanLongitude = 7.7e-4 * sin(4.1406 + julianCenturies1900 * 2.6227);
 	  perturbationMeanLongitude = deg2rad(perturbationMeanLongitude);
@@ -976,7 +980,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 	  perturbationRadiusVector = perturbationRadiusVector + 3.62e-6 * cos(5. * sunMeanAnomaly - 4. * planetAnomalies[2] - 1.81877);
 	  perturbationRadiusVector = perturbationRadiusVector + 3.283e-6 * cos(4. * sunMeanAnomaly - 4. * planetAnomalies[2] + 1.10851);
 	  perturbationRadiusVector = perturbationRadiusVector + 3.074e-6 * cos(2. * planetAnomalies[4] - 2. * planetAnomalies[2] - 9.62846e-1);
-	} else if (planetNumber == 3) {
+	} else if (planetNumber == PLANET_MARS) {
       //Mars
 	  A_local = 3. * planetAnomalies[4] - 8. * planetAnomalies[3] + 4. * sunMeanAnomaly;
 	  SA_local = sin(A_local);
@@ -1016,7 +1020,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 	  J4_local = inRange2PI(4.250177 + 7.478172 * julianCenturies1900);
 	  J5_local = 5.0 * J3_local - 2.0 * J2_local;
 	  J6_local = 2.0 * J2_local - 6.0 * J3_local + 3.0 * J4_local;
-	  if ((planetNumber == 4) || (planetNumber == 5)) {
+	  if ((planetNumber == PLANET_JUPITER) || (planetNumber == PLANET_SATURN)) {
         //Common code for Jupiter and Saturn
 		J7_local = J3_local - J2_local;
 		U1_local = sin(J3_local);
@@ -1046,7 +1050,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 		UW_local = cos(2. * J9_local);
 	  }
 
-      if (planetNumber == 4) {
+      if (planetNumber == PLANET_JUPITER) {
         //Jupiter
 		perturbationMeanLongitude = (3.31364e-1 - (1.0281e-2 + 4.692e-3 * J1_local) * J1_local) * U5_local;
 		perturbationMeanLongitude = perturbationMeanLongitude + (3.228e-3 - (6.4436e-2 - 2.075e-3 * J1_local) * J1_local) * U6_local;
@@ -1087,7 +1091,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis + 181. * UC_local * U1_local + 204. * UB_local * U2_local + 111. * UD_local * U2_local - 337. * UA_local * U2_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis - 111. * UC_local * U2_local;
 		perturbationSemiMajorAxis = perturbationSemiMajorAxis * 1.0e-6;
-	  } else if (planetNumber == 5) {
+	  } else if (planetNumber == PLANET_SATURN) {
         //Saturn
 		UI_local = sin(3. * J3_local);
 		UJ_local = cos(3. * J3_local);
@@ -1162,7 +1166,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 		perturbationHeliocentricEclipticLatitude = 7.47e-4 * UA_local * U1_local + 1.069e-3 * UA_local * U2_local + 2.108e-3 * UB_local * U3_local;
 		perturbationHeliocentricEclipticLatitude = perturbationHeliocentricEclipticLatitude + 1.261e-3 * UC_local * U3_local + 1.236e-3 * UB_local * U4_local - 2.075e-3 * UC_local * U4_local;
 		perturbationHeliocentricEclipticLatitude = deg2rad(perturbationHeliocentricEclipticLatitude);
-	  } else if (planetNumber == 6) {
+	  } else if (planetNumber == PLANET_URANUS) {
         //Uranus
 		JA_local = J4_local - J2_local;
 		JB_local = J4_local - J3_local;
@@ -1201,7 +1205,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 		perturbationRadiusVector = perturbationRadiusVector + (5795. * VA_local - 1165. * UZ_local + 1388. * VC_local) * UX_local;
 		perturbationRadiusVector = perturbationRadiusVector + (1351. * VA_local + 5702. * UZ_local + 1388. * VB_local) * UY_local;
 		perturbationRadiusVector = perturbationRadiusVector * 1.0e-6;
-	  } else if (planetNumber == 7) {
+	  } else if (planetNumber == PLANET_NEPTUNE) {
         //Neptune
 		JA_local = J8_local - J2_local;
 		JB_local = J8_local - J3_local;
@@ -1266,7 +1270,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
 
   L1_local = sin(LL_local);
   L2_local = cos(LL_local);
-  if (planetNumber < 3) {
+  if (planetNumber < PLANET_MARS) {
     geocentricEclipticLongitude = atan(-1.0 * RD_local * L1_local / (radiusVectorEarth - RD_local * L2_local)) + earthEclipticLongitude + FPI;
   } else {
     geocentricEclipticLongitude = atan(radiusVectorEarth * L1_local / (RD_local - radiusVectorEarth * L2_local)) + PD_local;

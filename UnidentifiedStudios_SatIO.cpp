@@ -119,9 +119,11 @@ struct SatIOStruct SatIOData = {
     // RA/DEC TARGET SETTINGS
     // ------------------------------------------------------------------------------------
     .user_sidereal_attitude = {
+      .j2000_ra = 0.0,
       .ra_h = 0,
       .ra_m = 0,
       .ra_s = 0,
+      .j2000_dec = 0.0,
       .dec_d = 0,
       .dec_m = 0,
       .dec_s = 0,
@@ -133,9 +135,11 @@ struct SatIOStruct SatIOData = {
       .padded_dec_str = "000000",
     },
     .system_sidereal_attitude = {
+      .j2000_ra = 0.0,
       .ra_h = 0,
       .ra_m = 0,
       .ra_s = 0,
+      .j2000_dec = 0.0,
       .dec_d = 0,
       .dec_m = 0,
       .dec_s = 0,

@@ -1269,7 +1269,7 @@ static void taskUniverse(void *pvParameters) {
         SatIOData.system_altitude);
       
       // ------------------------------------------------
-      // LST
+      // LST make sidereal lib, currently satio
       // ------------------------------------------------
       storeLST(siderealPlanetData.local_sidereal_time);
       esp_task_wdt_reset();
@@ -1312,7 +1312,7 @@ static void taskUniverse(void *pvParameters) {
         // -----------------------------------------------------------
         // Constellation
         // -----------------------------------------------------------
-        starNavConstellation();
+        siderealPlanetData.gyro_0_constellation = getConstellationAtRaDec(siderealPlanetData.gyro_0_sidereal_attitude.j2000_ra, siderealPlanetData.gyro_0_sidereal_attitude.j2000_dec);
         // -----------------------------------------------------------
         // Track Object
         // -----------------------------------------------------------

@@ -42,15 +42,27 @@ TODO:
 
 #define EARTH_OBLIQ  23.439281f  // obliquity of ecliptic (degrees)
 
+// Planet numbers accepted by SiderealPlanets::doPlans()'s planetNumber and
+// indexing PlanetElements::table -- 1=Mercury..7=Neptune, in orbital order.
+#define PLANET_MERCURY  1
+#define PLANET_VENUS    2
+#define PLANET_MARS     3
+#define PLANET_JUPITER  4
+#define PLANET_SATURN   5
+#define PLANET_URANUS   6
+#define PLANET_NEPTUNE  7
+
 /**
  * @brief Store sidereal attitude data relative to sensor's attitudes.
  */
 typedef struct {
     // Right Ascension
+    double j2000_ra;
     signed int ra_h;
     signed int ra_m;
     float ra_s;
     // Declination
+    double j2000_dec;
     signed int dec_d;
     signed int dec_m;
     float dec_s;
@@ -58,6 +70,7 @@ typedef struct {
 	double az;
 	// Altitude
 	double alt;
+    // Human strings
     char formatted_ra_str[56];  // format HH:MM:SS.S
     char formatted_dec_str[56]; // format DD:MM:SS.S
     char padded_ra_str[56];     // padded HHMMSS.S

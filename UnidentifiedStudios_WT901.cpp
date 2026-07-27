@@ -38,6 +38,7 @@ struct GyroData gyroData = {
   .gyro_0_mag_x = 0,
   .gyro_0_mag_y = 0,
   .gyro_0_mag_z = 0,
+  
   .gyro_0_quaternion = {},
   .gyro_0_c_uiBaud={
     0,      // 0 (unused)

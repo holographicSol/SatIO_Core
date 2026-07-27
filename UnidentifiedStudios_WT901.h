@@ -41,6 +41,7 @@ struct GyroData {
   int16_t gyro_0_mag_x;         // Magnetic field x
   int16_t gyro_0_mag_y;         // Magnetic field y
   int16_t gyro_0_mag_z;         // Magnetic field z
+  
   Quaternion gyro_0_quaternion;
   int32_t gyro_0_c_uiBaud[MAX_GYRO_BAUDRATES];  // Baud rates for scanning
   int32_t gyro_0_current_uiBaud; // Current baud rate

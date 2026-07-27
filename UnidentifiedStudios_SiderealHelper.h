@@ -8,14 +8,15 @@
 #define SIDEREAL_HELPER_H
 
 #include "SiderealPlanets.h"
+#include "SiderealObjects.h"
 #include "UnidentifiedStudios_Config.h"
 
 // Forward-declared rather than #include "SiderealObjectsTables.h": this
 // header only needs to name the type for getObjectTypeEntry()'s pointer
 // return value below; callers that dereference the result (e.g. to read
 // ::num) already need the full definition and include that header directly.
-struct SiderealObjectTypeEntry;
-struct SiderealConstellationEntry;
+// typedef struct SiderealObjectTypeEntry;
+// typedef struct SiderealConstellationEntry;
 class SiderealObjects; // for myAstroObj below
 
 #define INDEX_SIDEREAL_STAR_TABLE          0          
@@ -161,10 +162,10 @@ struct SiderealPlantetsStruct {
     char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
 
     double local_sidereal_time;
+    
     SiderealAttitudeData local_sidereal_attitude;
     SiderealAttitudeData gyro_0_sidereal_attitude;
-
-    const SiderealConstellationEntry* gyro_0_constellation;
+    SiderealConstellationEntry gyro_0_constellation;
 };
 extern struct SiderealPlantetsStruct siderealPlanetData;
 
@@ -241,7 +242,13 @@ const char* getObjectConstellation(SiderealObjectSingle *obj);
  */
 const SiderealObjectTypeEntry* getObjectTypeEntry(SiderealObjectSingle *obj);
 
-const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000);
+/**
+ * Resolves the IAU constellation at the given RA/Dec. Returns the matching
+ * SiderealConstellationEntry by value, or {-1, ""} (num == -1) if the
+ * coordinate doesn't fall inside any boundary -- the same "unidentified"
+ * sentinel used elsewhere (e.g. gyro_0_constellation's default value).
+ */
+SiderealConstellationEntry getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000);
 
 const char* getObjectDescription(SiderealObjectSingle *obj);
 /**
@@ -262,12 +269,6 @@ void setStarNav(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_
  * @note Caller still calls trackObject() separately for Alt/Az/rise-set.
  */
 void identifyKnownObject(SiderealObjectSingle *obj, int table_i, int number);
-
-/**
- * Resolves the constellation at siderealPlanetData.gyro_0_sidereal_attitude's
- * RA/Dec via getConstellationAtRaDec()
- */
-void starNavConstellation();
 
 /**
  * Tracks every enabled body (Sun, Moon, and planets) for the current

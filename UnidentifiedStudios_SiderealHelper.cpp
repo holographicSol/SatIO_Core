@@ -161,9 +161,11 @@ struct SiderealPlantetsStruct siderealPlanetData = {
 
     .local_sidereal_time = 0.0,
     .local_sidereal_attitude = {
+        0.0, // j2000_ra
         0,   // ra_h
         0,   // ra_m
         0.0, // ra_s
+        0.0, // j2000_dec
         0,   // dec_d
         0,   // dec_m
         0.0, // dec_s
@@ -175,9 +177,11 @@ struct SiderealPlantetsStruct siderealPlanetData = {
         {0}  // padded_dec_str
     },
     .gyro_0_sidereal_attitude = {
+        0.0, // j2000_ra
         0,   // ra_h
         0,   // ra_m
         0.0, // ra_s
+        0.0, // j2000_dec
         0,   // dec_d
         0,   // dec_m
         0.0, // dec_s
@@ -188,8 +192,12 @@ struct SiderealPlantetsStruct siderealPlanetData = {
         {0}, // padded_ra_str
         {0}  // padded_dec_str
     },
-    .gyro_0_constellation = nullptr
+    .gyro_0_constellation = {
+        .num = -1,
+        .name = "",
+    }
 };
+
 SiderealObjectSingle siderealObjectSingle = {
     .object_number = 0,
     .object_table_i = 0,
@@ -449,7 +457,7 @@ static void precessJ2000ToB1875(double ra_hours, double dec_deg,
     *dec_out_deg = rad2deg(asin(out[2]));
 }
 
-const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000)
+SiderealConstellationEntry getConstellationAtRaDec(double ra_hours_j2000, double dec_deg_j2000)
 {
     double ra_h = fmod(ra_hours_j2000, 24.0);
     if (ra_h < 0.0) { ra_h += 24.0; }
@@ -467,11 +475,10 @@ const SiderealConstellationEntry* getConstellationAtRaDec(double ra_hours_j2000,
         }
     }
 
-    const SiderealConstellationEntry* result = nullptr;
     for (int i = 0; (con_num >= 0) && (i < (int)SObjectconstellation_names_num); i++) {
-        if (constellationName[i].num == con_num) { result = &constellationName[i]; break; }
+        if (constellationName[i].num == con_num) { return constellationName[i]; }
     }
-    return result;
+    return SiderealConstellationEntry{ -1, "" };
 }
 
 // Only stars carry a description in the vendor table (printStarDesc()).
@@ -640,208 +647,228 @@ static void setHerschel400(T *obj, int index)
 // ----------------------------------------------------------------------------------------
 // Track Planets.
 // ----------------------------------------------------------------------------------------
-void trackSun(const SiderealContext& ctx, const SunResult& sun)
-{
-    siderealPlanetData.sun_ra = sun.eq.ra_hours;
-    siderealPlanetData.sun_dec = sun.eq.dec_deg;
-    AltAz altAz = myAstro.doRAdec2AltAz(ctx, sun.eq.ra_hours, sun.eq.dec_deg);
-    siderealPlanetData.sun_az = altAz.az_deg;
-    siderealPlanetData.sun_alt = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
-    // The Sun has no heliocentric position of its own -- the original read
-    // these back from whichever planet's doPlans() last happened to run
-    // (stale/uninitialized shared state, not a real Sun-relative-to-itself
-    // quantity), which no longer exists to (mis)read now that state isn't shared.
-    siderealPlanetData.sun_helio_ecliptic_lat = NAN;
-    siderealPlanetData.sun_helio_ecliptic_long = NAN;
-    siderealPlanetData.sun_radius_vector = NAN;
-    siderealPlanetData.sun_distance = NAN;
-    siderealPlanetData.sun_ecliptic_lat = sun.eclipticLatitudeDeg;
-    siderealPlanetData.sun_ecliptic_long = sun.eclipticLongitudeDeg;
-    siderealPlanetData.earth_ecliptic_lat = sun.eclipticLatitudeDeg;
-    siderealPlanetData.earth_ecliptic_long = sun.eclipticLongitudeDeg;
-    RiseSetResult rs = myAstro.doSunRiseSetTimes(ctx);
-    siderealPlanetData.sun_r = myAstro.getSunriseTime(ctx, rs);
-    siderealPlanetData.sun_s = myAstro.getSunsetTime(ctx, rs);
-}
+// Every tracked body -- Sun, Moon, and the seven planets -- goes through the
+// same pipeline: get its equatorial position (however that body kind computes
+// it), convert to Alt/Az, fill in whatever extra fields that kind has
+// (heliocentric/ecliptic for planets, ecliptic for the Sun, phase/luminance
+// for the Moon), then rise/set times. Only the per-kind position lookup and
+// which struct fields to fill differ, so one spec table plus one generic
+// trackBody()/clearBody() pair replaces what would otherwise be 9 duplicated
+// bodies -- trackSun()/trackLuna()/trackMercury()..clearSun()/clearLuna()/
+// clearMercury().. stay as named entry points, each now a one-line call into
+// the shared engine below, for callers that want a single body directly.
+enum class SiderealBodyKind { Sun, Luna, Planet };
 
-void trackLuna(const SiderealContext& ctx)
-{
-    MoonResult moon = myAstro.doMoon(ctx);
-    siderealPlanetData.luna_ra = moon.eq.ra_hours;
-    siderealPlanetData.luna_dec = moon.eq.dec_deg;
-    AltAz altAz = myAstro.doRAdec2AltAz(ctx, moon.eq.ra_hours, moon.eq.dec_deg);
-    siderealPlanetData.luna_az = altAz.az_deg;
-    siderealPlanetData.luna_alt = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
-    RiseSetResult rs = myAstro.doMoonRiseSetTimes(ctx);
-    siderealPlanetData.luna_r = myAstro.getMoonriseTime(ctx, rs);
-    siderealPlanetData.luna_s = myAstro.getMoonsetTime(ctx, rs);
-    siderealPlanetData.luna_p = myAstro.getMoonPhase(ctx, moon);
-    siderealPlanetData.luna_lum = myAstro.getLunarLuminance(ctx, moon);
-}
-
-/*
- * Mercury through Neptune are tracked identically: do<Planet>(), pull
- * RA/Dec, convert to Alt/Az, pull heliocentric/ecliptic position, then
- * rise/set times via a fixed horizontal-displacement constant. Only the
- * do<Planet>() call and the destination fields differ per planet, so one
- * table plus one generic function (trackOuterPlanet()/clearOuterPlanet()
- * below) replaces what would otherwise be 7 duplicated ~14-line bodies.
- */
 typedef struct {
-    int planetNumber; // 1=Mercury..7=Neptune, matches SiderealPlanets::doPlans()
+    SiderealBodyKind kind;
+    int planetNumber; // 1=Mercury..7=Neptune, matches SiderealPlanets::doPlans(); unused for Sun/Luna
     double SiderealPlantetsStruct::*ra;
     double SiderealPlantetsStruct::*dec;
     double SiderealPlantetsStruct::*az;
     double SiderealPlantetsStruct::*alt;
-    double SiderealPlantetsStruct::*helio_lat;
-    double SiderealPlantetsStruct::*helio_long;
-    double SiderealPlantetsStruct::*radius_vector;
-    double SiderealPlantetsStruct::*distance;
-    double SiderealPlantetsStruct::*ecliptic_lat;
-    double SiderealPlantetsStruct::*ecliptic_long;
     double SiderealPlantetsStruct::*r;
     double SiderealPlantetsStruct::*s;
-} OuterPlanetSpec;
+    double SiderealPlantetsStruct::*helio_lat;     // Sun (always NAN), Planet
+    double SiderealPlantetsStruct::*helio_long;    // Sun (always NAN), Planet
+    double SiderealPlantetsStruct::*radius_vector; // Sun (always NAN), Planet
+    double SiderealPlantetsStruct::*distance;      // Sun (always NAN), Planet
+    double SiderealPlantetsStruct::*ecliptic_lat;  // Sun, Planet
+    double SiderealPlantetsStruct::*ecliptic_long; // Sun, Planet
+    double SiderealPlantetsStruct::*phase;         // Luna only
+    double SiderealPlantetsStruct::*luminance;     // Luna only
+} SiderealBodySpec;
 
-static const OuterPlanetSpec mercury_spec = {
-    1,
+static const SiderealBodySpec sun_spec = {
+    SiderealBodyKind::Sun, 0,
+    &SiderealPlantetsStruct::sun_ra, &SiderealPlantetsStruct::sun_dec,
+    &SiderealPlantetsStruct::sun_az, &SiderealPlantetsStruct::sun_alt,
+    &SiderealPlantetsStruct::sun_r, &SiderealPlantetsStruct::sun_s,
+    &SiderealPlantetsStruct::sun_helio_ecliptic_lat, &SiderealPlantetsStruct::sun_helio_ecliptic_long,
+    &SiderealPlantetsStruct::sun_radius_vector, &SiderealPlantetsStruct::sun_distance,
+    &SiderealPlantetsStruct::sun_ecliptic_lat, &SiderealPlantetsStruct::sun_ecliptic_long,
+    nullptr, nullptr
+};
+static const SiderealBodySpec luna_spec = {
+    SiderealBodyKind::Luna, 0,
+    &SiderealPlantetsStruct::luna_ra, &SiderealPlantetsStruct::luna_dec,
+    &SiderealPlantetsStruct::luna_az, &SiderealPlantetsStruct::luna_alt,
+    &SiderealPlantetsStruct::luna_r, &SiderealPlantetsStruct::luna_s,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    &SiderealPlantetsStruct::luna_p, &SiderealPlantetsStruct::luna_lum
+};
+static const SiderealBodySpec mercury_spec = {
+    SiderealBodyKind::Planet, PLANET_MERCURY,
     &SiderealPlantetsStruct::mercury_ra, &SiderealPlantetsStruct::mercury_dec,
     &SiderealPlantetsStruct::mercury_az, &SiderealPlantetsStruct::mercury_alt,
+    &SiderealPlantetsStruct::mercury_r, &SiderealPlantetsStruct::mercury_s,
     &SiderealPlantetsStruct::mercury_helio_ecliptic_lat, &SiderealPlantetsStruct::mercury_helio_ecliptic_long,
     &SiderealPlantetsStruct::mercury_radius_vector, &SiderealPlantetsStruct::mercury_distance,
     &SiderealPlantetsStruct::mercury_ecliptic_lat, &SiderealPlantetsStruct::mercury_ecliptic_long,
-    &SiderealPlantetsStruct::mercury_r, &SiderealPlantetsStruct::mercury_s
+    nullptr, nullptr
 };
-static const OuterPlanetSpec venus_spec = {
-    2,
+static const SiderealBodySpec venus_spec = {
+    SiderealBodyKind::Planet, PLANET_VENUS,
     &SiderealPlantetsStruct::venus_ra, &SiderealPlantetsStruct::venus_dec,
     &SiderealPlantetsStruct::venus_az, &SiderealPlantetsStruct::venus_alt,
+    &SiderealPlantetsStruct::venus_r, &SiderealPlantetsStruct::venus_s,
     &SiderealPlantetsStruct::venus_helio_ecliptic_lat, &SiderealPlantetsStruct::venus_helio_ecliptic_long,
     &SiderealPlantetsStruct::venus_radius_vector, &SiderealPlantetsStruct::venus_distance,
     &SiderealPlantetsStruct::venus_ecliptic_lat, &SiderealPlantetsStruct::venus_ecliptic_long,
-    &SiderealPlantetsStruct::venus_r, &SiderealPlantetsStruct::venus_s
+    nullptr, nullptr
 };
-static const OuterPlanetSpec mars_spec = {
-    3,
+static const SiderealBodySpec mars_spec = {
+    SiderealBodyKind::Planet, PLANET_MARS,
     &SiderealPlantetsStruct::mars_ra, &SiderealPlantetsStruct::mars_dec,
     &SiderealPlantetsStruct::mars_az, &SiderealPlantetsStruct::mars_alt,
+    &SiderealPlantetsStruct::mars_r, &SiderealPlantetsStruct::mars_s,
     &SiderealPlantetsStruct::mars_helio_ecliptic_lat, &SiderealPlantetsStruct::mars_helio_ecliptic_long,
     &SiderealPlantetsStruct::mars_radius_vector, &SiderealPlantetsStruct::mars_distance,
     &SiderealPlantetsStruct::mars_ecliptic_lat, &SiderealPlantetsStruct::mars_ecliptic_long,
-    &SiderealPlantetsStruct::mars_r, &SiderealPlantetsStruct::mars_s
+    nullptr, nullptr
 };
-static const OuterPlanetSpec jupiter_spec = {
-    4,
+static const SiderealBodySpec jupiter_spec = {
+    SiderealBodyKind::Planet, PLANET_JUPITER,
     &SiderealPlantetsStruct::jupiter_ra, &SiderealPlantetsStruct::jupiter_dec,
     &SiderealPlantetsStruct::jupiter_az, &SiderealPlantetsStruct::jupiter_alt,
+    &SiderealPlantetsStruct::jupiter_r, &SiderealPlantetsStruct::jupiter_s,
     &SiderealPlantetsStruct::jupiter_helio_ecliptic_lat, &SiderealPlantetsStruct::jupiter_helio_ecliptic_long,
     &SiderealPlantetsStruct::jupiter_radius_vector, &SiderealPlantetsStruct::jupiter_distance,
     &SiderealPlantetsStruct::jupiter_ecliptic_lat, &SiderealPlantetsStruct::jupiter_ecliptic_long,
-    &SiderealPlantetsStruct::jupiter_r, &SiderealPlantetsStruct::jupiter_s
+    nullptr, nullptr
 };
-static const OuterPlanetSpec saturn_spec = {
-    5,
+static const SiderealBodySpec saturn_spec = {
+    SiderealBodyKind::Planet, PLANET_SATURN,
     &SiderealPlantetsStruct::saturn_ra, &SiderealPlantetsStruct::saturn_dec,
     &SiderealPlantetsStruct::saturn_az, &SiderealPlantetsStruct::saturn_alt,
+    &SiderealPlantetsStruct::saturn_r, &SiderealPlantetsStruct::saturn_s,
     &SiderealPlantetsStruct::saturn_helio_ecliptic_lat, &SiderealPlantetsStruct::saturn_helio_ecliptic_long,
     &SiderealPlantetsStruct::saturn_radius_vector, &SiderealPlantetsStruct::saturn_distance,
     &SiderealPlantetsStruct::saturn_ecliptic_lat, &SiderealPlantetsStruct::saturn_ecliptic_long,
-    &SiderealPlantetsStruct::saturn_r, &SiderealPlantetsStruct::saturn_s
+    nullptr, nullptr
 };
-static const OuterPlanetSpec uranus_spec = {
-    6,
+static const SiderealBodySpec uranus_spec = {
+    SiderealBodyKind::Planet, PLANET_URANUS,
     &SiderealPlantetsStruct::uranus_ra, &SiderealPlantetsStruct::uranus_dec,
     &SiderealPlantetsStruct::uranus_az, &SiderealPlantetsStruct::uranus_alt,
+    &SiderealPlantetsStruct::uranus_r, &SiderealPlantetsStruct::uranus_s,
     &SiderealPlantetsStruct::uranus_helio_ecliptic_lat, &SiderealPlantetsStruct::uranus_helio_ecliptic_long,
     &SiderealPlantetsStruct::uranus_radius_vector, &SiderealPlantetsStruct::uranus_distance,
     &SiderealPlantetsStruct::uranus_ecliptic_lat, &SiderealPlantetsStruct::uranus_ecliptic_long,
-    &SiderealPlantetsStruct::uranus_r, &SiderealPlantetsStruct::uranus_s
+    nullptr, nullptr
 };
-static const OuterPlanetSpec neptune_spec = {
-    7,
+static const SiderealBodySpec neptune_spec = {
+    SiderealBodyKind::Planet, PLANET_NEPTUNE,
     &SiderealPlantetsStruct::neptune_ra, &SiderealPlantetsStruct::neptune_dec,
     &SiderealPlantetsStruct::neptune_az, &SiderealPlantetsStruct::neptune_alt,
+    &SiderealPlantetsStruct::neptune_r, &SiderealPlantetsStruct::neptune_s,
     &SiderealPlantetsStruct::neptune_helio_ecliptic_lat, &SiderealPlantetsStruct::neptune_helio_ecliptic_long,
     &SiderealPlantetsStruct::neptune_radius_vector, &SiderealPlantetsStruct::neptune_distance,
     &SiderealPlantetsStruct::neptune_ecliptic_lat, &SiderealPlantetsStruct::neptune_ecliptic_long,
-    &SiderealPlantetsStruct::neptune_r, &SiderealPlantetsStruct::neptune_s
+    nullptr, nullptr
 };
 
-static void trackOuterPlanet(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun, const OuterPlanetSpec *spec)
+static void trackBody(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun, const SiderealBodySpec *spec)
 {
-    PlanetResult p = myAstro.doPlans(ctx, elements, sun, spec->planetNumber);
-    siderealPlanetData.*(spec->ra) = p.eq.ra_hours;
-    siderealPlanetData.*(spec->dec) = p.eq.dec_deg;
-    AltAz altAz = myAstro.doRAdec2AltAz(ctx, p.eq.ra_hours, p.eq.dec_deg);
+    RaDec eq{};
+    RiseSetResult rs{};
+
+    switch (spec->kind) {
+        case SiderealBodyKind::Sun:
+            eq = sun.eq;
+            // The Sun has no heliocentric position of its own -- the original read
+            // these back from whichever planet's doPlans() last happened to run
+            // (stale/uninitialized shared state, not a real Sun-relative-to-itself
+            // quantity), which no longer exists to (mis)read now that state isn't shared.
+            siderealPlanetData.*(spec->helio_lat) = NAN;
+            siderealPlanetData.*(spec->helio_long) = NAN;
+            siderealPlanetData.*(spec->radius_vector) = NAN;
+            siderealPlanetData.*(spec->distance) = NAN;
+            siderealPlanetData.*(spec->ecliptic_lat) = sun.eclipticLatitudeDeg;
+            siderealPlanetData.*(spec->ecliptic_long) = sun.eclipticLongitudeDeg;
+            siderealPlanetData.earth_ecliptic_lat = sun.eclipticLatitudeDeg;
+            siderealPlanetData.earth_ecliptic_long = sun.eclipticLongitudeDeg;
+            rs = myAstro.doSunRiseSetTimes(ctx);
+            break;
+        case SiderealBodyKind::Luna: {
+            MoonResult moon = myAstro.doMoon(ctx);
+            eq = moon.eq;
+            rs = myAstro.doMoonRiseSetTimes(ctx);
+            siderealPlanetData.*(spec->phase) = myAstro.getMoonPhase(ctx, moon);
+            siderealPlanetData.*(spec->luminance) = myAstro.getLunarLuminance(ctx, moon);
+            break;
+        }
+        case SiderealBodyKind::Planet: {
+            PlanetResult p = myAstro.doPlans(ctx, elements, sun, spec->planetNumber);
+            eq = p.eq;
+            siderealPlanetData.*(spec->helio_lat) = p.helioLatitudeDeg;
+            siderealPlanetData.*(spec->helio_long) = p.helioLongitudeDeg;
+            siderealPlanetData.*(spec->radius_vector) = p.radiusVector;
+            siderealPlanetData.*(spec->distance) = p.distance;
+            siderealPlanetData.*(spec->ecliptic_lat) = p.eclipticLatitudeDeg;
+            siderealPlanetData.*(spec->ecliptic_long) = p.eclipticLongitudeDeg;
+            rs = myAstro.doXRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, 1.454441e-2); /* toDo: actual horizontal displacement */
+            break;
+        }
+    }
+
+    siderealPlanetData.*(spec->ra) = eq.ra_hours;
+    siderealPlanetData.*(spec->dec) = eq.dec_deg;
+    AltAz altAz = myAstro.doRAdec2AltAz(ctx, eq.ra_hours, eq.dec_deg);
     siderealPlanetData.*(spec->az) = altAz.az_deg;
     siderealPlanetData.*(spec->alt) = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
-    siderealPlanetData.*(spec->helio_lat) = p.helioLatitudeDeg;
-    siderealPlanetData.*(spec->helio_long) = p.helioLongitudeDeg;
-    siderealPlanetData.*(spec->radius_vector) = p.radiusVector;
-    siderealPlanetData.*(spec->distance) = p.distance;
-    siderealPlanetData.*(spec->ecliptic_lat) = p.eclipticLatitudeDeg;
-    siderealPlanetData.*(spec->ecliptic_long) = p.eclipticLongitudeDeg;
-    RiseSetResult rs = myAstro.doXRiseSetTimes(ctx, p.eq.ra_hours, p.eq.dec_deg, 1.454441e-2); /* toDo: actual horizontal displacement */
     siderealPlanetData.*(spec->r) = myAstro.getRiseTime(ctx, rs);
     siderealPlanetData.*(spec->s) = myAstro.getSetTime(ctx, rs);
 }
 
-static void clearOuterPlanet(const OuterPlanetSpec *spec)
+static void clearBody(const SiderealBodySpec *spec)
 {
     siderealPlanetData.*(spec->ra) = NAN;
     siderealPlanetData.*(spec->dec) = NAN;
     siderealPlanetData.*(spec->az) = NAN;
     siderealPlanetData.*(spec->alt) = NAN;
-    siderealPlanetData.*(spec->helio_lat) = NAN;
-    siderealPlanetData.*(spec->helio_long) = NAN;
-    siderealPlanetData.*(spec->radius_vector) = NAN;
-    siderealPlanetData.*(spec->distance) = NAN;
-    siderealPlanetData.*(spec->ecliptic_lat) = NAN;
-    siderealPlanetData.*(spec->ecliptic_long) = NAN;
     siderealPlanetData.*(spec->r) = NAN;
     siderealPlanetData.*(spec->s) = NAN;
+
+    switch (spec->kind) {
+        case SiderealBodyKind::Sun:
+            break; // matches the original clearSun(): ecliptic/earth-ecliptic fields are left untouched
+        case SiderealBodyKind::Luna:
+            siderealPlanetData.*(spec->phase) = NAN;
+            siderealPlanetData.*(spec->luminance) = NAN;
+            break;
+        case SiderealBodyKind::Planet:
+            siderealPlanetData.*(spec->helio_lat) = NAN;
+            siderealPlanetData.*(spec->helio_long) = NAN;
+            siderealPlanetData.*(spec->radius_vector) = NAN;
+            siderealPlanetData.*(spec->distance) = NAN;
+            siderealPlanetData.*(spec->ecliptic_lat) = NAN;
+            siderealPlanetData.*(spec->ecliptic_long) = NAN;
+            break;
+    }
 }
 
-void trackMercury(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackOuterPlanet(ctx, elements, sun, &mercury_spec); }
-void trackVenus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)   { trackOuterPlanet(ctx, elements, sun, &venus_spec); }
-void trackMars(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)    { trackOuterPlanet(ctx, elements, sun, &mars_spec); }
-void trackJupiter(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackOuterPlanet(ctx, elements, sun, &jupiter_spec); }
-void trackSaturn(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackOuterPlanet(ctx, elements, sun, &saturn_spec); }
-void trackUranus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackOuterPlanet(ctx, elements, sun, &uranus_spec); }
-void trackNeptune(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackOuterPlanet(ctx, elements, sun, &neptune_spec); }
+void trackSun(const SiderealContext& ctx, const SunResult& sun) { trackBody(ctx, PlanetElements{}, sun, &sun_spec); }
+void trackLuna(const SiderealContext& ctx) { trackBody(ctx, PlanetElements{}, SunResult{}, &luna_spec); }
+void trackMercury(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackBody(ctx, elements, sun, &mercury_spec); }
+void trackVenus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)   { trackBody(ctx, elements, sun, &venus_spec); }
+void trackMars(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)    { trackBody(ctx, elements, sun, &mars_spec); }
+void trackJupiter(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackBody(ctx, elements, sun, &jupiter_spec); }
+void trackSaturn(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackBody(ctx, elements, sun, &saturn_spec); }
+void trackUranus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackBody(ctx, elements, sun, &uranus_spec); }
+void trackNeptune(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackBody(ctx, elements, sun, &neptune_spec); }
 
 // ----------------------------------------------------------------------------------------
 // Clear Planet Data.
 // ----------------------------------------------------------------------------------------
-void clearSun(void)
-{
-    siderealPlanetData.sun_ra = NAN;
-    siderealPlanetData.sun_dec = NAN;
-    siderealPlanetData.sun_az = NAN;
-    siderealPlanetData.sun_alt = NAN;
-    siderealPlanetData.sun_r = NAN;
-    siderealPlanetData.sun_s = NAN;
-}
-
-void clearLuna(void)
-{
-    siderealPlanetData.luna_ra = NAN;
-    siderealPlanetData.luna_dec = NAN;
-    siderealPlanetData.luna_az = NAN;
-    siderealPlanetData.luna_alt = NAN;
-    siderealPlanetData.luna_r = NAN;
-    siderealPlanetData.luna_s = NAN;
-    siderealPlanetData.luna_p = NAN;
-    siderealPlanetData.luna_lum = NAN;
-}
-
-void clearMercury(void) { clearOuterPlanet(&mercury_spec); }
-void clearVenus(void)   { clearOuterPlanet(&venus_spec); }
-void clearMars(void)    { clearOuterPlanet(&mars_spec); }
-void clearJupiter(void) { clearOuterPlanet(&jupiter_spec); }
-void clearSaturn(void)  { clearOuterPlanet(&saturn_spec); }
-void clearUranus(void)  { clearOuterPlanet(&uranus_spec); }
-void clearNeptune(void) { clearOuterPlanet(&neptune_spec); }
+void clearSun(void)     { clearBody(&sun_spec); }
+void clearLuna(void)    { clearBody(&luna_spec); }
+void clearMercury(void) { clearBody(&mercury_spec); }
+void clearVenus(void)   { clearBody(&venus_spec); }
+void clearMars(void)    { clearBody(&mars_spec); }
+void clearJupiter(void) { clearBody(&jupiter_spec); }
+void clearSaturn(void)  { clearBody(&saturn_spec); }
+void clearUranus(void)  { clearBody(&uranus_spec); }
+void clearNeptune(void) { clearBody(&neptune_spec); }
 
 void clearTrackPlanets(void)
 {
@@ -1012,18 +1039,6 @@ void identifyKnownObject(SiderealObjectSingle *obj, int table_i, int number)
     }
     myAstroObj.checkAltCatalogs();
     dispatchIdentifiedObject(obj, 0);
-}
-
-void starNavConstellation() {
-    const SiderealAttitudeData &gyro_attitude = siderealPlanetData.gyro_0_sidereal_attitude;
-    const double gyro_ra_hours = static_cast<double>(gyro_attitude.ra_h)
-        + (static_cast<double>(gyro_attitude.ra_m) / 60.0)
-        + (static_cast<double>(gyro_attitude.ra_s) / 3600.0);
-    const double gyro_dec_sign = (gyro_attitude.dec_d < 0) ? -1.0 : 1.0;
-    const double gyro_dec_deg = gyro_dec_sign * (fabs(static_cast<double>(gyro_attitude.dec_d))
-        + (static_cast<double>(gyro_attitude.dec_m) / 60.0)
-        + (static_cast<double>(gyro_attitude.dec_s) / 3600.0));
-    siderealPlanetData.gyro_0_constellation = getConstellationAtRaDec(gyro_ra_hours, gyro_dec_deg);
 }
 
 // ----------------------------------------------------------------------------------------

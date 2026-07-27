@@ -1017,9 +1017,17 @@ void setGroundHeading(double heading) {
 void setRaDec(int ra_h, int ra_m, float ra_s, int dec_d, int dec_m, float dec_s) {
   if (ra_h>=0 && ra_h<24 && ra_m>=0 && ra_m<60 && ra_s>=0.0f && ra_s<60.0f &&
       dec_d>=-90 && dec_d<=90 && dec_m>=0 && dec_m<60 && dec_s>=0.0f && dec_s<60.0f) {
+    const double dec_sign = (dec_d < 0) ? -1.0 : 1.0;
+
+    SatIOData.user_sidereal_attitude.j2000_ra = static_cast<double>(ra_h)
+        + (static_cast<double>(ra_m) / 60.0)
+        + (static_cast<double>(ra_s) / 3600.0);
     SatIOData.user_sidereal_attitude.ra_h = ra_h;
     SatIOData.user_sidereal_attitude.ra_m = ra_m;
     SatIOData.user_sidereal_attitude.ra_s = ra_s;
+    SatIOData.user_sidereal_attitude.j2000_dec = dec_sign * (fabs(static_cast<double>(dec_d))
+        + (static_cast<double>(dec_m) / 60.0)
+        + (static_cast<double>(dec_s) / 3600.0));
     SatIOData.user_sidereal_attitude.dec_d = dec_d;
     SatIOData.user_sidereal_attitude.dec_m = dec_m;
     SatIOData.user_sidereal_attitude.dec_s = dec_s;
@@ -1114,11 +1122,11 @@ static void constellation_lookup(void) {
     const double dec_sign = (dec_d < 0) ? -1.0 : 1.0;
     const double dec_deg = dec_sign * (fabs(static_cast<double>(dec_d)) + (static_cast<double>(dec_m) / 60.0) + (static_cast<double>(dec_s) / 3600.0));
 
-    const SiderealConstellationEntry* con = getConstellationAtRaDec(ra_hours, dec_deg);
+    const SiderealConstellationEntry con = getConstellationAtRaDec(ra_hours, dec_deg);
     printf("---------------------------------------------\n");
     printf("RA:            %02d %02d %02.2f (%.6f h, J2000)\n", ra_h, ra_m, ra_s, ra_hours);
     printf("Dec:           %+02d %02d %02.2f (%+.6f deg, J2000)\n", dec_d, dec_m, dec_s, dec_deg);
-    printf("Constellation: %s\n", (con != nullptr) ? con->name : "Unidentified");
+    printf("Constellation: %s\n", (con.num >= 0) ? con.name : "Unidentified");
     printf("---------------------------------------------\n");
   }
   else {printf("constellation: bad input data\n");}
