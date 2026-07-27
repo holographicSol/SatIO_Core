@@ -152,7 +152,12 @@ struct MoonResult {
     double geocentricEclipticLatitudeRad;  // needed by getLunarLuminance()
     double moonMeanAnomalyRad;             // needed by getLunarLuminance()
     double sunMeanAnomalyRad;              // needed by getLunarLuminance() (doMoon()'s own recomputation)
-    double horizontalParallaxDeg;          // needed by doLunarParallax()/doMoonRiseSetTimes()
+    double horizontalParallaxDeg;          // needed by doLunarParallax()
+    // Rise/set horizon vertical displacement (radians) -- precomputed by
+    // doMoon() via getMoonHorizonDisplacement() so callers building a
+    // getRiseSetTimes() call never have to invoke that separately, though it
+    // stays available to call directly too.
+    double horizonDisplacementRad;
 };
 
 struct PlanetElements {
@@ -176,6 +181,10 @@ struct RiseSetResult {
     bool visible; // false if circumpolar (never sets) or never rises
     double azimuthRisingRad, azimuthSettingRad;
     double lstRising, lstSetting;
+    // Local civil time (H.MM), only filled in by getRiseSetTimes() -- left at
+    // their zero-init default by the doRiseSetTimes() primitive, which only
+    // deals in LST.
+    double riseTime, setTime;
 };
 
 // Sidereal_Planets library description
@@ -222,19 +231,24 @@ class SiderealPlanets {
 	static float getLunarLuminance(const SiderealContext& ctx, const MoonResult& moon);
 	static int getMoonPhase(const SiderealContext& ctx, const MoonResult& moon);
 
+	// doMoon() already calls this to fill in MoonResult::horizonDisplacementRad,
+	// so callers feeding a MoonResult into getRiseSetTimes() don't need to call
+	// it themselves -- kept public for anyone recomputing it from a MoonResult
+	// obtained some other way.
+	static double getMoonHorizonDisplacement(const MoonResult& moon);
+
 	static PlanetElements doPlanetElements(const SiderealContext& ctx);
 	static PlanetResult doPlans(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun, int planetNumber);
 
 	static RiseSetResult doRiseSetTimes(const SiderealContext& ctx, double raHours, double decDeg, double DIdeg);
-	static RiseSetResult doXRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI);
-	static RiseSetResult doSunRiseSetTimes(SiderealContext ctx);
-	static RiseSetResult doMoonRiseSetTimes(SiderealContext ctx);
-	static double getRiseTime(const SiderealContext& ctx, const RiseSetResult& rs);
-	static double getSetTime(const SiderealContext& ctx, const RiseSetResult& rs);
-	static double getSunriseTime(const SiderealContext& ctx, const RiseSetResult& rs);
-	static double getSunsetTime(const SiderealContext& ctx, const RiseSetResult& rs);
-	static double getMoonriseTime(const SiderealContext& ctx, const RiseSetResult& rs);
-	static double getMoonsetTime(const SiderealContext& ctx, const RiseSetResult& rs);
+
+	// General rise/set refinement for any body with an already-known, fixed
+	// RA/Dec (Sun, Moon, planets, stars, deep-sky objects) -- DI is the body's
+	// horizon vertical displacement in radians (0.0 for stars; reuse the
+	// Sun's DI as an approximation for planets; getMoonHorizonDisplacement()
+	// for the Moon). Doesn't re-evaluate position at the refined times, since
+	// the caller has typically already paid for that computation once.
+	static RiseSetResult getRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI);
 
 	static AnomalyResult doAnomaly(double meanAnomalyDeg, double eccentricity);
 
@@ -274,11 +288,11 @@ class SiderealPlanets {
     // call (previousMagnitude=0, matching its original unlooped `rf = 0.` init).
     static double refractionMagnitude(double altitudeRad, double pressure, double temperature, double previousMagnitude);
 
-    // Shared by doXRiseSetTimes()/doSunRiseSetTimes()/doMoonRiseSetTimes(): sets
-    // ctx.GMTtime to gmtTime, nudges ctx.mjd1900 by +-1 day if that GMT time
-    // (plus zone/DST offsets) crosses midnight, calls recompute() with the
-    // day-adjusted context, then restores ctx.mjd1900. The three callers differ
-    // only in what recompute() does (nothing, doSun(), or doMoon()+parallax) --
+    // Used by getRiseSetTimes(): sets ctx.GMTtime to gmtTime, nudges
+    // ctx.mjd1900 by +-1 day if that GMT time (plus zone/DST offsets) crosses
+    // midnight, calls recompute() with the day-adjusted context, then
+    // restores ctx.mjd1900. getRiseSetTimes() always passes a no-op recompute
+    // today (every body's position is now fixed going into refinement) --
     // doRiseSetTimes() itself never reads ctx.mjd1900/ctx.GMTtime, so exactly
     // when the caller restores ctx.GMTtime relative to this call doesn't
     // affect its result.

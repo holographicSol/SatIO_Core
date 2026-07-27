@@ -737,6 +737,7 @@ MoonResult SiderealPlanets::doMoon(const SiderealContext& ctx) {
   result.moonMeanAnomalyRad = moonMeanAnomaly;
   result.sunMeanAnomalyRad = sunMeanAnomaly;
   result.horizontalParallaxDeg = horizontalParallaxDeg;
+  result.horizonDisplacementRad = getMoonHorizonDisplacement(result);
   return result;
 }
 
@@ -811,6 +812,16 @@ int SiderealPlanets::getMoonPhase(const SiderealContext& ctx, const MoonResult& 
     return 6; // Third quarter
   }
   return 0;
+}
+
+// Horizon vertical displacement (radians) for the Moon's rise/set: its
+// horizontal parallax is large enough (unlike the Sun's) that it needs to be
+// folded in alongside the standard atmospheric-refraction dip built into
+// getRiseSetTimes()'s DI parameter.
+double SiderealPlanets::getMoonHorizonDisplacement(const MoonResult& moon) {
+  double moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
+  double TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
+  return TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
 }
 
 PlanetElements SiderealPlanets::doPlanetElements(const SiderealContext& ctx) {
@@ -1347,7 +1358,9 @@ RiseSetResult SiderealPlanets::doRiseSetTimes(const SiderealContext& ctx, double
 }
 
 // ------------------------------------------------------------------------------------------------
-// modified: allows calc rise/set of other celestial bodies (same as sun but we will not call doSun())
+// modified: general rise/set calc for any body with an already-known RA/Dec
+// (doesn't call doSun()/doMoon() -- the caller should have already paid for
+// that computation once and just wants rise/set refined against it).
 // ------------------------------------------------------------------------------------------------
 /*
 double sun_horizonVerticalDisplacement = 1.454441e-2; // here for reference. if DI is unknown then set
@@ -1363,7 +1376,7 @@ void SiderealPlanets::refineContextForGMTtime(SiderealContext& ctx, double gmtTi
   ctx.mjd1900 = originalMjd1900;
 }
 
-RiseSetResult SiderealPlanets::doXRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI) {
+RiseSetResult SiderealPlanets::getRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI) {
   double horizonVerticalDisplacement = DI;
   double tmpGMT = ctx.GMTtime;
   ctx.GMTtime = (12.0 + (ctx.TimeZoneOffset + ctx.DSToffset));
@@ -1389,108 +1402,11 @@ RiseSetResult SiderealPlanets::doXRiseSetTimes(SiderealContext ctx, double raHou
 
   LB_local = rs.lstSetting;
   rs.lstRising = LA_local;
+  rs.riseTime = inRange60(doLST2LT(ctx, rs.lstRising));
+  rs.setTime = inRange60(doLST2LT(ctx, rs.lstSetting));
   return rs;
 }
 // ------------------------------------------------------------------------------------------------------
-
-double SiderealPlanets::getRiseTime(const SiderealContext& ctx, const RiseSetResult& rs) {
-  return inRange60(doLST2LT(ctx, rs.lstRising));
-}
-
-double SiderealPlanets::getSetTime(const SiderealContext& ctx, const RiseSetResult& rs) {
-  return inRange60(doLST2LT(ctx, rs.lstSetting));
-}
-
-RiseSetResult SiderealPlanets::doSunRiseSetTimes(SiderealContext ctx) {
-  double horizonVerticalDisplacement = 1.454441e-2;
-  double tmpGMT = ctx.GMTtime;
-  ctx.GMTtime = (12.0 + (ctx.TimeZoneOffset + ctx.DSToffset));
-  SunResult sun = doSun(ctx);
-  ctx.GMTtime = tmpGMT;
-  RiseSetResult rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-  if (rs.visible == false) return rs;
-
-  double LA_local = rs.lstRising; //localSiderealTime of rising - first guesstimate
-  double LB_local = rs.lstSetting; //localSiderealTime of setting - first guesstimate
-  double GU_local = doLST2GMT(ctx, LA_local);
-  double GD_local = doLST2GMT(ctx, LB_local);
-
-  refineContextForGMTtime(ctx, GU_local, [&](){ sun = doSun(ctx); });
-  ctx.GMTtime = tmpGMT;
-  rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-  if (rs.visible == false) return rs;
-  LA_local = rs.lstRising;
-
-  refineContextForGMTtime(ctx, GD_local, [&](){ sun = doSun(ctx); });
-  ctx.GMTtime = tmpGMT;
-  rs = doRiseSetTimes(ctx, sun.eq.ra_hours, sun.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-  if (rs.visible == false) return rs;
-
-  LB_local = rs.lstSetting;
-  rs.lstRising = LA_local;
-  return rs;
-}
-
-double SiderealPlanets::getSunriseTime(const SiderealContext& ctx, const RiseSetResult& rs) {
-  return getRiseTime(ctx, rs);
-}
-
-double SiderealPlanets::getSunsetTime(const SiderealContext& ctx, const RiseSetResult& rs) {
-  return getSetTime(ctx, rs);
-}
-
-RiseSetResult SiderealPlanets::doMoonRiseSetTimes(SiderealContext ctx) {
-  double tmpGMT = ctx.GMTtime;
-  ctx.GMTtime = (12.0 + (ctx.TimeZoneOffset + ctx.DSToffset)); //Set to local mid-day
-
-  //local rise-set routine
-  MoonResult moon = doMoon(ctx); //Already does nutation too
-  double moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
-  double TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
-  double horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
-  // return if moon doesn't cross horizon
-  RiseSetResult rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-  if (rs.visible == false) {
-	  return rs;
-  }
-
-  double LA_local = rs.lstRising; //localSiderealTime of rising - first guesstimate
-  double LB_local = rs.lstSetting; //localSiderealTime of setting - first guesstimate
-  auto recomputeMoon = [&](){
-    moon = doMoon(ctx); //Already does nutation too
-    moonHorizontalParallaxRad = deg2rad(moon.horizontalParallaxDeg);
-    TH_local = 2.7249e-1 * sin(moonHorizontalParallaxRad);
-    horizonVerticalDisplacement = TH_local + 9.8902e-3 - moonHorizontalParallaxRad;
-  };
-  for(int K_local=1; K_local <= 3; K_local++) {
-    // local sidereal time to local civil time
-    double GU_local = doLST2GMT(ctx, LA_local);
-    double GD_local = doLST2GMT(ctx, LB_local);
-
-    //find a better time of rising
-    refineContextForGMTtime(ctx, GU_local, recomputeMoon);
-    rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-    if (rs.visible == false) return rs;
-    LA_local = rs.lstRising;
-
-    //find a better time of setting
-    refineContextForGMTtime(ctx, GD_local, recomputeMoon);
-    rs = doRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, rad2deg(horizonVerticalDisplacement));
-    if (rs.visible == false) return rs;
-    LB_local = rs.lstSetting;
-  }
-  rs.lstRising = LA_local;
-  rs.lstSetting = LB_local;
-  return rs;
-}
-
-double SiderealPlanets::getMoonriseTime(const SiderealContext& ctx, const RiseSetResult& rs) {
-  return getRiseTime(ctx, rs);
-}
-
-double SiderealPlanets::getMoonsetTime(const SiderealContext& ctx, const RiseSetResult& rs) {
-  return getSetTime(ctx, rs);
-}
 
 void SiderealPlanets::printDegMinSecs(double n) {
   boolean sign = (n < 0.);

@@ -787,12 +787,12 @@ static void trackBody(const SiderealContext& ctx, const PlanetElements& elements
             siderealPlanetData.*(spec->ecliptic_long) = sun.eclipticLongitudeDeg;
             siderealPlanetData.earth_ecliptic_lat = sun.eclipticLatitudeDeg;
             siderealPlanetData.earth_ecliptic_long = sun.eclipticLongitudeDeg;
-            rs = myAstro.doSunRiseSetTimes(ctx);
+            rs = myAstro.getRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, 1.454441e-2);
             break;
         case SiderealBodyKind::Luna: {
             MoonResult moon = myAstro.doMoon(ctx);
             eq = moon.eq;
-            rs = myAstro.doMoonRiseSetTimes(ctx);
+            rs = myAstro.getRiseSetTimes(ctx, moon.eq.ra_hours, moon.eq.dec_deg, moon.horizonDisplacementRad);
             siderealPlanetData.*(spec->phase) = myAstro.getMoonPhase(ctx, moon);
             siderealPlanetData.*(spec->luminance) = myAstro.getLunarLuminance(ctx, moon);
             break;
@@ -806,7 +806,7 @@ static void trackBody(const SiderealContext& ctx, const PlanetElements& elements
             siderealPlanetData.*(spec->distance) = p.distance;
             siderealPlanetData.*(spec->ecliptic_lat) = p.eclipticLatitudeDeg;
             siderealPlanetData.*(spec->ecliptic_long) = p.eclipticLongitudeDeg;
-            rs = myAstro.doXRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, 1.454441e-2); /* toDo: actual horizontal displacement */
+            rs = myAstro.getRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, 1.454441e-2); /* toDo: actual horizontal displacement */
             break;
         }
     }
@@ -816,8 +816,8 @@ static void trackBody(const SiderealContext& ctx, const PlanetElements& elements
     AltAz altAz = myAstro.doRAdec2AltAz(ctx, eq.ra_hours, eq.dec_deg);
     siderealPlanetData.*(spec->az) = altAz.az_deg;
     siderealPlanetData.*(spec->alt) = altAz.alt_deg + ctx.altitudeOffsetByElevationDeg;
-    siderealPlanetData.*(spec->r) = myAstro.getRiseTime(ctx, rs);
-    siderealPlanetData.*(spec->s) = myAstro.getSetTime(ctx, rs);
+    siderealPlanetData.*(spec->r) = rs.riseTime;
+    siderealPlanetData.*(spec->s) = rs.setTime;
 }
 
 static void clearBody(const SiderealBodySpec *spec)
@@ -994,9 +994,9 @@ static void trackObjectImpl(T *obj, int index, int object_table_i, int object_i)
         altRef(obj, index) = altAz.alt_deg;
 
         // Rise/set times. 0 for stars; consider non-zero values for planets, galaxies, etc.
-        RiseSetResult rs = myAstro.doXRiseSetTimes(currentSiderealContext, raRef(obj, index), decRef(obj, index), 0.0);
-        rRef(obj, index) = myAstro.getRiseTime(currentSiderealContext, rs);
-        sRef(obj, index) = myAstro.getSetTime(currentSiderealContext, rs);
+        RiseSetResult rs = myAstro.getRiseSetTimes(currentSiderealContext, raRef(obj, index), decRef(obj, index), 0.0);
+        rRef(obj, index) = rs.riseTime;
+        sRef(obj, index) = rs.setTime;
     }
 }
 
