@@ -10,6 +10,7 @@
 #include "driver/uart.h"
 #include "esp_log.h"
 #include <string.h>
+#include <math.h>
 #include "UnidentifiedStudios_Quaternion.h"
 #include "kalman_udu.h"
 #include "linalg.h"
@@ -29,8 +30,91 @@
 #define GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE     0.001f // higher = filter follows real movement faster (less smoothing)
 #define GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE 0.01f  // higher = trust each raw sample less (more smoothing)
 
+// UDU Kalman filter tuning shared by gyro_0_altaz_x/U/d and
+// gyro_0_radec_x/U/d, smoothing gyro_0_sidereal_attitude's alt/az and
+// ra/dec pairs jointly, on top of the rotation-vector filter above. Values
+// are degrees (see HOURS_TO_DEG for ra), not unit-vector components, hence
+// the different scale from the tuning above.
+#define GYRO_0_SIDEREAL_ATTITUDE_KF_INITIAL_VARIANCE  25.0f // (deg^2) ~5 deg initial uncertainty
+#define GYRO_0_SIDEREAL_ATTITUDE_KF_PROCESS_NOISE     0.01f // (deg^2/step) higher = follows real movement faster
+#define GYRO_0_SIDEREAL_ATTITUDE_KF_MEASUREMENT_NOISE 1.0f  // (deg^2) higher = trust each raw sample less
+
 static const char *WT901_TAG = "WT901";
 static bool wt901_uart_installed = false;
+
+/* Rule 8.7: internal linkage; only readGyro() uses these. */
+
+// Unwraps `measurement` (an angle with period `period`) relative to
+// `reference` so a raw value that just crossed the wrap boundary (e.g. az
+// 359 -> 1) doesn't look like a huge jump to a linear filter that assumes
+// small, continuous steps.
+static float wt901_unwrap_relative(float measurement, float reference, float period)
+{
+    float diff = measurement - reference;
+    diff -= period * roundf(diff / period);
+    return reference + diff;
+}
+
+// Wraps `value` (an angle with period `period`) into [0, period).
+static float wt901_wrap_to_range(float value, float period)
+{
+    float wrapped = fmodf(value, period);
+    if (wrapped < 0.0f)
+    {
+        wrapped += period;
+    }
+    return wrapped;
+}
+
+// True only if every element of v is finite (not NaN, not +/-Inf).
+static bool wt901_all_finite(const float *v, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (!isfinite(v[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Recomputes ra_h/ra_m/ra_s, dec_d/dec_m/dec_s, and the formatted/padded
+// strings from attitude->j2000_ra/j2000_dec -- mirrors
+// SiderealPlanets::getSiderealAttitude()'s own HMS/DMS formatting exactly
+// (SiderealPlanets.cpp, around line 399). Needed because overwriting
+// j2000_ra/j2000_dec with their Kalman-filtered values (see readGyro())
+// doesn't touch these derived fields; without this they'd keep showing the
+// raw, unfiltered breakdown.
+static void wt901_apply_radec_hms_dms(SiderealAttitudeData *attitude)
+{
+    signed int ra_h = (int)attitude->j2000_ra;
+    signed int ra_m = (int)((attitude->j2000_ra - ra_h) * 60.0);
+    float ra_s = (float)(((attitude->j2000_ra - ra_h) * 60.0 - ra_m) * 60.0);
+
+    signed int dec_d = (int)attitude->j2000_dec;
+    signed int dec_m = (int)((attitude->j2000_dec - dec_d) * 60.0);
+    float dec_s = (float)(((attitude->j2000_dec - dec_d) * 60.0 - dec_m) * 60.0);
+
+    attitude->ra_h = ra_h;
+    attitude->ra_m = ra_m;
+    attitude->ra_s = ra_s;
+    attitude->dec_d = dec_d;
+    attitude->dec_m = dec_m;
+    attitude->dec_s = dec_s;
+
+    memset(attitude->formatted_ra_str, 0, sizeof(attitude->formatted_ra_str));
+    snprintf(attitude->formatted_ra_str, sizeof(attitude->formatted_ra_str), "%02d:%02d:%02.4f", ra_h, ra_m, ra_s);
+
+    memset(attitude->formatted_dec_str, 0, sizeof(attitude->formatted_dec_str));
+    snprintf(attitude->formatted_dec_str, sizeof(attitude->formatted_dec_str), "%+02d:%02d:%02.4f", dec_d, dec_m, dec_s);
+
+    memset(attitude->padded_ra_str, 0, sizeof(attitude->padded_ra_str));
+    snprintf(attitude->padded_ra_str, sizeof(attitude->padded_ra_str), "%02d%02d%02.4f", ra_h, ra_m, ra_s);
+
+    memset(attitude->padded_dec_str, 0, sizeof(attitude->padded_dec_str));
+    snprintf(attitude->padded_dec_str, sizeof(attitude->padded_dec_str), "%+02d%02d%02.4f", dec_d, dec_m, dec_s);
+}
 
 struct GyroData gyroData = {
     .gyro_0_s_cDataUpdate = 0,
@@ -51,11 +135,24 @@ struct GyroData gyroData = {
     .gyro_0_mag_z = 0,
     
     .gyro_0_quaternion = {},
+    .gyro_0_rotation_vector_raw = {0.0f, 0.0f, 0.0f},
     .gyro_0_rotation_vector_x = {0.0f, 0.0f, 0.0f},
     .gyro_0_rotation_vector_U = {0.0f},
     .gyro_0_rotation_vector_d = {0.0f, 0.0f, 0.0f},
     .gyro_0_rotation_vector_kf_seeded = false,
     .gyro_0_sidereal_attitude = {},
+
+    .gyro_0_altaz_raw = {0.0f, 0.0f},
+    .gyro_0_altaz_x = {0.0f, 0.0f},
+    .gyro_0_altaz_U = {0.0f},
+    .gyro_0_altaz_d = {0.0f, 0.0f},
+    .gyro_0_altaz_kf_seeded = false,
+
+    .gyro_0_radec_raw = {0.0f, 0.0f},
+    .gyro_0_radec_x = {0.0f, 0.0f},
+    .gyro_0_radec_U = {0.0f},
+    .gyro_0_radec_d = {0.0f, 0.0f},
+    .gyro_0_radec_kf_seeded = false,
 
     .gyro_0_c_uiBaud={
         0,      // 0 (unused)
@@ -207,6 +304,8 @@ bool readGyro(void)
             gyroData.gyro_0_mag_z = sReg[REG_HZ];
             updated = true;
         }
+
+        vTaskDelay(5);
         // ----------------------------------------------------------------------------------------------------
 
         // Get Rotation Vector
@@ -222,64 +321,248 @@ bool readGyro(void)
         // from taskGyro() in UnidentifiedStudios_TaskHandler.cpp) sees the
         // smoothed value.
         const float raw_v[3] = { (float)raw_vx, (float)raw_vy, (float)raw_vz };
-        if (!gyroData.gyro_0_rotation_vector_kf_seeded)
-        {
-            memcpy(gyroData.gyro_0_rotation_vector_x, raw_v, sizeof(raw_v));
-            gyroData.gyro_0_rotation_vector_kf_seeded = true;
-        }
-        else
-        {
-            // Random-walk model: no dynamics beyond process noise, so Phi
-            // (state transition) and G (process noise distribution) are
-            // both identity(3). Measuring each state directly, so Ht
-            // (transposed measurement sensitivity matrix) is also
-            // identity(3). Identity/diagonal matrices are their own
-            // transpose, so KFCore's column-major storage doesn't matter
-            // for any of these three.
-            static const float GYRO_0_ROTATION_VECTOR_KF_IDENTITY3[3 * 3] = {
-                1.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 1.0f
-            };
-            static const float GYRO_0_ROTATION_VECTOR_KF_Q[3] = {
-                GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
-                GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
-                GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE
-            };
-            static const float GYRO_0_ROTATION_VECTOR_KF_R[3 * 3] = {
-                GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f, 0.0f,
-                0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f,
-                0.0f, 0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE
-            };
+        memcpy(gyroData.gyro_0_rotation_vector_raw, raw_v, sizeof(raw_v));
 
-            kalman_udu_predict(gyroData.gyro_0_rotation_vector_x,
-                                gyroData.gyro_0_rotation_vector_U,
-                                gyroData.gyro_0_rotation_vector_d,
-                                GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Phi */
-                                GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* G */
-                                GYRO_0_ROTATION_VECTOR_KF_Q, 3, 3);
+        // Guard against a non-finite raw sample (or a state that somehow
+        // already went non-finite) ever reaching kalman_udu(): once NaN/Inf
+        // enters this filter's state, every future output stays NaN/Inf
+        // forever (linear algebra propagates it, it never self-corrects),
+        // permanently "blowing up" every downstream consumer of
+        // gyro_0_quaternion.vx/vy/vz -- including the alt/az/ra/dec filters
+        // below, since asin() of an out-of-range z (see the renormalization
+        // below for why that can happen) returns NaN.
+        if (wt901_all_finite(raw_v, 3))
+        {
+            if (!gyroData.gyro_0_rotation_vector_kf_seeded ||
+                !wt901_all_finite(gyroData.gyro_0_rotation_vector_x, 3))
+            {
+                // First sample, or recovering from a previously-corrupted state.
+                memcpy(gyroData.gyro_0_rotation_vector_x, raw_v, sizeof(raw_v));
+                gyroData.gyro_0_rotation_vector_kf_seeded = true;
+            }
+            else
+            {
+                // Random-walk model: no dynamics beyond process noise, so Phi
+                // (state transition) and G (process noise distribution) are
+                // both identity(3). Measuring each state directly, so Ht
+                // (transposed measurement sensitivity matrix) is also
+                // identity(3). Identity/diagonal matrices are their own
+                // transpose, so KFCore's column-major storage doesn't matter
+                // for any of these three.
+                static const float GYRO_0_ROTATION_VECTOR_KF_IDENTITY3[3 * 3] = {
+                    1.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f
+                };
+                static const float GYRO_0_ROTATION_VECTOR_KF_Q[3] = {
+                    GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
+                    GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
+                    GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE
+                };
+                static const float GYRO_0_ROTATION_VECTOR_KF_R[3 * 3] = {
+                    GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f, 0.0f,
+                    0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f,
+                    0.0f, 0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE
+                };
 
-            (void)kalman_udu(gyroData.gyro_0_rotation_vector_x,
-                              gyroData.gyro_0_rotation_vector_U,
-                              gyroData.gyro_0_rotation_vector_d,
-                              raw_v, GYRO_0_ROTATION_VECTOR_KF_R,
-                              GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Ht */
-                              3, 3, 0.0f, 0);
+                kalman_udu_predict(gyroData.gyro_0_rotation_vector_x,
+                                    gyroData.gyro_0_rotation_vector_U,
+                                    gyroData.gyro_0_rotation_vector_d,
+                                    GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Phi */
+                                    GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* G */
+                                    GYRO_0_ROTATION_VECTOR_KF_Q, 3, 3);
+
+                (void)kalman_udu(gyroData.gyro_0_rotation_vector_x,
+                                  gyroData.gyro_0_rotation_vector_U,
+                                  gyroData.gyro_0_rotation_vector_d,
+                                  raw_v, GYRO_0_ROTATION_VECTOR_KF_R,
+                                  GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Ht */
+                                  3, 3, 0.0f, 0);
+            }
+
+            // Filtering vx/vy/vz jointly still doesn't guarantee |v|=1
+            // (independent-ish per-axis noise can push the vector slightly
+            // off the unit sphere); renormalize so a |vz|>1 never reaches
+            // getSiderealAttitude()'s asin(vz) below.
+            float norm = sqrtf(gyroData.gyro_0_rotation_vector_x[0] * gyroData.gyro_0_rotation_vector_x[0] +
+                                gyroData.gyro_0_rotation_vector_x[1] * gyroData.gyro_0_rotation_vector_x[1] +
+                                gyroData.gyro_0_rotation_vector_x[2] * gyroData.gyro_0_rotation_vector_x[2]);
+            if (norm > 1e-6f)
+            {
+                gyroData.gyro_0_rotation_vector_x[0] /= norm;
+                gyroData.gyro_0_rotation_vector_x[1] /= norm;
+                gyroData.gyro_0_rotation_vector_x[2] /= norm;
+            }
         }
+        else {
+            printf("[KF PROTECTION] nan mitigation ocurring for rotation vector.");
+        }
+        // else: this cycle's raw sample is non-finite -- skip the update
+        // entirely; gyro_0_rotation_vector_x carries over unchanged.
 
         gyroData.gyro_0_quaternion.vx = gyroData.gyro_0_rotation_vector_x[0];
         gyroData.gyro_0_quaternion.vy = gyroData.gyro_0_rotation_vector_x[1];
         gyroData.gyro_0_quaternion.vz = gyroData.gyro_0_rotation_vector_x[2];
 
+        vTaskDelay(5);
+
         // ------------------------------------------------
         // Gyro Ra/Dec Alt/Az
         // ------------------------------------------------
-        gyroData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
+        SiderealAttitudeData sidereal_attitude_gyro_0 = myAstro.getSiderealAttitude(
           currentSiderealContext,
           gyroData.gyro_0_quaternion.vx,  // vector x (from roll)
           gyroData.gyro_0_quaternion.vy,  // vector y (fom pitch)
           gyroData.gyro_0_quaternion.vz   // vector z (from yaw)
         );
+
+        // sidereal_attitude_gyro_0 is patched in place below (alt/az/ra/dec
+        // overwritten with their Kalman-filtered values; ra_h/ra_m/ra_s,
+        // dec_d/dec_m/dec_s, and the formatted/padded strings deliberately
+        // left as computed above -- see GyroData for why) and only
+        // committed to gyroData.gyro_0_sidereal_attitude -- the globally
+        // consumed copy -- once, fully filtered, at the end. It must never
+        // be assigned raw: any task reading gyro_0_sidereal_attitude
+        // between here and that final commit would otherwise see
+        // unfiltered data.
+
+        // Kalman-filter alt/az together and ra/dec together -- two second
+        // -stage filters on top of the rotation-vector filter above (see
+        // GyroData for why the h/m/s sub-components and formatted strings
+        // are deliberately excluded, and why az/ra get unwrapped below).
+        static const float GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2[2 * 2] = {
+            1.0f, 0.0f,
+            0.0f, 1.0f
+        };
+        static const float GYRO_0_SIDEREAL_ATTITUDE_KF_Q[2] = {
+            GYRO_0_SIDEREAL_ATTITUDE_KF_PROCESS_NOISE,
+            GYRO_0_SIDEREAL_ATTITUDE_KF_PROCESS_NOISE
+        };
+        static const float GYRO_0_SIDEREAL_ATTITUDE_KF_R[2 * 2] = {
+            GYRO_0_SIDEREAL_ATTITUDE_KF_MEASUREMENT_NOISE, 0.0f,
+            0.0f, GYRO_0_SIDEREAL_ATTITUDE_KF_MEASUREMENT_NOISE
+        };
+
+        // --- Alt/Az ---
+        const float altaz_raw[2] = {
+            (float)sidereal_attitude_gyro_0.alt,
+            (float)sidereal_attitude_gyro_0.az
+        };
+        memcpy(gyroData.gyro_0_altaz_raw, altaz_raw, sizeof(altaz_raw));
+
+        // Same non-finite guard/self-heal as the rotation-vector filter
+        // above: never let a NaN/Inf sample or state reach kalman_udu().
+        if (wt901_all_finite(altaz_raw, 2))
+        {
+            if (!gyroData.gyro_0_altaz_kf_seeded || !wt901_all_finite(gyroData.gyro_0_altaz_x, 2))
+            {
+                memcpy(gyroData.gyro_0_altaz_x, altaz_raw, sizeof(altaz_raw));
+                gyroData.gyro_0_altaz_kf_seeded = true;
+            }
+            else
+            {
+                // Only az wraps (at 360 deg); alt doesn't need unwrapping.
+                const float altaz_measurement[2] = {
+                    altaz_raw[0],
+                    wt901_unwrap_relative(altaz_raw[1], gyroData.gyro_0_altaz_x[1], 360.0f)
+                };
+
+                kalman_udu_predict(gyroData.gyro_0_altaz_x, gyroData.gyro_0_altaz_U, gyroData.gyro_0_altaz_d,
+                                    GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2, /* Phi */
+                                    GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2, /* G */
+                                    GYRO_0_SIDEREAL_ATTITUDE_KF_Q, 2, 2);
+                (void)kalman_udu(gyroData.gyro_0_altaz_x, gyroData.gyro_0_altaz_U, gyroData.gyro_0_altaz_d,
+                                  altaz_measurement, GYRO_0_SIDEREAL_ATTITUDE_KF_R,
+                                  GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2, /* Ht */
+                                  2, 2, 0.0f, 0);
+            }
+        }
+        else {
+            printf("[KF PROTECTION] nan mitigation ocurring for alt/az raw.");
+        }
+        // else: this cycle's raw alt/az is non-finite -- skip the update;
+        // gyro_0_altaz_x carries over unchanged.
+
+        if (wt901_all_finite(gyroData.gyro_0_altaz_x, 2))
+        {
+            sidereal_attitude_gyro_0.alt = gyroData.gyro_0_altaz_x[0];
+            sidereal_attitude_gyro_0.az = wt901_wrap_to_range(gyroData.gyro_0_altaz_x[1], 360.0f);
+        }
+        else {
+            printf("[KF PROTECTION] nan mitigation ocurring for alt/az x.");
+        }
+        // else: state has never been seeded with a finite sample yet --
+        // leave sidereal_attitude_gyro_0.alt/.az as the raw value from
+        // getSiderealAttitude() above; there's nothing filtered to show yet.
+
+        vTaskDelay(5);
+
+        // --- RA/Dec --- (ra converted to/from degrees so it shares az's
+        // wrap period and noise tuning; see HOURS_TO_DEG/DEG_TO_HOURS)
+        const float radec_raw[2] = {
+            HOURS_TO_DEG((float)sidereal_attitude_gyro_0.j2000_ra),
+            (float)sidereal_attitude_gyro_0.j2000_dec
+        };
+        memcpy(gyroData.gyro_0_radec_raw, radec_raw, sizeof(radec_raw));
+
+        // Same non-finite guard/self-heal as the rotation-vector filter
+        // above: never let a NaN/Inf sample or state reach kalman_udu().
+        if (wt901_all_finite(radec_raw, 2))
+        {
+            if (!gyroData.gyro_0_radec_kf_seeded || !wt901_all_finite(gyroData.gyro_0_radec_x, 2))
+            {
+                memcpy(gyroData.gyro_0_radec_x, radec_raw, sizeof(radec_raw));
+                gyroData.gyro_0_radec_kf_seeded = true;
+            }
+            else
+            {
+                // Only ra wraps (at 360 deg once converted); dec doesn't need
+                // unwrapping.
+                const float radec_measurement[2] = {
+                    wt901_unwrap_relative(radec_raw[0], gyroData.gyro_0_radec_x[0], 360.0f),
+                    radec_raw[1]
+                };
+
+                kalman_udu_predict(gyroData.gyro_0_radec_x, gyroData.gyro_0_radec_U, gyroData.gyro_0_radec_d,
+                                    GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2, /* Phi */
+                                    GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2, /* G */
+                                    GYRO_0_SIDEREAL_ATTITUDE_KF_Q, 2, 2);
+                (void)kalman_udu(gyroData.gyro_0_radec_x, gyroData.gyro_0_radec_U, gyroData.gyro_0_radec_d,
+                                  radec_measurement, GYRO_0_SIDEREAL_ATTITUDE_KF_R,
+                                  GYRO_0_SIDEREAL_ATTITUDE_KF_IDENTITY2, /* Ht */
+                                  2, 2, 0.0f, 0);
+            }
+        }
+        else {
+            printf("[KF PROTECTION] nan mitigation ocurring for ra/dec raw.");
+        }
+        // else: this cycle's raw ra/dec is non-finite -- skip the update;
+        // gyro_0_radec_x carries over unchanged.
+
+        if (wt901_all_finite(gyroData.gyro_0_radec_x, 2))
+        {
+            sidereal_attitude_gyro_0.j2000_ra = DEG_TO_HOURS(wt901_wrap_to_range(gyroData.gyro_0_radec_x[0], 360.0f));
+            sidereal_attitude_gyro_0.j2000_dec = gyroData.gyro_0_radec_x[1];
+
+            // ra_h/ra_m/ra_s, dec_d/dec_m/dec_s, and the formatted/padded
+            // strings are display breakdowns of j2000_ra/j2000_dec --
+            // recompute them from the filtered values just set above, or
+            // they'd keep showing the raw breakdown from
+            // getSiderealAttitude() at the top of this function.
+            wt901_apply_radec_hms_dms(&sidereal_attitude_gyro_0);
+        }
+        else {
+            printf("[KF PROTECTION] nan mitigation ocurring for ra/dec x.");
+        }
+        // else: state has never been seeded with a finite sample yet --
+        // leave sidereal_attitude_gyro_0's ra/dec fields as computed by
+        // getSiderealAttitude() above; there's nothing filtered to show yet.
+
+        // Single commit: gyro_0_sidereal_attitude only ever reflects a
+        // fully-filtered attitude, never a partially-patched one.
+        gyroData.gyro_0_sidereal_attitude = sidereal_attitude_gyro_0;
+
+        vTaskDelay(5);
     }
     return updated; /* Rule 15.5: single point of exit */
 }
@@ -424,6 +707,16 @@ void initWT901(void)
         gyroData.gyro_0_rotation_vector_d[i] = GYRO_0_ROTATION_VECTOR_KF_INITIAL_VARIANCE;
     }
     gyroData.gyro_0_rotation_vector_kf_seeded = false; // readGyro() seeds x from the first raw sample
+
+    mateye(gyroData.gyro_0_altaz_U, 2); // U = identity(2)
+    mateye(gyroData.gyro_0_radec_U, 2); // U = identity(2)
+    for (int i = 0; i < 2; i++)
+    {
+        gyroData.gyro_0_altaz_d[i] = GYRO_0_SIDEREAL_ATTITUDE_KF_INITIAL_VARIANCE;
+        gyroData.gyro_0_radec_d[i] = GYRO_0_SIDEREAL_ATTITUDE_KF_INITIAL_VARIANCE;
+    }
+    gyroData.gyro_0_altaz_kf_seeded = false;
+    gyroData.gyro_0_radec_kf_seeded = false;
 
     (void)WitInit(WIT_PROTOCOL_NORMAL, 0x50);
 

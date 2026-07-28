@@ -12,6 +12,14 @@
 #include "UnidentifiedStudios_Quaternion.h"
 #include "SiderealPlanets.h"
 
+// j2000_ra is in hours (0-24); the alt/az/dec filter states below are all in
+// degrees, so RA is converted to degrees at the filter boundary -- this way
+// one process/measurement-noise tuning and one 360 deg wrap period applies
+// uniformly to every wrapping angle (az, ra-in-degrees) without needing a
+// separate 24h wrap case.
+#define HOURS_TO_DEG(h) ((h) * 15.0f)
+#define DEG_TO_HOURS(d) ((d) / 15.0f)
+
 #define MAX_GYRO_BAUDRATES  10  // Number of entries in gyro_0_c_uiBaud, including the unused index 0
 #define GYRO_0_ACC_UPDATE   0x01
 #define GYRO_0_UPDATE		    0x02
@@ -57,6 +65,7 @@ struct GyroData {
   // State is kept as UD factors rather than a full covariance matrix P, so
   // that P = gyro_0_rotation_vector_U * diag(gyro_0_rotation_vector_d) *
   // gyro_0_rotation_vector_U'.
+  float gyro_0_rotation_vector_raw[3];   // unfiltered vx, vy, vz, for telemetry/comparison (e.g. the gyro screen's chart)
   float gyro_0_rotation_vector_x[3];     // filtered state: vx, vy, vz
   float gyro_0_rotation_vector_U[3 * 3]; // unit upper triangular covariance factor (column-major)
   float gyro_0_rotation_vector_d[3];     // diagonal covariance factor
@@ -65,6 +74,39 @@ struct GyroData {
   // RA/Dec/Az/Alt the gyro is currently pointing at, derived from the
   // (UDU-filtered) rotation vector above. Computed in readGyro().
   SiderealAttitudeData gyro_0_sidereal_attitude;
+
+  // Two more joint 2-state UDU filters smoothing gyro_0_sidereal_attitude's
+  // alt/az (horizon coordinates) and j2000_ra/j2000_dec (equatorial
+  // coordinates) in place, each pair filtered together -- on top of the
+  // rotation-vector filter above, so these are a second smoothing stage and
+  // will lag more than any filter alone.
+  //
+  // Both az and j2000_ra wrap (at 360 deg and 24h respectively), which a
+  // linear KF glitches on at the wrap boundary unless handled: az/ra are
+  // unwrapped relative to the filter's current state before each update
+  // (see wt901_unwrap_relative() in UnidentifiedStudios_WT901.cpp), so the
+  // filter's internal az/ra state is allowed to drift outside its natural
+  // range and is only wrapped back at the point it's written to
+  // gyro_0_sidereal_attitude.az/.j2000_ra. j2000_ra is additionally
+  // converted to/from degrees at that same boundary (see HOURS_TO_DEG/
+  // DEG_TO_HOURS above) so its wrap period and noise tuning match az's.
+  //
+  // ra_h/ra_m/ra_s/dec_d/dec_m/dec_s and every formatted/padded string are
+  // still left as computed directly from the raw attitude: they're
+  // truncated display sub-components of j2000_ra/j2000_dec, and would
+  // desync from the filtered numeric fields (and from each other) if
+  // smoothed independently.
+  float gyro_0_altaz_raw[2];   // pre-filter [alt, az] (deg), for telemetry/comparison
+  float gyro_0_altaz_x[2];     // filtered state: alt, az (deg; az may be unwrapped past 360)
+  float gyro_0_altaz_U[2 * 2]; // unit upper triangular covariance factor (column-major)
+  float gyro_0_altaz_d[2];     // diagonal covariance factor
+  bool gyro_0_altaz_kf_seeded; // true once x has been seeded with a first raw sample
+
+  float gyro_0_radec_raw[2];   // pre-filter [j2000_ra, j2000_dec] (deg; ra converted from hours), for telemetry/comparison
+  float gyro_0_radec_x[2];     // filtered state: ra, dec (deg; ra may be unwrapped past 360)
+  float gyro_0_radec_U[2 * 2]; // unit upper triangular covariance factor (column-major)
+  float gyro_0_radec_d[2];     // diagonal covariance factor
+  bool gyro_0_radec_kf_seeded; // true once x has been seeded with a first raw sample
 
   int32_t gyro_0_c_uiBaud[MAX_GYRO_BAUDRATES];  // Baud rates for scanning
   int32_t gyro_0_current_uiBaud; // Current baud rate

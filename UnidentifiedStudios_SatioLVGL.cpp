@@ -7613,6 +7613,20 @@ SatIO_container_t create_SatIO_panel(
  * @param enable_scrolling Enable/disable scrolling.
  * @return gyro_0_container_t structure.
  */
+// Rolling window length (in samples) of the raw-vs-filtered rotation vector
+// chart, and the fixed-point scale applied before handing vx/vy/vz (in
+// [-1, 1]) to lv_chart, which only stores int32_t values.
+#define GYRO_0_RVEC_CHART_POINT_COUNT 60
+#define GYRO_0_RVEC_CHART_VALUE_SCALE 1000.0f
+
+// Same idea for the sidereal-attitude (alt/j2000_dec) chart, but these are
+// degrees, not unit-vector components -- a coarser fixed-point scale (100 =
+// hundredths of a degree) is enough precision without overflowing the axis
+// range comfortably (+/-90 deg with headroom).
+#define GYRO_0_SIDEREAL_ATTITUDE_CHART_POINT_COUNT 60
+#define GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE 100.0f
+#define GYRO_0_SIDEREAL_ATTITUDE_CHART_AXIS_RANGE_DEG 100
+
 gyro_0_container_t create_gyro_panel(
     lv_obj_t * parent,
     int32_t width_px,
@@ -8738,6 +8752,302 @@ gyro_0_container_t create_gyro_panel(
     );
     lv_obj_set_size(result.lbl_gyro_align_instructions, sub_row_width, sub_row_height*2);
 #endif
+
+    /* ---------------------------------------------------------- */
+    /* Row 40: Rotation Vector Chart - Raw vs UDU-Filtered         */
+    /* ---------------------------------------------------------- */
+
+    result.lbl_gyro_0_rvec_chart_title = create_label(
+        result.panel,
+        sub_row_width,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ROTATION VECTOR: RAW vs FILTERED",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+    lv_obj_set_size(result.lbl_gyro_0_rvec_chart_title, sub_row_width, obj_height);
+
+    result.chart_gyro_0_rvec = lv_chart_create(result.panel);
+    lv_obj_set_size(result.chart_gyro_0_rvec, sub_row_width, sub_row_height * 3);
+    lv_obj_set_style_radius(result.chart_gyro_0_rvec, main_style.title_1.radius_square, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.chart_gyro_0_rvec, main_style.title_1.color_bg, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.chart_gyro_0_rvec, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.chart_gyro_0_rvec, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_chart_set_type(result.chart_gyro_0_rvec, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(result.chart_gyro_0_rvec, GYRO_0_RVEC_CHART_POINT_COUNT);
+    lv_chart_set_update_mode(result.chart_gyro_0_rvec, LV_CHART_UPDATE_MODE_SHIFT);
+    lv_chart_set_div_line_count(result.chart_gyro_0_rvec, 4, 6);
+    // vx/vy/vz are unit-vector components in [-1, 1]; scaled by
+    // GYRO_0_RVEC_CHART_VALUE_SCALE before being pushed to the chart, since
+    // lv_chart only stores int32_t values (see the Gyro screen update block).
+    lv_chart_set_axis_range(result.chart_gyro_0_rvec, LV_CHART_AXIS_PRIMARY_Y,
+                             (int32_t)-GYRO_0_RVEC_CHART_VALUE_SCALE, (int32_t)GYRO_0_RVEC_CHART_VALUE_SCALE);
+
+    // Raw = desaturated shade, Filtered = full-saturation shade of the same
+    // hue: X=red, Y=green, Z=blue.
+    result.ser_gyro_0_rvec_raw_x  = lv_chart_add_series(result.chart_gyro_0_rvec, lv_color_hex(0x7A4040), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_rvec_raw_y  = lv_chart_add_series(result.chart_gyro_0_rvec, lv_color_hex(0x407A40), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_rvec_raw_z  = lv_chart_add_series(result.chart_gyro_0_rvec, lv_color_hex(0x40527A), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_rvec_filt_x = lv_chart_add_series(result.chart_gyro_0_rvec, lv_color_hex(0xE04040), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_rvec_filt_y = lv_chart_add_series(result.chart_gyro_0_rvec, lv_color_hex(0x40C050), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_rvec_filt_z = lv_chart_add_series(result.chart_gyro_0_rvec, lv_color_hex(0x4080E0), LV_CHART_AXIS_PRIMARY_Y);
+
+    /* ---------------------------------------------------------- */
+    /* Row 41: Rotation Vector Chart - Legend                      */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_41 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_41, col_gap, LV_PART_MAIN);
+    lv_obj_set_flex_flow(row_41, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_41,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*5)) / 6;
+
+    result.lbl_gyro_0_rvec_legend_raw_x = create_label(
+        row_41, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Xr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x7A4040), lv_color_white()
+    );
+    result.lbl_gyro_0_rvec_legend_filt_x = create_label(
+        row_41, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Xf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0xE04040), lv_color_white()
+    );
+    result.lbl_gyro_0_rvec_legend_raw_y = create_label(
+        row_41, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Yr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x407A40), lv_color_white()
+    );
+    result.lbl_gyro_0_rvec_legend_filt_y = create_label(
+        row_41, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Yf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x40C050), lv_color_white()
+    );
+    result.lbl_gyro_0_rvec_legend_raw_z = create_label(
+        row_41, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Zr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x40527A), lv_color_white()
+    );
+    result.lbl_gyro_0_rvec_legend_filt_z = create_label(
+        row_41, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Zf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x4080E0), lv_color_white()
+    );
+
+    lv_obj_set_size(result.lbl_gyro_0_rvec_legend_raw_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_rvec_legend_filt_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_rvec_legend_raw_y, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_rvec_legend_filt_y, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_rvec_legend_raw_z, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_rvec_legend_filt_z, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 42: Alt/Az Chart - Raw vs UDU-Filtered                  */
+    /* ---------------------------------------------------------- */
+
+    result.lbl_gyro_0_altaz_chart_title = create_label(
+        result.panel,
+        sub_row_width,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ALT / AZ: RAW vs FILTERED",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+    lv_obj_set_size(result.lbl_gyro_0_altaz_chart_title, sub_row_width, obj_height);
+
+    result.chart_gyro_0_altaz = lv_chart_create(result.panel);
+    lv_obj_set_size(result.chart_gyro_0_altaz, sub_row_width, sub_row_height * 3);
+    lv_obj_set_style_radius(result.chart_gyro_0_altaz, main_style.title_1.radius_square, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.chart_gyro_0_altaz, main_style.title_1.color_bg, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.chart_gyro_0_altaz, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.chart_gyro_0_altaz, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_chart_set_type(result.chart_gyro_0_altaz, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(result.chart_gyro_0_altaz, GYRO_0_SIDEREAL_ATTITUDE_CHART_POINT_COUNT);
+    lv_chart_set_update_mode(result.chart_gyro_0_altaz, LV_CHART_UPDATE_MODE_SHIFT);
+    lv_chart_set_div_line_count(result.chart_gyro_0_altaz, 4, 6);
+    // alt and az are both degrees but on very different natural scales (alt
+    // +/-90ish, az 0-360), so alt sits on the primary Y axis and az on the
+    // secondary Y axis, each scaled by GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE
+    // before being pushed to the chart (see the Gyro screen update block).
+    lv_chart_set_axis_range(result.chart_gyro_0_altaz, LV_CHART_AXIS_PRIMARY_Y,
+                             (int32_t)(-GYRO_0_SIDEREAL_ATTITUDE_CHART_AXIS_RANGE_DEG * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE),
+                             (int32_t)(GYRO_0_SIDEREAL_ATTITUDE_CHART_AXIS_RANGE_DEG * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+    lv_chart_set_axis_range(result.chart_gyro_0_altaz, LV_CHART_AXIS_SECONDARY_Y,
+                             0, (int32_t)(360.0f * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+
+    // Raw = desaturated shade, Filtered = full-saturation shade of the same
+    // hue: Alt=amber, Az=cyan.
+    result.ser_gyro_0_altaz_raw_alt  = lv_chart_add_series(result.chart_gyro_0_altaz, lv_color_hex(0x7A6A40), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_altaz_filt_alt = lv_chart_add_series(result.chart_gyro_0_altaz, lv_color_hex(0xE0A840), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_altaz_raw_az   = lv_chart_add_series(result.chart_gyro_0_altaz, lv_color_hex(0x3A6A6A), LV_CHART_AXIS_SECONDARY_Y);
+    result.ser_gyro_0_altaz_filt_az  = lv_chart_add_series(result.chart_gyro_0_altaz, lv_color_hex(0x30D0D0), LV_CHART_AXIS_SECONDARY_Y);
+
+    /* ---------------------------------------------------------- */
+    /* Row 43: Alt/Az Chart - Legend                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_43 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_43, col_gap, LV_PART_MAIN);
+    lv_obj_set_flex_flow(row_43, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_43,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
+
+    result.lbl_gyro_0_altaz_legend_raw_alt = create_label(
+        row_43, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "ALTr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x7A6A40), lv_color_white()
+    );
+    result.lbl_gyro_0_altaz_legend_filt_alt = create_label(
+        row_43, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "ALTf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0xE0A840), lv_color_white()
+    );
+    result.lbl_gyro_0_altaz_legend_raw_az = create_label(
+        row_43, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "AZr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x3A6A6A), lv_color_white()
+    );
+    result.lbl_gyro_0_altaz_legend_filt_az = create_label(
+        row_43, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "AZf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x30D0D0), lv_color_white()
+    );
+
+    lv_obj_set_size(result.lbl_gyro_0_altaz_legend_raw_alt, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_altaz_legend_filt_alt, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_altaz_legend_raw_az, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_altaz_legend_filt_az, obj_w_0, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Row 44: RA/Dec Chart - Raw vs UDU-Filtered                   */
+    /* ---------------------------------------------------------- */
+
+    result.lbl_gyro_0_radec_chart_title = create_label(
+        result.panel,
+        sub_row_width,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "RA / DEC: RAW vs FILTERED",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+    lv_obj_set_size(result.lbl_gyro_0_radec_chart_title, sub_row_width, obj_height);
+
+    result.chart_gyro_0_radec = lv_chart_create(result.panel);
+    lv_obj_set_size(result.chart_gyro_0_radec, sub_row_width, sub_row_height * 3);
+    lv_obj_set_style_radius(result.chart_gyro_0_radec, main_style.title_1.radius_square, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.chart_gyro_0_radec, main_style.title_1.color_bg, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.chart_gyro_0_radec, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.chart_gyro_0_radec, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_chart_set_type(result.chart_gyro_0_radec, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(result.chart_gyro_0_radec, GYRO_0_SIDEREAL_ATTITUDE_CHART_POINT_COUNT);
+    lv_chart_set_update_mode(result.chart_gyro_0_radec, LV_CHART_UPDATE_MODE_SHIFT);
+    lv_chart_set_div_line_count(result.chart_gyro_0_radec, 4, 6);
+    // dec sits on the primary Y axis (+/-100ish deg); ra (converted from
+    // hours to degrees, see HOURS_TO_DEG) sits on the secondary Y axis
+    // (0-360 deg), each scaled by GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE.
+    lv_chart_set_axis_range(result.chart_gyro_0_radec, LV_CHART_AXIS_PRIMARY_Y,
+                             (int32_t)(-GYRO_0_SIDEREAL_ATTITUDE_CHART_AXIS_RANGE_DEG * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE),
+                             (int32_t)(GYRO_0_SIDEREAL_ATTITUDE_CHART_AXIS_RANGE_DEG * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+    lv_chart_set_axis_range(result.chart_gyro_0_radec, LV_CHART_AXIS_SECONDARY_Y,
+                             0, (int32_t)(360.0f * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+
+    // Raw = desaturated shade, Filtered = full-saturation shade of the same
+    // hue: Dec=violet, Ra=magenta.
+    result.ser_gyro_0_radec_raw_dec  = lv_chart_add_series(result.chart_gyro_0_radec, lv_color_hex(0x5A4070), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_radec_filt_dec = lv_chart_add_series(result.chart_gyro_0_radec, lv_color_hex(0x9860C8), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_radec_raw_ra   = lv_chart_add_series(result.chart_gyro_0_radec, lv_color_hex(0x6A3A5A), LV_CHART_AXIS_SECONDARY_Y);
+    result.ser_gyro_0_radec_filt_ra  = lv_chart_add_series(result.chart_gyro_0_radec, lv_color_hex(0xD030A0), LV_CHART_AXIS_SECONDARY_Y);
+
+    /* ---------------------------------------------------------- */
+    /* Row 45: RA/Dec Chart - Legend                                 */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_45 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_45, col_gap, LV_PART_MAIN);
+    lv_obj_set_flex_flow(row_45, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_45,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*3)) / 4;
+
+    result.lbl_gyro_0_radec_legend_raw_dec = create_label(
+        row_45, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "DECr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x5A4070), lv_color_white()
+    );
+    result.lbl_gyro_0_radec_legend_filt_dec = create_label(
+        row_45, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "DECf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x9860C8), lv_color_white()
+    );
+    result.lbl_gyro_0_radec_legend_raw_ra = create_label(
+        row_45, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "RAr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x6A3A5A), lv_color_white()
+    );
+    result.lbl_gyro_0_radec_legend_filt_ra = create_label(
+        row_45, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "RAf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0xD030A0), lv_color_white()
+    );
+
+    lv_obj_set_size(result.lbl_gyro_0_radec_legend_raw_dec, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_radec_legend_filt_dec, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_radec_legend_raw_ra, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_radec_legend_filt_ra, obj_w_0, obj_height);
 
     return result;
 }
@@ -15390,6 +15700,52 @@ void update_display_lvgl()
             set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_x, String(gyroData.gyro_0_quaternion.vx).c_str());
             set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_y, String(gyroData.gyro_0_quaternion.vy).c_str());
             set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_z, String(gyroData.gyro_0_quaternion.vz).c_str());
+
+            // ────────────────────────────────────────────────
+            // Rotation Vector Chart (raw vs UDU-filtered)
+            // ────────────────────────────────────────────────
+            if (gyro_0_c.chart_gyro_0_rvec) {
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_rvec, gyro_0_c.ser_gyro_0_rvec_raw_x,
+                    (int32_t)(gyroData.gyro_0_rotation_vector_raw[0] * GYRO_0_RVEC_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_rvec, gyro_0_c.ser_gyro_0_rvec_raw_y,
+                    (int32_t)(gyroData.gyro_0_rotation_vector_raw[1] * GYRO_0_RVEC_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_rvec, gyro_0_c.ser_gyro_0_rvec_raw_z,
+                    (int32_t)(gyroData.gyro_0_rotation_vector_raw[2] * GYRO_0_RVEC_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_rvec, gyro_0_c.ser_gyro_0_rvec_filt_x,
+                    (int32_t)(gyroData.gyro_0_quaternion.vx * GYRO_0_RVEC_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_rvec, gyro_0_c.ser_gyro_0_rvec_filt_y,
+                    (int32_t)(gyroData.gyro_0_quaternion.vy * GYRO_0_RVEC_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_rvec, gyro_0_c.ser_gyro_0_rvec_filt_z,
+                    (int32_t)(gyroData.gyro_0_quaternion.vz * GYRO_0_RVEC_CHART_VALUE_SCALE));
+            }
+
+            // ────────────────────────────────────────────────
+            // Alt/Az Chart (raw vs UDU-filtered, filtered together)
+            // ────────────────────────────────────────────────
+            if (gyro_0_c.chart_gyro_0_altaz) {
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_altaz, gyro_0_c.ser_gyro_0_altaz_raw_alt,
+                    (int32_t)(gyroData.gyro_0_altaz_raw[0] * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_altaz, gyro_0_c.ser_gyro_0_altaz_raw_az,
+                    (int32_t)(gyroData.gyro_0_altaz_raw[1] * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_altaz, gyro_0_c.ser_gyro_0_altaz_filt_alt,
+                    (int32_t)(gyroData.gyro_0_sidereal_attitude.alt * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_altaz, gyro_0_c.ser_gyro_0_altaz_filt_az,
+                    (int32_t)(gyroData.gyro_0_sidereal_attitude.az * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+            }
+
+            // ────────────────────────────────────────────────
+            // RA/Dec Chart (raw vs UDU-filtered, filtered together)
+            // ────────────────────────────────────────────────
+            if (gyro_0_c.chart_gyro_0_radec) {
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_radec, gyro_0_c.ser_gyro_0_radec_raw_dec,
+                    (int32_t)(gyroData.gyro_0_radec_raw[1] * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_radec, gyro_0_c.ser_gyro_0_radec_raw_ra,
+                    (int32_t)(gyroData.gyro_0_radec_raw[0] * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_radec, gyro_0_c.ser_gyro_0_radec_filt_dec,
+                    (int32_t)(gyroData.gyro_0_sidereal_attitude.j2000_dec * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_radec, gyro_0_c.ser_gyro_0_radec_filt_ra,
+                    (int32_t)(HOURS_TO_DEG(gyroData.gyro_0_sidereal_attitude.j2000_ra) * GYRO_0_SIDEREAL_ATTITUDE_CHART_VALUE_SCALE));
+            }
 
             #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
             // ────────────────────────────────────────────────

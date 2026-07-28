@@ -155,7 +155,7 @@ static constexpr int32_t CROSSHAIR_BOX_LABEL_GAP_PX = 10;
 // right (RA/Dec) sides, wide enough for their longest formatted string so
 // growing/shrinking text never drifts the label's box-facing edge.
 static constexpr int32_t CROSSHAIR_ALTAZ_VALUE_WIDTH_PX = 80;
-static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 140;
+static constexpr int32_t CROSSHAIR_RADEC_VALUE_WIDTH_PX = 170;
 // Fixed width for the constellation label centered above the box -- wide
 // enough for the longest constellationName[] entry ("Triangulum Australe").
 static constexpr int32_t CROSSHAIR_CONSTELLATION_VALUE_WIDTH_PX = 260;

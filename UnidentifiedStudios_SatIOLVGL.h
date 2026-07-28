@@ -624,6 +624,53 @@ typedef struct {
     lv_obj_t * val_gyro_align_err;
 
     lv_obj_t * lbl_gyro_align_instructions;
+
+    // Rotation Vector Chart: raw (pre-filter) vs UDU-filtered vx/vy/vz.
+    // One chart, 6 series -- X/Y/Z each in their own hue, raw drawn as the
+    // desaturated shade and filtered as the full-saturation shade.
+    lv_obj_t * lbl_gyro_0_rvec_chart_title;
+    lv_obj_t * chart_gyro_0_rvec;
+    lv_chart_series_t * ser_gyro_0_rvec_raw_x;
+    lv_chart_series_t * ser_gyro_0_rvec_raw_y;
+    lv_chart_series_t * ser_gyro_0_rvec_raw_z;
+    lv_chart_series_t * ser_gyro_0_rvec_filt_x;
+    lv_chart_series_t * ser_gyro_0_rvec_filt_y;
+    lv_chart_series_t * ser_gyro_0_rvec_filt_z;
+    lv_obj_t * lbl_gyro_0_rvec_legend_raw_x;
+    lv_obj_t * lbl_gyro_0_rvec_legend_raw_y;
+    lv_obj_t * lbl_gyro_0_rvec_legend_raw_z;
+    lv_obj_t * lbl_gyro_0_rvec_legend_filt_x;
+    lv_obj_t * lbl_gyro_0_rvec_legend_filt_y;
+    lv_obj_t * lbl_gyro_0_rvec_legend_filt_z;
+
+    // Alt/Az Chart: raw vs UDU-filtered, alt+az filtered together (second,
+    // degrees-scale smoothing stage). Alt on the primary Y axis (+/-100
+    // deg), az on the secondary Y axis (0-360 deg) since the two live on
+    // very different scales.
+    lv_obj_t * lbl_gyro_0_altaz_chart_title;
+    lv_obj_t * chart_gyro_0_altaz;
+    lv_chart_series_t * ser_gyro_0_altaz_raw_alt;
+    lv_chart_series_t * ser_gyro_0_altaz_filt_alt;
+    lv_chart_series_t * ser_gyro_0_altaz_raw_az;
+    lv_chart_series_t * ser_gyro_0_altaz_filt_az;
+    lv_obj_t * lbl_gyro_0_altaz_legend_raw_alt;
+    lv_obj_t * lbl_gyro_0_altaz_legend_filt_alt;
+    lv_obj_t * lbl_gyro_0_altaz_legend_raw_az;
+    lv_obj_t * lbl_gyro_0_altaz_legend_filt_az;
+
+    // RA/Dec Chart: raw vs UDU-filtered, ra+dec filtered together (second,
+    // degrees-scale smoothing stage; ra converted from hours). Dec on the
+    // primary Y axis (+/-100 deg), ra on the secondary Y axis (0-360 deg).
+    lv_obj_t * lbl_gyro_0_radec_chart_title;
+    lv_obj_t * chart_gyro_0_radec;
+    lv_chart_series_t * ser_gyro_0_radec_raw_dec;
+    lv_chart_series_t * ser_gyro_0_radec_filt_dec;
+    lv_chart_series_t * ser_gyro_0_radec_raw_ra;
+    lv_chart_series_t * ser_gyro_0_radec_filt_ra;
+    lv_obj_t * lbl_gyro_0_radec_legend_raw_dec;
+    lv_obj_t * lbl_gyro_0_radec_legend_filt_dec;
+    lv_obj_t * lbl_gyro_0_radec_legend_raw_ra;
+    lv_obj_t * lbl_gyro_0_radec_legend_filt_ra;
 } gyro_0_container_t;
 
 /** ---------------------------------------------------------------------------------------
