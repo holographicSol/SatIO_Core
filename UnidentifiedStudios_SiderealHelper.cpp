@@ -8,6 +8,7 @@
 #include <math.h>
 #include <esp_attr.h>
 #include <esp_task_wdt.h>
+#include <esp_timer.h>
 #include <SiderealPlanets.h>  // https://github.com/DavidArmstrong/SiderealPlanets
 #include <SiderealObjects.h>  // https://github.com/DavidArmstrong/SiderealObjects
 #include "UnidentifiedStudios_SiderealHelper.h"
@@ -27,6 +28,10 @@ static inline double rad2deg(double radians) { return radians * 180.0 / M_PI; }
 SiderealPlanets myAstro;
 SiderealObjects myAstroObj;
 SiderealContext currentSiderealContext{};
+// esp_timer_get_time() timestamp of the last setSiderealData() rebuild --
+// lets any task compute elapsed time for SiderealPlanets::predictContext()
+// without needing its own copy of "when was this context actually built".
+int64_t currentSiderealContextBuiltUs = 0;
 
 struct SiderealPlantetsStruct siderealPlanetData = {
     .track_sun = true,
@@ -161,22 +166,6 @@ struct SiderealPlantetsStruct siderealPlanetData = {
 
     .local_sidereal_time = 0.0,
     .local_sidereal_attitude = {
-        0.0, // j2000_ra
-        0,   // ra_h
-        0,   // ra_m
-        0.0, // ra_s
-        0.0, // j2000_dec
-        0,   // dec_d
-        0,   // dec_m
-        0.0, // dec_s
-        0.0, // az
-        0.0, // alt
-        {0}, // formatted_ra_str
-        {0}, // formatted_dec_str
-        {0}, // padded_ra_str
-        {0}  // padded_dec_str
-    },
-    .gyro_0_sidereal_attitude = {
         0.0, // j2000_ra
         0,   // ra_h
         0,   // ra_m
@@ -787,7 +776,7 @@ static void trackBody(const SiderealContext& ctx, const PlanetElements& elements
             siderealPlanetData.*(spec->ecliptic_long) = sun.eclipticLongitudeDeg;
             siderealPlanetData.earth_ecliptic_lat = sun.eclipticLatitudeDeg;
             siderealPlanetData.earth_ecliptic_long = sun.eclipticLongitudeDeg;
-            rs = myAstro.getRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, 1.454441e-2);
+            rs = myAstro.getRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, sun.horizonDisplacementRad);
             break;
         case SiderealBodyKind::Luna: {
             MoonResult moon = myAstro.doMoon(ctx);
@@ -806,7 +795,7 @@ static void trackBody(const SiderealContext& ctx, const PlanetElements& elements
             siderealPlanetData.*(spec->distance) = p.distance;
             siderealPlanetData.*(spec->ecliptic_lat) = p.eclipticLatitudeDeg;
             siderealPlanetData.*(spec->ecliptic_long) = p.eclipticLongitudeDeg;
-            rs = myAstro.getRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, 1.454441e-2); /* toDo: actual horizontal displacement */
+            rs = myAstro.getRiseSetTimes(ctx, eq.ra_hours, eq.dec_deg, p.horizonDisplacementRad);
             break;
         }
     }
@@ -856,6 +845,23 @@ void trackJupiter(const SiderealContext& ctx, const PlanetElements& elements, co
 void trackSaturn(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackBody(ctx, elements, sun, &saturn_spec); }
 void trackUranus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun)  { trackBody(ctx, elements, sun, &uranus_spec); }
 void trackNeptune(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun) { trackBody(ctx, elements, sun, &neptune_spec); }
+
+static const SiderealBodySpec * const allBodySpecs[] = {
+    &sun_spec, &luna_spec,
+    &mercury_spec, &venus_spec, &mars_spec,
+    &jupiter_spec, &saturn_spec, &uranus_spec, &neptune_spec
+};
+
+void refreshTrackedBodiesAltAz(const SiderealContext& predictedCtx)
+{
+    for (const SiderealBodySpec *spec : allBodySpecs) {
+        double ra = siderealPlanetData.*(spec->ra);
+        double dec = siderealPlanetData.*(spec->dec);
+        AltAz altAz = myAstro.doRAdec2AltAz(predictedCtx, ra, dec);
+        siderealPlanetData.*(spec->az) = altAz.az_deg;
+        siderealPlanetData.*(spec->alt) = altAz.alt_deg + predictedCtx.altitudeOffsetByElevationDeg;
+    }
+}
 
 // ----------------------------------------------------------------------------------------
 // Clear Planet Data.
@@ -1097,6 +1103,7 @@ void setSiderealData(double latitude, double longitude,
         (int)utc_year, (int)utc_month, (int)utc_mday,
         (int)utc_hour, (int)utc_minute, (float)utc_second,
         altitude);
+    currentSiderealContextBuiltUs = esp_timer_get_time();
 
     // -------------------------------------------------------
     // Get Sidereal Time Data.

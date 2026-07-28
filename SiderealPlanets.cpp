@@ -31,6 +31,7 @@ const double SiderealPlanets::FPI  = M_PI;
 const double SiderealPlanets::FPIdiv2 = M_PI_2;
 const double SiderealPlanets::FminusPIdiv2 = -M_PI_2;
 const double SiderealPlanets::FPIdiv4 = M_PI_4;
+const double SiderealPlanets::SOLAR_TO_SIDEREAL_RATE = 1.002737908;
 
 // Public Methods //////////////////////////////////////////////////////////
 
@@ -418,19 +419,19 @@ SiderealAttitudeData SiderealPlanets::getSiderealAttitude(const SiderealContext&
 
     // Format RA
     memset(radecData.formatted_ra_str, 0, sizeof(radecData.formatted_ra_str));
-    snprintf(radecData.formatted_ra_str, sizeof(radecData.formatted_ra_str), "%02d:%02d:%02.2f", ra_h, ra_m, ra_s);
+    snprintf(radecData.formatted_ra_str, sizeof(radecData.formatted_ra_str), "%02d:%02d:%02.4f", ra_h, ra_m, ra_s);
 
     // Format Dec
     memset(radecData.formatted_dec_str, 0, sizeof(radecData.formatted_dec_str));
-    snprintf(radecData.formatted_dec_str, sizeof(radecData.formatted_dec_str), "%+02d:%02d:%02.2f", dec_d, dec_m, dec_s);
+    snprintf(radecData.formatted_dec_str, sizeof(radecData.formatted_dec_str), "%+02d:%02d:%02.4f", dec_d, dec_m, dec_s);
 
     // Format padded RA
     memset(radecData.padded_ra_str, 0, sizeof(radecData.padded_ra_str));
-    snprintf(radecData.padded_ra_str, sizeof(radecData.padded_ra_str), "%02d%02d%02.2f", ra_h, ra_m, ra_s);
+    snprintf(radecData.padded_ra_str, sizeof(radecData.padded_ra_str), "%02d%02d%02.4f", ra_h, ra_m, ra_s);
 
     // Format padded Dec
     memset(radecData.padded_dec_str, 0, sizeof(radecData.padded_dec_str));
-    snprintf(radecData.padded_dec_str, sizeof(radecData.padded_dec_str), "%+02d%02d%02.2f", dec_d, dec_m, dec_s);
+    snprintf(radecData.padded_dec_str, sizeof(radecData.padded_dec_str), "%+02d%02d%02.4f", dec_d, dec_m, dec_s);
 
     return radecData;
 }
@@ -601,6 +602,7 @@ SunResult SiderealPlanets::doSun(const SiderealContext& ctx) {
   result.meanAnomalyRad = anomaly.meanAnomalyRad;
   result.eclipticLongitudeDeg = apparentEclipticLongitude;
   result.eclipticLatitudeDeg = 0.0;
+  result.horizonDisplacementRad = HORIZON_DISPLACEMENT_SUN;
   return result;
 }
 
@@ -1287,6 +1289,7 @@ PlanetResult SiderealPlanets::doPlans(const SiderealContext& ctx, const PlanetEl
   // aberration-adjusted values just fed into doEcliptic2RAdec().
   result.eclipticLongitudeDeg = rad2deg(EPtemp);
   result.eclipticLatitudeDeg = rad2deg(BPtemp);
+  result.horizonDisplacementRad = HORIZON_DISPLACEMENT_SUN; // toDo: actual per-planet horizontal displacement
   return result;
 }
 
@@ -1360,12 +1363,11 @@ RiseSetResult SiderealPlanets::doRiseSetTimes(const SiderealContext& ctx, double
 // ------------------------------------------------------------------------------------------------
 // modified: general rise/set calc for any body with an already-known RA/Dec
 // (doesn't call doSun()/doMoon() -- the caller should have already paid for
-// that computation once and just wants rise/set refined against it).
+// that computation once and just wants rise/set refined against it). DI
+// comes from that same result struct's horizonDisplacementRad field (see
+// SunResult/MoonResult/PlanetResult) -- 0.0 for stars/deep-sky objects, which
+// have no such struct and pass a literal at the call site instead.
 // ------------------------------------------------------------------------------------------------
-/*
-double sun_horizonVerticalDisplacement = 1.454441e-2; // here for reference. if DI is unknown then set
-DI 0.0 for stars or use suns DI for planeets.
-*/
 void SiderealPlanets::refineContextForGMTtime(SiderealContext& ctx, double gmtTime, const std::function<void()>& recompute) {
   ctx.GMTtime = gmtTime;
   double originalMjd1900 = ctx.mjd1900;

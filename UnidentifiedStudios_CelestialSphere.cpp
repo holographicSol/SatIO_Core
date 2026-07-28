@@ -18,6 +18,7 @@
 #include <esp_attr.h> // EXT_RAM_BSS_ATTR
 #include <SiderealObjects.h>
 #include "SiderealObjectsTables.h"
+#include "UnidentifiedStudios_WT901.h"
 #include "UnidentifiedStudios_CelestialSphere.h"
 #include "UnidentifiedStudios_GlobalLVGL.h"
 #include "UnidentifiedStudios_ObjectTypeIcons.h"
@@ -511,7 +512,7 @@ void celestial_sphere_prebuild(void) {
 static void boresight_ra_dec_deg(double &ra_hours, double &dec_deg) {
     const SiderealAttitudeData &attitude = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
         ? siderealPlanetData.local_sidereal_attitude
-        : siderealPlanetData.gyro_0_sidereal_attitude;
+        : gyroData.gyro_0_sidereal_attitude;
 
     ra_hours = attitude.j2000_ra;
     dec_deg = attitude.j2000_dec;
@@ -1595,25 +1596,25 @@ static void update_body_target_data_content(const CelestialBody body) {
 static void update_gyro_attitude_label(void) {
     if (crosshair_alt_value_label != nullptr) {
         char buf[16];
-        snprintf(buf, sizeof(buf), "AT %.2f", siderealPlanetData.gyro_0_sidereal_attitude.alt);
+        snprintf(buf, sizeof(buf), "AT %.2f", gyroData.gyro_0_sidereal_attitude.alt);
         set_label_text_if_changed(crosshair_alt_value_label, buf);
     }
 
     if (crosshair_az_value_label != nullptr) {
         char buf[16];
-        snprintf(buf, sizeof(buf), "AZ %.2f", siderealPlanetData.gyro_0_sidereal_attitude.az);
+        snprintf(buf, sizeof(buf), "AZ %.2f", gyroData.gyro_0_sidereal_attitude.az);
         set_label_text_if_changed(crosshair_az_value_label, buf);
     }
 
     if (crosshair_ra_value_label != nullptr) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "RA %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
+        snprintf(buf, sizeof(buf), "RA %s", gyroData.gyro_0_sidereal_attitude.formatted_ra_str);
         set_label_text_if_changed(crosshair_ra_value_label, buf);
     }
 
     if (crosshair_dec_value_label != nullptr) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "DC %s", siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
+        snprintf(buf, sizeof(buf), "DC %s", gyroData.gyro_0_sidereal_attitude.formatted_dec_str);
         set_label_text_if_changed(crosshair_dec_value_label, buf);
     }
 
@@ -1844,10 +1845,10 @@ void celestial_sphere_update(void) {
 
         const double center_alt = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
             ? siderealPlanetData.local_sidereal_attitude.alt
-            : siderealPlanetData.gyro_0_sidereal_attitude.alt;
+            : gyroData.gyro_0_sidereal_attitude.alt;
         const double center_az = (current_mode == CELESTIAL_SPHERE_MODE_ZENITH)
             ? siderealPlanetData.local_sidereal_attitude.az
-            : siderealPlanetData.gyro_0_sidereal_attitude.az;
+            : gyroData.gyro_0_sidereal_attitude.az;
 
         // Boresight RA/Dec (decimal) -- the catalog markers below are windowed
         // by RA/Dec instead of Alt/Az, since a catalog object's RA/Dec never

@@ -3043,12 +3043,12 @@ bool matrixSwitch(void) {
 
         #if defined(SatIO_USE_UNIVERSE) && defined(SatIO_USE_GYRO_0)
         case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_RA:
-          tmp_x = (double)atol(siderealPlanetData.gyro_0_sidereal_attitude.padded_ra_str);
+          tmp_x = (double)atol(gyroData.gyro_0_sidereal_attitude.padded_ra_str);
           handle_digit = true;
           break;
 
         case INDEX_MATRIX_SWITCH_FUNCTION_LOCAL_GYRO_0_DEC:
-          tmp_x = (double)atol(siderealPlanetData.gyro_0_sidereal_attitude.padded_dec_str);
+          tmp_x = (double)atol(gyroData.gyro_0_sidereal_attitude.padded_dec_str);
           handle_digit = true;
           break;
         #endif // SatIO_USE_UNIVERSE && SatIO_USE_GYRO_0

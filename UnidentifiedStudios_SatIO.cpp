@@ -13,6 +13,7 @@
 #include <SiderealObjects.h>
 #include "./UnidentifiedStudios_SatIO.h"
 #include "UnidentifiedStudios_WTGPS300P.h"
+#include "UnidentifiedStudios_WT901.h"
 #include "UnidentifiedStudios_TaskHandler.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
 
@@ -232,14 +233,14 @@ void setSatIOGroundHeading(void) {
 /**
  * Set SatIO RA/Dec target according to update mode. Unlike the other
  * SatIO_MODE_GPS-backed fields above, RA/Dec has no GPS reading -- its
- * live source is the gyro-derived zenith offset (siderealPlanetData.gyro_0_sidereal_attitude),
+ * live source is the gyro-derived zenith offset (gyroData.gyro_0_sidereal_attitude),
  * so the two modes here are SATIO_MODE_GYRO and SATIO_MODE_USER.
  */
 void setSatIORaDec(void) {
   // ---------------------------------------------------------------------
   // Select which value to use from the system.
   // ---------------------------------------------------------------------
-  if      (SatIOData.sidereal_attitude_value_mode==SATIO_MODE_GYRO) {SatIOData.system_sidereal_attitude = siderealPlanetData.gyro_0_sidereal_attitude;}
+  if      (SatIOData.sidereal_attitude_value_mode==SATIO_MODE_GYRO) {SatIOData.system_sidereal_attitude = gyroData.gyro_0_sidereal_attitude;}
   else if (SatIOData.sidereal_attitude_value_mode==SATIO_MODE_USER) {SatIOData.system_sidereal_attitude = SatIOData.user_sidereal_attitude;}
 }
 

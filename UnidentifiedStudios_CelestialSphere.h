@@ -26,7 +26,7 @@
 // Selects which tracked attitude supplies the boresight (view center) Alt/Az.
 enum CelestialSphereMode : int32_t {
     // Boresight follows the gyroscope's current pointing direction
-    // (siderealPlanetData.gyro_0_sidereal_attitude): the view pans as the
+    // (gyroData.gyro_0_sidereal_attitude): the view pans as the
     // device is physically moved.
     CELESTIAL_SPHERE_MODE_GYRO = 0,
     // Boresight is pinned to the local zenith

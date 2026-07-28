@@ -141,6 +141,12 @@ typedef struct PwrConfig {
     uint32_t TASK_MAX_FREQ_TRACKPLANETS;
     uint32_t TASK_MAX_FREQ_STARNAV;
     uint32_t TASK_MAX_FREQ_METEORS;
+    // Gates the cheap SiderealPlanets::predictContext()-based Az/Alt/RA/Dec
+    // refresh inside taskUniverse (zenith attitude + tracked bodies). Nested
+    // inside taskFrequencyUniverse()'s own blocking wait, so its effective
+    // ceiling is min(this, TASK_MAX_FREQ_UNIVERSE) -- raise Universe's own
+    // rate too if this needs to exceed whatever Universe is currently set to.
+    uint32_t TASK_MAX_FREQ_SIDEREAL_PREDICT;
 
     uint32_t TASK_MAX_FREQ_SWITCHES;
 
@@ -171,10 +177,11 @@ typedef struct PwrConfig {
 
 #define TASK_MAX_FREQ_LOW_GYRO                        100000  // (10 Hz)
 
-#define TASK_MAX_FREQ_LOW_UNIVERSE                    1000000 // (1 Hz)
+#define TASK_MAX_FREQ_LOW_UNIVERSE                    100000  // (10 Hz)
 #define TASK_MAX_FREQ_LOW_TRACKPLANETS                0       // (task freq)
 #define TASK_MAX_FREQ_LOW_STARNAV                     0       // (task freq)
 #define TASK_MAX_FREQ_LOW_METEORS                     0       // (task freq)
+#define TASK_MAX_FREQ_LOW_SIDEREAL_PREDICT            100000  // (10 Hz)
 
 #define TASK_MAX_FREQ_LOW_SWITCHES                    100000  // (10 Hz)
 
@@ -207,6 +214,7 @@ typedef struct PwrConfig {
 #define TASK_MAX_FREQ_BALANCED_TRACKPLANETS           1000000 // (1 Hz)
 #define TASK_MAX_FREQ_BALANCED_STARNAV                0       // (task freq)
 #define TASK_MAX_FREQ_BALANCED_METEORS                1000000 // (1 Hz)
+#define TASK_MAX_FREQ_BALANCED_SIDEREAL_PREDICT       10000   // (100 Hz)
 
 #define TASK_MAX_FREQ_BALANCED_SWITCHES               5000    // (200 Hz)
 
@@ -239,6 +247,7 @@ typedef struct PwrConfig {
 #define TASK_MAX_FREQ_HIGH_TRACKPLANETS               1000000 // (1 Hz)
 #define TASK_MAX_FREQ_HIGH_STARNAV                    0       // (task freq)
 #define TASK_MAX_FREQ_HIGH_METEORS                    1000000 // (1 Hz)
+#define TASK_MAX_FREQ_HIGH_SIDEREAL_PREDICT           10000   // (100 Hz)
 
 #define TASK_MAX_FREQ_HIGH_SWITCHES                   2000    // (500 Hz)
 

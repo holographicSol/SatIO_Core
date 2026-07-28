@@ -1598,6 +1598,10 @@ void CmdProcess(void) {
                 uint32_t t = argparser_get_uint32(&parser, "meteors", pwrConfigCurrent.TASK_MAX_FREQ_METEORS);
                 pwrConfigCurrent.TASK_MAX_FREQ_METEORS = t;
               }
+              if (argparser_has_flag(&parser, "sidereal-predict")) {
+                uint32_t t = argparser_get_uint32(&parser, "sidereal-predict", pwrConfigCurrent.TASK_MAX_FREQ_SIDEREAL_PREDICT);
+                pwrConfigCurrent.TASK_MAX_FREQ_SIDEREAL_PREDICT = t;
+              }
               #endif
 
               #ifdef SatIO_USE_GPS_0
@@ -1850,8 +1854,8 @@ void outputSerialSatIO(void) {
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.local_sidereal_time) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.local_sidereal_attitude.padded_ra_str) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.local_sidereal_attitude.padded_dec_str) + ",").c_str());
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.gyro_0_sidereal_attitude.padded_ra_str) + ",").c_str());
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(siderealPlanetData.gyro_0_sidereal_attitude.padded_dec_str) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(gyroData.gyro_0_sidereal_attitude.padded_ra_str) + ",").c_str());
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(gyroData.gyro_0_sidereal_attitude.padded_dec_str) + ",").c_str());
 
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(insData.ins_latitude, 7) + ",").c_str());
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(insData.ins_longitude, 7) + ",").c_str());
@@ -3869,7 +3873,7 @@ void outputStat(void) {
         const StatRaDecSource sources[] = {
             {"Zenith", siderealPlanetData.local_sidereal_attitude.formatted_ra_str,  siderealPlanetData.local_sidereal_attitude.formatted_dec_str,  siderealPlanetData.local_sidereal_attitude.az,  siderealPlanetData.local_sidereal_attitude.alt},
             #ifdef SatIO_USE_GYRO_0
-            {"Gyro",   siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str, siderealPlanetData.gyro_0_sidereal_attitude.az, siderealPlanetData.gyro_0_sidereal_attitude.alt},
+            {"Gyro",   gyroData.gyro_0_sidereal_attitude.formatted_ra_str, gyroData.gyro_0_sidereal_attitude.formatted_dec_str, gyroData.gyro_0_sidereal_attitude.az, gyroData.gyro_0_sidereal_attitude.alt},
             #endif
             {"User",   SatIOData.user_sidereal_attitude.formatted_ra_str,            SatIOData.user_sidereal_attitude.formatted_dec_str,            SatIOData.user_sidereal_attitude.az,            SatIOData.user_sidereal_attitude.alt},
             {"System", SatIOData.system_sidereal_attitude.formatted_ra_str,          SatIOData.system_sidereal_attitude.formatted_dec_str,          SatIOData.system_sidereal_attitude.az,          SatIOData.system_sidereal_attitude.alt},

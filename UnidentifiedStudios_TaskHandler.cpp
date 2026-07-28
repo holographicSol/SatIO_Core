@@ -29,6 +29,7 @@
 #include "UnidentifiedStudios_SiderealHelper.h"
 #include "UnidentifiedStudios_HexToDig.h"
 #include "UnidentifiedStudios_INS.h"
+#include "UnidentifiedStudios_Filter.h"
 #include "UnidentifiedStudios_SatIO.h"
 #include "UnidentifiedStudios_SatIOFile.h"
 #include "UnidentifiedStudios_Mapping.h"
@@ -769,18 +770,6 @@ static void taskGyro(void *pvParameters) {
         outputSerialGyro0();
         #endif
 
-        // ------------------------------------------------
-        // Gyro Ra/Dec -- moved here (out of taskUniverse) so gyro sensor
-        // fusion builds its data/fused-data package all in one place instead
-        // of dangling off the end of the universe task. Reads whichever
-        // sidereal context taskUniverse most recently built.
-        // ------------------------------------------------
-        siderealPlanetData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
-          currentSiderealContext,
-          gyroData.gyro_0_quaternion.vx,  // vector x (from roll)
-          gyroData.gyro_0_quaternion.vy,  // vector y (fom pitch)
-          gyroData.gyro_0_quaternion.vz   // vector z (from yaw)
-        );
         esp_task_wdt_reset();
 
         // ----------------------------------------------
@@ -1275,10 +1264,7 @@ static void taskUniverse(void *pvParameters) {
       esp_task_wdt_reset();
 
       // ------------------------------------------------
-      // Zenith Ra/Dec (grouped with setSiderealData()/storeLST() above,
-      // since it depends only on currentSiderealContext, not on
-      // trackPlanets()/meteor tracking below it). The gyro attitude fix
-      // that used to live here moved into taskGyro -- see SatIO_USE_GYRO_0.
+      // Zenith Ra/Dec Alt/Az
       // ------------------------------------------------
       siderealPlanetData.local_sidereal_attitude = myAstro.getSiderealAttitude(currentSiderealContext, 0, 0, 1);
       esp_task_wdt_reset();
@@ -1293,6 +1279,7 @@ static void taskUniverse(void *pvParameters) {
         stepFFCounter(systemData.counters_track_planets, 1);
         esp_task_wdt_reset();
       }
+
       // ------------------------------------------------
       // Track Meteors
       // ------------------------------------------------
@@ -1312,7 +1299,7 @@ static void taskUniverse(void *pvParameters) {
         // -----------------------------------------------------------
         // Constellation
         // -----------------------------------------------------------
-        siderealPlanetData.gyro_0_constellation = getConstellationAtRaDec(siderealPlanetData.gyro_0_sidereal_attitude.j2000_ra, siderealPlanetData.gyro_0_sidereal_attitude.j2000_dec);
+        siderealPlanetData.gyro_0_constellation = getConstellationAtRaDec(gyroData.gyro_0_sidereal_attitude.j2000_ra, gyroData.gyro_0_sidereal_attitude.j2000_dec);
         // -----------------------------------------------------------
         // Track Object
         // -----------------------------------------------------------

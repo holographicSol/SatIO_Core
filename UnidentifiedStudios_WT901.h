@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "UnidentifiedStudios_Config.h"
 #include "UnidentifiedStudios_Quaternion.h"
+#include "SiderealPlanets.h"
 
 #define MAX_GYRO_BAUDRATES  10  // Number of entries in gyro_0_c_uiBaud, including the unused index 0
 #define GYRO_0_ACC_UPDATE   0x01
@@ -43,6 +44,28 @@ struct GyroData {
   int16_t gyro_0_mag_z;         // Magnetic field z
   
   Quaternion gyro_0_quaternion;
+
+  // Joint 3-state UDU (Bierman/Thornton square-root) Kalman filter state
+  // smoothing gyro_0_quaternion.vx/vy/vz (the rotated rotation vector) in
+  // place, via kalman_udu.h (KFCore, https://github.com/jnz/KFCore). One
+  // joint filter rather than 3 independent scalar filters, since the 3
+  // components of a unit vector are correlated, not independent. Filtering
+  // the Cartesian vector rather than any derived angle (e.g. az/alt) avoids
+  // wraparound, and keeps every consumer of vx/vy/vz seeing the same
+  // smoothed value.
+  //
+  // State is kept as UD factors rather than a full covariance matrix P, so
+  // that P = gyro_0_rotation_vector_U * diag(gyro_0_rotation_vector_d) *
+  // gyro_0_rotation_vector_U'.
+  float gyro_0_rotation_vector_x[3];     // filtered state: vx, vy, vz
+  float gyro_0_rotation_vector_U[3 * 3]; // unit upper triangular covariance factor (column-major)
+  float gyro_0_rotation_vector_d[3];     // diagonal covariance factor
+  bool gyro_0_rotation_vector_kf_seeded; // true once x has been seeded with a first raw sample
+
+  // RA/Dec/Az/Alt the gyro is currently pointing at, derived from the
+  // (UDU-filtered) rotation vector above. Computed in readGyro().
+  SiderealAttitudeData gyro_0_sidereal_attitude;
+
   int32_t gyro_0_c_uiBaud[MAX_GYRO_BAUDRATES];  // Baud rates for scanning
   int32_t gyro_0_current_uiBaud; // Current baud rate
 };

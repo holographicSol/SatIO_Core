@@ -7,7 +7,10 @@ idf_component_register(
         font_mono_bold_14.c
         font_mono_bold_16.c
         font_unscii_12.c
+        kalman_udu.c
+        linalg.c
         main.cpp
+        miniblas.c
         SiderealObjects.cpp
         SiderealObjectsTables.cpp
         SiderealPlanets.cpp
@@ -16,6 +19,7 @@ idf_component_register(
         UnidentifiedStudios_CelestialSphere.cpp
         UnidentifiedStudios_CMD.cpp
         UnidentifiedStudios_Config.cpp
+        UnidentifiedStudios_Filter.cpp
         UnidentifiedStudios_GlobalLVGL.cpp
         UnidentifiedStudios_GPIOPortExpander.cpp
         UnidentifiedStudios_HexToDig.cpp
@@ -52,6 +56,18 @@ idf_component_register(
 set_source_files_properties(
     SiderealPlanets.cpp
     SiderealObjects.cpp
-    PROPERTIES COMPILE_FLAGS 
+    PROPERTIES COMPILE_FLAGS
     "-Wno-dangling-else -Wno-unused-variable -Wno-unused-but-set-variable -Wno-maybe-uninitialized"
+)
+
+# kalman_udu.c sizes its internal scratch buffers (stack-allocated) at
+# KALMAN_MAX_STATE_SIZE x KALMAN_MAX_STATE_SIZE regardless of the actual
+# state size passed in at runtime. The upstream default (32) would burn
+# ~8 KB of stack per call -- more than an entire FreeRTOS task's stack
+# budget on this project (see TASK_GYRO_STACK_SIZE in
+# UnidentifiedStudios_TaskHandler.cpp). Override it to the actual largest
+# state size in use (3, for the gyro rotation vector filter).
+set_source_files_properties(
+    kalman_udu.c
+    PROPERTIES COMPILE_DEFINITIONS "KALMAN_MAX_STATE_SIZE=3"
 )

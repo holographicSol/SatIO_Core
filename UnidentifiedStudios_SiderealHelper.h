@@ -164,7 +164,6 @@ struct SiderealPlantetsStruct {
     double local_sidereal_time;
     
     SiderealAttitudeData local_sidereal_attitude;
-    SiderealAttitudeData gyro_0_sidereal_attitude;
     SiderealConstellationEntry gyro_0_constellation;
 };
 extern struct SiderealPlantetsStruct siderealPlanetData;
@@ -174,6 +173,11 @@ extern struct SiderealPlantetsStruct siderealPlanetData;
 // by setSiderealData() -> SiderealPlanets::buildSiderealContext(). Read-only
 // after that: safe for any task to copy and use concurrently.
 extern SiderealContext currentSiderealContext;
+
+// esp_timer_get_time() timestamp of the last currentSiderealContext rebuild --
+// feed (esp_timer_get_time() - currentSiderealContextBuiltUs) / 1.0e6 as
+// elapsedSeconds into SiderealPlanets::predictContext().
+extern int64_t currentSiderealContextBuiltUs;
 
 // ----------------------------------------------------------------------------------------
 // Object Data Structure.
@@ -303,6 +307,14 @@ void trackSaturn(const SiderealContext& ctx, const PlanetElements& elements, con
 void trackUranus(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
 /** Tracks Neptune: RA/Dec, Alt/Az, heliocentric/ecliptic position, rise/set. */
 void trackNeptune(const SiderealContext& ctx, const PlanetElements& elements, const SunResult& sun);
+
+/**
+ * Cheaply refreshes every tracked body's Az/Alt from its last-computed RA/Dec
+ * against predictedCtx (see SiderealPlanets::predictContext()), without
+ * touching RA/Dec, rise/set, or any Sun/Moon/Planet-specific fields -- those
+ * still only get updated by the real trackPlanets() pass.
+ */
+void refreshTrackedBodiesAltAz(const SiderealContext& predictedCtx);
 
 /** Resets the Sun's tracked fields to NAN. */
 void clearSun(void);

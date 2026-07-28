@@ -11,6 +11,9 @@
 #include "esp_log.h"
 #include <string.h>
 #include "UnidentifiedStudios_Quaternion.h"
+#include "kalman_udu.h"
+#include "linalg.h"
+#include "UnidentifiedStudios_SiderealHelper.h"
 
 // UART2 configuration for WT901
 #define WT901_UART_NUM    UART_NUM_2
@@ -18,41 +21,55 @@
 #define WT901_UART_RX_PIN 35
 #define WT901_BUF_SIZE    1024
 
+// UDU Kalman filter tuning for gyro_0_rotation_vector_x/U/d, smoothing
+// gyro_0_quaternion.vx/vy/vz jointly. Filtering the Cartesian rotation
+// vector rather than any derived angle (e.g. az/alt) avoids wraparound, and
+// keeps every consumer of vx/vy/vz seeing the same smoothed value.
+#define GYRO_0_ROTATION_VECTOR_KF_INITIAL_VARIANCE  1.0f
+#define GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE     0.001f // higher = filter follows real movement faster (less smoothing)
+#define GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE 0.01f  // higher = trust each raw sample less (more smoothing)
+
 static const char *WT901_TAG = "WT901";
 static bool wt901_uart_installed = false;
 
 struct GyroData gyroData = {
-  .gyro_0_s_cDataUpdate = 0,
-  .gyro_0_fAcc = {0.0f, 0.0f, 0.0f},
-  .gyro_0_fGyro = {0.0f, 0.0f, 0.0f},
-  .gyro_0_fAngle = {0.0f, 0.0f, 0.0f},
-  .gyro_0_ang_x = 0.0f,
-  .gyro_0_ang_y = 0.0f,
-  .gyro_0_ang_z = 0.0f,
-  .gyro_0_acc_x = 0.0f,
-  .gyro_0_acc_y = 0.0f,
-  .gyro_0_acc_z = 0.0f,
-  .gyro_0_gyr_x = 0.0f,
-  .gyro_0_gyr_y = 0.0f,
-  .gyro_0_gyr_z = 0.0f,
-  .gyro_0_mag_x = 0,
-  .gyro_0_mag_y = 0,
-  .gyro_0_mag_z = 0,
-  
-  .gyro_0_quaternion = {},
-  .gyro_0_c_uiBaud={
-    0,      // 0 (unused)
-    4800,   // 1 WIT_BAUD_4800
-    9600,   // 2 WIT_BAUD_9600
-    19200,  // 3 WIT_BAUD_19200
-    38400,  // 4 WIT_BAUD_38400
-    57600,  // 5 WIT_BAUD_57600
-    115200, // 6 WIT_BAUD_115200
-    230400, // 7 WIT_BAUD_230400
-    460800, // 8 WIT_BAUD_460800
-    921600  // 9 WIT_BAUD_921600
-  },
-  .gyro_0_current_uiBaud = 0
+    .gyro_0_s_cDataUpdate = 0,
+    .gyro_0_fAcc = {0.0f, 0.0f, 0.0f},
+    .gyro_0_fGyro = {0.0f, 0.0f, 0.0f},
+    .gyro_0_fAngle = {0.0f, 0.0f, 0.0f},
+    .gyro_0_ang_x = 0.0f,
+    .gyro_0_ang_y = 0.0f,
+    .gyro_0_ang_z = 0.0f,
+    .gyro_0_acc_x = 0.0f,
+    .gyro_0_acc_y = 0.0f,
+    .gyro_0_acc_z = 0.0f,
+    .gyro_0_gyr_x = 0.0f,
+    .gyro_0_gyr_y = 0.0f,
+    .gyro_0_gyr_z = 0.0f,
+    .gyro_0_mag_x = 0,
+    .gyro_0_mag_y = 0,
+    .gyro_0_mag_z = 0,
+    
+    .gyro_0_quaternion = {},
+    .gyro_0_rotation_vector_x = {0.0f, 0.0f, 0.0f},
+    .gyro_0_rotation_vector_U = {0.0f},
+    .gyro_0_rotation_vector_d = {0.0f, 0.0f, 0.0f},
+    .gyro_0_rotation_vector_kf_seeded = false,
+    .gyro_0_sidereal_attitude = {},
+
+    .gyro_0_c_uiBaud={
+        0,      // 0 (unused)
+        4800,   // 1 WIT_BAUD_4800
+        9600,   // 2 WIT_BAUD_9600
+        19200,  // 3 WIT_BAUD_19200
+        38400,  // 4 WIT_BAUD_38400
+        57600,  // 5 WIT_BAUD_57600
+        115200, // 6 WIT_BAUD_115200
+        230400, // 7 WIT_BAUD_230400
+        460800, // 8 WIT_BAUD_460800
+        921600  // 9 WIT_BAUD_921600
+    },
+    .gyro_0_current_uiBaud = 0
 };
 
 /* Rule 8.7: internal linkage; only wt901_uart_init() and Gyro0AutoScan()
@@ -132,67 +149,137 @@ bool readGyro(void)
         // printf("ang: x=%f y=%f z=%f\n", gyroData.gyro_0_fAngle[0], gyroData.gyro_0_fAngle[1], gyroData.gyro_0_fAngle[2]);
         // printf("gyr: x=%f y=%f z=%f\n", gyroData.gyro_0_fGyro[0], gyroData.gyro_0_fGyro[1], gyroData.gyro_0_fGyro[2]);
 
-        gyroData.gyro_0_acc_x = gyroData.gyro_0_fAcc[0];
-        gyroData.gyro_0_acc_y = gyroData.gyro_0_fAcc[1];
-        gyroData.gyro_0_acc_z = gyroData.gyro_0_fAcc[2];
+        // ----------------------------------------------------------------------------------------------------
+        // Quick Method
+        // ----------------------------------------------------------------------------------------------------
+        // gyroData.gyro_0_acc_x = gyroData.gyro_0_fAcc[0];
+        // gyroData.gyro_0_acc_y = gyroData.gyro_0_fAcc[1];
+        // gyroData.gyro_0_acc_z = gyroData.gyro_0_fAcc[2];
 
-        gyroData.gyro_0_ang_x = gyroData.gyro_0_fAngle[0];
-        gyroData.gyro_0_ang_y = gyroData.gyro_0_fAngle[1];
-        gyroData.gyro_0_ang_z = gyroData.gyro_0_fAngle[2];
+        // gyroData.gyro_0_ang_x = gyroData.gyro_0_fAngle[0];
+        // gyroData.gyro_0_ang_y = gyroData.gyro_0_fAngle[1];
+        // gyroData.gyro_0_ang_z = gyroData.gyro_0_fAngle[2];
 
-        gyroData.gyro_0_gyr_x = gyroData.gyro_0_fGyro[0];
-        gyroData.gyro_0_gyr_y = gyroData.gyro_0_fGyro[1];
-        gyroData.gyro_0_gyr_z = gyroData.gyro_0_fGyro[2];
+        // gyroData.gyro_0_gyr_x = gyroData.gyro_0_fGyro[0];
+        // gyroData.gyro_0_gyr_y = gyroData.gyro_0_fGyro[1];
+        // gyroData.gyro_0_gyr_z = gyroData.gyro_0_fGyro[2];
 
-        gyroData.gyro_0_mag_x = sReg[HX];
-        gyroData.gyro_0_mag_y = sReg[HY];
-        gyroData.gyro_0_mag_z = sReg[REG_HZ];
+        // gyroData.gyro_0_mag_x = sReg[HX];
+        // gyroData.gyro_0_mag_y = sReg[HY];
+        // gyroData.gyro_0_mag_z = sReg[REG_HZ];
+        // updated = true;
 
         // ----------------------------------------------------------------------------------------------------
-        // Time consuming block. This may be useful in the future if we wish to itemize update true.
+        // Time Consuming Method
         // ----------------------------------------------------------------------------------------------------
-        // if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_ACC_UPDATE) != 0U)
-        // {
-        //     gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_ACC_UPDATE);
-        //     gyroData.gyro_0_acc_x = gyroData.gyro_0_fAcc[0];
-        //     gyroData.gyro_0_acc_y = gyroData.gyro_0_fAcc[1];
-        //     gyroData.gyro_0_acc_z = gyroData.gyro_0_fAcc[2];
-        //     updated = true;
-        // }
+        if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_ACC_UPDATE) != 0U)
+        {
+            gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_ACC_UPDATE);
+            gyroData.gyro_0_acc_x = gyroData.gyro_0_fAcc[0];
+            gyroData.gyro_0_acc_y = gyroData.gyro_0_fAcc[1];
+            gyroData.gyro_0_acc_z = gyroData.gyro_0_fAcc[2];
+            updated = true;
+        }
 
-        // if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_ANGLE_UPDATE) != 0U)
-        // {
-        //     gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_ANGLE_UPDATE);
-        //     gyroData.gyro_0_ang_x = gyroData.gyro_0_fAngle[0];
-        //     gyroData.gyro_0_ang_y = gyroData.gyro_0_fAngle[1];
-        //     gyroData.gyro_0_ang_z = gyroData.gyro_0_fAngle[2];
-        //     updated = true;
-        // }
+        if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_ANGLE_UPDATE) != 0U)
+        {
+            gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_ANGLE_UPDATE);
+            gyroData.gyro_0_ang_x = gyroData.gyro_0_fAngle[0];
+            gyroData.gyro_0_ang_y = gyroData.gyro_0_fAngle[1];
+            gyroData.gyro_0_ang_z = gyroData.gyro_0_fAngle[2];
+            updated = true;
+        }
 
-        // if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_UPDATE) != 0U)
-        // {
-        //     gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_UPDATE);
-        //     gyroData.gyro_0_gyr_x = gyroData.gyro_0_fGyro[0];
-        //     gyroData.gyro_0_gyr_y = gyroData.gyro_0_fGyro[1];
-        //     gyroData.gyro_0_gyr_z = gyroData.gyro_0_fGyro[2];
-        //     updated = true;
-        // }
+        if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_UPDATE) != 0U)
+        {
+            gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_UPDATE);
+            gyroData.gyro_0_gyr_x = gyroData.gyro_0_fGyro[0];
+            gyroData.gyro_0_gyr_y = gyroData.gyro_0_fGyro[1];
+            gyroData.gyro_0_gyr_z = gyroData.gyro_0_fGyro[2];
+            updated = true;
+        }
 
-        // if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_MAG_UPDATE) != 0U)
-        // {
-        //     gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_MAG_UPDATE);
-        //     gyroData.gyro_0_mag_x = sReg[HX];
-        //     gyroData.gyro_0_mag_y = sReg[HY];
-        //     gyroData.gyro_0_mag_z = sReg[REG_HZ];
-        //     updated = true;
-        // }
+        if ((gyroData.gyro_0_s_cDataUpdate & GYRO_0_MAG_UPDATE) != 0U)
+        {
+            gyroData.gyro_0_s_cDataUpdate = (uint8_t)(gyroData.gyro_0_s_cDataUpdate & ~GYRO_0_MAG_UPDATE);
+            gyroData.gyro_0_mag_x = sReg[HX];
+            gyroData.gyro_0_mag_y = sReg[HY];
+            gyroData.gyro_0_mag_z = sReg[REG_HZ];
+            updated = true;
+        }
         // ----------------------------------------------------------------------------------------------------
 
         // Get Rotation Vector
-        gyroData.gyro_0_quaternion = quaternionFromEuler(deg2rad(gyroData.gyro_0_ang_x), deg2rad(gyroData.gyro_0_ang_y), deg2rad(gyroData.gyro_0_ang_z)); 
-        quaternionRotateVector(gyroData.gyro_0_quaternion, 0.0, 0.0, 1.0, &gyroData.gyro_0_quaternion.vx, &gyroData.gyro_0_quaternion.vy, &gyroData.gyro_0_quaternion.vz);
+        gyroData.gyro_0_quaternion = quaternionFromEuler(deg2rad(gyroData.gyro_0_ang_x), deg2rad(gyroData.gyro_0_ang_y), deg2rad(gyroData.gyro_0_ang_z));
+        double raw_vx, raw_vy, raw_vz;
+        quaternionRotateVector(gyroData.gyro_0_quaternion, 0.0, 0.0, 1.0, &raw_vx, &raw_vy, &raw_vz);
 
-        updated = true;
+        // Kalman-filter the rotation vector jointly -- one 3-state UDU
+        // filter rather than 3 independent scalar filters, so the
+        // covariance captures correlation between axes (the 3 components
+        // of a unit vector are not independent). Every consumer of
+        // gyro_0_quaternion.vx/vy/vz (e.g. getSiderealAttitude(), called
+        // from taskGyro() in UnidentifiedStudios_TaskHandler.cpp) sees the
+        // smoothed value.
+        const float raw_v[3] = { (float)raw_vx, (float)raw_vy, (float)raw_vz };
+        if (!gyroData.gyro_0_rotation_vector_kf_seeded)
+        {
+            memcpy(gyroData.gyro_0_rotation_vector_x, raw_v, sizeof(raw_v));
+            gyroData.gyro_0_rotation_vector_kf_seeded = true;
+        }
+        else
+        {
+            // Random-walk model: no dynamics beyond process noise, so Phi
+            // (state transition) and G (process noise distribution) are
+            // both identity(3). Measuring each state directly, so Ht
+            // (transposed measurement sensitivity matrix) is also
+            // identity(3). Identity/diagonal matrices are their own
+            // transpose, so KFCore's column-major storage doesn't matter
+            // for any of these three.
+            static const float GYRO_0_ROTATION_VECTOR_KF_IDENTITY3[3 * 3] = {
+                1.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 1.0f
+            };
+            static const float GYRO_0_ROTATION_VECTOR_KF_Q[3] = {
+                GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
+                GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
+                GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE
+            };
+            static const float GYRO_0_ROTATION_VECTOR_KF_R[3 * 3] = {
+                GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f, 0.0f,
+                0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f,
+                0.0f, 0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE
+            };
+
+            kalman_udu_predict(gyroData.gyro_0_rotation_vector_x,
+                                gyroData.gyro_0_rotation_vector_U,
+                                gyroData.gyro_0_rotation_vector_d,
+                                GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Phi */
+                                GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* G */
+                                GYRO_0_ROTATION_VECTOR_KF_Q, 3, 3);
+
+            (void)kalman_udu(gyroData.gyro_0_rotation_vector_x,
+                              gyroData.gyro_0_rotation_vector_U,
+                              gyroData.gyro_0_rotation_vector_d,
+                              raw_v, GYRO_0_ROTATION_VECTOR_KF_R,
+                              GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Ht */
+                              3, 3, 0.0f, 0);
+        }
+
+        gyroData.gyro_0_quaternion.vx = gyroData.gyro_0_rotation_vector_x[0];
+        gyroData.gyro_0_quaternion.vy = gyroData.gyro_0_rotation_vector_x[1];
+        gyroData.gyro_0_quaternion.vz = gyroData.gyro_0_rotation_vector_x[2];
+
+        // ------------------------------------------------
+        // Gyro Ra/Dec Alt/Az
+        // ------------------------------------------------
+        gyroData.gyro_0_sidereal_attitude = myAstro.getSiderealAttitude(
+          currentSiderealContext,
+          gyroData.gyro_0_quaternion.vx,  // vector x (from roll)
+          gyroData.gyro_0_quaternion.vy,  // vector y (fom pitch)
+          gyroData.gyro_0_quaternion.vz   // vector z (from yaw)
+        );
     }
     return updated; /* Rule 15.5: single point of exit */
 }
@@ -330,6 +417,14 @@ void initWT901(void)
     int desired_baud;
 
     printf("[Gyro0] initializing...\n");
+
+    mateye(gyroData.gyro_0_rotation_vector_U, 3); // U = identity(3): no initial cross-axis correlation
+    for (int i = 0; i < 3; i++)
+    {
+        gyroData.gyro_0_rotation_vector_d[i] = GYRO_0_ROTATION_VECTOR_KF_INITIAL_VARIANCE;
+    }
+    gyroData.gyro_0_rotation_vector_kf_seeded = false; // readGyro() seeds x from the first raw sample
+
     (void)WitInit(WIT_PROTOCOL_NORMAL, 0x50);
 
     printf("[Gyro0] register serial write.\n");

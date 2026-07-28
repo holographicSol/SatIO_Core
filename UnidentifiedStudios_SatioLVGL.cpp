@@ -15395,21 +15395,21 @@ void update_display_lvgl()
             // ────────────────────────────────────────────────
             // Alignment Assist (Gyro vs Zenith)
             // ────────────────────────────────────────────────
-            set_label_text_if_changed(gyro_0_c.val_gyro_align_alt_gyro, String(siderealPlanetData.gyro_0_sidereal_attitude.alt).c_str());
-            set_label_text_if_changed(gyro_0_c.val_gyro_align_alt_zenith, String(siderealPlanetData.local_sidereal_attitude.alt).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_alt_gyro, String(gyroData.gyro_0_sidereal_attitude.alt, 4).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_alt_zenith, String(siderealPlanetData.local_sidereal_attitude.alt, 4).c_str());
 
-            set_label_text_if_changed(gyro_0_c.val_gyro_align_az_gyro, String(siderealPlanetData.gyro_0_sidereal_attitude.az).c_str());
-            set_label_text_if_changed(gyro_0_c.val_gyro_align_az_zenith, String(siderealPlanetData.local_sidereal_attitude.az).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_az_gyro, String(gyroData.gyro_0_sidereal_attitude.az, 4).c_str());
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_az_zenith, String(siderealPlanetData.local_sidereal_attitude.az, 4).c_str());
 
-            set_label_text_if_changed(gyro_0_c.val_gyro_align_ra_gyro, siderealPlanetData.gyro_0_sidereal_attitude.formatted_ra_str);
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_ra_gyro, gyroData.gyro_0_sidereal_attitude.formatted_ra_str);
             set_label_text_if_changed(gyro_0_c.val_gyro_align_ra_zenith, siderealPlanetData.local_sidereal_attitude.formatted_ra_str);
 
-            set_label_text_if_changed(gyro_0_c.val_gyro_align_dec_gyro, siderealPlanetData.gyro_0_sidereal_attitude.formatted_dec_str);
+            set_label_text_if_changed(gyro_0_c.val_gyro_align_dec_gyro, gyroData.gyro_0_sidereal_attitude.formatted_dec_str);
             set_label_text_if_changed(gyro_0_c.val_gyro_align_dec_zenith, siderealPlanetData.local_sidereal_attitude.formatted_dec_str);
 
             // Angular distance from true zenith - the stable, single-number
             // delta near the zenith singularity (Az/RA deltas are not).
-            double zenith_error_deg = fabs(90.0 - siderealPlanetData.gyro_0_sidereal_attitude.alt);
+            double zenith_error_deg = fabs(90.0 - gyroData.gyro_0_sidereal_attitude.alt);
             set_label_text_if_changed(gyro_0_c.val_gyro_align_err, String(zenith_error_deg).c_str());
             #endif
         }

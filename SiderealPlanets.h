@@ -53,6 +53,8 @@ TODO:
 #define PLANET_URANUS   6
 #define PLANET_NEPTUNE  7
 
+#define HORIZON_DISPLACEMENT_SUN 1.454441e-2
+
 /**
  * @brief Store sidereal attitude data relative to sensor's attitudes.
  */
@@ -144,6 +146,10 @@ struct SunResult {
     double earthDistanceAU;            // needed by doPlans()
     double meanAnomalyRad;             // needed by doPlans()
     double eclipticLongitudeDeg, eclipticLatitudeDeg; // apparent ecliptic position (latitude always 0 for the Sun)
+    // Rise/set horizon vertical displacement (radians) -- precomputed by
+    // doSun() the same way MoonResult::horizonDisplacementRad is, so every
+    // body's getRiseSetTimes() input is read off its own result struct.
+    double horizonDisplacementRad;
 };
 
 struct MoonResult {
@@ -175,6 +181,11 @@ struct PlanetResult {
     // but left the unadjusted pair in the member getEclipticLongitude()/
     // getEclipticLatitude() read back afterward -- preserved here as-is).
     double eclipticLongitudeDeg, eclipticLatitudeDeg;
+    // Rise/set horizon vertical displacement (radians) -- precomputed by
+    // doPlans() same as every other body's result struct. Currently just
+    // reuses HORIZON_DISPLACEMENT_SUN as a placeholder (toDo: real per-planet
+    // horizontal displacement).
+    double horizonDisplacementRad;
 };
 
 struct RiseSetResult {
@@ -202,7 +213,7 @@ class SiderealPlanets {
 	    int year, int month, int day,
 	    int gmtHours, int gmtMinutes, float gmtSeconds,
 	    double elevationMeters);
-
+        
 	static double getDegreesAltitudeOffsetByElevationM(double meters);
 	static double doLST2LT(const SiderealContext& ctx, double localSiderealTime);
 	static double doLST2GMT(const SiderealContext& ctx, double localSiderealTime);
@@ -243,11 +254,12 @@ class SiderealPlanets {
 	static RiseSetResult doRiseSetTimes(const SiderealContext& ctx, double raHours, double decDeg, double DIdeg);
 
 	// General rise/set refinement for any body with an already-known, fixed
-	// RA/Dec (Sun, Moon, planets, stars, deep-sky objects) -- DI is the body's
-	// horizon vertical displacement in radians (0.0 for stars; reuse the
-	// Sun's DI as an approximation for planets; getMoonHorizonDisplacement()
-	// for the Moon). Doesn't re-evaluate position at the refined times, since
-	// the caller has typically already paid for that computation once.
+	// RA/Dec -- DI is the body's horizon vertical displacement in radians.
+	// SunResult/MoonResult/PlanetResult each carry their own precomputed
+	// horizonDisplacementRad to pass here (0.0 for stars/deep-sky objects,
+	// which have no such struct). Doesn't re-evaluate position at the refined
+	// times, since the caller has typically already paid for that
+	// computation once.
 	static RiseSetResult getRiseSetTimes(SiderealContext ctx, double raHours, double decDeg, double DI);
 
 	static AnomalyResult doAnomaly(double meanAnomalyDeg, double eccentricity);
@@ -274,6 +286,10 @@ class SiderealPlanets {
     static const double FPIdiv2;
     static const double FminusPIdiv2;
     static const double FPIdiv4;
+    // Sidereal seconds per solar second -- how much faster LST runs than
+    // civil/GMT time. Used by predictContext() to extrapolate
+    // GMTsiderealTime without rebuilding it from mjd1900.
+    static const double SOLAR_TO_SIDEREAL_RATE;
 
     // Shared by doPrecessFrom2000()/doPrecessTo2000(), which differ only in
     // which of ctx's two precession matrices they multiply by.
