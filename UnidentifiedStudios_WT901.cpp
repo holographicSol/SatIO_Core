@@ -305,7 +305,7 @@ bool readGyro(void)
             updated = true;
         }
 
-        vTaskDelay(5);
+        // vTaskDelay(1);
         // ----------------------------------------------------------------------------------------------------
 
         // Get Rotation Vector
@@ -359,6 +359,7 @@ bool readGyro(void)
                     GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
                     GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE
                 };
+                // adjust as required
                 static const float GYRO_0_ROTATION_VECTOR_KF_R[3 * 3] = {
                     GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f, 0.0f,
                     0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f,
@@ -404,7 +405,7 @@ bool readGyro(void)
         gyroData.gyro_0_quaternion.vy = gyroData.gyro_0_rotation_vector_x[1];
         gyroData.gyro_0_quaternion.vz = gyroData.gyro_0_rotation_vector_x[2];
 
-        vTaskDelay(5);
+        // vTaskDelay(1);
 
         // ------------------------------------------------
         // Gyro Ra/Dec Alt/Az
@@ -438,6 +439,7 @@ bool readGyro(void)
             GYRO_0_SIDEREAL_ATTITUDE_KF_PROCESS_NOISE,
             GYRO_0_SIDEREAL_ATTITUDE_KF_PROCESS_NOISE
         };
+        // adjust as required
         static const float GYRO_0_SIDEREAL_ATTITUDE_KF_R[2 * 2] = {
             GYRO_0_SIDEREAL_ATTITUDE_KF_MEASUREMENT_NOISE, 0.0f,
             0.0f, GYRO_0_SIDEREAL_ATTITUDE_KF_MEASUREMENT_NOISE
@@ -495,7 +497,7 @@ bool readGyro(void)
         // leave sidereal_attitude_gyro_0.alt/.az as the raw value from
         // getSiderealAttitude() above; there's nothing filtered to show yet.
 
-        vTaskDelay(5);
+        // vTaskDelay(1);
 
         // --- RA/Dec --- (ra converted to/from degrees so it shares az's
         // wrap period and noise tuning; see HOURS_TO_DEG/DEG_TO_HOURS)
@@ -562,7 +564,7 @@ bool readGyro(void)
         // fully-filtered attitude, never a partially-patched one.
         gyroData.gyro_0_sidereal_attitude = sidereal_attitude_gyro_0;
 
-        vTaskDelay(5);
+        // vTaskDelay(1);
     }
     return updated; /* Rule 15.5: single point of exit */
 }
