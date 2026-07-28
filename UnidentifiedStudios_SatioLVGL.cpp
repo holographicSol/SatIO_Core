@@ -7619,6 +7619,13 @@ SatIO_container_t create_SatIO_panel(
 #define GYRO_0_RVEC_CHART_POINT_COUNT 60
 #define GYRO_0_RVEC_CHART_VALUE_SCALE 1000.0f
 
+// Same idea for the roll/pitch/yaw angle chart -- degrees, not unit-vector
+// components, and the WT901's own convention covers the full +/-180 deg
+// range (unlike alt/dec's narrower +/-90ish), hence the wider axis range.
+#define GYRO_0_ANGLE_CHART_POINT_COUNT 60
+#define GYRO_0_ANGLE_CHART_VALUE_SCALE 100.0f
+#define GYRO_0_ANGLE_CHART_AXIS_RANGE_DEG 200
+
 // Same idea for the sidereal-attitude (alt/j2000_dec) chart, but these are
 // degrees, not unit-vector components -- a coarser fixed-point scale (100 =
 // hundredths of a degree) is enough precision without overflowing the axis
@@ -8752,6 +8759,115 @@ gyro_0_container_t create_gyro_panel(
     );
     lv_obj_set_size(result.lbl_gyro_align_instructions, sub_row_width, sub_row_height*2);
 #endif
+
+    /* ---------------------------------------------------------- */
+    /* Row 38: Angle Chart - Raw vs UDU-Filtered                   */
+    /* ---------------------------------------------------------- */
+
+    result.lbl_gyro_0_angle_chart_title = create_label(
+        result.panel,
+        sub_row_width,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "ANGLE: RAW vs FILTERED",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+    lv_obj_set_size(result.lbl_gyro_0_angle_chart_title, sub_row_width, obj_height);
+
+    result.chart_gyro_0_angle = lv_chart_create(result.panel);
+    lv_obj_set_size(result.chart_gyro_0_angle, sub_row_width, sub_row_height * 3);
+    lv_obj_set_style_radius(result.chart_gyro_0_angle, main_style.title_1.radius_square, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(result.chart_gyro_0_angle, main_style.title_1.color_bg, LV_PART_MAIN);
+    lv_obj_set_style_border_width(result.chart_gyro_0_angle, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.chart_gyro_0_angle, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_chart_set_type(result.chart_gyro_0_angle, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(result.chart_gyro_0_angle, GYRO_0_ANGLE_CHART_POINT_COUNT);
+    lv_chart_set_update_mode(result.chart_gyro_0_angle, LV_CHART_UPDATE_MODE_SHIFT);
+    lv_chart_set_div_line_count(result.chart_gyro_0_angle, 4, 6);
+    // Roll/pitch/yaw are degrees, scaled by GYRO_0_ANGLE_CHART_VALUE_SCALE
+    // before being pushed to the chart (see the Gyro screen update block).
+    lv_chart_set_axis_range(result.chart_gyro_0_angle, LV_CHART_AXIS_PRIMARY_Y,
+                             (int32_t)(-GYRO_0_ANGLE_CHART_AXIS_RANGE_DEG * GYRO_0_ANGLE_CHART_VALUE_SCALE),
+                             (int32_t)(GYRO_0_ANGLE_CHART_AXIS_RANGE_DEG * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+
+    // Raw = desaturated shade, Filtered = full-saturation shade of the same
+    // hue: X(Roll)=red, Y(Pitch)=green, Z(Yaw)=blue -- same hues as the
+    // rotation-vector chart below, since these are the same 3 physical axes
+    // one stage earlier in the pipeline.
+    result.ser_gyro_0_angle_raw_x  = lv_chart_add_series(result.chart_gyro_0_angle, lv_color_hex(0x7A4040), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_angle_raw_y  = lv_chart_add_series(result.chart_gyro_0_angle, lv_color_hex(0x407A40), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_angle_raw_z  = lv_chart_add_series(result.chart_gyro_0_angle, lv_color_hex(0x40527A), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_angle_filt_x = lv_chart_add_series(result.chart_gyro_0_angle, lv_color_hex(0xE04040), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_angle_filt_y = lv_chart_add_series(result.chart_gyro_0_angle, lv_color_hex(0x40C050), LV_CHART_AXIS_PRIMARY_Y);
+    result.ser_gyro_0_angle_filt_z = lv_chart_add_series(result.chart_gyro_0_angle, lv_color_hex(0x4080E0), LV_CHART_AXIS_PRIMARY_Y);
+
+    /* ---------------------------------------------------------- */
+    /* Row 39: Angle Chart - Legend                                 */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_39 = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_39, col_gap, LV_PART_MAIN);
+    lv_obj_set_flex_flow(row_39, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_39,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*5)) / 6;
+
+    result.lbl_gyro_0_angle_legend_raw_x = create_label(
+        row_39, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Xr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x7A4040), lv_color_white()
+    );
+    result.lbl_gyro_0_angle_legend_filt_x = create_label(
+        row_39, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Xf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0xE04040), lv_color_white()
+    );
+    result.lbl_gyro_0_angle_legend_raw_y = create_label(
+        row_39, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Yr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x407A40), lv_color_white()
+    );
+    result.lbl_gyro_0_angle_legend_filt_y = create_label(
+        row_39, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Yf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x40C050), lv_color_white()
+    );
+    result.lbl_gyro_0_angle_legend_raw_z = create_label(
+        row_39, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Zr", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x40527A), lv_color_white()
+    );
+    result.lbl_gyro_0_angle_legend_filt_z = create_label(
+        row_39, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Zf", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        lv_color_hex(0x4080E0), lv_color_white()
+    );
+
+    lv_obj_set_size(result.lbl_gyro_0_angle_legend_raw_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_angle_legend_filt_x, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_angle_legend_raw_y, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_angle_legend_filt_y, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_angle_legend_raw_z, obj_w_0, obj_height);
+    lv_obj_set_size(result.lbl_gyro_0_angle_legend_filt_z, obj_w_0, obj_height);
 
     /* ---------------------------------------------------------- */
     /* Row 40: Rotation Vector Chart - Raw vs UDU-Filtered         */
@@ -15700,6 +15816,24 @@ void update_display_lvgl()
             set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_x, String(gyroData.gyro_0_quaternion.vx).c_str());
             set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_y, String(gyroData.gyro_0_quaternion.vy).c_str());
             set_label_text_if_changed(gyro_0_c.val_gyro_0_rvec_z, String(gyroData.gyro_0_quaternion.vz).c_str());
+
+            // ────────────────────────────────────────────────
+            // Angle Chart (raw vs UDU-filtered)
+            // ────────────────────────────────────────────────
+            if (gyro_0_c.chart_gyro_0_angle) {
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_angle, gyro_0_c.ser_gyro_0_angle_raw_x,
+                    (int32_t)(gyroData.gyro_0_angle_raw[0] * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_angle, gyro_0_c.ser_gyro_0_angle_raw_y,
+                    (int32_t)(gyroData.gyro_0_angle_raw[1] * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_angle, gyro_0_c.ser_gyro_0_angle_raw_z,
+                    (int32_t)(gyroData.gyro_0_angle_raw[2] * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_angle, gyro_0_c.ser_gyro_0_angle_filt_x,
+                    (int32_t)(gyroData.gyro_0_ang_x * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_angle, gyro_0_c.ser_gyro_0_angle_filt_y,
+                    (int32_t)(gyroData.gyro_0_ang_y * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+                lv_chart_set_next_value(gyro_0_c.chart_gyro_0_angle, gyro_0_c.ser_gyro_0_angle_filt_z,
+                    (int32_t)(gyroData.gyro_0_ang_z * GYRO_0_ANGLE_CHART_VALUE_SCALE));
+            }
 
             // ────────────────────────────────────────────────
             // Rotation Vector Chart (raw vs UDU-filtered)

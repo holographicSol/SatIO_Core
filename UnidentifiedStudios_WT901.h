@@ -54,22 +54,34 @@ struct GyroData {
   Quaternion gyro_0_quaternion;
 
   // Joint 3-state UDU (Bierman/Thornton square-root) Kalman filter state
-  // smoothing gyro_0_quaternion.vx/vy/vz (the rotated rotation vector) in
-  // place, via kalman_udu.h (KFCore, https://github.com/jnz/KFCore). One
-  // joint filter rather than 3 independent scalar filters, since the 3
-  // components of a unit vector are correlated, not independent. Filtering
-  // the Cartesian vector rather than any derived angle (e.g. az/alt) avoids
-  // wraparound, and keeps every consumer of vx/vy/vz seeing the same
-  // smoothed value.
+  // smoothing gyro_0_ang_x/y/z (roll/pitch/yaw, degrees) in place, via
+  // kalman_udu.h (KFCore, https://github.com/jnz/KFCore). Filtered here --
+  // not on the derived vx/vy/vz -- because the WT901 datasheet's per-axis
+  // accuracy (+/-0.5 deg roll/pitch, 1 deg yaw) applies directly to these
+  // angles; mapping that asymmetry onto vx/vy/vz instead would be an
+  // approximation, since a given yaw error moves the boresight vector by a
+  // rotation-dependent amount (little near the pole, more off-axis). One
+  // joint filter rather than 3 independent scalar filters lets the
+  // covariance capture correlation between axes.
+  //
+  // gyro_0_quaternion (and so vx/vy/vz) is built from these filtered angles
+  // in readGyro(), so every consumer of vx/vy/vz sees the smoothed value --
+  // and since a proper Euler->quaternion conversion always yields a unit
+  // quaternion, the resulting vx/vy/vz is always genuinely unit-length (no
+  // separate renormalization needed, unlike filtering vx/vy/vz directly).
   //
   // State is kept as UD factors rather than a full covariance matrix P, so
-  // that P = gyro_0_rotation_vector_U * diag(gyro_0_rotation_vector_d) *
-  // gyro_0_rotation_vector_U'.
-  float gyro_0_rotation_vector_raw[3];   // unfiltered vx, vy, vz, for telemetry/comparison (e.g. the gyro screen's chart)
-  float gyro_0_rotation_vector_x[3];     // filtered state: vx, vy, vz
-  float gyro_0_rotation_vector_U[3 * 3]; // unit upper triangular covariance factor (column-major)
-  float gyro_0_rotation_vector_d[3];     // diagonal covariance factor
-  bool gyro_0_rotation_vector_kf_seeded; // true once x has been seeded with a first raw sample
+  // that P = gyro_0_angle_U * diag(gyro_0_angle_d) * gyro_0_angle_U'.
+  float gyro_0_angle_raw[3];   // unfiltered roll, pitch, yaw (deg), for telemetry/comparison
+  float gyro_0_angle_x[3];     // filtered state: roll, pitch, yaw (deg; may be unwrapped past +/-180)
+  float gyro_0_angle_U[3 * 3]; // unit upper triangular covariance factor (column-major)
+  float gyro_0_angle_d[3];     // diagonal covariance factor
+  bool gyro_0_angle_kf_seeded; // true once x has been seeded with a first raw sample
+
+  // Rotation vector (quaternion-rotated boresight) computed from the raw,
+  // unfiltered angles above -- kept only as the "raw" comparison trace for
+  // the gyro screen's chart; the canonical value is gyro_0_quaternion.vx/vy/vz.
+  float gyro_0_rotation_vector_raw[3];
 
   // RA/Dec/Az/Alt the gyro is currently pointing at, derived from the
   // (UDU-filtered) rotation vector above. Computed in readGyro().

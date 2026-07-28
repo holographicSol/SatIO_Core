@@ -22,13 +22,18 @@
 #define WT901_UART_RX_PIN 35
 #define WT901_BUF_SIZE    1024
 
-// UDU Kalman filter tuning for gyro_0_rotation_vector_x/U/d, smoothing
-// gyro_0_quaternion.vx/vy/vz jointly. Filtering the Cartesian rotation
-// vector rather than any derived angle (e.g. az/alt) avoids wraparound, and
-// keeps every consumer of vx/vy/vz seeing the same smoothed value.
-#define GYRO_0_ROTATION_VECTOR_KF_INITIAL_VARIANCE  1.0f
-#define GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE     0.001f // higher = filter follows real movement faster (less smoothing)
-#define GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE 0.01f  // higher = trust each raw sample less (more smoothing)
+// UDU Kalman filter tuning for gyro_0_angle_x/U/d, smoothing gyro_0_ang_x/y/z
+// (roll/pitch/yaw, degrees) jointly -- see GyroData for why this is filtered
+// here rather than on the derived rotation vector. Measurement noise is
+// per-axis, from the WT901 datasheet's own accuracy figures; process noise
+// and initial uncertainty stay one shared value across axes since neither
+// is a per-axis sensor property (they describe how fast the device moves,
+// and how wrong the very first reading could be) -- starting points, not
+// derived, and likely need empirical tuning.
+#define GYRO_0_ANGLE_KF_INITIAL_VARIANCE             25.0f // (deg^2)
+#define GYRO_0_ANGLE_KF_PROCESS_NOISE                0.01f // (deg^2/step) higher = follows real movement faster
+#define GYRO_0_ANGLE_KF_MEASUREMENT_NOISE_ROLL_PITCH 0.25f // (deg^2) = (WT901 datasheet: +/-0.5 deg accuracy)^2
+#define GYRO_0_ANGLE_KF_MEASUREMENT_NOISE_YAW        1.0f  // (deg^2) = (WT901 datasheet: 1 deg accuracy)^2
 
 // UDU Kalman filter tuning shared by gyro_0_altaz_x/U/d and
 // gyro_0_radec_x/U/d, smoothing gyro_0_sidereal_attitude's alt/az and
@@ -62,6 +67,18 @@ static float wt901_wrap_to_range(float value, float period)
     if (wrapped < 0.0f)
     {
         wrapped += period;
+    }
+    return wrapped;
+}
+
+// Wraps `value` (an angle with period 360) into [-180, 180) -- the WT901's
+// own convention for gyro_0_ang_x/y/z, unlike az/ra's [0, 360).
+static float wt901_wrap_signed_180(float value)
+{
+    float wrapped = wt901_wrap_to_range(value, 360.0f);
+    if (wrapped >= 180.0f)
+    {
+        wrapped -= 360.0f;
     }
     return wrapped;
 }
@@ -135,11 +152,12 @@ struct GyroData gyroData = {
     .gyro_0_mag_z = 0,
     
     .gyro_0_quaternion = {},
+    .gyro_0_angle_raw = {0.0f, 0.0f, 0.0f},
+    .gyro_0_angle_x = {0.0f, 0.0f, 0.0f},
+    .gyro_0_angle_U = {0.0f},
+    .gyro_0_angle_d = {0.0f, 0.0f, 0.0f},
+    .gyro_0_angle_kf_seeded = false,
     .gyro_0_rotation_vector_raw = {0.0f, 0.0f, 0.0f},
-    .gyro_0_rotation_vector_x = {0.0f, 0.0f, 0.0f},
-    .gyro_0_rotation_vector_U = {0.0f},
-    .gyro_0_rotation_vector_d = {0.0f, 0.0f, 0.0f},
-    .gyro_0_rotation_vector_kf_seeded = false,
     .gyro_0_sidereal_attitude = {},
 
     .gyro_0_altaz_raw = {0.0f, 0.0f},
@@ -305,40 +323,30 @@ bool readGyro(void)
             updated = true;
         }
 
+        if (updated == true) {
+
         // vTaskDelay(1);
         // ----------------------------------------------------------------------------------------------------
 
-        // Get Rotation Vector
-        gyroData.gyro_0_quaternion = quaternionFromEuler(deg2rad(gyroData.gyro_0_ang_x), deg2rad(gyroData.gyro_0_ang_y), deg2rad(gyroData.gyro_0_ang_z));
-        double raw_vx, raw_vy, raw_vz;
-        quaternionRotateVector(gyroData.gyro_0_quaternion, 0.0, 0.0, 1.0, &raw_vx, &raw_vy, &raw_vz);
-
-        // Kalman-filter the rotation vector jointly -- one 3-state UDU
-        // filter rather than 3 independent scalar filters, so the
-        // covariance captures correlation between axes (the 3 components
-        // of a unit vector are not independent). Every consumer of
-        // gyro_0_quaternion.vx/vy/vz (e.g. getSiderealAttitude(), called
-        // from taskGyro() in UnidentifiedStudios_TaskHandler.cpp) sees the
-        // smoothed value.
-        const float raw_v[3] = { (float)raw_vx, (float)raw_vy, (float)raw_vz };
-        memcpy(gyroData.gyro_0_rotation_vector_raw, raw_v, sizeof(raw_v));
+        // Kalman-filter roll/pitch/yaw jointly -- see GyroData for why this
+        // is filtered here rather than on the derived rotation vector.
+        const float angle_raw[3] = { gyroData.gyro_0_ang_x, gyroData.gyro_0_ang_y, gyroData.gyro_0_ang_z };
+        memcpy(gyroData.gyro_0_angle_raw, angle_raw, sizeof(angle_raw));
 
         // Guard against a non-finite raw sample (or a state that somehow
         // already went non-finite) ever reaching kalman_udu(): once NaN/Inf
         // enters this filter's state, every future output stays NaN/Inf
         // forever (linear algebra propagates it, it never self-corrects),
         // permanently "blowing up" every downstream consumer of
-        // gyro_0_quaternion.vx/vy/vz -- including the alt/az/ra/dec filters
-        // below, since asin() of an out-of-range z (see the renormalization
-        // below for why that can happen) returns NaN.
-        if (wt901_all_finite(raw_v, 3))
+        // gyro_0_ang_x/y/z and gyro_0_quaternion.vx/vy/vz.
+        if (wt901_all_finite(angle_raw, 3))
         {
-            if (!gyroData.gyro_0_rotation_vector_kf_seeded ||
-                !wt901_all_finite(gyroData.gyro_0_rotation_vector_x, 3))
+            if (!gyroData.gyro_0_angle_kf_seeded ||
+                !wt901_all_finite(gyroData.gyro_0_angle_x, 3))
             {
                 // First sample, or recovering from a previously-corrupted state.
-                memcpy(gyroData.gyro_0_rotation_vector_x, raw_v, sizeof(raw_v));
-                gyroData.gyro_0_rotation_vector_kf_seeded = true;
+                memcpy(gyroData.gyro_0_angle_x, angle_raw, sizeof(angle_raw));
+                gyroData.gyro_0_angle_kf_seeded = true;
             }
             else
             {
@@ -349,61 +357,86 @@ bool readGyro(void)
                 // identity(3). Identity/diagonal matrices are their own
                 // transpose, so KFCore's column-major storage doesn't matter
                 // for any of these three.
-                static const float GYRO_0_ROTATION_VECTOR_KF_IDENTITY3[3 * 3] = {
+                static const float GYRO_0_ANGLE_KF_IDENTITY3[3 * 3] = {
                     1.0f, 0.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
                     0.0f, 0.0f, 1.0f
                 };
-                static const float GYRO_0_ROTATION_VECTOR_KF_Q[3] = {
-                    GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
-                    GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE,
-                    GYRO_0_ROTATION_VECTOR_KF_PROCESS_NOISE
+                static const float GYRO_0_ANGLE_KF_Q[3] = {
+                    GYRO_0_ANGLE_KF_PROCESS_NOISE,
+                    GYRO_0_ANGLE_KF_PROCESS_NOISE,
+                    GYRO_0_ANGLE_KF_PROCESS_NOISE
                 };
-                // adjust as required
-                static const float GYRO_0_ROTATION_VECTOR_KF_R[3 * 3] = {
-                    GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f, 0.0f,
-                    0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE, 0.0f,
-                    0.0f, 0.0f, GYRO_0_ROTATION_VECTOR_KF_MEASUREMENT_NOISE
+                // Roll (X), Pitch (Y): tighter WT901 datasheet accuracy than
+                // Yaw (Z). adjust as required.
+                static const float GYRO_0_ANGLE_KF_R[3 * 3] = {
+                    GYRO_0_ANGLE_KF_MEASUREMENT_NOISE_ROLL_PITCH, 0.0f, 0.0f,
+                    0.0f, GYRO_0_ANGLE_KF_MEASUREMENT_NOISE_ROLL_PITCH, 0.0f,
+                    0.0f, 0.0f, GYRO_0_ANGLE_KF_MEASUREMENT_NOISE_YAW
                 };
 
-                kalman_udu_predict(gyroData.gyro_0_rotation_vector_x,
-                                    gyroData.gyro_0_rotation_vector_U,
-                                    gyroData.gyro_0_rotation_vector_d,
-                                    GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Phi */
-                                    GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* G */
-                                    GYRO_0_ROTATION_VECTOR_KF_Q, 3, 3);
+                // All 3 axes unwrapped relative to state defensively: yaw
+                // wraps regularly during normal use, roll/pitch only if the
+                // device is ever tumbled past +/-180 -- cheap either way.
+                const float angle_measurement[3] = {
+                    wt901_unwrap_relative(angle_raw[0], gyroData.gyro_0_angle_x[0], 360.0f),
+                    wt901_unwrap_relative(angle_raw[1], gyroData.gyro_0_angle_x[1], 360.0f),
+                    wt901_unwrap_relative(angle_raw[2], gyroData.gyro_0_angle_x[2], 360.0f)
+                };
 
-                (void)kalman_udu(gyroData.gyro_0_rotation_vector_x,
-                                  gyroData.gyro_0_rotation_vector_U,
-                                  gyroData.gyro_0_rotation_vector_d,
-                                  raw_v, GYRO_0_ROTATION_VECTOR_KF_R,
-                                  GYRO_0_ROTATION_VECTOR_KF_IDENTITY3, /* Ht */
+                kalman_udu_predict(gyroData.gyro_0_angle_x,
+                                    gyroData.gyro_0_angle_U,
+                                    gyroData.gyro_0_angle_d,
+                                    GYRO_0_ANGLE_KF_IDENTITY3, /* Phi */
+                                    GYRO_0_ANGLE_KF_IDENTITY3, /* G */
+                                    GYRO_0_ANGLE_KF_Q, 3, 3);
+
+                (void)kalman_udu(gyroData.gyro_0_angle_x,
+                                  gyroData.gyro_0_angle_U,
+                                  gyroData.gyro_0_angle_d,
+                                  angle_measurement, GYRO_0_ANGLE_KF_R,
+                                  GYRO_0_ANGLE_KF_IDENTITY3, /* Ht */
                                   3, 3, 0.0f, 0);
-            }
-
-            // Filtering vx/vy/vz jointly still doesn't guarantee |v|=1
-            // (independent-ish per-axis noise can push the vector slightly
-            // off the unit sphere); renormalize so a |vz|>1 never reaches
-            // getSiderealAttitude()'s asin(vz) below.
-            float norm = sqrtf(gyroData.gyro_0_rotation_vector_x[0] * gyroData.gyro_0_rotation_vector_x[0] +
-                                gyroData.gyro_0_rotation_vector_x[1] * gyroData.gyro_0_rotation_vector_x[1] +
-                                gyroData.gyro_0_rotation_vector_x[2] * gyroData.gyro_0_rotation_vector_x[2]);
-            if (norm > 1e-6f)
-            {
-                gyroData.gyro_0_rotation_vector_x[0] /= norm;
-                gyroData.gyro_0_rotation_vector_x[1] /= norm;
-                gyroData.gyro_0_rotation_vector_x[2] /= norm;
             }
         }
         else {
-            printf("[KF PROTECTION] nan mitigation ocurring for rotation vector.");
+            printf("[KF PROTECTION] nan mitigation ocurring for angle raw.");
         }
-        // else: this cycle's raw sample is non-finite -- skip the update
-        // entirely; gyro_0_rotation_vector_x carries over unchanged.
+        // else: this cycle's raw angle sample is non-finite -- skip the
+        // update entirely; gyro_0_angle_x carries over unchanged.
 
-        gyroData.gyro_0_quaternion.vx = gyroData.gyro_0_rotation_vector_x[0];
-        gyroData.gyro_0_quaternion.vy = gyroData.gyro_0_rotation_vector_x[1];
-        gyroData.gyro_0_quaternion.vz = gyroData.gyro_0_rotation_vector_x[2];
+        // Raw rotation vector (chart "raw" trace only) from the raw,
+        // unfiltered angles -- the canonical vector below comes from the
+        // filtered angles instead.
+        Quaternion raw_quaternion = quaternionFromEuler(deg2rad(angle_raw[0]), deg2rad(angle_raw[1]), deg2rad(angle_raw[2]));
+        double raw_vx, raw_vy, raw_vz;
+        quaternionRotateVector(raw_quaternion, 0.0, 0.0, 1.0, &raw_vx, &raw_vy, &raw_vz);
+        const float raw_v[3] = { (float)raw_vx, (float)raw_vy, (float)raw_vz };
+        memcpy(gyroData.gyro_0_rotation_vector_raw, raw_v, sizeof(raw_v));
+
+        // Canonical angles, wrapped back to the WT901's own [-180, 180)
+        // convention for display and every other consumer (INS estimator,
+        // switch/mapping logic, SD/serial logging, the LVGL attitude
+        // indicator -- see GyroData). If the filter has never been seeded
+        // with a finite sample yet, gyro_0_ang_x/y/z are left as the raw
+        // values already read from sReg[] above.
+        if (wt901_all_finite(gyroData.gyro_0_angle_x, 3))
+        {
+            gyroData.gyro_0_ang_x = wt901_wrap_signed_180(gyroData.gyro_0_angle_x[0]);
+            gyroData.gyro_0_ang_y = wt901_wrap_signed_180(gyroData.gyro_0_angle_x[1]);
+            gyroData.gyro_0_ang_z = wt901_wrap_signed_180(gyroData.gyro_0_angle_x[2]);
+        }
+
+        // Canonical quaternion/vector, built from the now-filtered angles --
+        // a proper Euler->quaternion conversion always yields a unit
+        // quaternion, so vx/vy/vz is always genuinely unit-length here (no
+        // separate renormalization needed, unlike filtering vx/vy/vz directly).
+        gyroData.gyro_0_quaternion = quaternionFromEuler(deg2rad(gyroData.gyro_0_ang_x), deg2rad(gyroData.gyro_0_ang_y), deg2rad(gyroData.gyro_0_ang_z));
+        double vx, vy, vz;
+        quaternionRotateVector(gyroData.gyro_0_quaternion, 0.0, 0.0, 1.0, &vx, &vy, &vz);
+        gyroData.gyro_0_quaternion.vx = (float)vx;
+        gyroData.gyro_0_quaternion.vy = (float)vy;
+        gyroData.gyro_0_quaternion.vz = (float)vz;
 
         // vTaskDelay(1);
 
@@ -564,6 +597,8 @@ bool readGyro(void)
         // fully-filtered attitude, never a partially-patched one.
         gyroData.gyro_0_sidereal_attitude = sidereal_attitude_gyro_0;
 
+        }
+
         // vTaskDelay(1);
     }
     return updated; /* Rule 15.5: single point of exit */
@@ -703,12 +738,12 @@ void initWT901(void)
 
     printf("[Gyro0] initializing...\n");
 
-    mateye(gyroData.gyro_0_rotation_vector_U, 3); // U = identity(3): no initial cross-axis correlation
+    mateye(gyroData.gyro_0_angle_U, 3); // U = identity(3): no initial cross-axis correlation
     for (int i = 0; i < 3; i++)
     {
-        gyroData.gyro_0_rotation_vector_d[i] = GYRO_0_ROTATION_VECTOR_KF_INITIAL_VARIANCE;
+        gyroData.gyro_0_angle_d[i] = GYRO_0_ANGLE_KF_INITIAL_VARIANCE;
     }
-    gyroData.gyro_0_rotation_vector_kf_seeded = false; // readGyro() seeds x from the first raw sample
+    gyroData.gyro_0_angle_kf_seeded = false; // readGyro() seeds x from the first raw sample
 
     mateye(gyroData.gyro_0_altaz_U, 2); // U = identity(2)
     mateye(gyroData.gyro_0_radec_U, 2); // U = identity(2)

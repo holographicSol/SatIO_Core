@@ -625,6 +625,26 @@ typedef struct {
 
     lv_obj_t * lbl_gyro_align_instructions;
 
+    // Angle Chart: raw vs UDU-filtered roll/pitch/yaw (gyro_0_ang_x/y/z).
+    // One chart, 6 series -- X/Y/Z each in their own hue, raw drawn as the
+    // desaturated shade and filtered as the full-saturation shade. This is
+    // the filter that's actually tuned per-axis from the WT901 datasheet;
+    // the rotation-vector chart below is downstream of it.
+    lv_obj_t * lbl_gyro_0_angle_chart_title;
+    lv_obj_t * chart_gyro_0_angle;
+    lv_chart_series_t * ser_gyro_0_angle_raw_x;
+    lv_chart_series_t * ser_gyro_0_angle_raw_y;
+    lv_chart_series_t * ser_gyro_0_angle_raw_z;
+    lv_chart_series_t * ser_gyro_0_angle_filt_x;
+    lv_chart_series_t * ser_gyro_0_angle_filt_y;
+    lv_chart_series_t * ser_gyro_0_angle_filt_z;
+    lv_obj_t * lbl_gyro_0_angle_legend_raw_x;
+    lv_obj_t * lbl_gyro_0_angle_legend_raw_y;
+    lv_obj_t * lbl_gyro_0_angle_legend_raw_z;
+    lv_obj_t * lbl_gyro_0_angle_legend_filt_x;
+    lv_obj_t * lbl_gyro_0_angle_legend_filt_y;
+    lv_obj_t * lbl_gyro_0_angle_legend_filt_z;
+
     // Rotation Vector Chart: raw (pre-filter) vs UDU-filtered vx/vy/vz.
     // One chart, 6 series -- X/Y/Z each in their own hue, raw drawn as the
     // desaturated shade and filtered as the full-saturation shade.
