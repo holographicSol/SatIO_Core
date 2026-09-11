@@ -4,7 +4,9 @@
 
 *SatIO - Written by Benjamin Jack Cullen*
 
-SatIO is a realtime data hive & programmable switch, for building devices with and or on top of.
+SatIO is a Realtime data hive & programmable switch, before and after flashing, for building devices with and or on top of. Displays are optional.
+
+The number of possible combinations that can be entered into the matrix, may dwarf the estimated ~10⁸⁰ atoms in the observable universe by roughly 8,000 orders of magnitude.
 
 ![plot](./EXTRA/SatIO_720x720_15.JPG)
 
