@@ -22,7 +22,7 @@ The number of possible combinations that can be entered into the matrix, may dwa
 
 ![plot](./EXTRA/SatIO_CYD_4.JPG)
 
-![plot](./EXTRA/SatIO_7seg_1.PNG)
+![plot](./EXTRA/SatIO_7seg_1.png)
 
 
 
