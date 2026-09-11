@@ -6,6 +6,22 @@
 
 SatIO is a realtime data hive & programmable switch, for building devices with and or on top of.
 
+![plot](./EXTRA/SatIO_Small_OLEDs_18.JPG)
+
+![plot](./EXTRA/SatIO_Small_OLEDs_6.JPG)
+
+![plot](./EXTRA/SatIO_OLEDs_1.JPG)
+
+![plot](./EXTRA/SatIO_OLEDs_1.JPG)
+
+![plot](./EXTRA/SatIO_Color_OLED_16.JPG)
+
+![plot](./EXTRA/SatIO_CYD_4.JPG)
+
+![plot](./EXTRA/SatIO_7seg_1.PNG)
+
+
+
 ---
 ## Philosophy & Design
 
