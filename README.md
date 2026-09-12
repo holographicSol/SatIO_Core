@@ -4,6 +4,8 @@
 
 *SatIO - Written by Benjamin Jack Cullen*
 
+For automated switching, LLMs, and or other systems that benefit from information computed for them.
+
 SatIO is a Realtime data hive & programmable switch, before and after flashing, for building devices with and or on top of. Displays are optional and could convey/interact with application specific information as required. The system can be headless and merely about the size of its primary, secondary MCU's, while providing the same, extremely high reasoning and IO potential.
 
 The number of possible combinations that can be entered into the matrix, may dwarf the estimated ~10⁸⁰ atoms in the observable universe by roughly 8,000 orders of magnitude. Providing the ability to build, for potentially any reason, very quickly.
