@@ -79,8 +79,9 @@ static double drift_last_lon   = 0.0;
 
 static lv_obj_t * drift_ring[4]       = { nullptr, nullptr, nullptr, nullptr };
 static lv_obj_t * drift_ring_label[4] = { nullptr, nullptr, nullptr, nullptr };
-static lv_obj_t * drift_trace_line  = nullptr;
-static lv_obj_t * drift_current_dot = nullptr;
+static lv_obj_t * drift_trace_line   = nullptr;
+static lv_obj_t * drift_current_dot  = nullptr;
+static lv_obj_t * drift_current_ring = nullptr; // blue halo around the dot, highlighting the live tracking position
 static lv_point_precise_t drift_line_points[DRIFT_MAX_POINTS];
 
 static lv_obj_t * drift_pdop_label = nullptr;
@@ -162,6 +163,7 @@ static constexpr int32_t DRIFT_PLOT_RADIUS_PX    = 65;
 static constexpr int32_t DRIFT_PLOT_CENTER_X     = 81;
 static constexpr int32_t DRIFT_PLOT_CENTER_Y     = 79;
 static constexpr int32_t DRIFT_DOT_RADIUS        = 4;
+static constexpr int32_t DRIFT_RING_HALO_RADIUS  = 9; // blue halo ring around the current-position dot
 static constexpr double  DRIFT_METERS_PER_DEGREE_LAT = 111320.0; // equirectangular approximation, fine at this (<=10m) scale
 
 static const lv_color_t COLOR_GPS     = lv_color_make(60, 140, 255); // blue
@@ -491,8 +493,16 @@ static void drift_plot_rescale_and_rebuild(void) {
                            drift_line_points[last].x - DRIFT_DOT_RADIUS,
                            drift_line_points[last].y - DRIFT_DOT_RADIUS);
             lv_obj_remove_flag(drift_current_dot, LV_OBJ_FLAG_HIDDEN);
+
+            if (drift_current_ring != nullptr) {
+                lv_obj_set_pos(drift_current_ring,
+                               drift_line_points[last].x - DRIFT_RING_HALO_RADIUS,
+                               drift_line_points[last].y - DRIFT_RING_HALO_RADIUS);
+                lv_obj_remove_flag(drift_current_ring, LV_OBJ_FLAG_HIDDEN);
+            }
         } else {
             lv_obj_add_flag(drift_current_dot, LV_OBJ_FLAG_HIDDEN);
+            if (drift_current_ring != nullptr) { lv_obj_add_flag(drift_current_ring, LV_OBJ_FLAG_HIDDEN); }
         }
     }
 }
@@ -564,7 +574,7 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         lv_obj_set_pos(ring, SKYPLOT_CENTER_X - ring_radius, SKYPLOT_CENTER_Y - ring_radius);
         lv_obj_set_style_radius(ring, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(ring, LV_OPA_0, 0);
-        lv_obj_set_style_border_width(ring, 1, 0);
+        lv_obj_set_style_border_width(ring, 2, 0);
         lv_obj_set_style_border_color(ring, lv_color_make(80, 80, 80), 0);
         lv_obj_remove_flag(ring, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
@@ -675,7 +685,7 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         lv_obj_remove_style_all(ring);
         lv_obj_set_style_radius(ring, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_bg_opa(ring, LV_OPA_0, 0);
-        lv_obj_set_style_border_width(ring, 1, 0);
+        lv_obj_set_style_border_width(ring, 2, 0);
         lv_obj_set_style_border_color(ring, lv_color_make(70, 70, 70), 0);
         lv_obj_remove_flag(ring, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
@@ -703,6 +713,19 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
     lv_obj_remove_flag(drift_current_dot, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_remove_flag(drift_current_dot, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_flag(drift_current_dot, LV_OBJ_FLAG_HIDDEN);
+
+    // Blue halo ring, concentric with the red dot, highlighting where the
+    // live tracking currently is.
+    drift_current_ring = lv_obj_create(skyplot_container);
+    lv_obj_remove_style_all(drift_current_ring);
+    lv_obj_set_size(drift_current_ring, DRIFT_RING_HALO_RADIUS * 2, DRIFT_RING_HALO_RADIUS * 2);
+    lv_obj_set_style_radius(drift_current_ring, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_opa(drift_current_ring, LV_OPA_0, 0);
+    lv_obj_set_style_border_width(drift_current_ring, 2, 0);
+    lv_obj_set_style_border_color(drift_current_ring, lv_color_make(50, 140, 255), 0); // blue
+    lv_obj_remove_flag(drift_current_ring, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_flag(drift_current_ring, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(drift_current_ring, LV_OBJ_FLAG_HIDDEN);
 
     // PDOP/HDOP/VDOP readout + Clear button, stacked below the drift circle.
     drift_pdop_label = lv_label_create(skyplot_container);
@@ -851,7 +874,7 @@ void gnss_skyplot_update(void) {
     // GpsJamDetect library's own global (not per-constellation) verdict.
     if (gpsJamData.jammed == true) {
         if (horizon_ring != nullptr) {
-            lv_obj_set_style_border_width(horizon_ring, 3, 0);
+            lv_obj_set_style_border_width(horizon_ring, 4, 0);
             lv_obj_set_style_border_color(horizon_ring, lv_color_make(255, 40, 40), 0);
         }
         if (jam_warning_label != nullptr) {
@@ -862,7 +885,7 @@ void gnss_skyplot_update(void) {
         }
     } else {
         if (horizon_ring != nullptr) {
-            lv_obj_set_style_border_width(horizon_ring, 1, 0);
+            lv_obj_set_style_border_width(horizon_ring, 2, 0);
             lv_obj_set_style_border_color(horizon_ring, lv_color_make(80, 80, 80), 0);
         }
         if (jam_warning_label != nullptr) {
