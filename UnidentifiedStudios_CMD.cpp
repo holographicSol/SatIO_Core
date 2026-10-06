@@ -276,91 +276,92 @@ static void PrintHelp(void) {
                                   [32] GNGGA Valid CD
                                   [33] GNRMC Valid CD
                                   [34] GPATT Valid CD
-                                  [35] GNRMC Pos Stat A
-                                  [36] GNRMC Pos Stat V
-                                  [37] GNRMC Mode Ind A
-                                  [38] GNRMC Mode Ind D
-                                  [39] GNRMC Mode Ind E
-                                  [40] GNRMC Mode Ind N
-                                  [41] GNRMC Hemi North
-                                  [42] GNRMC Hemi South
-                                  [43] GNRMC Hemi East
-                                  [44] GNRMC Hemi West
-                                  [45] G0 G-Force X
-                                  [46] G0 G-Force Y
-                                  [47] G0 G-Force Z
-                                  [48] G0 Incline X
-                                  [49] G0 Incline Y
-                                  [50] G0 Incline Z
-                                  [51] G0 Mag Field X
-                                  [52] G0 Mag Field Y
-                                  [53] G0 Mag Field Z
-                                  [54] G0 Velocity X
-                                  [55] G0 Velocity Y
-                                  [56] G0 Velocity Z
-                                  [57] Meteor
-                                  [58] Sun Azimuth
-                                  [59] Sun Altitude
-                                  [60] Sun Helio Ecl Lat
-                                  [61] Sun Helio Ecl Lon
-                                  [62] Luna Azimuth
-                                  [63] Luna Altitude
-                                  [64] Luna Phase
-                                  [65] Mercury Azimuth
-                                  [66] Mercury Altitude
-                                  [67] Mercury H.Ecliptic Lat
-                                  [68] Mercury H.Ecliptic Lon
-                                  [69] Mercury Ecliptic Lat
-                                  [70] Mercury Ecliptic Lon
-                                  [71] Venus Azimuth
-                                  [72] Venus Altitude
-                                  [73] Venus H.Ecliptic Lat
-                                  [74] Venus H.Ecliptic Lon
-                                  [75] Venus Ecliptic Lat
-                                  [76] Venus Ecliptic Lon
-                                  [77] Earth Ecliptic Lon
-                                  [78] Mars Azimuth
-                                  [79] Mars Altitude
-                                  [80] Mars H.Ecliptic Lat
-                                  [81] Mars H.Ecliptic Lon
-                                  [82] Mars Ecliptic Lat
-                                  [83] Mars Ecliptic Lon
-                                  [84] Jupiter Azimuth
-                                  [85] jupiter Altitude
-                                  [86] Jupiter H.Ecliptic Lat
-                                  [87] Jupiter H.Ecliptic Lon
-                                  [88] Jupiter Ecliptic Lat
-                                  [89] Jupiter Ecliptic Lon
-                                  [90] Saturn Azimuth
-                                  [91] Saturn Altitude
-                                  [92] Saturn H.Ecliptic Lat
-                                  [93] Saturn H.Ecliptic Lon
-                                  [94] Saturn Ecliptic Lat
-                                  [95] Saturn Ecliptic Lon
-                                  [96] Uranus Azimuth
-                                  [97] Uranus Altitude
-                                  [98] Uranus H.Ecliptic Lat
-                                  [99] Uranus H.Ecliptic Lon
-                                  [100] Uranus Ecliptic Lat
-                                  [101] Uranus Ecliptic Lon
-                                  [102] Neptune Azimuth
-                                  [103] Neptune Altitude
-                                  [104] Neptune H.Ecliptic Lat
-                                  [105] Neptune H.Ecliptic Lon
-                                  [106] Neptune Ecliptic Lat
-                                  [107] Neptune Ecliptic Lon
-                                  [108] AD Multiplexer 0
-                                  [109] Map Slot
-                                  [110] SD Card Inserted
-                                  [111] SD Card Mounted
-                                  [112] Port Con 0
-                                  [113] Local Mean Solar Time
-                                  [114] Local Mean Solar Date
-                                  [115] Local Sidereal Time
-                                  [116] Local Zenith RA
-                                  [117] Local Zenith Dec
-                                  [118] Gyro 0 RA
-                                  [119] Gyro 0 Dec
+                                  [35] GPS Jammed
+                                  [36] GNRMC Pos Stat A
+                                  [37] GNRMC Pos Stat V
+                                  [38] GNRMC Mode Ind A
+                                  [39] GNRMC Mode Ind D
+                                  [40] GNRMC Mode Ind E
+                                  [41] GNRMC Mode Ind N
+                                  [42] GNRMC Hemi North
+                                  [43] GNRMC Hemi South
+                                  [44] GNRMC Hemi East
+                                  [45] GNRMC Hemi West
+                                  [46] G0 G-Force X
+                                  [47] G0 G-Force Y
+                                  [48] G0 G-Force Z
+                                  [49] G0 Incline X
+                                  [50] G0 Incline Y
+                                  [51] G0 Incline Z
+                                  [52] G0 Mag Field X
+                                  [53] G0 Mag Field Y
+                                  [54] G0 Mag Field Z
+                                  [55] G0 Velocity X
+                                  [56] G0 Velocity Y
+                                  [57] G0 Velocity Z
+                                  [58] Meteor
+                                  [59] Sun Azimuth
+                                  [60] Sun Altitude
+                                  [61] Sun Helio Ecl Lat
+                                  [62] Sun Helio Ecl Lon
+                                  [63] Luna Azimuth
+                                  [64] Luna Altitude
+                                  [65] Luna Phase
+                                  [66] Mercury Azimuth
+                                  [67] Mercury Altitude
+                                  [68] Mercury H.Ecliptic Lat
+                                  [69] Mercury H.Ecliptic Lon
+                                  [70] Mercury Ecliptic Lat
+                                  [71] Mercury Ecliptic Lon
+                                  [72] Venus Azimuth
+                                  [73] Venus Altitude
+                                  [74] Venus H.Ecliptic Lat
+                                  [75] Venus H.Ecliptic Lon
+                                  [76] Venus Ecliptic Lat
+                                  [77] Venus Ecliptic Lon
+                                  [78] Earth Ecliptic Lon
+                                  [79] Mars Azimuth
+                                  [80] Mars Altitude
+                                  [81] Mars H.Ecliptic Lat
+                                  [82] Mars H.Ecliptic Lon
+                                  [83] Mars Ecliptic Lat
+                                  [84] Mars Ecliptic Lon
+                                  [85] Jupiter Azimuth
+                                  [86] jupiter Altitude
+                                  [87] Jupiter H.Ecliptic Lat
+                                  [88] Jupiter H.Ecliptic Lon
+                                  [89] Jupiter Ecliptic Lat
+                                  [90] Jupiter Ecliptic Lon
+                                  [91] Saturn Azimuth
+                                  [92] Saturn Altitude
+                                  [93] Saturn H.Ecliptic Lat
+                                  [94] Saturn H.Ecliptic Lon
+                                  [95] Saturn Ecliptic Lat
+                                  [96] Saturn Ecliptic Lon
+                                  [97] Uranus Azimuth
+                                  [98] Uranus Altitude
+                                  [99] Uranus H.Ecliptic Lat
+                                  [100] Uranus H.Ecliptic Lon
+                                  [101] Uranus Ecliptic Lat
+                                  [102] Uranus Ecliptic Lon
+                                  [103] Neptune Azimuth
+                                  [104] Neptune Altitude
+                                  [105] Neptune H.Ecliptic Lat
+                                  [106] Neptune H.Ecliptic Lon
+                                  [107] Neptune Ecliptic Lat
+                                  [108] Neptune Ecliptic Lon
+                                  [109] AD Multiplexer 0
+                                  [110] Map Slot
+                                  [111] SD Card Inserted
+                                  [112] SD Card Mounted
+                                  [113] Port Con 0
+                                  [114] Local Mean Solar Time
+                                  [115] Local Mean Solar Date
+                                  [116] Local Sidereal Time
+                                  [117] Local Zenith RA
+                                  [118] Local Zenith Dec
+                                  [119] Gyro 0 RA
+                                  [120] Gyro 0 Dec
       matrix --xyz-mode-x         Specify function comparitor mode. Used with -s and -f.
       matrix --xyz-mode-y         Specify function comparitor mode. Used with -s and -f.
       matrix --xyz-mode-z         Specify function comparitor mode. Used with -s and -f.

@@ -50,7 +50,9 @@ static lv_obj_t * horizon_ring     = nullptr;
 static lv_obj_t * jam_warning_label = nullptr;
 
 static gnss_marker_t markers[GNSS_SKYPLOT_MARKER_COUNT];
-static lv_obj_t * legend_label[GNSS_SKYPLOT_CONSTELLATION_COUNT] = { nullptr, nullptr, nullptr, nullptr };
+static lv_obj_t * legend_name_label[GNSS_SKYPLOT_CONSTELLATION_COUNT]  = { nullptr, nullptr, nullptr, nullptr };
+static lv_obj_t * legend_count_label[GNSS_SKYPLOT_CONSTELLATION_COUNT] = { nullptr, nullptr, nullptr, nullptr };
+static lv_obj_t * legend_snr_label[GNSS_SKYPLOT_CONSTELLATION_COUNT]   = { nullptr, nullptr, nullptr, nullptr };
 
 static int32_t SKYPLOT_WIDTH   = 0;
 static int32_t SKYPLOT_HEIGHT  = 0;
@@ -61,9 +63,16 @@ static constexpr int32_t MARKER_RADIUS   = 6;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
 
 // Reserved strip on the left for the constellation color key, so the plot
-// circle doesn't need to compete with it for space.
-static constexpr int32_t LEGEND_WIDTH      = 90;
+// circle doesn't need to compete with it for space. Wide enough for a
+// tabulated Name/Sats/dB layout, not just a single column of text.
+static constexpr int32_t LEGEND_WIDTH      = 142;
 static constexpr int32_t LEGEND_ROW_HEIGHT = 20;
+static constexpr int32_t LEGEND_COL_NAME_X = 2;
+static constexpr int32_t LEGEND_COL_NAME_W = 58;
+static constexpr int32_t LEGEND_COL_SATS_X = 62;
+static constexpr int32_t LEGEND_COL_SATS_W = 28;
+static constexpr int32_t LEGEND_COL_SNR_X  = 92;
+static constexpr int32_t LEGEND_COL_SNR_W  = 46;
 
 // Room reserved outside the outer (0 degree) ring for the azimuth labels.
 static constexpr int32_t AXIS_MARGIN = 20;
@@ -152,6 +161,21 @@ static void gnss_skyplot_container_click_cb(lv_event_t * e) {
             gnss_skyplot_set_target(-1, -1);
         }
     }
+}
+
+// One cell of the tabulated constellation legend -- a plain label pinned
+// at a fixed column x/row y within the legend strip, text color doubling
+// as that row's color swatch.
+static lv_obj_t * create_legend_cell(lv_obj_t * const parent, const int32_t x, const int32_t y,
+                                      const int32_t w, const char * const text, const lv_color_t color) {
+    lv_obj_t * const label = lv_label_create(parent);
+    lv_obj_set_width(label, w);
+    lv_obj_set_style_text_font(label, &main_style.value_1.font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(label, color, LV_PART_MAIN);
+    lv_obj_remove_flag(label, LV_OBJ_FLAG_CLICKABLE);
+    lv_label_set_text(label, text);
+    lv_obj_set_pos(label, x, y);
+    return label;
 }
 
 static lv_obj_t * create_marker(lv_obj_t * const parent, const lv_color_t color) {
@@ -375,19 +399,31 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         lv_obj_set_pos(az_label, label_x, label_y);
     }
 
-    // Constellation color key, down the left legend strip, vertically
-    // centered as a block. Each row's text color doubles as its color
-    // swatch; the count after the name is filled in every refresh by
-    // gnss_skyplot_update(), once satellite data actually exists.
-    for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
-        legend_label[constellation] = lv_label_create(skyplot_container);
-        lv_obj_set_style_text_font(legend_label[constellation], &main_style.value_1.font, LV_PART_MAIN);
-        lv_obj_set_style_text_color(legend_label[constellation], constellation_color(constellation), LV_PART_MAIN);
-        lv_obj_remove_flag(legend_label[constellation], LV_OBJ_FLAG_CLICKABLE);
-        lv_label_set_text(legend_label[constellation], constellation_name(constellation));
+    // Constellation color key, tabulated (Name | Sats | dB) down the left
+    // legend strip: one header row plus one row per constellation,
+    // vertically centered as a block. Each name's text color doubles as
+    // its row's color swatch. Sats/dB are filled in every refresh by
+    // gnss_skyplot_update(), read from gpsJamData so the legend can never
+    // disagree with the numbers actually driving the jam detector.
+    {
+        const lv_color_t header_color = lv_color_make(150, 150, 150);
+        const int32_t block_top = SKYPLOT_CENTER_Y -
+            (((GNSS_SKYPLOT_CONSTELLATION_COUNT + 1) * LEGEND_ROW_HEIGHT) / 2);
 
-        const int32_t block_top = SKYPLOT_CENTER_Y - ((GNSS_SKYPLOT_CONSTELLATION_COUNT * LEGEND_ROW_HEIGHT) / 2);
-        lv_obj_set_pos(legend_label[constellation], 6, block_top + (constellation * LEGEND_ROW_HEIGHT));
+        create_legend_cell(skyplot_container, LEGEND_COL_SATS_X, block_top, LEGEND_COL_SATS_W, "Sats", header_color);
+        create_legend_cell(skyplot_container, LEGEND_COL_SNR_X, block_top, LEGEND_COL_SNR_W, "dB", header_color);
+
+        for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
+            const int32_t row_y = block_top + ((constellation + 1) * LEGEND_ROW_HEIGHT);
+            const lv_color_t color = constellation_color(constellation);
+
+            legend_name_label[constellation] = create_legend_cell(
+                skyplot_container, LEGEND_COL_NAME_X, row_y, LEGEND_COL_NAME_W, constellation_name(constellation), color);
+            legend_count_label[constellation] = create_legend_cell(
+                skyplot_container, LEGEND_COL_SATS_X, row_y, LEGEND_COL_SATS_W, "", color);
+            legend_snr_label[constellation] = create_legend_cell(
+                skyplot_container, LEGEND_COL_SNR_X, row_y, LEGEND_COL_SNR_W, "", color);
+        }
     }
 
     // Jam warning, hidden until gnss_skyplot_update() sees gpsJamData.jammed
@@ -491,22 +527,29 @@ void gnss_skyplot_update(void) {
         lv_obj_remove_flag(markers[i].dot, LV_OBJ_FLAG_HIDDEN);
     }
 
-    // Constellation color key: refresh each row's visible-satellite count.
-    for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
-        const GSVStruct * const data = constellation_data(constellation);
-        int32_t visible_count = 0;
+    // Constellation color key: refresh each row's satellite count and mean
+    // SNR straight from gpsJamData (updateGPSJamDetect() recomputes these
+    // once per GPS cycle) rather than re-deriving them here -- the same
+    // numbers the jam detector itself bases its verdict on.
+    {
+        const struct GpsJamConstellationStats * const stats[GNSS_SKYPLOT_CONSTELLATION_COUNT] = {
+            &gpsJamData.gps, &gpsJamData.glonass, &gpsJamData.galileo, &gpsJamData.beidou
+        };
 
-        if (data != nullptr) {
-            for (int32_t slot = 0; slot < MAX_GSV_SATELLITES; slot++) {
-                if (data->sat_valid[slot] == true) {
-                    visible_count++;
-                }
+        for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
+            char count_buf[8];
+            char snr_buf[12];
+
+            snprintf(count_buf, sizeof(count_buf), "%d", stats[constellation]->satellite_count);
+            if (stats[constellation]->satellite_count > 0) {
+                snprintf(snr_buf, sizeof(snr_buf), "%.1f", static_cast<double>(stats[constellation]->mean_snr_db));
+            } else {
+                snprintf(snr_buf, sizeof(snr_buf), "--");
             }
-        }
 
-        char legend_buf[32];
-        snprintf(legend_buf, sizeof(legend_buf), "%s: %d", constellation_name(constellation), static_cast<int>(visible_count));
-        set_label_text_if_changed(legend_label[constellation], legend_buf);
+            set_label_text_if_changed(legend_count_label[constellation], count_buf);
+            set_label_text_if_changed(legend_snr_label[constellation], snr_buf);
+        }
     }
 
     // Jam-detect visualization: highlight the horizon ring and show the
