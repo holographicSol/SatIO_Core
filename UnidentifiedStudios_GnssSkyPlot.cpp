@@ -53,6 +53,8 @@ static lv_point_precise_t connector_points[2];
 // highlighted, and a text warning shown, when gpsJamData.jammed is true.
 static lv_obj_t * horizon_ring     = nullptr;
 static lv_obj_t * jam_warning_label = nullptr;
+static lv_obj_t * jam_warning_box   = nullptr;
+static bool       jam_warning_shown_jammed = false; // style currently applied, to skip redundant restyles
 
 static gnss_marker_t markers[GNSS_SKYPLOT_MARKER_COUNT];
 
@@ -190,6 +192,7 @@ static constexpr double  DRIFT_METERS_PER_DEGREE_LAT = 111320.0; // equirectangu
 
 // legend_container / drift_track_container placement within skyplot_container.
 static constexpr int32_t SIDE_PANEL_X_OFFSET        = 50;
+static constexpr int32_t JAM_WARNING_GAP            = 10; // jam warning's distance right of the legend table
 // Clear button sits directly above the DOP grid, matching its width.
 static constexpr int32_t DOP_GRID_Y                 = DRIFT_PLOT_CENTER_Y - (DOP_GRID_HEIGHT / 2);
 static constexpr int32_t DRIFT_CLEAR_BUTTON_H       = 26;
@@ -561,6 +564,23 @@ static void drift_clear_click_cb(lv_event_t * e) {
     drift_plot_reset();
 }
 
+// Jam indicator: text and outline both the button outline's dark grey
+// while clear (value_1.color_font is themed, e.g. green), red while jammed.
+static void jam_warning_refresh(void) {
+    if ((jam_warning_box == nullptr) || (jam_warning_label == nullptr)) {
+        return;
+    }
+
+    const bool jammed = (gpsJamData.jammed == true);
+    if (jammed != jam_warning_shown_jammed) {
+        const lv_color_t text_color    = jammed ? lv_color_make(255, 0, 0) : lv_color_make(28,28,28);
+        const lv_color_t outline_color = jammed ? lv_color_make(255, 0, 0) : lv_color_make(28,28,28);
+        lv_obj_set_style_text_color(jam_warning_label, text_color, LV_PART_MAIN);
+        lv_obj_set_style_border_color(jam_warning_box, outline_color, LV_PART_MAIN);
+        jam_warning_shown_jammed = jammed;
+    }
+}
+
 void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) {
     gnss_skyplot_end();
 
@@ -764,19 +784,29 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         }
     }
 
-    // Jam warning, hidden until gnss_skyplot_update() sees gpsJamData.jammed
-    // -- centered over the plot circle, text filled in per-refresh with the
-    // live SNR drop so this doubles as a readout of the detector itself,
-    // not just a yes/no flag.
-    jam_warning_label = lv_label_create(satellite_skymap_container);
-    lv_obj_set_style_text_font(jam_warning_label, &main_style.astroclock.font_1, LV_PART_MAIN);
-    lv_obj_set_style_text_color(jam_warning_label, lv_color_make(255, 40, 40), LV_PART_MAIN);
+    // Jam warning, right of the legend table. Always visible, legend-height,
+    // outlined box sized to its static text: dark grey (button text /
+    // outline colors) while clear, red while gpsJamData.jammed.
+    jam_warning_box = lv_obj_create(skyplot_container);
+    lv_obj_remove_style_all(jam_warning_box);
+    lv_obj_set_size(jam_warning_box, LV_SIZE_CONTENT, LEGEND_ROWS * LEGEND_ROW_HEIGHT);
+    lv_obj_set_style_radius(jam_warning_box, main_style.subtitle_1.radius_rounded, LV_PART_MAIN);
+    lv_obj_set_style_border_width(jam_warning_box,
+        (main_style.subtitle_1.outline_width > 0) ? main_style.subtitle_1.outline_width : 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_hor(jam_warning_box, 6, LV_PART_MAIN);
+    lv_obj_remove_flag(jam_warning_box, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_flag(jam_warning_box, LV_OBJ_FLAG_CLICKABLE);
+
+    jam_warning_label = lv_label_create(jam_warning_box);
+    lv_obj_set_style_text_font(jam_warning_label, &main_style.value_1.font, LV_PART_MAIN);
     lv_obj_set_style_text_align(jam_warning_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_remove_flag(jam_warning_label, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_flag(jam_warning_label, LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_text(jam_warning_label, "GPS JAMMING DETECTED");
-    lv_obj_update_layout(jam_warning_label);
-    lv_obj_set_pos(jam_warning_label, skymap_center_x - (lv_obj_get_width(jam_warning_label) / 2), 2);
+    lv_label_set_text(jam_warning_label, "GPS\nJAMMER\nWARNING");
+    lv_obj_align(jam_warning_label, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_align_to(jam_warning_box, legend_container, LV_ALIGN_OUT_RIGHT_MID, JAM_WARNING_GAP, 0);
+
+    jam_warning_shown_jammed = true; // force the first jam_warning_refresh() to apply styles
+    jam_warning_refresh();
 
     // Position-drift scatter plot: 4 rings + meter labels, a green trace
     // line, and a red current-position dot, in the top-left rectangle
@@ -1009,21 +1039,13 @@ void gnss_skyplot_update(void) {
             lv_obj_set_style_border_width(horizon_ring, 4, 0);
             lv_obj_set_style_border_color(horizon_ring, lv_color_make(255, 40, 40), 0);
         }
-        if (jam_warning_label != nullptr) {
-            char jam_buf[48];
-            snprintf(jam_buf, sizeof(jam_buf), "GPS JAMMING DETECTED\nSNR drop: %.1f dB", static_cast<double>(gpsJamData.snr_drop_db));
-            set_label_text_if_changed(jam_warning_label, jam_buf);
-            lv_obj_remove_flag(jam_warning_label, LV_OBJ_FLAG_HIDDEN);
-        }
     } else {
         if (horizon_ring != nullptr) {
             lv_obj_set_style_border_width(horizon_ring, 2, 0);
             lv_obj_set_style_border_color(horizon_ring, lv_color_make(80, 80, 80), 0);
         }
-        if (jam_warning_label != nullptr) {
-            lv_obj_add_flag(jam_warning_label, LV_OBJ_FLAG_HIDDEN);
-        }
     }
+    jam_warning_refresh();
 
     // Keep a live selection's info box tracking its (slowly drifting)
     // satellite every tick -- mirrors astro_clock_update()'s re-invocation
