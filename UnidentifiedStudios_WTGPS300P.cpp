@@ -15,6 +15,8 @@
 #include <rtc_wdt.h>
 #include <esp_task_wdt.h>
 #include <esp_timer.h>
+#include <driver/gpio.h>  // DIAG (temporary)
+#include <driver/uart.h>  // DIAG (temporary)
 #include <string.h>  // strcmp, strncmp, strncpy, strlen, strtok, strchr, memset
 #include <ctype.h>   // isdigit
 #include <limits.h>  // ULONG_MAX
@@ -1275,7 +1277,7 @@ bool readGPS(void)
        up rather than spin forever feeding the watchdog every iteration,
        which would otherwise defeat the watchdog's ability to catch the
        hang. */
-    const int64_t GPS_READ_TIMEOUT_uS = 1000000; // 1 second
+    const int64_t GPS_READ_TIMEOUT_uS = 1000000;
     const int64_t start_time_uS = esp_timer_get_time();
 
     serial1Data.gngga_bool = false;
@@ -1297,7 +1299,10 @@ bool readGPS(void)
         {
             memset(serial1Data.BUFFER, 0, sizeof(serial1Data.BUFFER));
             serial1Data.nbytes = Serial1.readBytesUntil('\n', serial1Data.BUFFER, sizeof(serial1Data.BUFFER));
-
+            // view sentences (disable after use)
+            // printf(serial1Data.BUFFER);
+            // printf("\n");
+            
             /* Exclude partial reads. */
             if (serial1Data.nbytes > 10UL)
             {
@@ -1386,9 +1391,7 @@ bool readGPS(void)
                     serial1Data.gbgsv_bool = true;
                 }
 
-                /* GNRMC is only checked once GNGGA has been collected this
-                   cycle, and GPATT only once both GNGGA and GNRMC have —
-                   the device emits sentences in that fixed order. */
+                /* GNGGA/GNRMC/GPATT captured independently (order-agnostic). */
                 if (serial1Data.gngga_bool == false)
                 {
                     if (strncmp(serial1Data.BUFFER, "$GNGGA", 6) == 0)
@@ -1398,7 +1401,7 @@ bool readGPS(void)
                         serial1Data.gngga_bool = true;
                     }
                 }
-                else if (serial1Data.gnrmc_bool == false)
+                if (serial1Data.gnrmc_bool == false)
                 {
                     if (strncmp(serial1Data.BUFFER, "$GNRMC", 6) == 0)
                     {
@@ -1407,7 +1410,7 @@ bool readGPS(void)
                         serial1Data.gnrmc_bool = true;
                     }
                 }
-                else if (serial1Data.gpatt_bool == false)
+                if (serial1Data.gpatt_bool == false)
                 {
                     // uncomment for gpatt
                     // if (strncmp(serial1Data.BUFFER, "$GPATT", 6) == 0)
@@ -1431,6 +1434,32 @@ bool readGPS(void)
             delay(1);
         }
     }
+
+    // // DIAG (temporary): one-shot probe on the 3rd consecutive timeout
+    // {
+    //     static int dbg_fail_count = 0;
+    //     static bool dbg_probed = false;
+    //     dbg_fail_count = (done == true) ? 0 : (dbg_fail_count + 1);
+    //     if ((dbg_probed == false) && (dbg_fail_count >= 3)) {
+    //         dbg_probed = true;
+    //         const int rx = uart_get_RxPin(1);
+    //         const int tx = uart_get_TxPin(1);
+    //         int edges = 0;
+    //         int last = gpio_get_level((gpio_num_t)rx);
+    //         const int64_t t0 = esp_timer_get_time();
+    //         while ((esp_timer_get_time() - t0) < 300000) {
+    //             const int lvl = gpio_get_level((gpio_num_t)rx);
+    //             if (lvl != last) { edges++; last = lvl; }
+    //         }
+    //         size_t buffered = 0;
+    //         (void)uart_get_buffered_data_len(UART_NUM_1, &buffered);
+    //         printf("[GPSPROBE] RX=%d TX=%d rx_edges_300ms=%d rx_level_now=%d uart1_buffered=%u avail=%d\n",
+    //                rx, tx, edges, last, (unsigned)buffered, (int)Serial1.available());
+    //         uint64_t mask = BIT64(rx);
+    //         if (tx >= 0) { mask |= BIT64(tx); }
+    //         (void)gpio_dump_io_configuration(stdout, mask);
+    //     }
+    // }
     return done;
 }
 

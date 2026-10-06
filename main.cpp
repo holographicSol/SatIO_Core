@@ -396,17 +396,20 @@ extern "C" void app_main(void)
     printf("Serial1 (GPS) starting\n");
     const int8_t pin_not_used               = -1;
     const int8_t gps_uart_rxd_pin           = 34;
-    const int8_t gps_uart_txd_pin           = pin_not_used;
+    const int8_t gps_uart_txd_pin           = 32;
     const size_t gps_uart_rx_buffer_size    = 2000U;
     const unsigned long gps_uart_timeout_ms = 10UL;
     const uint32_t gps_uart_baud_rate       = 115200U;
-    (void)Serial1.setPins(gps_uart_rxd_pin, gps_uart_txd_pin, pin_not_used, pin_not_used);
+    // const bool gps_setpins_ok = Serial1.setPins(gps_uart_rxd_pin, gps_uart_txd_pin, pin_not_used, pin_not_used); // DIAG (temporary)
     (void)Serial1.setRxBufferSize(gps_uart_rx_buffer_size);
     Serial1.setTimeout(gps_uart_timeout_ms);
-    Serial1.begin(gps_uart_baud_rate);
+    Serial1.begin(gps_uart_baud_rate, 134217756UL, gps_uart_rxd_pin, gps_uart_txd_pin);
     while (!Serial1) {
         // Block until the UART peripheral reports ready.
     }
+    // IDF 5.5 uart_set_pin() releases the RX route when Arduino attaches TX in a
+    // separate call, leaving RX disconnected. Re-route TX and RX in one call.
+    (void)uart_set_pin(UART_NUM_1, gps_uart_txd_pin, gps_uart_rxd_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     Serial1.flush();
     printf("Serial1 baud rate: %lu\n", (unsigned long)gps_uart_baud_rate);
     printf("Serial1 hardware remap: RX=%d TX=%d\n", gps_uart_rxd_pin, gps_uart_txd_pin);
@@ -415,6 +418,8 @@ extern "C" void app_main(void)
     delay(500);
     // enable GSV (satellite constellations data and satellite positions in the sky)
     Serial1.println("log gpgsv");
+    delay(500);
+    // Serial1.println("log gpgsv ontime 1");
 
     #endif
     // Full ~0-3.3V input range; applies to every ADC channel.
