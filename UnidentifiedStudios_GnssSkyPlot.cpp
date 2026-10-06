@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 #include "lvgl.h"
 #include "UnidentifiedStudios_GnssSkyPlot.h"
 #include "UnidentifiedStudios_GlobalLVGL.h"
 #include "UnidentifiedStudios_WTGPS300P.h"
 #include "UnidentifiedStudios_GPSJamDetect.h"
+#include "UnidentifiedStudios_SatIO.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -50,6 +52,48 @@ static lv_obj_t * horizon_ring     = nullptr;
 static lv_obj_t * jam_warning_label = nullptr;
 
 static gnss_marker_t markers[GNSS_SKYPLOT_MARKER_COUNT];
+
+// Position-drift scatter plot: GNGGA position relative to a fixed origin
+// (the first valid fix after gnss_skyplot_begin()/Clear), converted to
+// local tangent-plane meters -- a drift trace, not a literal plot of
+// PDOP/HDOP/VDOP (those are shown as text readouts beside it instead).
+// Lives in the top-left corner of skyplot_container, freed up by shifting
+// the sat-plot circle left (SKYPLOT_CIRCLE_X_SHIFT) and the legend down.
+typedef struct {
+    float north_m;
+    float east_m;
+} drift_point_t;
+
+static drift_point_t drift_points[300]; // ~5 min at the confirmed 1Hz position-update rate (see gnss_skyplot_update())
+static constexpr int32_t DRIFT_MAX_POINTS = static_cast<int32_t>(sizeof(drift_points) / sizeof(drift_points[0]));
+static int32_t drift_point_count = 0;
+static int32_t drift_point_head  = 0; // next write index; wraps (overwrites oldest) once full
+
+static bool   drift_origin_set = false;
+static double drift_origin_lat = 0.0;
+static double drift_origin_lon = 0.0;
+
+static bool   drift_last_valid = false;
+static double drift_last_lat   = 0.0;
+static double drift_last_lon   = 0.0;
+
+static lv_obj_t * drift_ring[4]       = { nullptr, nullptr, nullptr, nullptr };
+static lv_obj_t * drift_ring_label[4] = { nullptr, nullptr, nullptr, nullptr };
+static lv_obj_t * drift_trace_line  = nullptr;
+static lv_obj_t * drift_current_dot = nullptr;
+static lv_point_precise_t drift_line_points[DRIFT_MAX_POINTS];
+
+static lv_obj_t * drift_pdop_label = nullptr;
+static lv_obj_t * drift_hdop_label = nullptr;
+static lv_obj_t * drift_vdop_label = nullptr;
+static button_t   drift_clear_button;
+
+// Constellation color key: a real LV_LAYOUT_GRID table (header + one row
+// per constellation), not hand-positioned labels -- mirrors the grid-menu
+// pattern in UnidentifiedStudios_GlobalLVGL.cpp. legend_col_dsc/
+// legend_row_dsc are declared further down, once LEGEND_ROWS is defined.
+static lv_obj_t * legend_grid = nullptr;
+
 static lv_obj_t * legend_name_label[GNSS_SKYPLOT_CONSTELLATION_COUNT]  = { nullptr, nullptr, nullptr, nullptr };
 static lv_obj_t * legend_count_label[GNSS_SKYPLOT_CONSTELLATION_COUNT] = { nullptr, nullptr, nullptr, nullptr };
 static lv_obj_t * legend_snr_label[GNSS_SKYPLOT_CONSTELLATION_COUNT]   = { nullptr, nullptr, nullptr, nullptr };
@@ -64,15 +108,28 @@ static constexpr int32_t DATA_BOX_MARGIN = 10;
 
 // Reserved strip on the left for the constellation color key, so the plot
 // circle doesn't need to compete with it for space. Wide enough for a
-// tabulated Name/Sats/dB layout, not just a single column of text.
-static constexpr int32_t LEGEND_WIDTH      = 142;
-static constexpr int32_t LEGEND_ROW_HEIGHT = 20;
-static constexpr int32_t LEGEND_COL_NAME_X = 2;
-static constexpr int32_t LEGEND_COL_NAME_W = 58;
-static constexpr int32_t LEGEND_COL_SATS_X = 62;
-static constexpr int32_t LEGEND_COL_SATS_W = 28;
-static constexpr int32_t LEGEND_COL_SNR_X  = 92;
-static constexpr int32_t LEGEND_COL_SNR_W  = 46;
+// genuine Name/Sats/dB grid, with real column widths, not a cramped
+// single column of text.
+static constexpr int32_t LEGEND_WIDTH      = 178;
+static constexpr int32_t LEGEND_MARGIN_X   = 4;
+static constexpr int32_t LEGEND_ROW_HEIGHT = 22;
+static constexpr int32_t LEGEND_COL_NAME_W = 76;
+static constexpr int32_t LEGEND_COL_SATS_W = 42;
+static constexpr int32_t LEGEND_COL_SNR_W  = 52;
+static constexpr int32_t LEGEND_ROWS       = GNSS_SKYPLOT_CONSTELLATION_COUNT + 1; // header + one per constellation
+static constexpr int32_t LEGEND_GRID_WIDTH = LEGEND_COL_NAME_W + LEGEND_COL_SATS_W + LEGEND_COL_SNR_W;
+
+// Fixed-size and static (never freed): unlike the grid-menu pattern in
+// UnidentifiedStudios_GlobalLVGL.cpp (whose column/row counts are a
+// runtime argument, so it must malloc and free its own descriptor
+// arrays), this table's shape never changes, so one array reused across
+// gnss_skyplot_begin() calls is sufficient.
+static int32_t legend_col_dsc[4]; // 3 columns + LV_GRID_TEMPLATE_LAST
+static int32_t legend_row_dsc[LEGEND_ROWS + 1]; // header + 4 constellations + LV_GRID_TEMPLATE_LAST
+
+// How far left to shift the whole sky-plot (circle + legend together) from
+// the GPS screen's own center, so the widened legend doesn't crowd the plot.
+static constexpr int32_t SKYPLOT_X_OFFSET = -30;
 
 // Room reserved outside the outer (0 degree) ring for the azimuth labels.
 static constexpr int32_t AXIS_MARGIN = 20;
@@ -85,6 +142,27 @@ static constexpr int32_t RING_STEP_DEG = 30;
 // Azimuth labels every N degrees, standing off outside the horizon ring.
 static constexpr int32_t AZIMUTH_LABEL_STEP_DEG = 30;
 static constexpr int32_t AZIMUTH_LABEL_STANDOFF = 10;
+
+// Shifts the sat-plot circle (and everything derived from SKYPLOT_CENTER_X:
+// rings, markers, azimuth labels) left within the container, and the
+// legend grid down to the bottom of the left strip, together opening a
+// free rectangle at top-left for the drift plot below.
+static constexpr int32_t SKYPLOT_CIRCLE_X_SHIFT = 0;
+static constexpr int32_t LEGEND_BOTTOM_MARGIN   = 10;
+
+// Position-drift scatter plot geometry, within the top-left free
+// rectangle (roughly x:[4,158], y:[4,270] once the shifts above are
+// applied). 4 rings (matches the reference image), step auto-scaled to
+// the nearest 0.5m multiple that encloses the current drift, capped so
+// the outer ring never exceeds 10m -- see drift_plot_rescale_and_rebuild().
+static constexpr int32_t DRIFT_RING_COUNT        = 4;
+static constexpr float   DRIFT_RING_STEP_MIN_M   = 0.5f;
+static constexpr float   DRIFT_RING_MAX_RADIUS_M = 10.0f;
+static constexpr int32_t DRIFT_PLOT_RADIUS_PX    = 65;
+static constexpr int32_t DRIFT_PLOT_CENTER_X     = 81;
+static constexpr int32_t DRIFT_PLOT_CENTER_Y     = 79;
+static constexpr int32_t DRIFT_DOT_RADIUS        = 4;
+static constexpr double  DRIFT_METERS_PER_DEGREE_LAT = 111320.0; // equirectangular approximation, fine at this (<=10m) scale
 
 static const lv_color_t COLOR_GPS     = lv_color_make(60, 140, 255); // blue
 static const lv_color_t COLOR_GLONASS = lv_color_make(230, 60, 60);  // red
@@ -163,18 +241,33 @@ static void gnss_skyplot_container_click_cb(lv_event_t * e) {
     }
 }
 
-// One cell of the tabulated constellation legend -- a plain label pinned
-// at a fixed column x/row y within the legend strip, text color doubling
-// as that row's color swatch.
-static lv_obj_t * create_legend_cell(lv_obj_t * const parent, const int32_t x, const int32_t y,
-                                      const int32_t w, const char * const text, const lv_color_t color) {
+// One cell of the tabulated constellation legend grid. draw_right_border
+// draws a vertical separator after this column (every column but the
+// last); draw_bottom_border draws a horizontal separator under this row
+// (the header row only) -- together these give the legend real table
+// grid-lines rather than just loosely-spaced text. Text color doubles as
+// that row's color swatch.
+static lv_obj_t * create_legend_cell(lv_obj_t * const parent, const int32_t col, const int32_t row,
+                                      const char * const text, const lv_color_t color,
+                                      const lv_text_align_t align,
+                                      const bool draw_right_border, const bool draw_bottom_border) {
     lv_obj_t * const label = lv_label_create(parent);
-    lv_obj_set_width(label, w);
     lv_obj_set_style_text_font(label, &main_style.value_1.font, LV_PART_MAIN);
     lv_obj_set_style_text_color(label, color, LV_PART_MAIN);
+    lv_obj_set_style_text_align(label, align, LV_PART_MAIN);
+    lv_obj_set_style_pad_hor(label, 4, LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(label, 3, LV_PART_MAIN);
+
+    uint32_t border_side = static_cast<uint32_t>(LV_BORDER_SIDE_NONE);
+    if (draw_right_border)  { border_side |= static_cast<uint32_t>(LV_BORDER_SIDE_RIGHT); }
+    if (draw_bottom_border) { border_side |= static_cast<uint32_t>(LV_BORDER_SIDE_BOTTOM); }
+    lv_obj_set_style_border_width(label, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(label, lv_color_make(90, 90, 90), LV_PART_MAIN);
+    lv_obj_set_style_border_side(label, static_cast<lv_border_side_t>(border_side), LV_PART_MAIN);
+
     lv_obj_remove_flag(label, LV_OBJ_FLAG_CLICKABLE);
     lv_label_set_text(label, text);
-    lv_obj_set_pos(label, x, y);
+    lv_obj_set_grid_cell(label, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
     return label;
 }
 
@@ -312,6 +405,114 @@ static void gnss_skyplot_set_target(const int32_t constellation, const int32_t s
     lv_obj_remove_flag(target_connector_line, LV_OBJ_FLAG_HIDDEN);
 }
 
+// Converts a GNGGA lat/lon pair into local tangent-plane meters relative
+// to the current drift origin -- equirectangular approximation, fine at
+// this plot's <=10m scale.
+static drift_point_t drift_to_local_meters(const double lat, const double lon) {
+    const double origin_lat_rad = drift_origin_lat * M_PI / 180.0;
+    drift_point_t result;
+    result.north_m = static_cast<float>((lat - drift_origin_lat) * DRIFT_METERS_PER_DEGREE_LAT);
+    result.east_m  = static_cast<float>((lon - drift_origin_lon) * DRIFT_METERS_PER_DEGREE_LAT * cos(origin_lat_rad));
+    return result;
+}
+
+// Recomputes the ring step from the current drift extent, repositions the
+// rings + their meter labels, rebuilds the trace line from drift_points,
+// and repositions the current-position dot on the newest point. Called
+// after every accepted sample and after Clear.
+static void drift_plot_rescale_and_rebuild(void) {
+    float max_dist_m = 0.0f;
+    for (int32_t i = 0; i < drift_point_count; i++) {
+        const float dist = sqrtf((drift_points[i].north_m * drift_points[i].north_m)
+                                + (drift_points[i].east_m * drift_points[i].east_m));
+        if (dist > max_dist_m) { max_dist_m = dist; }
+    }
+
+    // Smallest 0.5m-multiple step whose 4 rings still enclose the current
+    // drift, capped so the outer ring never exceeds DRIFT_RING_MAX_RADIUS_M.
+    const float max_step = DRIFT_RING_MAX_RADIUS_M / static_cast<float>(DRIFT_RING_COUNT);
+    float step = DRIFT_RING_STEP_MIN_M;
+    while (((step * static_cast<float>(DRIFT_RING_COUNT)) < max_dist_m) && (step < max_step)) {
+        step += DRIFT_RING_STEP_MIN_M;
+    }
+    if (step > max_step) { step = max_step; }
+
+    const float plot_radius_m = step * static_cast<float>(DRIFT_RING_COUNT);
+    const float px_per_m = static_cast<float>(DRIFT_PLOT_RADIUS_PX) / plot_radius_m;
+
+    for (int32_t r = 0; r < DRIFT_RING_COUNT; r++) {
+        const float ring_radius_m = step * static_cast<float>(r + 1);
+        const int32_t ring_radius_px = static_cast<int32_t>(ring_radius_m * px_per_m);
+
+        if (drift_ring[r] != nullptr) {
+            lv_obj_set_size(drift_ring[r], ring_radius_px * 2, ring_radius_px * 2);
+            lv_obj_set_pos(drift_ring[r], DRIFT_PLOT_CENTER_X - ring_radius_px, DRIFT_PLOT_CENTER_Y - ring_radius_px);
+        }
+        if (drift_ring_label[r] != nullptr) {
+            char label_buf[16];
+            snprintf(label_buf, sizeof(label_buf), "%.1fm", static_cast<double>(ring_radius_m));
+            set_label_text_if_changed(drift_ring_label[r], label_buf);
+            lv_obj_set_pos(drift_ring_label[r], DRIFT_PLOT_CENTER_X + 2, DRIFT_PLOT_CENTER_Y - ring_radius_px - 7);
+        }
+    }
+
+    // Rebuild the trace oldest-to-newest. A point beyond the current outer
+    // ring is radially clamped to the plot edge (direction preserved)
+    // rather than dropped -- only matters for implausibly large drift
+    // (e.g. active jamming), and keeps this renderer simple.
+    for (int32_t i = 0; i < drift_point_count; i++) {
+        const int32_t src = (drift_point_head - drift_point_count + i + DRIFT_MAX_POINTS) % DRIFT_MAX_POINTS;
+        float north_m = drift_points[src].north_m;
+        float east_m  = drift_points[src].east_m;
+        const float dist = sqrtf((north_m * north_m) + (east_m * east_m));
+        if ((dist > plot_radius_m) && (dist > 0.0f)) {
+            const float clamp_scale = plot_radius_m / dist;
+            north_m *= clamp_scale;
+            east_m  *= clamp_scale;
+        }
+
+        drift_line_points[i].x = DRIFT_PLOT_CENTER_X + static_cast<int32_t>(east_m * px_per_m);
+        drift_line_points[i].y = DRIFT_PLOT_CENTER_Y - static_cast<int32_t>(north_m * px_per_m);
+    }
+
+    if (drift_trace_line != nullptr) {
+        if (drift_point_count >= 2) {
+            set_line_points_local(drift_trace_line, drift_line_points, drift_point_count);
+            lv_obj_remove_flag(drift_trace_line, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(drift_trace_line, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+
+    if (drift_current_dot != nullptr) {
+        if (drift_point_count > 0) {
+            const int32_t last = drift_point_count - 1;
+            lv_obj_set_pos(drift_current_dot,
+                           drift_line_points[last].x - DRIFT_DOT_RADIUS,
+                           drift_line_points[last].y - DRIFT_DOT_RADIUS);
+            lv_obj_remove_flag(drift_current_dot, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(drift_current_dot, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}
+
+// Discards the trace and the origin -- the next valid fix re-establishes
+// a fresh origin at (0,0). Shared by gnss_skyplot_begin()'s initial setup
+// and the Clear button.
+static void drift_plot_reset(void) {
+    drift_point_count = 0;
+    drift_point_head  = 0;
+    drift_origin_set  = false;
+    drift_last_valid  = false;
+    drift_plot_rescale_and_rebuild();
+}
+
+static void drift_clear_click_cb(lv_event_t * e) {
+    (void)e;
+    drift_plot_reset();
+}
+
 void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) {
     gnss_skyplot_end();
 
@@ -335,14 +536,14 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
     // lv_obj_align(..., LV_ALIGN_CENTER, 0, 0), which would re-center on
     // the container instead and desync from the legend-aware center.
     const int32_t plot_area_width = width_px - LEGEND_WIDTH;
-    SKYPLOT_CENTER_X = LEGEND_WIDTH + (plot_area_width / 2);
+    SKYPLOT_CENTER_X = LEGEND_WIDTH + (plot_area_width / 2) + SKYPLOT_CIRCLE_X_SHIFT;
     SKYPLOT_CENTER_Y = height_px / 2;
     SKYPLOT_MAX_RADIUS = (((plot_area_width < height_px) ? plot_area_width : height_px) / 2) - AXIS_MARGIN;
 
     skyplot_container = lv_obj_create(parent);
     lv_obj_remove_style_all(skyplot_container);
     lv_obj_set_size(skyplot_container, width_px, height_px);
-    lv_obj_align(skyplot_container, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(skyplot_container, LV_ALIGN_CENTER, SKYPLOT_X_OFFSET, 0);
     lv_obj_set_style_bg_color(skyplot_container, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(skyplot_container, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(skyplot_container, 0, 0);
@@ -399,30 +600,53 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         lv_obj_set_pos(az_label, label_x, label_y);
     }
 
-    // Constellation color key, tabulated (Name | Sats | dB) down the left
-    // legend strip: one header row plus one row per constellation,
-    // vertically centered as a block. Each name's text color doubles as
-    // its row's color swatch. Sats/dB are filled in every refresh by
-    // gnss_skyplot_update(), read from gpsJamData so the legend can never
-    // disagree with the numbers actually driving the jam detector.
+    // Constellation color key: a genuine LV_LAYOUT_GRID table (Name | Sats |
+    // dB), one header row plus one row per constellation, vertically
+    // centered in the legend strip. Each name's text color doubles as its
+    // row's color swatch; bottom/right cell borders draw the header
+    // separator and column separators (see create_legend_cell()). Sats/dB
+    // are filled in every refresh by gnss_skyplot_update(), read from
+    // gpsJamData so the legend can never disagree with the numbers
+    // actually driving the jam detector.
     {
-        const lv_color_t header_color = lv_color_make(150, 150, 150);
-        const int32_t block_top = SKYPLOT_CENTER_Y -
-            (((GNSS_SKYPLOT_CONSTELLATION_COUNT + 1) * LEGEND_ROW_HEIGHT) / 2);
+        legend_col_dsc[0] = LEGEND_COL_NAME_W;
+        legend_col_dsc[1] = LEGEND_COL_SATS_W;
+        legend_col_dsc[2] = LEGEND_COL_SNR_W;
+        legend_col_dsc[3] = LV_GRID_TEMPLATE_LAST;
 
-        create_legend_cell(skyplot_container, LEGEND_COL_SATS_X, block_top, LEGEND_COL_SATS_W, "Sats", header_color);
-        create_legend_cell(skyplot_container, LEGEND_COL_SNR_X, block_top, LEGEND_COL_SNR_W, "dB", header_color);
+        for (int32_t row = 0; row < LEGEND_ROWS; row++) {
+            legend_row_dsc[row] = LEGEND_ROW_HEIGHT;
+        }
+        legend_row_dsc[LEGEND_ROWS] = LV_GRID_TEMPLATE_LAST;
+
+        legend_grid = lv_obj_create(skyplot_container);
+        lv_obj_remove_style_all(legend_grid);
+        lv_obj_set_size(legend_grid, LEGEND_GRID_WIDTH, LEGEND_ROWS * LEGEND_ROW_HEIGHT);
+        // Bottom-anchored (not vertically centered) so the drift plot gets
+        // the whole top of the left strip as one free rectangle.
+        lv_obj_set_pos(legend_grid, LEGEND_MARGIN_X, height_px - (LEGEND_ROWS * LEGEND_ROW_HEIGHT) - LEGEND_BOTTOM_MARGIN);
+        lv_obj_set_layout(legend_grid, LV_LAYOUT_GRID);
+        lv_obj_set_style_grid_column_dsc_array(legend_grid, legend_col_dsc, LV_PART_MAIN);
+        lv_obj_set_style_grid_row_dsc_array(legend_grid, legend_row_dsc, LV_PART_MAIN);
+        lv_obj_remove_flag(legend_grid, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_remove_flag(legend_grid, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_update_layout(legend_grid);
+
+        const lv_color_t header_color = lv_color_make(150, 150, 150);
+        create_legend_cell(legend_grid, 0, 0, "Const.", header_color, LV_TEXT_ALIGN_LEFT, true, true);
+        create_legend_cell(legend_grid, 1, 0, "Sats", header_color, LV_TEXT_ALIGN_CENTER, true, true);
+        create_legend_cell(legend_grid, 2, 0, "dB", header_color, LV_TEXT_ALIGN_CENTER, false, true);
 
         for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
-            const int32_t row_y = block_top + ((constellation + 1) * LEGEND_ROW_HEIGHT);
+            const int32_t row = constellation + 1; // row 0 is the header
             const lv_color_t color = constellation_color(constellation);
 
             legend_name_label[constellation] = create_legend_cell(
-                skyplot_container, LEGEND_COL_NAME_X, row_y, LEGEND_COL_NAME_W, constellation_name(constellation), color);
+                legend_grid, 0, row, constellation_name(constellation), color, LV_TEXT_ALIGN_LEFT, true, false);
             legend_count_label[constellation] = create_legend_cell(
-                skyplot_container, LEGEND_COL_SATS_X, row_y, LEGEND_COL_SATS_W, "", color);
+                legend_grid, 1, row, "", color, LV_TEXT_ALIGN_CENTER, true, false);
             legend_snr_label[constellation] = create_legend_cell(
-                skyplot_container, LEGEND_COL_SNR_X, row_y, LEGEND_COL_SNR_W, "", color);
+                legend_grid, 2, row, "", color, LV_TEXT_ALIGN_CENTER, false, false);
         }
     }
 
@@ -439,6 +663,76 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
     lv_label_set_text(jam_warning_label, "GPS JAMMING DETECTED");
     lv_obj_update_layout(jam_warning_label);
     lv_obj_set_pos(jam_warning_label, SKYPLOT_CENTER_X - (lv_obj_get_width(jam_warning_label) / 2), 2);
+
+    // Position-drift scatter plot: 4 rings + meter labels, a green trace
+    // line, and a red current-position dot, in the top-left rectangle
+    // freed up by SKYPLOT_CIRCLE_X_SHIFT + the legend's bottom anchoring
+    // above. Geometry is fixed (DRIFT_PLOT_CENTER_X/Y/RADIUS_PX); only
+    // ring radii/labels and trace points change, via
+    // drift_plot_rescale_and_rebuild().
+    for (int32_t r = 0; r < DRIFT_RING_COUNT; r++) {
+        lv_obj_t * const ring = lv_obj_create(skyplot_container);
+        lv_obj_remove_style_all(ring);
+        lv_obj_set_style_radius(ring, LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_opa(ring, LV_OPA_0, 0);
+        lv_obj_set_style_border_width(ring, 1, 0);
+        lv_obj_set_style_border_color(ring, lv_color_make(70, 70, 70), 0);
+        lv_obj_remove_flag(ring, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
+        drift_ring[r] = ring;
+
+        lv_obj_t * const ring_label = lv_label_create(skyplot_container);
+        lv_obj_set_style_text_font(ring_label, &main_style.value_1.font, LV_PART_MAIN);
+        lv_obj_set_style_text_color(ring_label, lv_color_make(130, 130, 130), LV_PART_MAIN);
+        lv_obj_remove_flag(ring_label, LV_OBJ_FLAG_CLICKABLE);
+        drift_ring_label[r] = ring_label;
+    }
+
+    drift_trace_line = lv_line_create(skyplot_container);
+    lv_obj_add_flag(drift_trace_line, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_line_color(drift_trace_line, lv_color_make(40, 220, 60), 0); // green, per spec
+    lv_obj_set_style_line_width(drift_trace_line, 2, 0);
+    lv_obj_set_style_line_rounded(drift_trace_line, true, 0);
+
+    drift_current_dot = lv_obj_create(skyplot_container);
+    lv_obj_remove_style_all(drift_current_dot);
+    lv_obj_set_size(drift_current_dot, DRIFT_DOT_RADIUS * 2, DRIFT_DOT_RADIUS * 2);
+    lv_obj_set_style_radius(drift_current_dot, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(drift_current_dot, lv_color_make(230, 40, 40), 0); // red, per reference image
+    lv_obj_set_style_bg_opa(drift_current_dot, LV_OPA_COVER, 0);
+    lv_obj_remove_flag(drift_current_dot, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_flag(drift_current_dot, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(drift_current_dot, LV_OBJ_FLAG_HIDDEN);
+
+    // PDOP/HDOP/VDOP readout + Clear button, stacked below the drift circle.
+    drift_pdop_label = lv_label_create(skyplot_container);
+    lv_obj_set_style_text_font(drift_pdop_label, &main_style.value_1.font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(drift_pdop_label, lv_color_make(200, 200, 200), LV_PART_MAIN);
+    lv_obj_remove_flag(drift_pdop_label, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_pos(drift_pdop_label, 4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 6);
+
+    drift_hdop_label = lv_label_create(skyplot_container);
+    lv_obj_set_style_text_font(drift_hdop_label, &main_style.value_1.font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(drift_hdop_label, lv_color_make(200, 200, 200), LV_PART_MAIN);
+    lv_obj_remove_flag(drift_hdop_label, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_pos(drift_hdop_label, 4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 22);
+
+    drift_vdop_label = lv_label_create(skyplot_container);
+    lv_obj_set_style_text_font(drift_vdop_label, &main_style.value_1.font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(drift_vdop_label, lv_color_make(200, 200, 200), LV_PART_MAIN);
+    lv_obj_remove_flag(drift_vdop_label, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_pos(drift_vdop_label, 4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 38);
+
+    drift_clear_button = create_button(
+        skyplot_container,
+        70, 26,
+        LV_ALIGN_TOP_LEFT,
+        4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 60,
+        "Clear"
+    );
+    lv_obj_add_event_cb(drift_clear_button.button, drift_clear_click_cb, LV_EVENT_CLICKED, nullptr);
+
+    drift_plot_reset();
 
     for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
         for (int32_t slot = 0; slot < MAX_GSV_SATELLITES; slot++) {
@@ -582,5 +876,44 @@ void gnss_skyplot_update(void) {
     // satellite has since dropped out of view, this cleanly deselects it.
     if (current_target_constellation >= 0) {
         gnss_skyplot_set_target(current_target_constellation, current_target_slot);
+    }
+
+    // Position-drift scatter plot: accept a new sample once per unique
+    // GNGGA fix. degrees_latitude/longitude only change once per second
+    // (setSatIOCoordinates() runs from intervalBreach1Second(), gated on
+    // the wall-clock second rolling over), so comparing against the
+    // last-seen value is a sufficient, cadence-free "new fix" check.
+    {
+        const bool fix_valid = (strcmp(gnggaData.solution_status, "0") != 0);
+        const double lat = SatIOData.degrees_latitude;
+        const double lon = SatIOData.degrees_longitude;
+        const bool is_new_sample = fix_valid
+            && (!drift_last_valid || (lat != drift_last_lat) || (lon != drift_last_lon));
+
+        if (is_new_sample) {
+            drift_last_lat = lat;
+            drift_last_lon = lon;
+            drift_last_valid = true;
+
+            if (!drift_origin_set) {
+                drift_origin_lat = lat;
+                drift_origin_lon = lon;
+                drift_origin_set = true;
+            }
+
+            drift_points[drift_point_head] = drift_to_local_meters(lat, lon);
+            drift_point_head = (drift_point_head + 1) % DRIFT_MAX_POINTS;
+            if (drift_point_count < DRIFT_MAX_POINTS) { drift_point_count++; }
+
+            drift_plot_rescale_and_rebuild();
+        }
+
+        char dop_buf[64];
+        snprintf(dop_buf, sizeof(dop_buf), "PDOP %s", gngsaData.pdop);
+        set_label_text_if_changed(drift_pdop_label, dop_buf);
+        snprintf(dop_buf, sizeof(dop_buf), "HDOP %s", gngsaData.hdop);
+        set_label_text_if_changed(drift_hdop_label, dop_buf);
+        snprintf(dop_buf, sizeof(dop_buf), "VDOP %s", gngsaData.vdop);
+        set_label_text_if_changed(drift_vdop_label, dop_buf);
     }
 }

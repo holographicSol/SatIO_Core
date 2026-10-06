@@ -8,6 +8,13 @@
     Clicking a satellite shows an info box, mirroring the astro clock's
     target-box/data-box interaction (UnidentifiedStudios_AstroClock.cpp).
 
+    Also draws a small position-drift scatter plot (top-left of the same
+    container): GNGGA position relative to a fixed origin, converted to
+    local tangent-plane meters, as a green trace with auto-scaled
+    concentric rings, a red current-position dot, a Clear control, and a
+    PDOP/HDOP/VDOP text readout. Entirely internal to the .cpp -- no public
+    API of its own, it rides gnss_skyplot_begin()/update()/set_visible().
+
     Intended to be MISRA Compliant (untested, unverified, in-progress).
 */
 
