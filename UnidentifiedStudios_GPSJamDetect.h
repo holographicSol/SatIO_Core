@@ -21,6 +21,15 @@
 
 #include <stdbool.h>
 
+// A drop of this many dB-Hz below the learned baseline, sustained for
+// JAM_DEBOUNCE_SAMPLES consecutive updates, is flagged as jamming.
+static constexpr float JAM_SNR_DROP_THRESHOLD_DB = 8.0f;
+
+// A combined satellite count falling below this fraction of the baseline
+// count is an additional (OR'd) jamming indicator -- real jamming often
+// drops weaker satellites out of lock entirely, not just lowers their SNR.
+static constexpr float JAM_SATELLITE_COUNT_RATIO_THRESHOLD = 0.5f;
+
 /**
  * @struct GpsJamConstellationStats
  * Per-constellation SNR snapshot -- diagnostic only (see the design note in
