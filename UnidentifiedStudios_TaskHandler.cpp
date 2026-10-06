@@ -24,6 +24,7 @@
 #include "UnidentifiedStudios_StrVal.h"
 #include "UnidentifiedStudios_Meteors.h"
 #include "UnidentifiedStudios_WTGPS300P.h"
+#include "UnidentifiedStudios_GPSJamDetect.h"
 #include "UnidentifiedStudios_WT901.h"
 #include "UnidentifiedStudios_Multiplexers.h"
 #include "UnidentifiedStudios_SiderealHelper.h"
@@ -619,6 +620,12 @@ static void taskGPS(void *pvParameters) {
       if (readGPS() == true)
       {
         gps_read_done_uS = esp_timer_get_time();
+
+        // GSV is parsed inline within readGPS() itself (see the comment
+        // there), so it's already fresh here -- independent of whether
+        // GNGGA/GNRMC/GPATT below go on to validate this cycle.
+        updateGPSJamDetect();
+
         if (validateGPSData() == true)
         {
           xSemaphoreTake(dataMutex, portMAX_DELAY);

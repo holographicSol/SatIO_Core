@@ -23,6 +23,7 @@ idf_component_register(
         UnidentifiedStudios_GlobalLVGL.cpp
         UnidentifiedStudios_GnssSkyPlot.cpp
         UnidentifiedStudios_GPIOPortExpander.cpp
+        UnidentifiedStudios_GPSJamDetect.cpp
         UnidentifiedStudios_HexToDig.cpp
         UnidentifiedStudios_I2C.cpp
         UnidentifiedStudios_INS.cpp

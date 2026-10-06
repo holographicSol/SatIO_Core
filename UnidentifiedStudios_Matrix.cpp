@@ -30,6 +30,7 @@
 #include <Wire.h>
 #include <stdlib.h>
 #include "UnidentifiedStudios_WTGPS300P.h"
+#include "UnidentifiedStudios_GPSJamDetect.h"
 #include "UnidentifiedStudios_WT901.h"
 #include "UnidentifiedStudios_Multiplexers.h"
 #include "UnidentifiedStudios_Mapping.h"
@@ -150,6 +151,7 @@ struct MatrixStruct matrixData = {
     "GNGGA Bad CD",
     "GNRMC Bad CD",
     "GPATT Bad CD",
+    "GPS Jammed",
     "GNRMC Pos Stat A",
     "GNRMC Pos Stat V",
     "GNRMC Mode Ind A",
@@ -1096,6 +1098,11 @@ bool matrixSwitch(void) {
 
         case INDEX_MATRIX_SWITCH_FUNCTION_GPATT_BAD_CD:
           tmp_x = (double)gpattData.total_bad_elements;
+          handle_digit = true;
+          break;
+
+        case INDEX_MATRIX_SWITCH_FUNCTION_GPS_JAMMED:
+          tmp_x = (double)gpsJamData.jammed;
           handle_digit = true;
           break;
         #endif // SatIO_USE_GPS_0
@@ -3364,6 +3371,10 @@ void get_matrix_function_comparitor(int32_t index_matrix_value_comparitor, char 
 
     case INDEX_MATRIX_SWITCH_FUNCTION_GPATT_BAD_CD:
       snprintf(out, out_size, "%.10g", (double)gpattData.total_bad_elements);
+      break;
+
+    case INDEX_MATRIX_SWITCH_FUNCTION_GPS_JAMMED:
+      snprintf(out, out_size, "%.10g", (double)gpsJamData.jammed);
       break;
     #endif // SatIO_USE_GPS_0
 

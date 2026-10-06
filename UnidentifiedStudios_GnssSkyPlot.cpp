@@ -14,6 +14,7 @@
 #include "UnidentifiedStudios_GnssSkyPlot.h"
 #include "UnidentifiedStudios_GlobalLVGL.h"
 #include "UnidentifiedStudios_WTGPS300P.h"
+#include "UnidentifiedStudios_GPSJamDetect.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -42,6 +43,11 @@ static lv_obj_t * skyplot_container     = nullptr;
 static lv_obj_t * target_data_box       = nullptr;
 static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
+
+// Jam-detect visualization: the outermost (0 degree elevation) ring is
+// highlighted, and a text warning shown, when gpsJamData.jammed is true.
+static lv_obj_t * horizon_ring     = nullptr;
+static lv_obj_t * jam_warning_label = nullptr;
 
 static gnss_marker_t markers[GNSS_SKYPLOT_MARKER_COUNT];
 static lv_obj_t * legend_label[GNSS_SKYPLOT_CONSTELLATION_COUNT] = { nullptr, nullptr, nullptr, nullptr };
@@ -337,6 +343,10 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         lv_obj_set_style_border_color(ring, lv_color_make(80, 80, 80), 0);
         lv_obj_remove_flag(ring, LV_OBJ_FLAG_SCROLLABLE);
         lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
+
+        if (elevation_deg == 0) {
+            horizon_ring = ring; // gnss_skyplot_update() highlights this one when jammed
+        }
     }
 
     // Azimuth labels, standing off outside the horizon ring, every
@@ -379,6 +389,20 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         const int32_t block_top = SKYPLOT_CENTER_Y - ((GNSS_SKYPLOT_CONSTELLATION_COUNT * LEGEND_ROW_HEIGHT) / 2);
         lv_obj_set_pos(legend_label[constellation], 6, block_top + (constellation * LEGEND_ROW_HEIGHT));
     }
+
+    // Jam warning, hidden until gnss_skyplot_update() sees gpsJamData.jammed
+    // -- centered over the plot circle, text filled in per-refresh with the
+    // live SNR drop so this doubles as a readout of the detector itself,
+    // not just a yes/no flag.
+    jam_warning_label = lv_label_create(skyplot_container);
+    lv_obj_set_style_text_font(jam_warning_label, &main_style.astroclock.font_1, LV_PART_MAIN);
+    lv_obj_set_style_text_color(jam_warning_label, lv_color_make(255, 40, 40), LV_PART_MAIN);
+    lv_obj_set_style_text_align(jam_warning_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_remove_flag(jam_warning_label, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(jam_warning_label, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_text(jam_warning_label, "GPS JAMMING DETECTED");
+    lv_obj_update_layout(jam_warning_label);
+    lv_obj_set_pos(jam_warning_label, SKYPLOT_CENTER_X - (lv_obj_get_width(jam_warning_label) / 2), 2);
 
     for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
         for (int32_t slot = 0; slot < MAX_GSV_SATELLITES; slot++) {
@@ -483,6 +507,30 @@ void gnss_skyplot_update(void) {
         char legend_buf[32];
         snprintf(legend_buf, sizeof(legend_buf), "%s: %d", constellation_name(constellation), static_cast<int>(visible_count));
         set_label_text_if_changed(legend_label[constellation], legend_buf);
+    }
+
+    // Jam-detect visualization: highlight the horizon ring and show the
+    // warning readout while gpsJamData.jammed is true, matching the
+    // GpsJamDetect library's own global (not per-constellation) verdict.
+    if (gpsJamData.jammed == true) {
+        if (horizon_ring != nullptr) {
+            lv_obj_set_style_border_width(horizon_ring, 3, 0);
+            lv_obj_set_style_border_color(horizon_ring, lv_color_make(255, 40, 40), 0);
+        }
+        if (jam_warning_label != nullptr) {
+            char jam_buf[48];
+            snprintf(jam_buf, sizeof(jam_buf), "GPS JAMMING DETECTED\nSNR drop: %.1f dB", static_cast<double>(gpsJamData.snr_drop_db));
+            set_label_text_if_changed(jam_warning_label, jam_buf);
+            lv_obj_remove_flag(jam_warning_label, LV_OBJ_FLAG_HIDDEN);
+        }
+    } else {
+        if (horizon_ring != nullptr) {
+            lv_obj_set_style_border_width(horizon_ring, 1, 0);
+            lv_obj_set_style_border_color(horizon_ring, lv_color_make(80, 80, 80), 0);
+        }
+        if (jam_warning_label != nullptr) {
+            lv_obj_add_flag(jam_warning_label, LV_OBJ_FLAG_HIDDEN);
+        }
     }
 
     // Keep a live selection's info box tracking its (slowly drifting)
