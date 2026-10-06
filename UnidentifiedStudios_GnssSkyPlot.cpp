@@ -875,9 +875,11 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
 
     drift_clear_button = create_button(
         drift_track_container,
-        DOP_GRID_WIDTH-20, DRIFT_CLEAR_BUTTON_H,
-        LV_ALIGN_TOP_MID,
-        0, DRIFT_CLEAR_BUTTON_Y,
+        DOP_GRID_WIDTH-20,
+        DRIFT_CLEAR_BUTTON_H,
+        LV_ALIGN_TOP_LEFT,
+        10,
+        DRIFT_CLEAR_BUTTON_Y,
         "Clear"
     );
     lv_obj_add_event_cb(drift_clear_button.button, drift_clear_click_cb, LV_EVENT_CLICKED, nullptr);
