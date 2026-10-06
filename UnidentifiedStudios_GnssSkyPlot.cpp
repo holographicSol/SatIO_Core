@@ -44,6 +44,7 @@ static lv_obj_t * target_connector_line = nullptr;
 static lv_point_precise_t connector_points[2];
 
 static gnss_marker_t markers[GNSS_SKYPLOT_MARKER_COUNT];
+static lv_obj_t * legend_label[GNSS_SKYPLOT_CONSTELLATION_COUNT] = { nullptr, nullptr, nullptr, nullptr };
 
 static int32_t SKYPLOT_WIDTH   = 0;
 static int32_t SKYPLOT_HEIGHT  = 0;
@@ -52,6 +53,23 @@ static int32_t SKYPLOT_CENTER_Y = 0;
 static int32_t SKYPLOT_MAX_RADIUS = 0;
 static constexpr int32_t MARKER_RADIUS   = 6;
 static constexpr int32_t DATA_BOX_MARGIN = 10;
+
+// Reserved strip on the left for the constellation color key, so the plot
+// circle doesn't need to compete with it for space.
+static constexpr int32_t LEGEND_WIDTH      = 90;
+static constexpr int32_t LEGEND_ROW_HEIGHT = 20;
+
+// Room reserved outside the outer (0 degree) ring for the azimuth labels.
+static constexpr int32_t AXIS_MARGIN = 20;
+
+// Concentric altitude rings every N degrees. 90 (zenith) is the center
+// point itself and needs no ring; the outermost ring this produces (at 0
+// degrees) is the plot's horizon boundary.
+static constexpr int32_t RING_STEP_DEG = 30;
+
+// Azimuth labels every N degrees, standing off outside the horizon ring.
+static constexpr int32_t AZIMUTH_LABEL_STEP_DEG = 30;
+static constexpr int32_t AZIMUTH_LABEL_STANDOFF = 10;
 
 static const lv_color_t COLOR_GPS     = lv_color_make(60, 140, 255); // blue
 static const lv_color_t COLOR_GLONASS = lv_color_make(230, 60, 60);  // red
@@ -279,9 +297,17 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
 
     SKYPLOT_WIDTH = width_px;
     SKYPLOT_HEIGHT = height_px;
-    SKYPLOT_CENTER_X = width_px / 2;
+
+    // The legend strip is reserved on the left, so the circle's center is
+    // offset into the remaining area rather than the container's own
+    // center -- every plot element (rings, markers, axis labels) must be
+    // positioned from SKYPLOT_CENTER_X/Y via lv_obj_set_pos(), never via
+    // lv_obj_align(..., LV_ALIGN_CENTER, 0, 0), which would re-center on
+    // the container instead and desync from the legend-aware center.
+    const int32_t plot_area_width = width_px - LEGEND_WIDTH;
+    SKYPLOT_CENTER_X = LEGEND_WIDTH + (plot_area_width / 2);
     SKYPLOT_CENTER_Y = height_px / 2;
-    SKYPLOT_MAX_RADIUS = (((width_px < height_px) ? width_px : height_px) / 2) - (MARKER_RADIUS * 2);
+    SKYPLOT_MAX_RADIUS = (((plot_area_width < height_px) ? plot_area_width : height_px) / 2) - AXIS_MARGIN;
 
     skyplot_container = lv_obj_create(parent);
     lv_obj_remove_style_all(skyplot_container);
@@ -294,17 +320,65 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
     lv_obj_remove_flag(skyplot_container, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(skyplot_container, LV_OBJ_FLAG_HIDDEN);
 
-    // Horizon ring, purely decorative (the plot's usable radius boundary).
-    lv_obj_t * const horizon = lv_obj_create(skyplot_container);
-    lv_obj_remove_style_all(horizon);
-    lv_obj_set_size(horizon, SKYPLOT_MAX_RADIUS * 2, SKYPLOT_MAX_RADIUS * 2);
-    lv_obj_align(horizon, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_radius(horizon, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_opa(horizon, LV_OPA_0, 0);
-    lv_obj_set_style_border_width(horizon, 1, 0);
-    lv_obj_set_style_border_color(horizon, lv_color_make(80, 80, 80), 0);
-    lv_obj_remove_flag(horizon, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_remove_flag(horizon, LV_OBJ_FLAG_CLICKABLE);
+    // Concentric altitude rings, purely decorative -- every RING_STEP_DEG
+    // degrees of elevation, from the horizon (0 degrees, the outermost
+    // ring) up to (but not including) the zenith (90 degrees, the center
+    // point itself, which needs no ring).
+    for (int32_t elevation_deg = 0; elevation_deg < 90; elevation_deg += RING_STEP_DEG) {
+        const int32_t ring_radius = (SKYPLOT_MAX_RADIUS * (90 - elevation_deg)) / 90;
+
+        lv_obj_t * const ring = lv_obj_create(skyplot_container);
+        lv_obj_remove_style_all(ring);
+        lv_obj_set_size(ring, ring_radius * 2, ring_radius * 2);
+        lv_obj_set_pos(ring, SKYPLOT_CENTER_X - ring_radius, SKYPLOT_CENTER_Y - ring_radius);
+        lv_obj_set_style_radius(ring, LV_RADIUS_CIRCLE, 0);
+        lv_obj_set_style_bg_opa(ring, LV_OPA_0, 0);
+        lv_obj_set_style_border_width(ring, 1, 0);
+        lv_obj_set_style_border_color(ring, lv_color_make(80, 80, 80), 0);
+        lv_obj_remove_flag(ring, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_remove_flag(ring, LV_OBJ_FLAG_CLICKABLE);
+    }
+
+    // Azimuth labels, standing off outside the horizon ring, every
+    // AZIMUTH_LABEL_STEP_DEG degrees (0=up/north, clockwise, matching the
+    // marker position convention in gnss_skyplot_update()).
+    for (int32_t az = 0; az < 360; az += AZIMUTH_LABEL_STEP_DEG) {
+        char az_buf[8];
+        snprintf(az_buf, sizeof(az_buf), "%d", static_cast<int>(az));
+
+        lv_obj_t * const az_label = lv_label_create(skyplot_container);
+        lv_obj_set_style_text_font(az_label, &main_style.value_1.font, LV_PART_MAIN);
+        lv_obj_set_style_text_color(az_label, lv_color_make(150, 150, 150), LV_PART_MAIN);
+        lv_obj_remove_flag(az_label, LV_OBJ_FLAG_CLICKABLE);
+        lv_label_set_text(az_label, az_buf);
+        lv_obj_update_layout(az_label);
+
+        const int32_t label_radius = SKYPLOT_MAX_RADIUS + AZIMUTH_LABEL_STANDOFF;
+        const float rad = deg2rad(static_cast<float>(az));
+        const int32_t label_x = SKYPLOT_CENTER_X
+            + static_cast<int32_t>(static_cast<float>(label_radius) * sinf(rad))
+            - (lv_obj_get_width(az_label) / 2);
+        const int32_t label_y = SKYPLOT_CENTER_Y
+            - static_cast<int32_t>(static_cast<float>(label_radius) * cosf(rad))
+            - (lv_obj_get_height(az_label) / 2);
+
+        lv_obj_set_pos(az_label, label_x, label_y);
+    }
+
+    // Constellation color key, down the left legend strip, vertically
+    // centered as a block. Each row's text color doubles as its color
+    // swatch; the count after the name is filled in every refresh by
+    // gnss_skyplot_update(), once satellite data actually exists.
+    for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
+        legend_label[constellation] = lv_label_create(skyplot_container);
+        lv_obj_set_style_text_font(legend_label[constellation], &main_style.value_1.font, LV_PART_MAIN);
+        lv_obj_set_style_text_color(legend_label[constellation], constellation_color(constellation), LV_PART_MAIN);
+        lv_obj_remove_flag(legend_label[constellation], LV_OBJ_FLAG_CLICKABLE);
+        lv_label_set_text(legend_label[constellation], constellation_name(constellation));
+
+        const int32_t block_top = SKYPLOT_CENTER_Y - ((GNSS_SKYPLOT_CONSTELLATION_COUNT * LEGEND_ROW_HEIGHT) / 2);
+        lv_obj_set_pos(legend_label[constellation], 6, block_top + (constellation * LEGEND_ROW_HEIGHT));
+    }
 
     for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
         for (int32_t slot = 0; slot < MAX_GSV_SATELLITES; slot++) {
@@ -391,6 +465,24 @@ void gnss_skyplot_update(void) {
 
         lv_obj_set_pos(markers[i].dot, markers[i].x, markers[i].y);
         lv_obj_remove_flag(markers[i].dot, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    // Constellation color key: refresh each row's visible-satellite count.
+    for (int32_t constellation = 0; constellation < GNSS_SKYPLOT_CONSTELLATION_COUNT; constellation++) {
+        const GSVStruct * const data = constellation_data(constellation);
+        int32_t visible_count = 0;
+
+        if (data != nullptr) {
+            for (int32_t slot = 0; slot < MAX_GSV_SATELLITES; slot++) {
+                if (data->sat_valid[slot] == true) {
+                    visible_count++;
+                }
+            }
+        }
+
+        char legend_buf[32];
+        snprintf(legend_buf, sizeof(legend_buf), "%s: %d", constellation_name(constellation), static_cast<int>(visible_count));
+        set_label_text_if_changed(legend_label[constellation], legend_buf);
     }
 
     // Keep a live selection's info box tracking its (slowly drifting)
