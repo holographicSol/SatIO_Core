@@ -94,6 +94,16 @@ struct systemStruct {
   bool output_gngga_enabled;
   bool output_gnrmc_enabled;
   bool output_gpatt_enabled;
+  bool output_gngsa_enabled;
+  bool output_gpgsv_enabled;
+  bool output_glgsv_enabled;
+  bool output_gagsv_enabled;
+  bool output_gbgsv_enabled;
+  // One-shot pulse: true for exactly one output cycle after a GSV/GSA
+  // sentence set is freshly parsed, then cleared by outputSerialGSV() --
+  // mirrors counters_gps.flag_c, but kept separate since that flag is
+  // already consumed/reset by outputSerialGPS() every GPS cycle.
+  bool output_gsv_flag_c;
   bool output_ins_enabled;
   bool output_matrix_enabled;
   bool output_input_portcontroller;

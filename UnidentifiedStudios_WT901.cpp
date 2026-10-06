@@ -325,7 +325,6 @@ bool readGyro(void)
 
         if (updated == true) {
 
-        // vTaskDelay(1);
         // ----------------------------------------------------------------------------------------------------
 
         // Kalman-filter roll/pitch/yaw jointly -- see GyroData for why this
@@ -438,8 +437,6 @@ bool readGyro(void)
         gyroData.gyro_0_quaternion.vy = (float)vy;
         gyroData.gyro_0_quaternion.vz = (float)vz;
 
-        // vTaskDelay(1);
-
         // ------------------------------------------------
         // Gyro Ra/Dec Alt/Az
         // ------------------------------------------------
@@ -530,8 +527,6 @@ bool readGyro(void)
         // leave sidereal_attitude_gyro_0.alt/.az as the raw value from
         // getSiderealAttitude() above; there's nothing filtered to show yet.
 
-        // vTaskDelay(1);
-
         // --- RA/Dec --- (ra converted to/from degrees so it shares az's
         // wrap period and noise tuning; see HOURS_TO_DEG/DEG_TO_HOURS)
         const float radec_raw[2] = {
@@ -599,7 +594,6 @@ bool readGyro(void)
 
         }
 
-        // vTaskDelay(1);
     }
     return updated; /* Rule 15.5: single point of exit */
 }

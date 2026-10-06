@@ -22,13 +22,23 @@
 #define MAX_GNGGA_ELEMENTS 16
 #define MAX_GNRMC_ELEMENTS 14
 #define MAX_GPATT_ELEMENTS 41
+#define MAX_GNGSA_ELEMENTS 19
+// A GSV talker's satellites are reported across up to several messages
+// (4 satellite groups per message) -- this is the max satellites tracked
+// per constellation across a full accumulated sequence, not per message.
+// Largest real sequence seen so far is 16 (BeiDou, 4 messages x 4); this
+// leaves headroom above that.
+#define MAX_GSV_SATELLITES 20
+// One raw-sentence slot per message in a GSV sequence, so outputSerialGSV()
+// can re-emit every message received, not just the last one captured.
+#define MAX_GSV_MESSAGES 5
 
 /**
  * @struct Serial1DataStruct
  * Working state for reading raw lines from Serial1. Only readGPS() persists
- * state across calls here (gngga_bool/gnrmc_bool/gpatt_bool track which
- * sentences have been collected for the current cycle); all other parsing
- * state is local to the function that needs it.
+ * state across calls here (the *_bool flags track which sentences have been
+ * collected for the current cycle); all other parsing state is local to the
+ * function that needs it.
  */
 struct Serial1DataStruct {
     unsigned long nbytes;                       // Number of bytes read by the last serial read
@@ -36,6 +46,11 @@ struct Serial1DataStruct {
     bool gngga_bool;                             // GNGGA sentence collected this cycle
     bool gnrmc_bool;                             // GNRMC sentence collected this cycle
     bool gpatt_bool;                             // GPATT sentence collected this cycle
+    bool gngsa_bool;                             // GNGSA sentence collected this cycle
+    bool gpgsv_bool;                             // GPGSV sentence collected this cycle
+    bool glgsv_bool;                             // GLGSV sentence collected this cycle
+    bool gagsv_bool;                             // GAGSV sentence collected this cycle
+    bool gbgsv_bool;                             // GBGSV sentence collected this cycle
 };
 extern struct Serial1DataStruct serial1Data;
 
@@ -155,6 +170,84 @@ struct GPATTStruct {
     int total_bad_elements;                              // Total bad elements
 };
 extern struct GPATTStruct gpattData;
+
+/**
+ * @struct GNGSAStruct
+ */
+struct GNGSAStruct {
+    char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
+    char outsentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
+    char tag[MAX_GLOBAL_ELEMENT_SIZE];             // <0> Log header
+    char mode_selection[MAX_GLOBAL_ELEMENT_SIZE];  // <1> M=manual, A=automatic
+    char mode_fix_type[MAX_GLOBAL_ELEMENT_SIZE];   // <2> 1=no fix, 2=2D, 3=3D
+    char satellite_id_0[MAX_GLOBAL_ELEMENT_SIZE];  // <3> Satellite ID used in solution
+    char satellite_id_1[MAX_GLOBAL_ELEMENT_SIZE];  // <4> Satellite ID used in solution
+    char satellite_id_2[MAX_GLOBAL_ELEMENT_SIZE];  // <5> Satellite ID used in solution
+    char satellite_id_3[MAX_GLOBAL_ELEMENT_SIZE];  // <6> Satellite ID used in solution
+    char satellite_id_4[MAX_GLOBAL_ELEMENT_SIZE];  // <7> Satellite ID used in solution
+    char satellite_id_5[MAX_GLOBAL_ELEMENT_SIZE];  // <8> Satellite ID used in solution
+    char satellite_id_6[MAX_GLOBAL_ELEMENT_SIZE];  // <9> Satellite ID used in solution
+    char satellite_id_7[MAX_GLOBAL_ELEMENT_SIZE];  // <10> Satellite ID used in solution
+    char satellite_id_8[MAX_GLOBAL_ELEMENT_SIZE];  // <11> Satellite ID used in solution
+    char satellite_id_9[MAX_GLOBAL_ELEMENT_SIZE];  // <12> Satellite ID used in solution
+    char satellite_id_10[MAX_GLOBAL_ELEMENT_SIZE]; // <13> Satellite ID used in solution
+    char satellite_id_11[MAX_GLOBAL_ELEMENT_SIZE]; // <14> Satellite ID used in solution
+    char pdop[MAX_GLOBAL_ELEMENT_SIZE];            // <15> Position dilution of precision
+    char hdop[MAX_GLOBAL_ELEMENT_SIZE];            // <16> Horizontal dilution of precision
+    char vdop[MAX_GLOBAL_ELEMENT_SIZE];            // <17> Vertical dilution of precision
+    char check_sum[MAX_GLOBAL_ELEMENT_SIZE];       // <18> XOR checksum
+    unsigned long max_bad;                                // Max bad element count
+    bool bad_element_bool[MAX_GNGSA_ELEMENTS];            // Bad element flags
+    unsigned long bad_element_count[MAX_GNGSA_ELEMENTS];  // Bad element counters
+    char element_name[MAX_GNGSA_ELEMENTS][MAX_GLOBAL_ELEMENT_SIZE]; // Field names
+    bool valid_checksum;                                  // Checksum validity
+    int total_bad_elements;                               // Total bad elements
+};
+extern struct GNGSAStruct gngsaData;
+
+/**
+ * @struct GSVStruct
+ * Shared layout for the GPGSV/GLGSV/GAGSV/GBGSV satellites-in-view
+ * sentences — only the talker ID differs between constellations, so one
+ * instance of this struct is kept per constellation (gpgsvData, glgsvData,
+ * gagsvData, gbgsvData).
+ *
+ * A talker's satellites arrive spread across up to several GSV messages
+ * (4 satellite groups per message, up to total_messages of them per
+ * sequence) -- sat_id/sat_elevation/sat_azimuth/sat_snr accumulate every
+ * message of the current sequence into one flat array, indexed by
+ * absolute satellite slot ((message_number-1)*4 + group-within-message),
+ * rather than holding only the most recently parsed message's 4 satellites.
+ * raw_message/raw_message_valid similarly keep every message's raw NMEA
+ * text (indexed by message_number-1) so outputSerialGSV() can re-emit the
+ * whole sequence, not just whichever message .sentence/.outsentence last
+ * held.
+ */
+struct GSVStruct {
+    char sentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
+    char outsentence[MAX_GLOBAL_SERIAL_BUFFER_SIZE];
+    char tag[MAX_GLOBAL_ELEMENT_SIZE];                // Log header
+    char total_messages[MAX_GLOBAL_ELEMENT_SIZE];     // Total number of GSV messages in this sequence
+    char message_number[MAX_GLOBAL_ELEMENT_SIZE];     // Sequence number of the most recently parsed message
+    char satellites_in_view[MAX_GLOBAL_ELEMENT_SIZE]; // Total satellites in view
+    char sat_id[MAX_GSV_SATELLITES][MAX_GLOBAL_ELEMENT_SIZE];        // Satellite ID per slot
+    char sat_elevation[MAX_GSV_SATELLITES][MAX_GLOBAL_ELEMENT_SIZE]; // Elevation per slot, degrees
+    char sat_azimuth[MAX_GSV_SATELLITES][MAX_GLOBAL_ELEMENT_SIZE];   // Azimuth per slot, degrees
+    char sat_snr[MAX_GSV_SATELLITES][MAX_GLOBAL_ELEMENT_SIZE];       // Signal to noise ratio per slot, dB
+    bool sat_valid[MAX_GSV_SATELLITES]; // True if this slot holds a satellite from the current sequence
+    char raw_message[MAX_GSV_MESSAGES][MAX_GLOBAL_SERIAL_BUFFER_SIZE]; // Raw NMEA text, per message_number-1
+    bool raw_message_valid[MAX_GSV_MESSAGES]; // True if this message slot was captured this sequence
+    char check_sum[MAX_GLOBAL_ELEMENT_SIZE];               // XOR checksum
+    unsigned long max_bad;                                 // Max bad count before a slot's counter wraps
+    bool bad_sat_bool[MAX_GSV_SATELLITES];                 // Per-slot bad flags
+    unsigned long bad_sat_count[MAX_GSV_SATELLITES];       // Per-slot bad counters
+    bool valid_checksum;                                   // Checksum validity of the most recently parsed message
+    int total_bad_elements;                                // Total bad satellite slots this sequence
+};
+extern struct GSVStruct gpgsvData;
+extern struct GSVStruct glgsvData;
+extern struct GSVStruct gagsvData;
+extern struct GSVStruct gbgsvData;
 
 // internal
 /**
@@ -507,6 +600,42 @@ bool val_checksum(const char *data);
  */
 bool val_element_size(const char *data);
 
+/**
+ * Validates the GSA mode selection (M=manual, A=automatic) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the mode selection is valid
+ */
+bool val_mode_selection_gsa(const char *data);
+
+/**
+ * Validates the GSA fix type (1=no fix, 2=2D, 3=3D) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the fix type is valid
+ */
+bool val_mode_fix_type_gsa(const char *data);
+
+/**
+ * Validates a GSA satellite ID slot in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the satellite ID is valid
+ */
+bool val_satellite_id_gsa(const char *data);
+
+/**
+ * Validates a GSA dilution-of-precision field (PDOP/HDOP/VDOP) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the DOP value is valid
+ */
+bool val_dop_gsa(const char *data);
+
+/**
+ * Validates a GSV numeric field (message/satellite counts, elevation,
+ * azimuth, SNR) in the provided data string.
+ * @param data Pointer to the string to validate
+ * @return True if the field is valid
+ */
+bool val_gsv_numeric_field(const char *data);
+
 // external
 /**
  * Processes and parses a GNGGA NMEA sentence from the serial buffer.
@@ -522,6 +651,31 @@ void GNRMC(void);
  * Processes and parses a GPATT proprietary sentence from the serial buffer.
  */
 void GPATT(void);
+
+/**
+ * Processes and parses a GNGSA NMEA sentence from the serial buffer.
+ */
+void GNGSA(void);
+
+/**
+ * Processes and parses a GPGSV NMEA sentence from the serial buffer.
+ */
+void GPGSV(void);
+
+/**
+ * Processes and parses a GLGSV NMEA sentence from the serial buffer.
+ */
+void GLGSV(void);
+
+/**
+ * Processes and parses a GAGSV NMEA sentence from the serial buffer.
+ */
+void GAGSV(void);
+
+/**
+ * Processes and parses a GBGSV NMEA sentence from the serial buffer.
+ */
+void GBGSV(void);
 
 /**
  * Reads GPS data from the serial port into the buffer and identifies sentences.

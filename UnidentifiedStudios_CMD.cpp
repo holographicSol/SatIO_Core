@@ -727,6 +727,11 @@ void setAllSentenceOutput(bool enable) {
   systemData.output_gngga_enabled=enable;
   systemData.output_gnrmc_enabled=enable;
   systemData.output_gpatt_enabled=enable;
+  systemData.output_gngsa_enabled=enable;
+  systemData.output_gpgsv_enabled=enable;
+  systemData.output_glgsv_enabled=enable;
+  systemData.output_gagsv_enabled=enable;
+  systemData.output_gbgsv_enabled=enable;
   systemData.output_matrix_enabled=enable;
   systemData.output_input_portcontroller=enable;
   systemData.output_admplex0_enabled=enable;
@@ -1267,6 +1272,11 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "gngga") == true) {systemData.output_gngga_enabled=enable; printf("setting gngga output enabled: %d\n", systemData.output_gngga_enabled);}
           if (argparser_has_flag(&parser, "gnrmc") == true) {systemData.output_gnrmc_enabled=enable; printf("setting gnrmc output enabled: %d\n", systemData.output_gnrmc_enabled);}
           if (argparser_has_flag(&parser, "gpatt") == true) {systemData.output_gpatt_enabled=enable; printf("setting gpatt output enabled: %d\n", systemData.output_gpatt_enabled);}
+          if (argparser_has_flag(&parser, "gngsa") == true) {systemData.output_gngsa_enabled=enable; printf("setting gngsa output enabled: %d\n", systemData.output_gngsa_enabled);}
+          if (argparser_has_flag(&parser, "gpgsv") == true) {systemData.output_gpgsv_enabled=enable; printf("setting gpgsv output enabled: %d\n", systemData.output_gpgsv_enabled);}
+          if (argparser_has_flag(&parser, "glgsv") == true) {systemData.output_glgsv_enabled=enable; printf("setting glgsv output enabled: %d\n", systemData.output_glgsv_enabled);}
+          if (argparser_has_flag(&parser, "gagsv") == true) {systemData.output_gagsv_enabled=enable; printf("setting gagsv output enabled: %d\n", systemData.output_gagsv_enabled);}
+          if (argparser_has_flag(&parser, "gbgsv") == true) {systemData.output_gbgsv_enabled=enable; printf("setting gbgsv output enabled: %d\n", systemData.output_gbgsv_enabled);}
           if (argparser_has_flag(&parser, "matrix") == true)
             {
               systemData.output_matrix_enabled=enable;
@@ -1828,12 +1838,34 @@ void outputSerialGPS(void) {
   }
 }
 
+/*
+ * Re-emits every message of a GSV constellation's current sequence
+ * (outsentence alone only ever holds the single most recently parsed
+ * message), skipping any message slot not yet captured this sequence.
+ */
+static void printGsvRawMessages(const GSVStruct* data) {
+  for (int i = 0; i < MAX_GSV_MESSAGES; i++) {
+    if (data->raw_message_valid[i] == true) {printf("%s\n", data->raw_message[i]);}
+  }
+}
+
+void outputSerialGSV(void) {
+  if (systemData.output_gsv_flag_c == true) {
+    systemData.output_gsv_flag_c = false;
+    if (systemData.output_gngsa_enabled == true) {printf("%s\n", gngsaData.outsentence);}
+    if (systemData.output_gpgsv_enabled == true) {printGsvRawMessages(&gpgsvData);}
+    if (systemData.output_glgsv_enabled == true) {printGsvRawMessages(&glgsvData);}
+    if (systemData.output_gagsv_enabled == true) {printGsvRawMessages(&gagsvData);}
+    if (systemData.output_gbgsv_enabled == true) {printGsvRawMessages(&gbgsvData);}
+  }
+}
+
 void outputSerialSatIO(void) {
   if (systemData.output_satio_enabled == true) {
     char checksum[MAX_GLOBAL_CHECKSUM_SIZE];
 
     memset(TXBUF_GPS, 0, sizeof(TXBUF_GPS));
-    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), "$SatIO,");
+    serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), "$SATIO,");
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(systemData.uptime_seconds) + ",").c_str());
 
     serial0_buffer_append(TXBUF_GPS, sizeof(TXBUF_GPS), (String(SatIOData.systemTime.padded_time_HHMMSS) + ",").c_str());
@@ -3743,6 +3775,21 @@ static void printStatChannelHzTable(const char* label, const SystemConuters* cou
     }
 }
 
+/*
+ * Prints one line per currently-tracked satellite in a GSVStruct (skipping
+ * invalid slots), since the satellite count varies per constellation --
+ * unlike the fixed-column tables above, this doesn't fit a grid.
+ */
+static void printGsvSatelliteRows(const char* label, const GSVStruct* data) {
+    for (int i = 0; i < MAX_GSV_SATELLITES; i++) {
+        if (data->sat_valid[i] == true) {
+            printf("%-10s[%2d] ID:%-4s EL:%-4s AZ:%-5s SNR:%-4s\n",
+                   label, i, data->sat_id[i], data->sat_elevation[i],
+                   data->sat_azimuth[i], data->sat_snr[i]);
+        }
+    }
+}
+
 void outputStat(void) {
 
   if (systemData.output_stat_datetime == true) {
@@ -3823,8 +3870,40 @@ void outputStat(void) {
     // ----------------------------------------------------------------------------------------------------------------------------
     //                                                                                                    PRINT POSITION / TARGET
     // ----------------------------------------------------------------------------------------------------------------------------
+    // stat -e -t --position
+    // stat -d -t --position
+
     printStatSeparator();
     printf(STAT_LABEL_FMT "%s\n", "Satellites", gnggaData.satellite_count);
+    printf(STAT_LABEL_FMT "%s  PDOP:%s  HDOP:%s  VDOP:%s\n", "Fix Type",
+           gngsaData.mode_fix_type, gngsaData.pdop, gngsaData.hdop, gngsaData.vdop);
+
+    // gsv
+    {
+        struct StatGsvSource { const char* label; const char* in_view; };
+        const StatGsvSource sources[] = {
+            {"GPS",     gpgsvData.satellites_in_view},
+            {"GLONASS", glgsvData.satellites_in_view},
+            {"Galileo", gagsvData.satellites_in_view},
+            {"BeiDou",  gbgsvData.satellites_in_view},
+        };
+        const int numSources = sizeof(sources) / sizeof(sources[0]);
+
+        printStatSeparator();
+        printf(STAT_LABEL_BLANK_FMT, "");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_S, sources[i].label);}
+        printf("\n");
+        printStatSeparator();
+        printf(STAT_LABEL_FMT, "In View");
+        for (int i = 0; i < numSources; i++) {printf(STAT_WIDE_COL_FORMAT_S, sources[i].in_view);}
+        printf("\n");
+        printStatSeparator();
+        printGsvSatelliteRows("GPS", &gpgsvData);
+        printGsvSatelliteRows("GLONASS", &glgsvData);
+        printGsvSatelliteRows("Galileo", &gagsvData);
+        printGsvSatelliteRows("BeiDou", &gbgsvData);
+    }
+
     // location
     {
         struct StatPosSource { const char* label; double lat; double lon; double heading; double altitude; double speed; };

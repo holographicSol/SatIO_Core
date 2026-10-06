@@ -1751,6 +1751,11 @@ void sw_output_event_cb(lv_event_t * e)
             systemData.output_gngga_enabled=is_enabled;
             systemData.output_gnrmc_enabled=is_enabled;
             systemData.output_gpatt_enabled=is_enabled;
+            systemData.output_gngsa_enabled=is_enabled;
+            systemData.output_gpgsv_enabled=is_enabled;
+            systemData.output_glgsv_enabled=is_enabled;
+            systemData.output_gagsv_enabled=is_enabled;
+            systemData.output_gbgsv_enabled=is_enabled;
             systemData.output_matrix_enabled=is_enabled;
             systemData.output_input_portcontroller=is_enabled;
             systemData.output_admplex0_enabled=is_enabled;
@@ -1783,6 +1788,26 @@ void sw_output_event_cb(lv_event_t * e)
 
         else if (sw == serial_c.sw_output_gpatt) {
             systemData.output_gpatt_enabled = is_enabled;
+            }
+
+        else if (sw == serial_c.sw_output_gngsa) {
+            systemData.output_gngsa_enabled = is_enabled;
+            }
+
+        else if (sw == serial_c.sw_output_gpgsv) {
+            systemData.output_gpgsv_enabled = is_enabled;
+            }
+
+        else if (sw == serial_c.sw_output_glgsv) {
+            systemData.output_glgsv_enabled = is_enabled;
+            }
+
+        else if (sw == serial_c.sw_output_gagsv) {
+            systemData.output_gagsv_enabled = is_enabled;
+            }
+
+        else if (sw == serial_c.sw_output_gbgsv) {
+            systemData.output_gbgsv_enabled = is_enabled;
             }
 
         else if (sw == serial_c.sw_output_ins) {
@@ -10047,6 +10072,246 @@ serial_container_t create_serial_panel(
     lv_obj_set_size(result.sw_output_gpatt, general_switch_w_px, general_switch_h_px);
 
     /* ---------------------------------------------------------- */
+    /* Output GNGSA                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_output_gngsa = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gngsa, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_output_all,
+        LV_FLEX_ALIGN_START,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Label Output GNGSA
+    result.lbl_output_gngsa = create_label(
+        row_output_gngsa,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "OUTPUT GNGSA",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    // Switch Output GNGSA
+    result.sw_output_gngsa = create_switch(
+        row_output_gngsa,
+        general_switch_w_px,
+        general_switch_h_px,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
+    lv_obj_add_event_cb(result.sw_output_gngsa, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_set_size(result.lbl_output_gngsa, obj_w_0, obj_height);
+    lv_obj_set_size(result.sw_output_gngsa, general_switch_w_px, general_switch_h_px);
+
+    /* ---------------------------------------------------------- */
+    /* Output GPGSV                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_output_gpgsv = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gpgsv, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_output_all,
+        LV_FLEX_ALIGN_START,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Label Output GPGSV
+    result.lbl_output_gpgsv = create_label(
+        row_output_gpgsv,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "OUTPUT GPGSV",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    // Switch Output GPGSV
+    result.sw_output_gpgsv = create_switch(
+        row_output_gpgsv,
+        general_switch_w_px,
+        general_switch_h_px,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
+    lv_obj_add_event_cb(result.sw_output_gpgsv, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_set_size(result.lbl_output_gpgsv, obj_w_0, obj_height);
+    lv_obj_set_size(result.sw_output_gpgsv, general_switch_w_px, general_switch_h_px);
+
+    /* ---------------------------------------------------------- */
+    /* Output GLGSV                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_output_glgsv = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_glgsv, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_output_all,
+        LV_FLEX_ALIGN_START,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Label Output GLGSV
+    result.lbl_output_glgsv = create_label(
+        row_output_glgsv,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "OUTPUT GLGSV",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    // Switch Output GLGSV
+    result.sw_output_glgsv = create_switch(
+        row_output_glgsv,
+        general_switch_w_px,
+        general_switch_h_px,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
+    lv_obj_add_event_cb(result.sw_output_glgsv, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_set_size(result.lbl_output_glgsv, obj_w_0, obj_height);
+    lv_obj_set_size(result.sw_output_glgsv, general_switch_w_px, general_switch_h_px);
+
+    /* ---------------------------------------------------------- */
+    /* Output GAGSV                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_output_gagsv = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gagsv, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_output_all,
+        LV_FLEX_ALIGN_START,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Label Output GAGSV
+    result.lbl_output_gagsv = create_label(
+        row_output_gagsv,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "OUTPUT GAGSV",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    // Switch Output GAGSV
+    result.sw_output_gagsv = create_switch(
+        row_output_gagsv,
+        general_switch_w_px,
+        general_switch_h_px,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
+    lv_obj_add_event_cb(result.sw_output_gagsv, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_set_size(result.lbl_output_gagsv, obj_w_0, obj_height);
+    lv_obj_set_size(result.sw_output_gagsv, general_switch_w_px, general_switch_h_px);
+
+    /* ---------------------------------------------------------- */
+    /* Output GBGSV                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_output_gbgsv = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_output_gbgsv, col_gap, LV_PART_MAIN);
+
+    // Adjust Flex
+    lv_obj_set_flex_flow(row_output_all, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_output_all,
+        LV_FLEX_ALIGN_START,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Label Output GBGSV
+    result.lbl_output_gbgsv = create_label(
+        row_output_gbgsv,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0,
+        0,
+        "OUTPUT GBGSV",
+        LV_TEXT_ALIGN_CENTER,
+        &main_style.subtitle_1.font,
+        false,
+        main_style.title_1.radius_square,
+        1,
+        main_style.title_1.color_bg,
+        main_style.subtitle_1.color_font
+    );
+
+    // Switch Output GBGSV
+    result.sw_output_gbgsv = create_switch(
+        row_output_gbgsv,
+        general_switch_w_px,
+        general_switch_h_px,
+        LV_ALIGN_CENTER,
+        0,
+        0
+    );
+    lv_obj_add_event_cb(result.sw_output_gbgsv, sw_output_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_set_size(result.lbl_output_gbgsv, obj_w_0, obj_height);
+    lv_obj_set_size(result.sw_output_gbgsv, general_switch_w_px, general_switch_h_px);
+
+    /* ---------------------------------------------------------- */
     /* Output INS                                                 */
     /* ---------------------------------------------------------- */
 
@@ -15941,6 +16206,11 @@ void update_display_lvgl()
             sync_switch_state(serial_c.sw_output_gngga, systemData.output_gngga_enabled);
             sync_switch_state(serial_c.sw_output_gnrmc, systemData.output_gnrmc_enabled);
             sync_switch_state(serial_c.sw_output_gpatt, systemData.output_gpatt_enabled);
+            sync_switch_state(serial_c.sw_output_gngsa, systemData.output_gngsa_enabled);
+            sync_switch_state(serial_c.sw_output_gpgsv, systemData.output_gpgsv_enabled);
+            sync_switch_state(serial_c.sw_output_glgsv, systemData.output_glgsv_enabled);
+            sync_switch_state(serial_c.sw_output_gagsv, systemData.output_gagsv_enabled);
+            sync_switch_state(serial_c.sw_output_gbgsv, systemData.output_gbgsv_enabled);
             sync_switch_state(serial_c.sw_output_ins, systemData.output_ins_enabled);
             sync_switch_state(serial_c.sw_output_matrix, systemData.output_matrix_enabled);
             sync_switch_state(serial_c.sw_output_input_controller, systemData.output_input_portcontroller);

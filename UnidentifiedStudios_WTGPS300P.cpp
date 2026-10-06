@@ -15,9 +15,10 @@
 #include <rtc_wdt.h>
 #include <esp_task_wdt.h>
 #include <esp_timer.h>
-#include <string.h>  // strcmp, strncmp, strncpy, strlen, strtok, memset
+#include <string.h>  // strcmp, strncmp, strncpy, strlen, strtok, strchr, memset
 #include <ctype.h>   // isdigit
 #include <limits.h>  // ULONG_MAX
+#include <stdlib.h>  // atoi
 #include "UnidentifiedStudios_WTGPS300P.h"
 #include "UnidentifiedStudios_HexToDig.h"
 
@@ -26,7 +27,12 @@ struct Serial1DataStruct serial1Data = {
     .BUFFER = {0},
     .gngga_bool = false,
     .gnrmc_bool = false,
-    .gpatt_bool = false
+    .gpatt_bool = false,
+    .gngsa_bool = false,
+    .gpgsv_bool = false,
+    .glgsv_bool = false,
+    .gagsv_bool = false,
+    .gbgsv_bool = false
 };
 
 struct GNGGAStruct gnggaData = {
@@ -150,6 +156,129 @@ struct GPATTStruct gpattData = {
         "Custom Logo 7", "Custom Logo 8", "Custom Logo 9", "Speed Enable",
         "Custom Logo 10", "Custom Logo 11", "Speed Num", "Scalable", "Checksum"
     },
+    .valid_checksum = false,
+    .total_bad_elements = 0
+};
+
+struct GNGSAStruct gngsaData = {
+    .sentence = {0},
+    .outsentence = {0},
+    .tag = {0},
+    .mode_selection = {0},
+    .mode_fix_type = {0},
+    .satellite_id_0 = {0},
+    .satellite_id_1 = {0},
+    .satellite_id_2 = {0},
+    .satellite_id_3 = {0},
+    .satellite_id_4 = {0},
+    .satellite_id_5 = {0},
+    .satellite_id_6 = {0},
+    .satellite_id_7 = {0},
+    .satellite_id_8 = {0},
+    .satellite_id_9 = {0},
+    .satellite_id_10 = {0},
+    .satellite_id_11 = {0},
+    .pdop = {0},
+    .hdop = {0},
+    .vdop = {0},
+    .check_sum = {0},
+    .max_bad = ULONG_MAX,
+    .bad_element_bool = {0},
+    .bad_element_count = {0},
+    .element_name = {
+        "Tag", "Mode Selection", "Fix Type", "Satellite ID 0", "Satellite ID 1",
+        "Satellite ID 2", "Satellite ID 3", "Satellite ID 4", "Satellite ID 5",
+        "Satellite ID 6", "Satellite ID 7", "Satellite ID 8", "Satellite ID 9",
+        "Satellite ID 10", "Satellite ID 11", "PDOP", "HDOP", "VDOP", "Checksum"
+    },
+    .valid_checksum = false,
+    .total_bad_elements = 0
+};
+
+struct GSVStruct gpgsvData = {
+    .sentence = {0},
+    .outsentence = {0},
+    .tag = {0},
+    .total_messages = {0},
+    .message_number = {0},
+    .satellites_in_view = {0},
+    .sat_id = {{0}},
+    .sat_elevation = {{0}},
+    .sat_azimuth = {{0}},
+    .sat_snr = {{0}},
+    .sat_valid = {0},
+    .raw_message = {{0}},
+    .raw_message_valid = {0},
+    .check_sum = {0},
+    .max_bad = ULONG_MAX,
+    .bad_sat_bool = {0},
+    .bad_sat_count = {0},
+    .valid_checksum = false,
+    .total_bad_elements = 0
+};
+
+struct GSVStruct glgsvData = {
+    .sentence = {0},
+    .outsentence = {0},
+    .tag = {0},
+    .total_messages = {0},
+    .message_number = {0},
+    .satellites_in_view = {0},
+    .sat_id = {{0}},
+    .sat_elevation = {{0}},
+    .sat_azimuth = {{0}},
+    .sat_snr = {{0}},
+    .sat_valid = {0},
+    .raw_message = {{0}},
+    .raw_message_valid = {0},
+    .check_sum = {0},
+    .max_bad = ULONG_MAX,
+    .bad_sat_bool = {0},
+    .bad_sat_count = {0},
+    .valid_checksum = false,
+    .total_bad_elements = 0
+};
+
+struct GSVStruct gagsvData = {
+    .sentence = {0},
+    .outsentence = {0},
+    .tag = {0},
+    .total_messages = {0},
+    .message_number = {0},
+    .satellites_in_view = {0},
+    .sat_id = {{0}},
+    .sat_elevation = {{0}},
+    .sat_azimuth = {{0}},
+    .sat_snr = {{0}},
+    .sat_valid = {0},
+    .raw_message = {{0}},
+    .raw_message_valid = {0},
+    .check_sum = {0},
+    .max_bad = ULONG_MAX,
+    .bad_sat_bool = {0},
+    .bad_sat_count = {0},
+    .valid_checksum = false,
+    .total_bad_elements = 0
+};
+
+struct GSVStruct gbgsvData = {
+    .sentence = {0},
+    .outsentence = {0},
+    .tag = {0},
+    .total_messages = {0},
+    .message_number = {0},
+    .satellites_in_view = {0},
+    .sat_id = {{0}},
+    .sat_elevation = {{0}},
+    .sat_azimuth = {{0}},
+    .sat_snr = {{0}},
+    .sat_valid = {0},
+    .raw_message = {{0}},
+    .raw_message_valid = {0},
+    .check_sum = {0},
+    .max_bad = ULONG_MAX,
+    .bad_sat_bool = {0},
+    .bad_sat_count = {0},
     .valid_checksum = false,
     .total_bad_elements = 0
 };
@@ -466,6 +595,35 @@ bool val_checksum(const char *data)
     return val_element_size(data);
 }
 
+bool val_mode_selection_gsa(const char *data)
+{
+    return (data != NULL) && (strlen(data) == 1U) &&
+           ((data[0] == 'M') || (data[0] == 'A'));
+}
+
+bool val_mode_fix_type_gsa(const char *data)
+{
+    return (data != NULL) && (strlen(data) == 1U) &&
+           ((data[0] == '1') || (data[0] == '2') || (data[0] == '3'));
+}
+
+bool val_satellite_id_gsa(const char *data)
+{
+    return (val_element_size(data) == true) && (str_is_long(data) == true);
+}
+
+bool val_dop_gsa(const char *data)
+{
+    return (val_element_size(data) == true);// && (str_is_double(data) == true);
+}
+
+/* Shared by every GSV field (message/satellite counts, elevation, azimuth,
+   SNR) — all are plain non-negative integers in this sentence. */
+bool val_gsv_numeric_field(const char *data)
+{
+    return (val_element_size(data) == true) && (str_is_long(data) == true);
+}
+
 /* The first comma-separated token of every sentence is its literal tag
    rather than a formatted value, so each sentence gets its own tiny
    validator instead of a shared val_* helper. Internal linkage: only the
@@ -473,6 +631,11 @@ bool val_checksum(const char *data)
 static bool val_tag_gngga(const char *data) { return (data != NULL) && (strcmp(data, "$GNGGA") == 0); }
 static bool val_tag_gnrmc(const char *data) { return (data != NULL) && (strcmp(data, "$GNRMC") == 0); }
 static bool val_tag_gpatt(const char *data) { return (data != NULL) && (strcmp(data, "$GPATT") == 0); }
+static bool val_tag_gngsa(const char *data) { return (data != NULL) && (strcmp(data, "$GNGSA") == 0); }
+static bool val_tag_gpgsv(const char *data) { return (data != NULL) && (strcmp(data, "$GPGSV") == 0); }
+static bool val_tag_glgsv(const char *data) { return (data != NULL) && (strcmp(data, "$GLGSV") == 0); }
+static bool val_tag_gagsv(const char *data) { return (data != NULL) && (strcmp(data, "$GAGSV") == 0); }
+static bool val_tag_gbgsv(const char *data) { return (data != NULL) && (strcmp(data, "$GBGSV") == 0); }
 
 /* Rule 8.7: internal linkage; collapses a 3-way repeated condition used by
    both readGPS() and validateGPSData() into one named check. */
@@ -481,6 +644,50 @@ static bool all_gps_sentences_collected(void)
     return (serial1Data.gngga_bool == true) &&
            (serial1Data.gnrmc_bool == true) &&
            (serial1Data.gpatt_bool == true);
+}
+
+/* Rule 8.7: internal linkage. strtok(str, ",") silently treats back-to-back
+   delimiters as one, skipping empty fields entirely -- $GNGSA's unused
+   satellite-ID slots and $GxGSV's untracked-satellite SNR fields are
+   exactly that ("...,10,,,,0.79,...", "...,147,,27,..."), and skipping one
+   misaligns every field after it. This returns an empty string for those
+   instead. Not reentrant (keeps its own position between calls, like
+   strtok): pass the string to start a walk, nullptr to continue it. Used
+   only by GNGSA()/parseGSV(), which need that; the other sentence parsers
+   below still use plain strtok(). */
+static char *nextCsvField(char *str)
+{
+    static char *pos = nullptr;
+    char *start;
+
+    if (str != nullptr)
+    {
+        pos = str;
+    }
+
+    if (pos == nullptr)
+    {
+        return nullptr;
+    }
+
+    start = pos;
+
+    while ((*pos != ',') && (*pos != '\0'))
+    {
+        pos++;
+    }
+
+    if (*pos == ',')
+    {
+        *pos = '\0';
+        pos++;
+    }
+    else
+    {
+        pos = nullptr; /* end of string: no more fields */
+    }
+
+    return start;
 }
 
 typedef bool (*GpsFieldValidator)(const char *data);
@@ -591,6 +798,34 @@ static const GPATTFieldSpec gpatt_fields[MAX_GPATT_ELEMENTS] = {
     { &GPATTStruct::speed_num,         val_speed_num_gpatt,           false },
     { &GPATTStruct::scalable,          val_custom_flag,               true  },
     { nullptr,                         nullptr,                       false }, /* checksum: verified before tokenizing */
+};
+
+typedef struct {
+    char (GNGSAStruct::*field)[MAX_GLOBAL_ELEMENT_SIZE];
+    GpsFieldValidator validate;
+    bool strip_checksum_suffix;
+} GNGSAFieldSpec;
+
+static const GNGSAFieldSpec gngsa_fields[MAX_GNGSA_ELEMENTS] = {
+    { &GNGSAStruct::tag,             val_tag_gngsa,          false },
+    { &GNGSAStruct::mode_selection,  val_mode_selection_gsa, false },
+    { &GNGSAStruct::mode_fix_type,   val_mode_fix_type_gsa,  false },
+    { &GNGSAStruct::satellite_id_0,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_1,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_2,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_3,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_4,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_5,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_6,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_7,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_8,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_9,  val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_10, val_satellite_id_gsa,   false },
+    { &GNGSAStruct::satellite_id_11, val_satellite_id_gsa,   false },
+    { &GNGSAStruct::pdop,            val_dop_gsa,            false },
+    { &GNGSAStruct::hdop,            val_dop_gsa,            false },
+    { &GNGSAStruct::vdop,            val_dop_gsa,            true  },
+    { nullptr,                       nullptr,                false }, /* checksum: verified before tokenizing */
 };
 
 void GNGGA(void)
@@ -769,6 +1004,267 @@ void GPATT(void)
     }
 }
 
+void GNGSA(void)
+{
+    char *token;
+    size_t idx = 0U;
+
+    /* nextCsvField(), not strtok(): a $GNGSA sentence with fewer than 12
+       satellites in the solution has empty, back-to-back-comma slots for
+       the unused ones, which strtok() would collapse and misalign every
+       field after them (pdop/hdop/vdop). */
+    token = nextCsvField(gngsaData.sentence);
+
+    /* Same per-token walk as GNGGA(), over gngsa_fields. */
+    while ((token != NULL) && (idx < (size_t)MAX_GNGSA_ELEMENTS))
+    {
+        const GNGSAFieldSpec *spec = &gngsa_fields[idx];
+
+        if (spec->strip_checksum_suffix == true)
+        {
+            char *star = strchr(token, '*');
+            if (star != nullptr)
+            {
+                *star = '\0';
+            }
+        }
+
+        if (spec->validate == nullptr)
+        {
+            /* checksum element: already verified before the sentence was tokenized */
+        }
+        else if ((token != NULL) && (spec->validate(token) == true))
+        {
+            char *dest = gngsaData.*(spec->field);
+
+            (void)strncpy(dest, token, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+            dest[MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+            gngsaData.bad_element_bool[idx] = false;
+        }
+        else
+        {
+            gngsaData.bad_element_count[idx]++;
+            gngsaData.bad_element_bool[idx] = true;
+        }
+
+        token = nextCsvField(nullptr);
+        idx++;
+    }
+
+    {
+        int total_bad = 0;
+
+        for (int i = 0; i < MAX_GNGSA_ELEMENTS; i++)
+        {
+            if (gngsaData.bad_element_bool[i] == true)
+            {
+                total_bad++;
+            }
+            if (gngsaData.bad_element_count[i] >= gngsaData.max_bad)
+            {
+                gngsaData.bad_element_count[i] = 0UL;
+            }
+        }
+
+        gngsaData.total_bad_elements = total_bad;
+    }
+}
+
+/* Strips a "*XX" checksum suffix glued directly onto token, in place.
+   strchr(), not strtok(): strtok() keeps its own position between calls,
+   so calling it again mid-walk (as parseGSV() must, since the checksum can
+   land on any of several fields depending on how many satellite groups a
+   given message has) would hijack nextCsvField()'s walk through the same
+   sentence. strchr() has no such shared state, so it's safe to nest. */
+static void stripChecksumSuffix(char *token)
+{
+    char *star = strchr(token, '*');
+    if (star != nullptr)
+    {
+        *star = '\0';
+    }
+}
+
+/* Rule 8.7: internal linkage; shared parser for every GSV struct —
+   GPGSV()/GLGSV()/GAGSV()/GBGSV() differ only by which struct instance and
+   tag they pass in.
+   A talker's full satellite list is spread across 1-N messages (4 groups
+   per message; the last message of a sequence is usually short, and a
+   constellation with nothing in view sends a single all-empty message) —
+   unlike the fixed-width sentences above, this can't be walked with one
+   static field table, since where a given satellite group lands in the
+   struct depends on message_number, which is itself a field being parsed.
+   message_number==1 starts a fresh sequence: every slot is invalidated
+   before this message's groups (and any later message's, on a later call)
+   repopulate it, so a satellite that drops out between sequences doesn't
+   linger as stale data. */
+static void parseGSV(GSVStruct *data, GpsFieldValidator tag_validate)
+{
+    char *tag_tok;
+    char *total_messages_tok;
+    char *message_number_tok;
+    char *satellites_in_view_tok;
+    int message_number;
+    int base_slot;
+
+    tag_tok = nextCsvField(data->sentence);
+    total_messages_tok = nextCsvField(nullptr);
+    message_number_tok = nextCsvField(nullptr);
+    satellites_in_view_tok = nextCsvField(nullptr);
+
+    if ((tag_tok == nullptr) || (tag_validate(tag_tok) == false) ||
+        (total_messages_tok == nullptr) || (val_gsv_numeric_field(total_messages_tok) == false) ||
+        (message_number_tok == nullptr) || (val_gsv_numeric_field(message_number_tok) == false) ||
+        (satellites_in_view_tok == nullptr) || (val_gsv_numeric_field(satellites_in_view_tok) == false))
+    {
+        /* Malformed header: nothing in this message can be trusted. */
+        return;
+    }
+
+    (void)strncpy(data->tag, tag_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+    data->tag[MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+    (void)strncpy(data->total_messages, total_messages_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+    data->total_messages[MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+    (void)strncpy(data->message_number, message_number_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+    data->message_number[MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+    (void)strncpy(data->satellites_in_view, satellites_in_view_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+    data->satellites_in_view[MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+
+    message_number = atoi(message_number_tok);
+
+    if (message_number == 1)
+    {
+        for (int i = 0; i < MAX_GSV_SATELLITES; i++)
+        {
+            data->sat_valid[i] = false;
+        }
+        for (int i = 0; i < MAX_GSV_MESSAGES; i++)
+        {
+            data->raw_message_valid[i] = false;
+        }
+    }
+
+    /* data->outsentence was set by readGPS() just before this call, from
+       the same capture that produced data->sentence -- i.e. it's still
+       this message's untouched raw text (data->sentence itself is about to
+       be tokenized below). Keeping one copy per message_number lets
+       outputSerialGSV() re-emit every message of the sequence, not just
+       whichever one happens to be here when it's called. */
+    if ((message_number >= 1) && (message_number <= MAX_GSV_MESSAGES))
+    {
+        char *dest = data->raw_message[message_number - 1];
+
+        (void)strncpy(dest, data->outsentence, (size_t)MAX_GLOBAL_SERIAL_BUFFER_SIZE - 1U);
+        dest[MAX_GLOBAL_SERIAL_BUFFER_SIZE - 1U] = '\0';
+        data->raw_message_valid[message_number - 1] = true;
+    }
+
+    base_slot = (message_number - 1) * 4;
+
+    /* Up to 4 satellite groups per message. */
+    for (int group = 0; group < 4; group++)
+    {
+        int slot = base_slot + group;
+
+        char *id_tok = nextCsvField(nullptr);
+        if (id_tok == nullptr) { break; }
+        char *elevation_tok = nextCsvField(nullptr);
+        if (elevation_tok == nullptr) { break; }
+        char *azimuth_tok = nextCsvField(nullptr);
+        if (azimuth_tok == nullptr) { break; }
+        char *snr_tok = nextCsvField(nullptr);
+        if (snr_tok == nullptr) { break; }
+
+        /* The checksum (or, on this module, a trailing signal-ID field
+           with the checksum glued to it) can land on any of these four,
+           depending on whether this group is the sequence's last. */
+        stripChecksumSuffix(id_tok);
+        stripChecksumSuffix(elevation_tok);
+        stripChecksumSuffix(azimuth_tok);
+        stripChecksumSuffix(snr_tok);
+
+        if ((slot < 0) || (slot >= MAX_GSV_SATELLITES))
+        {
+            continue; /* beyond the tracked range; ignore rather than overflow */
+        }
+
+        if (val_gsv_numeric_field(id_tok) == true)
+        {
+            (void)strncpy(data->sat_id[slot], id_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+            data->sat_id[slot][MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+            data->sat_valid[slot] = true;
+            data->bad_sat_bool[slot] = false;
+        }
+        else
+        {
+            data->bad_sat_count[slot]++;
+            data->bad_sat_bool[slot] = true;
+            continue; /* no satellite ID: treat the whole group as absent */
+        }
+
+        /* Elevation/azimuth/SNR may legitimately be empty (satellite
+           tracked but not used/not strong enough for a reading) without
+           invalidating the satellite itself. */
+        if (val_gsv_numeric_field(elevation_tok) == true)
+        {
+            (void)strncpy(data->sat_elevation[slot], elevation_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+            data->sat_elevation[slot][MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+        }
+        else
+        {
+            data->sat_elevation[slot][0] = '\0';
+        }
+
+        if (val_gsv_numeric_field(azimuth_tok) == true)
+        {
+            (void)strncpy(data->sat_azimuth[slot], azimuth_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+            data->sat_azimuth[slot][MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+        }
+        else
+        {
+            data->sat_azimuth[slot][0] = '\0';
+        }
+
+        if (val_gsv_numeric_field(snr_tok) == true)
+        {
+            (void)strncpy(data->sat_snr[slot], snr_tok, (size_t)MAX_GLOBAL_ELEMENT_SIZE - 1U);
+            data->sat_snr[slot][MAX_GLOBAL_ELEMENT_SIZE - 1U] = '\0';
+        }
+        else
+        {
+            data->sat_snr[slot][0] = '\0';
+        }
+    }
+
+    {
+        int total_bad = 0;
+
+        for (int i = 0; i < MAX_GSV_SATELLITES; i++)
+        {
+            if (data->bad_sat_bool[i] == true)
+            {
+                total_bad++;
+            }
+            if (data->bad_sat_count[i] >= data->max_bad)
+            {
+                data->bad_sat_count[i] = 0UL;
+            }
+        }
+
+        data->total_bad_elements = total_bad;
+    }
+}
+
+void GPGSV(void) { parseGSV(&gpgsvData, val_tag_gpgsv); }
+void GLGSV(void) { parseGSV(&glgsvData, val_tag_glgsv); }
+void GAGSV(void) { parseGSV(&gagsvData, val_tag_gagsv); }
+void GBGSV(void) { parseGSV(&gbgsvData, val_tag_gbgsv); }
+
+/* Forward declaration: defined below, but readGPS() needs to call it
+   inline for GNGSA/GPGSV/GLGSV/GAGSV/GBGSV (see the comment in readGPS()
+   explaining why). */
+static bool validateChecksumSerial1(const char *buffer);
+
 bool readGPS(void)
 {
     bool done = false;
@@ -785,6 +1281,11 @@ bool readGPS(void)
     serial1Data.gngga_bool = false;
     serial1Data.gnrmc_bool = false;
     serial1Data.gpatt_bool = true; // false if using gpatt
+    serial1Data.gngsa_bool = false;
+    serial1Data.gpgsv_bool = false;
+    serial1Data.glgsv_bool = false;
+    serial1Data.gagsv_bool = false;
+    serial1Data.gbgsv_bool = false;
 
     /* Rule 15.4: no break statements in this loop —
        `done` is the single point of control instead. */
@@ -800,6 +1301,91 @@ bool readGPS(void)
             /* Exclude partial reads. */
             if (serial1Data.nbytes > 10UL)
             {
+                // view sentences (disable after use)
+                // printf(serial1Data.BUFFER);
+                // printf("\n");
+
+                /* gngsa/gpgsv/glgsv/gagsv/gbgsv: a full multi-message sequence for
+                   any one of these typically arrives faster than readGPS()'s own
+                   call boundary, so parsing must happen right here, the instant
+                   each line is captured -- not deferred to validateGPSData() after
+                   this call returns, which would only ever see whichever message
+                   happened to be captured last (every earlier message in the same
+                   burst gets overwritten into .sentence, and lost, before anything
+                   gets a chance to parse it). GNGSA()/GPGSV()/etc. are safe to call
+                   back-to-back like this: each is a single self-contained parse of
+                   whatever is currently in .sentence. */
+
+                if (strncmp(serial1Data.BUFFER, "$GNGSA", 6) == 0)
+                {
+                    (void)strncpy(gngsaData.sentence, serial1Data.BUFFER, sizeof(gngsaData.sentence) - 1U);
+                    gngsaData.sentence[sizeof(gngsaData.sentence) - 1U] = '\0';
+                    (void)strncpy(gngsaData.outsentence, gngsaData.sentence, sizeof(gngsaData.outsentence) - 1U);
+                    gngsaData.outsentence[sizeof(gngsaData.outsentence) - 1U] = '\0';
+                    gngsaData.valid_checksum = validateChecksumSerial1(gngsaData.sentence);
+                    if (gngsaData.valid_checksum == true)
+                    {
+                        GNGSA();
+                    }
+                    serial1Data.gngsa_bool = true;
+                }
+
+                else if (strncmp(serial1Data.BUFFER, "$GPGSV", 6) == 0)
+                {
+                    (void)strncpy(gpgsvData.sentence, serial1Data.BUFFER, sizeof(gpgsvData.sentence) - 1U);
+                    gpgsvData.sentence[sizeof(gpgsvData.sentence) - 1U] = '\0';
+                    (void)strncpy(gpgsvData.outsentence, gpgsvData.sentence, sizeof(gpgsvData.outsentence) - 1U);
+                    gpgsvData.outsentence[sizeof(gpgsvData.outsentence) - 1U] = '\0';
+                    gpgsvData.valid_checksum = validateChecksumSerial1(gpgsvData.sentence);
+                    if (gpgsvData.valid_checksum == true)
+                    {
+                        GPGSV();
+                    }
+                    serial1Data.gpgsv_bool = true;
+                }
+
+                else if (strncmp(serial1Data.BUFFER, "$GLGSV", 6) == 0)
+                {
+                    (void)strncpy(glgsvData.sentence, serial1Data.BUFFER, sizeof(glgsvData.sentence) - 1U);
+                    glgsvData.sentence[sizeof(glgsvData.sentence) - 1U] = '\0';
+                    (void)strncpy(glgsvData.outsentence, glgsvData.sentence, sizeof(glgsvData.outsentence) - 1U);
+                    glgsvData.outsentence[sizeof(glgsvData.outsentence) - 1U] = '\0';
+                    glgsvData.valid_checksum = validateChecksumSerial1(glgsvData.sentence);
+                    if (glgsvData.valid_checksum == true)
+                    {
+                        GLGSV();
+                    }
+                    serial1Data.glgsv_bool = true;
+                }
+
+                else if (strncmp(serial1Data.BUFFER, "$GAGSV", 6) == 0)
+                {
+                    (void)strncpy(gagsvData.sentence, serial1Data.BUFFER, sizeof(gagsvData.sentence) - 1U);
+                    gagsvData.sentence[sizeof(gagsvData.sentence) - 1U] = '\0';
+                    (void)strncpy(gagsvData.outsentence, gagsvData.sentence, sizeof(gagsvData.outsentence) - 1U);
+                    gagsvData.outsentence[sizeof(gagsvData.outsentence) - 1U] = '\0';
+                    gagsvData.valid_checksum = validateChecksumSerial1(gagsvData.sentence);
+                    if (gagsvData.valid_checksum == true)
+                    {
+                        GAGSV();
+                    }
+                    serial1Data.gagsv_bool = true;
+                }
+
+                else if (strncmp(serial1Data.BUFFER, "$GBGSV", 6) == 0)
+                {
+                    (void)strncpy(gbgsvData.sentence, serial1Data.BUFFER, sizeof(gbgsvData.sentence) - 1U);
+                    gbgsvData.sentence[sizeof(gbgsvData.sentence) - 1U] = '\0';
+                    (void)strncpy(gbgsvData.outsentence, gbgsvData.sentence, sizeof(gbgsvData.outsentence) - 1U);
+                    gbgsvData.outsentence[sizeof(gbgsvData.outsentence) - 1U] = '\0';
+                    gbgsvData.valid_checksum = validateChecksumSerial1(gbgsvData.sentence);
+                    if (gbgsvData.valid_checksum == true)
+                    {
+                        GBGSV();
+                    }
+                    serial1Data.gbgsv_bool = true;
+                }
+
                 /* GNRMC is only checked once GNGGA has been collected this
                    cycle, and GPATT only once both GNGGA and GNRMC have —
                    the device emits sentences in that fixed order. */
@@ -926,6 +1512,15 @@ bool validateGPSData(void)
     // ------------------------------------------------
     // Get, check and set gps data.
     // ------------------------------------------------
+    /* gngsa/gpgsv/glgsv/gagsv/gbgsv are no longer handled here: they're
+       now checksum-validated and parsed inline in readGPS(), the instant
+       each line is captured (see the comment there). Doing it here instead
+       -- after readGPS() already returned -- would only ever see whichever
+       message was captured last this cycle, and re-tokenizing an
+       already-tokenized .sentence a second time would corrupt it. Their
+       valid_checksum/outsentence/parsed fields are left exactly as readGPS()
+       set them. */
+
     gnggaData.valid_checksum = false;
     gnrmcData.valid_checksum = false;
     gpattData.valid_checksum = true; // false if using gpatt

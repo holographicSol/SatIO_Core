@@ -645,8 +645,10 @@ static void taskGPS(void *pvParameters) {
           // --------------------------------------------
           stepFFCounter(systemData.counters_gps, 1);
           systemData.counters_gps.flag_c = true;
+          systemData.output_gsv_flag_c = true;
           #ifdef SatIO_SERIAL_TX_OPTION_CURRENT_TASK
           outputSerialGPS();
+          outputSerialGSV();
           #endif
           xSemaphoreGive(dataMutex);
         }
@@ -759,7 +761,7 @@ static void taskGyro(void *pvParameters) {
 
       if (readGyro() == true) {
         esp_task_wdt_reset();
-        xSemaphoreTake(dataMutex, portMAX_DELAY);
+        // xSemaphoreTake(dataMutex, portMAX_DELAY);
 
         // --------------------------------------------
         // Task frequency counter
@@ -789,15 +791,15 @@ static void taskGyro(void *pvParameters) {
 
         esp_task_wdt_reset();
         }
-        xSemaphoreGive(dataMutex);
+        // xSemaphoreGive(dataMutex);
       }
     }
     // --------------------------------------------
     // Task frequency counter
     // --------------------------------------------
-    xSemaphoreTake(dataMutex, portMAX_DELAY);
+    // xSemaphoreTake(dataMutex, portMAX_DELAY);
     stepFCounter(systemData.counters_gyr0, 1);
-    xSemaphoreGive(dataMutex);
+    // xSemaphoreGive(dataMutex);
   }
 }
 void createTaskGyro() {
@@ -1242,7 +1244,7 @@ static void taskUniverse(void *pvParameters) {
       // ------------------------------------------------
       // Set Sidereal Data for Planet/Object Tracking.
       // ------------------------------------------------
-      xSemaphoreTake(dataMutex, portMAX_DELAY);
+      // xSemaphoreTake(dataMutex, portMAX_DELAY);
       setSiderealData(
         SatIOData.system_degrees_latitude,
         SatIOData.system_degrees_longitude,
@@ -1328,7 +1330,7 @@ static void taskUniverse(void *pvParameters) {
       #endif
 
       esp_task_wdt_reset();
-      xSemaphoreGive(dataMutex);
+      // xSemaphoreGive(dataMutex);
     }
 
     // --------------------------------------------
@@ -1381,6 +1383,7 @@ static void taskSatIOSerialTx(void *pvParameters) {
         outputStat();
       }
       outputSerialGPS();
+      outputSerialGSV();
       outputSerialSatIO();
       outputSerialADMplex0();
       outputSerialADMplex1();

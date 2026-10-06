@@ -74,6 +74,7 @@ void outputStat(void);
 void setAllSentenceOutput(bool enable);
 
 void outputSerialGPS(void);
+void outputSerialGSV(void);
 void outputSerialSatIO(void);
 void outputSerialGyro0(void);
 void outputSerialADMplex0(void);
