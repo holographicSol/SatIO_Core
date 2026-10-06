@@ -15249,7 +15249,7 @@ void display_gps_screen()
     // GNSS Sky-Plot
     gnss_skyplot_begin(
         gps_screen,          // parent
-        general_window_w_px, // width px
+        720, // width px
         general_window_h_px  // height px
     );
 
