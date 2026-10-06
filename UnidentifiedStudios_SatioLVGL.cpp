@@ -65,6 +65,7 @@
 #include "UnidentifiedStudios_I2C.h"
 #include "UnidentifiedStudios_AstroClock.h"
 #include "UnidentifiedStudios_CelestialSphere.h"
+#include "UnidentifiedStudios_GnssSkyPlot.h"
 #include "UnidentifiedStudios_SatIOFile.h"
 #include "UnidentifiedStudios_SatIOLVGL.h"
  #include "UnidentifiedStudios_GlobalLVGL.h"
@@ -205,9 +206,15 @@ gngga_container_t gngga_c;
 gnrmc_container_t gnrmc_c;
 gpatt_container_t gpatt_c;
 SatIO_container_t SatIO_c;
+gngsa_container_t gngsa_c;
+gsv_container_t gpgsv_c;
+gsv_container_t glgsv_c;
+gsv_container_t gagsv_c;
+gsv_container_t gbgsv_c;
 gps_switch_container_t gps_switch_panel;
+gps_switch_container_2_t gps_switch_panel_2;
 int current_gps_panel=0;
-#define MAX_GPS_PANEL_VIEWS 4
+#define MAX_GPS_PANEL_VIEWS 10
 // ---------------------------
 // Gyro
 // ---------------------------
@@ -1462,7 +1469,91 @@ void switch_gpatt_panel_event_cb(lv_event_t * e)
 
 /** -------------------------------------------------------------------------------------
  * @brief Event callback.
- * 
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_gngsa_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_gps_panel=4;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_gpgsv_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_gps_panel=5;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_glgsv_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_gps_panel=6;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_gagsv_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_gps_panel=7;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_gbgsv_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_gps_panel=8;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
+ * @param e Pointer to the LVGL event structure.
+ */
+void switch_gnss_skyplot_panel_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        current_gps_panel=9;
+    }
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Event callback.
+ *
  * @param e Pointer to the LVGL event structure.
  */
 void current_matrix_override_off_event_cb(lv_event_t * e)
@@ -2078,6 +2169,203 @@ gps_switch_container_t create_gps_switch_panel(
     lv_obj_set_size(result.switch_gngga_panel.panel, obj_w_0, obj_height);
     lv_obj_set_size(result.switch_gnrmc_panel.panel, obj_w_0, obj_height);
     lv_obj_set_size(result.switch_gpatt_panel.panel, obj_w_0, obj_height);
+
+    return result;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create GPS Switch Panel 2 Container (GSA/GSV/sky-plot tab buttons).
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @return gps_switch_container_2_t structure.
+ */
+gps_switch_container_2_t create_gps_switch_panel_2(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+    )
+{
+    gps_switch_container_2_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
+
+    /* --- MAIN PANEL ------------------------------------------------------------------ */
+    result.panel = lv_obj_create(parent);
+
+    // Show scrollbar
+    if (show_scrollbar) {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_AUTO);
+    } else {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_OFF);}
+
+    // Enable scrolling
+    if (enable_scrolling) {lv_obj_set_scroll_dir(result.panel, LV_DIR_ALL);
+    } else {lv_obj_set_scroll_dir(result.panel, LV_DIR_NONE);}
+
+    // Size & Position
+    lv_obj_set_size(result.panel, width_px, height_px);
+    lv_obj_align(result.panel, alignment, pos_x, pos_y);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
+
+    // Main Padding
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Outline
+    if (dev_outlines_enable == true) {
+        lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    }
+    else {
+        lv_obj_set_style_outline_width(result.panel, 0, LV_PART_MAIN);
+    }
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    // Row sizes
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
+
+    // Row Object sizes
+    int32_t obj_w_0 = 0;
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
+
+    /* --- Row Buttons ------------------------------------------------------------------ */
+    lv_obj_t * row_0 = lv_obj_create(result.panel);
+
+    // Show scrollbar
+    if (show_scrollbar) {lv_obj_set_scrollbar_mode(row_0, LV_SCROLLBAR_MODE_AUTO);
+    } else {lv_obj_set_scrollbar_mode(row_0, LV_SCROLLBAR_MODE_OFF);}
+
+    // Enable scrolling
+    if (enable_scrolling) {lv_obj_set_scroll_dir(row_0, LV_DIR_ALL);
+    } else {lv_obj_set_scroll_dir(row_0, LV_DIR_NONE);}
+
+    // Size & Position
+    lv_obj_set_size(row_0, sub_row_width, sub_row_height);
+    lv_obj_align(row_0, LV_ALIGN_CENTER, pos_x, pos_y);
+
+    // Row Padding
+    lv_obj_set_style_pad_all(row_0, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(row_0, col_gap, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(row_0, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Outline
+    lv_obj_set_style_outline_width(row_0, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(row_0, lv_color_make(0,0,0), LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(row_0, 0, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(row_0, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(row_0, lv_color_make(0,0,0), LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_opa(row_0, LV_OPA_TRANSP, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(row_0, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        row_0,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER
+    );
+
+    // Set row object widths (6 equal buttons)
+    obj_w_0 = (sub_row_width - (main_style.title_1.padall*2) - (col_gap*5)) / 6;
+
+    // GNGSA Panel View
+    result.switch_gngsa_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "GSA"
+    );
+    lv_obj_add_event_cb(result.switch_gngsa_panel.button, switch_gngsa_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // GPGSV Panel View
+    result.switch_gpgsv_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "GPGSV"
+    );
+    lv_obj_add_event_cb(result.switch_gpgsv_panel.button, switch_gpgsv_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // GLGSV Panel View
+    result.switch_glgsv_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "GLGSV"
+    );
+    lv_obj_add_event_cb(result.switch_glgsv_panel.button, switch_glgsv_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // GAGSV Panel View
+    result.switch_gagsv_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "GAGSV"
+    );
+    lv_obj_add_event_cb(result.switch_gagsv_panel.button, switch_gagsv_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // GBGSV Panel View
+    result.switch_gbgsv_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "GBGSV"
+    );
+    lv_obj_add_event_cb(result.switch_gbgsv_panel.button, switch_gbgsv_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // GNSS Sky-Plot View
+    result.switch_gnss_skyplot_panel = create_button(
+        row_0,
+        obj_w_0,
+        obj_height,
+        LV_ALIGN_CENTER,
+        0, 0,
+        "SKYPLOT"
+    );
+    lv_obj_add_event_cb(result.switch_gnss_skyplot_panel.button, switch_gnss_skyplot_panel_event_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_set_size(result.switch_gngsa_panel.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.switch_gpgsv_panel.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.switch_glgsv_panel.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.switch_gagsv_panel.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.switch_gbgsv_panel.panel, obj_w_0, obj_height);
+    lv_obj_set_size(result.switch_gnss_skyplot_panel.panel, obj_w_0, obj_height);
 
     return result;
 }
@@ -4499,6 +4787,324 @@ gpatt_container_t create_gpatt_panel(
     lv_obj_set_size(result.val_bad_element_count, obj_w_1, obj_height);
 
     return result;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create GNGSA Panel Container.
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @return gngsa_container_t structure.
+ */
+gngsa_container_t create_gngsa_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+    )
+{
+    gngsa_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
+
+    /* --- MAIN PANEL ------------------------------------------------------------------ */
+    result.panel = lv_obj_create(parent);
+
+    // Show scrollbar
+    if (show_scrollbar) {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_AUTO);
+    } else {lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_OFF);}
+
+    // Enable scrolling
+    if (enable_scrolling) {lv_obj_set_scroll_dir(result.panel, LV_DIR_ALL);
+    } else {lv_obj_set_scroll_dir(result.panel, LV_DIR_NONE);}
+
+    // Size & Position
+    lv_obj_set_size(result.panel, width_px, height_px);
+    lv_obj_align(result.panel, alignment, pos_x, pos_y);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
+
+    // Main Padding
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Outline
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    // Row sizes
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
+
+    // Row Object sizes
+    int32_t obj_w_0 = 200;
+    int32_t obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
+
+    struct GngsaFieldSpec { lv_obj_t ** lbl; lv_obj_t ** val; const char * name; };
+    const GngsaFieldSpec fields[] = {
+        { &result.lbl_mode_selection,     &result.val_mode_selection,     "Mode Selection" },
+        { &result.lbl_fix_type,           &result.val_fix_type,           "Fix Type" },
+        { &result.lbl_satellites_used,    &result.val_satellites_used,    "Satellites Used" },
+        { &result.lbl_pdop,               &result.val_pdop,               "PDOP" },
+        { &result.lbl_hdop,               &result.val_hdop,               "HDOP" },
+        { &result.lbl_vdop,               &result.val_vdop,               "VDOP" },
+        { &result.lbl_bad_element_count,  &result.val_bad_element_count,  "Bad Element Count" },
+    };
+
+    for (size_t i = 0; i < (sizeof(fields) / sizeof(fields[0])); i++)
+    {
+        lv_obj_t * row = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+        lv_obj_set_style_pad_column(row, col_gap, LV_PART_MAIN);
+
+        *(fields[i].lbl) = create_label(
+            row, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+            fields[i].name, LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.subtitle_1.color_font
+        );
+
+        *(fields[i].val) = create_label(
+            row, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+            "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.value_1.color_font
+        );
+
+        lv_obj_set_size(*(fields[i].lbl), obj_w_0, obj_height);
+        lv_obj_set_size(*(fields[i].val), obj_w_1, obj_height);
+    }
+
+    return result;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create a GSV Panel Container (shared by GPGSV/GLGSV/GAGSV/GBGSV).
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @return gsv_container_t structure.
+ */
+gsv_container_t create_gsv_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+    )
+{
+    gsv_container_t result = {};
+    int32_t col_gap = main_style.title_1.padall + main_style.title_1.outline_width;
+
+    /* --- MAIN PANEL ------------------------------------------------------------------ */
+    result.panel = lv_obj_create(parent);
+
+    // GSV panels list up to MAX_GSV_SATELLITES rows, which won't all fit on
+    // screen -- unlike the other GPS sub-panels, this one must stay
+    // scrollable regardless of the show_scrollbar/enable_scrolling args.
+    lv_obj_set_scrollbar_mode(result.panel, LV_SCROLLBAR_MODE_AUTO);
+    lv_obj_set_scroll_dir(result.panel, LV_DIR_VER);
+
+    // Size & Position
+    lv_obj_set_size(result.panel, width_px, height_px);
+    lv_obj_align(result.panel, alignment, pos_x, pos_y);
+    lv_obj_set_style_radius(result.panel, main_style.title_1.radius_rounded, LV_PART_MAIN);
+
+    // Main Padding
+    lv_obj_set_style_pad_all(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Outline
+    lv_obj_set_style_outline_width(result.panel, main_style.title_1.outline_width, LV_PART_MAIN);
+    lv_obj_set_style_outline_color(result.panel, main_style.title_1.color_outline, LV_PART_MAIN);
+    lv_obj_set_style_outline_pad(result.panel, main_style.title_1.padall, LV_PART_MAIN);
+
+    // Border
+    lv_obj_set_style_border_width(result.panel, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result.panel, main_style.title_1.color_border, LV_PART_MAIN);
+
+    // Background
+    lv_obj_set_style_bg_color(result.panel, main_style.title_1.color_bg, LV_PART_MAIN);
+
+    // Flex
+    lv_obj_set_flex_flow(result.panel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(result.panel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+
+    // Row sizes
+    int32_t sub_row_width = width_px - (main_style.title_1.padall*2);
+    int32_t sub_row_height = general_panel_row_h_px-(main_style.title_1.padall*2);
+
+    // Row Object sizes
+    int32_t obj_w_0 = 200;
+    int32_t obj_w_1 = sub_row_width - obj_w_0 - (main_style.title_1.padall * 2) - col_gap;
+    int32_t obj_height = sub_row_height-(main_style.title_1.outline_width*2)-(main_style.title_1.padall*2);
+
+    /* ---------------------------------------------------------- */
+    /* Header rows                                                */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_in_view = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_in_view, col_gap, LV_PART_MAIN);
+
+    result.lbl_satellites_in_view = create_label(
+        row_in_view, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Satellites In View", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        main_style.title_1.color_bg, main_style.subtitle_1.color_font
+    );
+    result.val_satellites_in_view = create_label(
+        row_in_view, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1,
+        main_style.title_1.color_bg, main_style.value_1.color_font
+    );
+    lv_obj_set_size(result.lbl_satellites_in_view, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_satellites_in_view, obj_w_1, obj_height);
+
+    lv_obj_t * row_total_messages = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_total_messages, col_gap, LV_PART_MAIN);
+
+    result.lbl_total_messages = create_label(
+        row_total_messages, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Total Messages", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        main_style.title_1.color_bg, main_style.subtitle_1.color_font
+    );
+    result.val_total_messages = create_label(
+        row_total_messages, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+        false, main_style.title_1.radius_square, 1,
+        main_style.title_1.color_bg, main_style.value_1.color_font
+    );
+    lv_obj_set_size(result.lbl_total_messages, obj_w_0, obj_height);
+    lv_obj_set_size(result.val_total_messages, obj_w_1, obj_height);
+
+    /* ---------------------------------------------------------- */
+    /* Column header row (ID / Elevation / Azimuth / SNR)         */
+    /* ---------------------------------------------------------- */
+
+    lv_obj_t * row_columns = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_columns, col_gap, LV_PART_MAIN);
+
+    int32_t col_w = (sub_row_width - (main_style.title_1.padall * 2) - (col_gap * 3)) / 4;
+    const char * column_names[4] = { "Sat ID", "Elevation", "Azimuth", "SNR" };
+    for (int col = 0; col < 4; col++)
+    {
+        lv_obj_t * hdr = create_label(
+            row_columns, col_w, obj_height, LV_ALIGN_CENTER, 0, 0,
+            column_names[col], LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.subtitle_1.color_font
+        );
+        lv_obj_set_size(hdr, col_w, obj_height);
+    }
+
+    /* ---------------------------------------------------------- */
+    /* One pre-built row per satellite slot. sync_gsv_panel() toggles each
+       row's visibility per refresh based on sat_valid[i] -- rows are never
+       created/destroyed after this. */
+    /* ---------------------------------------------------------- */
+
+    for (int i = 0; i < MAX_GSV_SATELLITES; i++)
+    {
+        lv_obj_t * row = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+        lv_obj_set_style_pad_column(row, col_gap, LV_PART_MAIN);
+        lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
+
+        result.val_sat_id[i] = create_label(
+            row, col_w, obj_height, LV_ALIGN_CENTER, 0, 0,
+            "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.value_1.color_font
+        );
+        result.val_sat_elevation[i] = create_label(
+            row, col_w, obj_height, LV_ALIGN_CENTER, 0, 0,
+            "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.value_1.color_font
+        );
+        result.val_sat_azimuth[i] = create_label(
+            row, col_w, obj_height, LV_ALIGN_CENTER, 0, 0,
+            "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.value_1.color_font
+        );
+        result.val_sat_snr[i] = create_label(
+            row, col_w, obj_height, LV_ALIGN_CENTER, 0, 0,
+            "", LV_TEXT_ALIGN_CENTER, &main_style.value_1.font,
+            false, main_style.title_1.radius_square, 1,
+            main_style.title_1.color_bg, main_style.value_1.color_font
+        );
+
+        lv_obj_set_size(result.val_sat_id[i], col_w, obj_height);
+        lv_obj_set_size(result.val_sat_elevation[i], col_w, obj_height);
+        lv_obj_set_size(result.val_sat_azimuth[i], col_w, obj_height);
+        lv_obj_set_size(result.val_sat_snr[i], col_w, obj_height);
+
+        result.row_sat[i] = row;
+    }
+
+    return result;
+}
+
+/** -------------------------------------------------------------------------------------
+ * @brief Sync a GSV panel's labels from its constellation's GSVStruct data. Each
+ * satellite row is shown/updated if sat_valid[i], hidden otherwise.
+ *
+ * @param c Panel container to update.
+ * @param data Source GSVStruct (gpgsvData/glgsvData/gagsvData/gbgsvData).
+ */
+void sync_gsv_panel(gsv_container_t * c, const GSVStruct * data)
+{
+    set_label_text_if_changed(c->val_satellites_in_view, String(data->satellites_in_view).c_str());
+    set_label_text_if_changed(c->val_total_messages, String(data->total_messages).c_str());
+
+    for (int i = 0; i < MAX_GSV_SATELLITES; i++)
+    {
+        if (data->sat_valid[i] == true)
+        {
+            lv_obj_remove_flag(c->row_sat[i], LV_OBJ_FLAG_HIDDEN);
+            set_label_text_if_changed(c->val_sat_id[i], String(data->sat_id[i]).c_str());
+            set_label_text_if_changed(c->val_sat_elevation[i], String(data->sat_elevation[i]).c_str());
+            set_label_text_if_changed(c->val_sat_azimuth[i], String(data->sat_azimuth[i]).c_str());
+            set_label_text_if_changed(c->val_sat_snr[i], String(data->sat_snr[i]).c_str());
+        }
+        else
+        {
+            lv_obj_add_flag(c->row_sat[i], LV_OBJ_FLAG_HIDDEN);
+        }
+    }
 }
 
 /** -------------------------------------------------------------------------------------
@@ -14520,7 +15126,7 @@ void display_gps_screen()
 
     current_gps_panel=0;
 
-    // GPS Switch Panel
+    // GPS Switch Panel: SatIO/GNGGA/GNRMC/GPATT
     gps_switch_panel = create_gps_switch_panel(
         gps_screen,       // parent
         450,              // width px
@@ -14578,6 +15184,87 @@ void display_gps_screen()
         0,                 // pos y
         true,              // show scrollbar
         true               // enable scrolling
+    );
+
+    // GNGSA
+    gngsa_c = create_gngsa_panel(
+        gps_screen,        // parent
+        general_window_w_px, // width px
+        general_window_h_px, // height px
+        LV_ALIGN_CENTER,   // alignment
+        0,                 // pos x
+        0,                 // pos y
+        true,              // show scrollbar
+        true               // enable scrolling
+    );
+
+    // GPGSV
+    gpgsv_c = create_gsv_panel(
+        gps_screen,        // parent
+        general_window_w_px, // width px
+        general_window_h_px, // height px
+        LV_ALIGN_CENTER,   // alignment
+        0,                 // pos x
+        0,                 // pos y
+        true,              // show scrollbar
+        true               // enable scrolling
+    );
+
+    // GLGSV
+    glgsv_c = create_gsv_panel(
+        gps_screen,        // parent
+        general_window_w_px, // width px
+        general_window_h_px, // height px
+        LV_ALIGN_CENTER,   // alignment
+        0,                 // pos x
+        0,                 // pos y
+        true,              // show scrollbar
+        true               // enable scrolling
+    );
+
+    // GAGSV
+    gagsv_c = create_gsv_panel(
+        gps_screen,        // parent
+        general_window_w_px, // width px
+        general_window_h_px, // height px
+        LV_ALIGN_CENTER,   // alignment
+        0,                 // pos x
+        0,                 // pos y
+        true,              // show scrollbar
+        true               // enable scrolling
+    );
+
+    // GBGSV
+    gbgsv_c = create_gsv_panel(
+        gps_screen,        // parent
+        general_window_w_px, // width px
+        general_window_h_px, // height px
+        LV_ALIGN_CENTER,   // alignment
+        0,                 // pos x
+        0,                 // pos y
+        true,              // show scrollbar
+        true               // enable scrolling
+    );
+
+    // GNSS Sky-Plot
+    gnss_skyplot_begin(
+        gps_screen,          // parent
+        general_window_w_px, // width px
+        general_window_h_px  // height px
+    );
+
+    // GPS Switch Panel 2: GSA/GPGSV/GLGSV/GAGSV/GBGSV/sky-plot -- kept in
+    // its own container beneath the data panel, separate from the
+    // original SatIO/GNGGA/GNRMC/GPATT row above it.
+    gps_switch_panel_2 = create_gps_switch_panel_2(
+        gps_screen,          // parent
+        450,                 // width px
+        general_panel_row_h_px, // height px
+        LV_ALIGN_BOTTOM_MID, // alignment
+        0,                   // pos x
+        -100,                 // pos y
+        false,               // show scrollbar
+        false                // enable scrolling
     );
 }
 
@@ -15444,6 +16131,18 @@ void update_display_lvgl()
             (current_gps_panel==2) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
         set_style_text_color_if_changed(gps_switch_panel.switch_gpatt_panel.label,
             (current_gps_panel==3) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel_2.switch_gngsa_panel.label,
+            (current_gps_panel==4) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel_2.switch_gpgsv_panel.label,
+            (current_gps_panel==5) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel_2.switch_glgsv_panel.label,
+            (current_gps_panel==6) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel_2.switch_gagsv_panel.label,
+            (current_gps_panel==7) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel_2.switch_gbgsv_panel.label,
+            (current_gps_panel==8) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
+        set_style_text_color_if_changed(gps_switch_panel_2.switch_gnss_skyplot_panel.label,
+            (current_gps_panel==9) ? main_style.color_on : main_style.color_off, LV_PART_MAIN);
 
         if (current_gps_panel == 0) {
             if (SatIO_c.panel) {
@@ -15451,6 +16150,12 @@ void update_display_lvgl()
                 lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
 
                 // Show
                 lv_obj_remove_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
@@ -15911,6 +16616,12 @@ void update_display_lvgl()
                 lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
                 // Show
                 lv_obj_remove_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
 
@@ -15942,6 +16653,12 @@ void update_display_lvgl()
                 lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
                 // Show
                 lv_obj_remove_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
 
@@ -15980,6 +16697,12 @@ void update_display_lvgl()
                 lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
                 // Show
                 lv_obj_remove_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
 
@@ -16025,6 +16748,145 @@ void update_display_lvgl()
 
                 set_label_text_if_changed(gpatt_c.val_bad_element_count, String(gpattData.total_bad_elements).c_str());
             }
+        }
+
+        else if (current_gps_panel==4) {
+            if (gngsa_c.panel) {
+                // Hide
+                lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
+                // Show
+                lv_obj_remove_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+
+                set_label_text_if_changed(gngsa_c.val_mode_selection, String(gngsaData.mode_selection).c_str());
+
+                set_label_text_if_changed(gngsa_c.val_fix_type, String(gngsaData.mode_fix_type).c_str());
+
+                {
+                    // Join the non-empty used-satellite-ID slots into one
+                    // readable list, rather than 12 mostly-empty rows.
+                    String satellites_used = "";
+                    const char * sat_ids[12] = {
+                        gngsaData.satellite_id_0, gngsaData.satellite_id_1, gngsaData.satellite_id_2,
+                        gngsaData.satellite_id_3, gngsaData.satellite_id_4, gngsaData.satellite_id_5,
+                        gngsaData.satellite_id_6, gngsaData.satellite_id_7, gngsaData.satellite_id_8,
+                        gngsaData.satellite_id_9, gngsaData.satellite_id_10, gngsaData.satellite_id_11
+                    };
+                    for (int i = 0; i < 12; i++) {
+                        if (sat_ids[i][0] != '\0') {
+                            if (satellites_used.length() > 0) {satellites_used += ", ";}
+                            satellites_used += sat_ids[i];
+                        }
+                    }
+                    set_label_text_if_changed(gngsa_c.val_satellites_used, satellites_used.c_str());
+                }
+
+                set_label_text_if_changed(gngsa_c.val_pdop, String(gngsaData.pdop).c_str());
+
+                set_label_text_if_changed(gngsa_c.val_hdop, String(gngsaData.hdop).c_str());
+
+                set_label_text_if_changed(gngsa_c.val_vdop, String(gngsaData.vdop).c_str());
+
+                set_label_text_if_changed(gngsa_c.val_bad_element_count, String(gngsaData.total_bad_elements).c_str());
+            }
+        }
+
+        else if (current_gps_panel==5) {
+            if (gpgsv_c.panel) {
+                // Hide
+                lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
+                // Show
+                lv_obj_remove_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+
+                sync_gsv_panel(&gpgsv_c, &gpgsvData);
+            }
+        }
+
+        else if (current_gps_panel==6) {
+            if (glgsv_c.panel) {
+                // Hide
+                lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
+                // Show
+                lv_obj_remove_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+
+                sync_gsv_panel(&glgsv_c, &glgsvData);
+            }
+        }
+
+        else if (current_gps_panel==7) {
+            if (gagsv_c.panel) {
+                // Hide
+                lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
+                // Show
+                lv_obj_remove_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+
+                sync_gsv_panel(&gagsv_c, &gagsvData);
+            }
+        }
+
+        else if (current_gps_panel==8) {
+            if (gbgsv_c.panel) {
+                // Hide
+                lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+                gnss_skyplot_set_visible(false);
+                // Show
+                lv_obj_remove_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+
+                sync_gsv_panel(&gbgsv_c, &gbgsvData);
+            }
+        }
+
+        else if (current_gps_panel==9) {
+            // Hide every tabulated panel; show the sky-plot instead.
+            lv_obj_add_flag(SatIO_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gngga_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gnrmc_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gpatt_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gngsa_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gpgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(glgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gagsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(gbgsv_c.panel, LV_OBJ_FLAG_HIDDEN);
+            gnss_skyplot_set_visible(true);
+            gnss_skyplot_update();
         }
     }
 

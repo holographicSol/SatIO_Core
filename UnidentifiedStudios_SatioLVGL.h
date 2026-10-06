@@ -265,6 +265,21 @@ typedef struct {
 } gps_switch_container_t;
 
 /** ---------------------------------------------------------------------------------------
+ * @brief GPS Switch Panel 2 Container Struct -- GSA/GSV/sky-plot tab buttons, kept in
+ * their own container (separate from gps_switch_container_t) and placed beneath the
+ * GPS screen's data panel rather than alongside the original SatIO/GNGGA/GNRMC/GPATT row.
+ */
+typedef struct {
+    lv_obj_t * panel;
+    button_t switch_gngsa_panel;
+    button_t switch_gpgsv_panel;
+    button_t switch_glgsv_panel;
+    button_t switch_gagsv_panel;
+    button_t switch_gbgsv_panel;
+    button_t switch_gnss_skyplot_panel;
+} gps_switch_container_2_t;
+
+/** ---------------------------------------------------------------------------------------
  * @brief GNGGA Container Struct
  */
 typedef struct {
@@ -562,6 +577,46 @@ typedef struct {
     // lv_obj_t * val_LMST_current_twilight_zone_end_time;
 
 } SatIO_container_t;
+
+/** ---------------------------------------------------------------------------------------
+ * @brief GNGSA Container Struct
+ */
+typedef struct {
+    lv_obj_t * panel;
+    lv_obj_t * lbl_mode_selection;
+    lv_obj_t * val_mode_selection;
+    lv_obj_t * lbl_fix_type;
+    lv_obj_t * val_fix_type;
+    lv_obj_t * lbl_satellites_used;
+    lv_obj_t * val_satellites_used;
+    lv_obj_t * lbl_pdop;
+    lv_obj_t * val_pdop;
+    lv_obj_t * lbl_hdop;
+    lv_obj_t * val_hdop;
+    lv_obj_t * lbl_vdop;
+    lv_obj_t * val_vdop;
+    lv_obj_t * lbl_bad_element_count;
+    lv_obj_t * val_bad_element_count;
+} gngsa_container_t;
+
+/** ---------------------------------------------------------------------------------------
+ * @brief GSV Container Struct -- shared by GPGSV/GLGSV/GAGSV/GBGSV (one instance per
+ * constellation: gpgsv_c/glgsv_c/gagsv_c/gbgsv_c), mirroring how GSVStruct itself is
+ * shared in UnidentifiedStudios_WTGPS300P.h. One row per satellite slot is pre-built;
+ * sync_gsv_panel() shows/hides each row per-refresh based on sat_valid[i].
+ */
+typedef struct {
+    lv_obj_t * panel;
+    lv_obj_t * lbl_satellites_in_view;
+    lv_obj_t * val_satellites_in_view;
+    lv_obj_t * lbl_total_messages;
+    lv_obj_t * val_total_messages;
+    lv_obj_t * row_sat[MAX_GSV_SATELLITES];
+    lv_obj_t * val_sat_id[MAX_GSV_SATELLITES];
+    lv_obj_t * val_sat_elevation[MAX_GSV_SATELLITES];
+    lv_obj_t * val_sat_azimuth[MAX_GSV_SATELLITES];
+    lv_obj_t * val_sat_snr[MAX_GSV_SATELLITES];
+} gsv_container_t;
 
 /** ---------------------------------------------------------------------------------------
  * @brief Gyro Container Struct
@@ -1202,6 +1257,63 @@ gpatt_container_t create_gpatt_panel(
 );
 
 /** -------------------------------------------------------------------------------------
+ * @brief Create GNGSA Panel Container.
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @return gngsa_container_t structure.
+ */
+gngsa_container_t create_gngsa_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create a GSV Panel Container (shared by GPGSV/GLGSV/GAGSV/GBGSV -- call once
+ * per constellation with that constellation's own gsv_container_t storage).
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @return gsv_container_t structure.
+ */
+gsv_container_t create_gsv_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Sync a GSV panel's labels from its constellation's GSVStruct data.
+ *
+ * @param c Panel container to update.
+ * @param data Source GSVStruct (gpgsvData/glgsvData/gagsvData/gbgsvData).
+ */
+void sync_gsv_panel(gsv_container_t * c, const GSVStruct * data);
+
+/** -------------------------------------------------------------------------------------
  * @brief Create GPS Switch Panel Container.
  *
  * @param parent Specify parent object.
@@ -1215,6 +1327,30 @@ gpatt_container_t create_gpatt_panel(
  * @return gps_switch_container_t structure.
  */
 gps_switch_container_t create_gps_switch_panel(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create GPS Switch Panel 2 Container (GSA/GSV/sky-plot tab buttons).
+ *
+ * @param parent Specify parent object.
+ * @param width_px Container width.
+ * @param height_px Container height.
+ * @param alignment Alignment on parent.
+ * @param pos_x Offset from alignment.
+ * @param pos_y Offset from alignment.
+ * @param show_scrollbar Show/hide scrollbar.
+ * @param enable_scrolling Enable/disable scrolling.
+ * @return gps_switch_container_2_t structure.
+ */
+gps_switch_container_2_t create_gps_switch_panel_2(
     lv_obj_t * parent,
     int32_t width_px,
     int32_t height_px,
