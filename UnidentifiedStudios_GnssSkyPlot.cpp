@@ -531,10 +531,18 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         return;
     }
 
-    if (skyplot_container != nullptr) {
-        lv_obj_delete(skyplot_container);
-        skyplot_container = nullptr;
-    }
+    // Do NOT lv_obj_delete(skyplot_container) here: it's a child of the GPS
+    // screen, and every display_*_screen() in this codebase loads its new
+    // screen with SCR_LOAD_ANIM_AUTO_DEL (GlobalLVGL.h), which already
+    // deletes the previous screen -- and everything under it -- the
+    // moment the user navigates away. By the time gnss_skyplot_begin()
+    // runs again, skyplot_container (and every pointer below that was
+    // parented under it: rings, markers, legend_grid, drift widgets, the
+    // target box/line) is already a dangling handle to freed memory;
+    // calling lv_obj_delete() on it is a use-after-free (this crashed with
+    // a Load access fault in lv_obj_get_parent on re-entering this
+    // screen). Just drop the stale pointer and recreate everything fresh.
+    skyplot_container = nullptr;
 
     SKYPLOT_WIDTH = width_px;
     SKYPLOT_HEIGHT = height_px;
