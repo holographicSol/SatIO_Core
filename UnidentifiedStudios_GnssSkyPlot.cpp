@@ -146,8 +146,14 @@ static constexpr int32_t AXIS_MARGIN = 20;
 static constexpr int32_t RING_STEP_DEG = 30;
 
 // Azimuth labels every N degrees, standing off outside the horizon ring.
-static constexpr int32_t AZIMUTH_LABEL_STEP_DEG = 30;
+static constexpr int32_t AZIMUTH_LABEL_STEP_DEG = 15;
 static constexpr int32_t AZIMUTH_LABEL_STANDOFF = 10;
+
+// Radial azimuth spokes, horizon ring to center, every N degrees.
+// lv_line keeps a pointer to its points, so storage must be static.
+static constexpr int32_t AZIMUTH_SPOKE_STEP_DEG = 15;
+static constexpr int32_t AZIMUTH_SPOKE_COUNT    = 360 / AZIMUTH_SPOKE_STEP_DEG;
+static lv_point_precise_t azimuth_spoke_points[AZIMUTH_SPOKE_COUNT][2];
 
 // Shifts the sat-plot circle (and everything derived from SKYPLOT_CENTER_X:
 // rings, markers, azimuth labels) left within the container, and the
@@ -165,18 +171,33 @@ static constexpr int32_t DRIFT_RING_COUNT        = 4;
 static constexpr float   DRIFT_RING_STEP_MIN_M   = 0.5f;
 static constexpr float   DRIFT_RING_MAX_RADIUS_M = 10.0f;
 static constexpr int32_t DRIFT_PLOT_RADIUS_PX    = 65;
-static constexpr int32_t DRIFT_PLOT_CENTER_X     = 81;
 static constexpr int32_t DRIFT_PLOT_CENTER_Y     = 79;
+
+// DOP readout grid (DOP | Value), left of the drift plot, same cell style
+// as the constellation legend. The plot is shifted right by its width.
+static constexpr int32_t DOP_ROWS        = 4; // header + PDOP/HDOP/VDOP
+static constexpr int32_t DOP_COL_NAME_W  = 50;
+static constexpr int32_t DOP_COL_VALUE_W = 52;
+static constexpr int32_t DOP_GRID_WIDTH  = DOP_COL_NAME_W + DOP_COL_VALUE_W;
+static constexpr int32_t DOP_GRID_HEIGHT = DOP_ROWS * LEGEND_ROW_HEIGHT;
+static constexpr int32_t DOP_GRID_GAP    = 6;
+static constexpr int32_t DRIFT_PLOT_CENTER_X = 81 + DOP_GRID_WIDTH + DOP_GRID_GAP;
+static int32_t dop_col_dsc[3]; // 2 columns + LV_GRID_TEMPLATE_LAST
+static int32_t dop_row_dsc[DOP_ROWS + 1];
 static constexpr int32_t DRIFT_DOT_RADIUS        = 4;
 static constexpr int32_t DRIFT_RING_HALO_RADIUS  = 9; // blue halo ring around the current-position dot
 static constexpr double  DRIFT_METERS_PER_DEGREE_LAT = 111320.0; // equirectangular approximation, fine at this (<=10m) scale
 
 // legend_container / drift_track_container placement within skyplot_container.
 static constexpr int32_t SIDE_PANEL_X_OFFSET        = 50;
-static constexpr int32_t DRIFT_CLEAR_BUTTON_Y       = DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 60;
+// Clear button sits directly above the DOP grid, matching its width.
+static constexpr int32_t DOP_GRID_Y                 = DRIFT_PLOT_CENTER_Y - (DOP_GRID_HEIGHT / 2);
 static constexpr int32_t DRIFT_CLEAR_BUTTON_H       = 26;
-static constexpr int32_t DRIFT_TRACK_CONTAINER_W    = DRIFT_PLOT_CENTER_X * 2;
-static constexpr int32_t DRIFT_TRACK_CONTAINER_H    = DRIFT_CLEAR_BUTTON_Y + DRIFT_CLEAR_BUTTON_H;
+static constexpr int32_t DRIFT_CLEAR_BUTTON_GAP     = 4;
+static constexpr int32_t DRIFT_CLEAR_BUTTON_Y       = DOP_GRID_Y - DRIFT_CLEAR_BUTTON_H - DRIFT_CLEAR_BUTTON_GAP;
+static_assert(DRIFT_CLEAR_BUTTON_Y >= 0, "Clear button would sit above drift_track_container");
+static constexpr int32_t DRIFT_TRACK_CONTAINER_W    = DRIFT_PLOT_CENTER_X + 81;
+static constexpr int32_t DRIFT_TRACK_CONTAINER_H    = DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + DRIFT_RING_HALO_RADIUS;
 
 static const lv_color_t COLOR_GPS     = lv_color_make(60, 140, 255); // blue
 static const lv_color_t COLOR_GLONASS = lv_color_make(230, 60, 60);  // red
@@ -637,12 +658,34 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
         }
     }
 
+    // Radial azimuth spokes, from the horizon ring to the center (same
+    // 0=up/north, clockwise convention as the labels and markers).
+    for (int32_t i = 0; i < AZIMUTH_SPOKE_COUNT; i++) {
+        const float rad = deg2rad(static_cast<float>(i * AZIMUTH_SPOKE_STEP_DEG));
+        azimuth_spoke_points[i][0].x = skymap_center_x;
+        azimuth_spoke_points[i][0].y = skymap_center_y;
+        azimuth_spoke_points[i][1].x = skymap_center_x + static_cast<int32_t>(lroundf(static_cast<float>(SKYPLOT_MAX_RADIUS) * sinf(rad)));
+        azimuth_spoke_points[i][1].y = skymap_center_y - static_cast<int32_t>(lroundf(static_cast<float>(SKYPLOT_MAX_RADIUS) * cosf(rad)));
+
+        lv_obj_t * const spoke = lv_line_create(satellite_skymap_container);
+        lv_obj_set_style_line_color(spoke, lv_color_make(80, 80, 80), 0);
+        lv_obj_set_style_line_width(spoke, 1, 0);
+        lv_obj_remove_flag(spoke, LV_OBJ_FLAG_CLICKABLE);
+        set_line_points_local(spoke, azimuth_spoke_points[i], 2);
+    }
+
     // Azimuth labels, standing off outside the horizon ring, every
     // AZIMUTH_LABEL_STEP_DEG degrees (0=up/north, clockwise, matching the
     // marker position convention in gnss_skyplot_update()).
     for (int32_t az = 0; az < 360; az += AZIMUTH_LABEL_STEP_DEG) {
         char az_buf[8];
-        snprintf(az_buf, sizeof(az_buf), "%d", static_cast<int>(az));
+        switch (az) {
+            case 0:   snprintf(az_buf, sizeof(az_buf), "N"); break;
+            case 90:  snprintf(az_buf, sizeof(az_buf), "E"); break;
+            case 180: snprintf(az_buf, sizeof(az_buf), "S"); break;
+            case 270: snprintf(az_buf, sizeof(az_buf), "W"); break;
+            default:  snprintf(az_buf, sizeof(az_buf), "%d", static_cast<int>(az)); break;
+        }
 
         lv_obj_t * const az_label = lv_label_create(satellite_skymap_container);
         lv_obj_set_style_text_font(az_label, &main_style.value_1.font, LV_PART_MAIN);
@@ -797,30 +840,44 @@ void gnss_skyplot_begin(lv_obj_t * parent, int32_t width_px, int32_t height_px) 
     lv_obj_remove_flag(drift_current_ring, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_flag(drift_current_ring, LV_OBJ_FLAG_HIDDEN);
 
-    // PDOP/HDOP/VDOP readout + Clear button, stacked below the drift circle.
-    drift_pdop_label = lv_label_create(drift_track_container);
-    lv_obj_set_style_text_font(drift_pdop_label, &main_style.value_1.font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(drift_pdop_label, lv_color_make(200, 200, 200), LV_PART_MAIN);
-    lv_obj_remove_flag(drift_pdop_label, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_pos(drift_pdop_label, 4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 6);
+    // PDOP/HDOP/VDOP readout grid, vertically centered on the drift plot.
+    {
+        dop_col_dsc[0] = DOP_COL_NAME_W;
+        dop_col_dsc[1] = DOP_COL_VALUE_W;
+        dop_col_dsc[2] = LV_GRID_TEMPLATE_LAST;
+        for (int32_t row = 0; row < DOP_ROWS; row++) {
+            dop_row_dsc[row] = LEGEND_ROW_HEIGHT;
+        }
+        dop_row_dsc[DOP_ROWS] = LV_GRID_TEMPLATE_LAST;
 
-    drift_hdop_label = lv_label_create(drift_track_container);
-    lv_obj_set_style_text_font(drift_hdop_label, &main_style.value_1.font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(drift_hdop_label, lv_color_make(200, 200, 200), LV_PART_MAIN);
-    lv_obj_remove_flag(drift_hdop_label, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_pos(drift_hdop_label, 4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 22);
+        lv_obj_t * const dop_grid = lv_obj_create(drift_track_container);
+        lv_obj_remove_style_all(dop_grid);
+        lv_obj_set_size(dop_grid, DOP_GRID_WIDTH, DOP_GRID_HEIGHT);
+        lv_obj_set_pos(dop_grid, 0, DOP_GRID_Y);
+        lv_obj_set_layout(dop_grid, LV_LAYOUT_GRID);
+        lv_obj_set_style_grid_column_dsc_array(dop_grid, dop_col_dsc, LV_PART_MAIN);
+        lv_obj_set_style_grid_row_dsc_array(dop_grid, dop_row_dsc, LV_PART_MAIN);
+        lv_obj_remove_flag(dop_grid, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_remove_flag(dop_grid, LV_OBJ_FLAG_CLICKABLE);
 
-    drift_vdop_label = lv_label_create(drift_track_container);
-    lv_obj_set_style_text_font(drift_vdop_label, &main_style.value_1.font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(drift_vdop_label, lv_color_make(200, 200, 200), LV_PART_MAIN);
-    lv_obj_remove_flag(drift_vdop_label, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_pos(drift_vdop_label, 4, DRIFT_PLOT_CENTER_Y + DRIFT_PLOT_RADIUS_PX + 38);
+        const lv_color_t header_color = lv_color_make(150, 150, 150);
+        const lv_color_t value_color  = lv_color_make(200, 200, 200);
+        create_legend_cell(dop_grid, 0, 0, "DOP", header_color, LV_TEXT_ALIGN_LEFT, true, true);
+        create_legend_cell(dop_grid, 1, 0, "Value", header_color, LV_TEXT_ALIGN_CENTER, false, true);
+
+        create_legend_cell(dop_grid, 0, 1, "PDOP", value_color, LV_TEXT_ALIGN_LEFT, true, false);
+        create_legend_cell(dop_grid, 0, 2, "HDOP", value_color, LV_TEXT_ALIGN_LEFT, true, false);
+        create_legend_cell(dop_grid, 0, 3, "VDOP", value_color, LV_TEXT_ALIGN_LEFT, true, false);
+        drift_pdop_label = create_legend_cell(dop_grid, 1, 1, "", value_color, LV_TEXT_ALIGN_CENTER, false, false);
+        drift_hdop_label = create_legend_cell(dop_grid, 1, 2, "", value_color, LV_TEXT_ALIGN_CENTER, false, false);
+        drift_vdop_label = create_legend_cell(dop_grid, 1, 3, "", value_color, LV_TEXT_ALIGN_CENTER, false, false);
+    }
 
     drift_clear_button = create_button(
         drift_track_container,
-        70, DRIFT_CLEAR_BUTTON_H,
-        LV_ALIGN_TOP_LEFT,
-        4, DRIFT_CLEAR_BUTTON_Y,
+        DOP_GRID_WIDTH-20, DRIFT_CLEAR_BUTTON_H,
+        LV_ALIGN_TOP_MID,
+        0, DRIFT_CLEAR_BUTTON_Y,
         "Clear"
     );
     lv_obj_add_event_cb(drift_clear_button.button, drift_clear_click_cb, LV_EVENT_CLICKED, nullptr);
@@ -1004,12 +1061,8 @@ void gnss_skyplot_update(void) {
             drift_plot_rescale_and_rebuild();
         }
 
-        char dop_buf[64];
-        snprintf(dop_buf, sizeof(dop_buf), "PDOP %s", gngsaData.pdop);
-        set_label_text_if_changed(drift_pdop_label, dop_buf);
-        snprintf(dop_buf, sizeof(dop_buf), "HDOP %s", gngsaData.hdop);
-        set_label_text_if_changed(drift_hdop_label, dop_buf);
-        snprintf(dop_buf, sizeof(dop_buf), "VDOP %s", gngsaData.vdop);
-        set_label_text_if_changed(drift_vdop_label, dop_buf);
+        set_label_text_if_changed(drift_pdop_label, gngsaData.pdop);
+        set_label_text_if_changed(drift_hdop_label, gngsaData.hdop);
+        set_label_text_if_changed(drift_vdop_label, gngsaData.vdop);
     }
 }
