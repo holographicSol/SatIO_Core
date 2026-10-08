@@ -280,6 +280,30 @@ typedef struct {
 } gps_switch_container_2_t;
 
 /** ---------------------------------------------------------------------------------------
+ * @brief GPS Switch Panel 3 Container Struct -- CONFIG tab button (bottom mid).
+ */
+typedef struct {
+    lv_obj_t * panel;
+    button_t switch_gps_config_panel;
+} gps_switch_container_3_t;
+
+/** ---------------------------------------------------------------------------------------
+ * @brief GPS Config Panel Container Struct -- WTGPS300P module settings.
+ */
+typedef struct {
+    lv_obj_t * panel;
+    lv_obj_t * lbl_title;
+    lv_obj_t * lbl_gsv;
+    button_t btn_gsv_on;
+    button_t btn_gsv_off;
+    lv_obj_t * lbl_rate;
+    button_t btn_rate_1hz;
+    button_t btn_rate_5hz;
+    button_t btn_rate_10hz;
+    button_t btn_rate_20hz;
+} gps_config_container_t;
+
+/** ---------------------------------------------------------------------------------------
  * @brief GNGGA Container Struct
  */
 typedef struct {
@@ -1351,6 +1375,34 @@ gps_switch_container_t create_gps_switch_panel(
  * @return gps_switch_container_2_t structure.
  */
 gps_switch_container_2_t create_gps_switch_panel_2(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create GPS Switch Panel 3 Container (CONFIG tab button).
+ */
+gps_switch_container_3_t create_gps_switch_panel_3(
+    lv_obj_t * parent,
+    int32_t width_px,
+    int32_t height_px,
+    lv_align_t alignment,
+    int32_t pos_x,
+    int32_t pos_y,
+    bool show_scrollbar,
+    bool enable_scrolling
+);
+
+/** -------------------------------------------------------------------------------------
+ * @brief Create GPS Config Panel Container (WTGPS300P GSV + return rate).
+ */
+gps_config_container_t create_gps_config_panel(
     lv_obj_t * parent,
     int32_t width_px,
     int32_t height_px,

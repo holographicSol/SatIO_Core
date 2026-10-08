@@ -540,6 +540,15 @@ static void PrintHelp(void) {
       gyro --calmag-start  Begin calibrating the magnetometer.
       gyro --calmag-end    End calibrating the magnetometer.
 
+  [ GPS ]
+
+      gps --log01hz  Set WTGPS300P output rate to 1Hz.
+      gps --log05hz  Set WTGPS300P output rate to 5Hz.
+      gps --log10hz  Set WTGPS300P output rate to 10Hz.
+      gps --log20hz  Set WTGPS300P output rate to 20Hz.
+      gps --loggsv   Enable WTGPS300P GPGSV output.
+      gps --unloggsv Disable WTGPS300P GPGSV output.
+
   [ SDCard ] (currently disabled)
 
       sdcard --mount
@@ -1525,6 +1534,17 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "calmag-start") == true) {WT901CalMagStart();}
           else if (argparser_has_flag(&parser, "calmag-stop") == true) {WT901CalMagEnd();}
           else { /* no more options */ }
+        }
+        // gps
+        else if (strcmp(pos[0], "gps")==0) {
+          if (argparser_has_flag(&parser, "log01hz") == true) {wtgps300P_log01Hz(500);}
+          else if (argparser_has_flag(&parser, "log05hz") == true) {wtgps300P_log05Hz(500);}
+          else if (argparser_has_flag(&parser, "log10hz") == true) {wtgps300P_log10Hz(500);}
+          else if (argparser_has_flag(&parser, "log20hz") == true) {wtgps300P_log20Hz(500);}
+          else { /* no rate option */ }
+          if (argparser_has_flag(&parser, "loggsv") == true) {wtgps300P_logGSV(500);}
+          else if (argparser_has_flag(&parser, "unloggsv") == true) {wtgps300P_unlogGSV(500);}
+          else { /* no gsv option */ }
         }
         // admplex0
         else if (strcmp(pos[0], "admplex0")==0) {

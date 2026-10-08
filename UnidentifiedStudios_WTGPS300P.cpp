@@ -692,13 +692,42 @@ static char *nextCsvField(char *str)
     return start;
 }
 
+int wtgps300P_rate_hz = 0;
+bool wtgps300P_gsv_enabled = false;
+
+void wtgps300P_log01Hz(int msDelay) {
+    Serial1.println("log g01hz");
+    wtgps300P_rate_hz = 1;
+    delay(msDelay);
+}
+
+void wtgps300P_log05Hz(int msDelay) {
+    Serial1.println("log g05hz");
+    wtgps300P_rate_hz = 5;
+    delay(msDelay);
+}
+
 void wtgps300P_log10Hz(int msDelay) {
     Serial1.println("log g10hz");
+    wtgps300P_rate_hz = 10;
+    delay(msDelay);
+}
+
+void wtgps300P_log20Hz(int msDelay) {
+    Serial1.println("log g20hz");
+    wtgps300P_rate_hz = 20;
     delay(msDelay);
 }
 
 void wtgps300P_logGSV(int msDelay) {
     Serial1.println("log gpgsv");
+    wtgps300P_gsv_enabled = true;
+    delay(msDelay);
+}
+
+void wtgps300P_unlogGSV(int msDelay) {
+    Serial1.println("unlog gpgsv");
+    wtgps300P_gsv_enabled = false;
     delay(msDelay);
 }
 
