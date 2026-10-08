@@ -414,12 +414,9 @@ extern "C" void app_main(void)
     printf("Serial1 baud rate: %lu\n", (unsigned long)gps_uart_baud_rate);
     printf("Serial1 hardware remap: RX=%d TX=%d\n", gps_uart_rxd_pin, gps_uart_txd_pin);
     // set return rate to 10Hz
-    Serial1.println("log g10hz");
-    delay(500);
+    wtgps300P_log10Hz(500);
     // enable GSV (satellite constellations data and satellite positions in the sky)
-    Serial1.println("log gpgsv");
-    delay(500);
-    // Serial1.println("log gpgsv ontime 1");
+    wtgps300P_logGSV(500);
 
     #endif
     // Full ~0-3.3V input range; applies to every ADC channel.

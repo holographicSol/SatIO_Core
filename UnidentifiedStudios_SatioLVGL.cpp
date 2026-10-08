@@ -15258,7 +15258,7 @@ void display_gps_screen()
     // original SatIO/GNGGA/GNRMC/GPATT row above it.
     gps_switch_panel_2 = create_gps_switch_panel_2(
         gps_screen,          // parent
-        450,                 // width px
+        500,                 // width px
         general_panel_row_h_px, // height px
         LV_ALIGN_BOTTOM_MID, // alignment
         0,                   // pos x

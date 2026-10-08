@@ -692,6 +692,16 @@ static char *nextCsvField(char *str)
     return start;
 }
 
+void wtgps300P_log10Hz(int msDelay) {
+    Serial1.println("log g10hz");
+    delay(msDelay);
+}
+
+void wtgps300P_logGSV(int msDelay) {
+    Serial1.println("log gpgsv");
+    delay(msDelay);
+}
+
 typedef bool (*GpsFieldValidator)(const char *data);
 
 /*

@@ -687,4 +687,14 @@ bool readGPS(void);
  */
 bool validateGPSData(void);
 
+/**
+ * Commands WTGPS300P to transmit at 10Hz.
+ */
+void wtgps300P_log10Hz(int msDelay);
+
+/**
+ * Commands WTGPS300P to transmit GSV data.
+ */
+void wtgps300P_logGSV(int msDelay);
+
 #endif
