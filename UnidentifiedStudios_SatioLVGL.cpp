@@ -1592,6 +1592,21 @@ void btn_gps_config_rate_event_cb(lv_event_t * e)
 }
 
 /** -------------------------------------------------------------------------------------
+ * @brief GPS config: restart. user_data = 0 (hot), 1 (warm), 2 (cold).
+ */
+void btn_gps_config_restart_event_cb(lv_event_t * e)
+{
+    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
+        switch ((intptr_t)lv_event_get_user_data(e)) {
+            case 0:  wtgps300P_hotStart(0); break;
+            case 1:  wtgps300P_warmStart(0); break;
+            case 2:  wtgps300P_coldStart(0); break;
+            default: break;
+        }
+    }
+}
+
+/** -------------------------------------------------------------------------------------
  * @brief Event callback.
  *
  * @param e Pointer to the LVGL event structure.
@@ -2650,6 +2665,34 @@ gps_config_container_t create_gps_config_panel(
         *(rates[i].btn) = create_button(row_rate, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0, rates[i].text);
         lv_obj_add_event_cb(rates[i].btn->button, btn_gps_config_rate_event_cb, LV_EVENT_CLICKED, (void *)rates[i].hz);
         lv_obj_set_size(rates[i].btn->panel, obj_w_1, obj_height);
+    }
+
+    /* ---------------------------------------------------------- */
+    /* Row Restart                                                */
+    /* ---------------------------------------------------------- */
+    lv_obj_t * row_restart = create_row(result.panel, sub_row_width, sub_row_height, false, false);
+    lv_obj_set_style_pad_column(row_restart, col_gap, LV_PART_MAIN);
+
+    obj_w_1 = (btn_space - (col_gap*3)) / 3;
+
+    result.lbl_restart = create_label(
+        row_restart, obj_w_0, obj_height, LV_ALIGN_CENTER, 0, 0,
+        "Restart", LV_TEXT_ALIGN_CENTER, &main_style.subtitle_1.font,
+        false, main_style.title_1.radius_square, 1,
+        main_style.title_1.color_bg, main_style.subtitle_1.color_font
+    );
+    lv_obj_set_size(result.lbl_restart, obj_w_0, obj_height);
+
+    struct RestartBtnSpec { button_t * btn; const char * text; intptr_t mode; };
+    const RestartBtnSpec restarts[] = {
+        { &result.btn_restart_hot,  "HOT",  0 },
+        { &result.btn_restart_warm, "WARM", 1 },
+        { &result.btn_restart_cold, "COLD", 2 },
+    };
+    for (size_t i = 0; i < (sizeof(restarts) / sizeof(restarts[0])); i++) {
+        *(restarts[i].btn) = create_button(row_restart, obj_w_1, obj_height, LV_ALIGN_CENTER, 0, 0, restarts[i].text);
+        lv_obj_add_event_cb(restarts[i].btn->button, btn_gps_config_restart_event_cb, LV_EVENT_CLICKED, (void *)restarts[i].mode);
+        lv_obj_set_size(restarts[i].btn->panel, obj_w_1, obj_height);
     }
 
     return result;

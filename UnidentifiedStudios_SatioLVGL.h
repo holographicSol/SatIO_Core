@@ -301,6 +301,10 @@ typedef struct {
     button_t btn_rate_5hz;
     button_t btn_rate_10hz;
     button_t btn_rate_20hz;
+    lv_obj_t * lbl_restart;
+    button_t btn_restart_hot;
+    button_t btn_restart_warm;
+    button_t btn_restart_cold;
 } gps_config_container_t;
 
 /** ---------------------------------------------------------------------------------------

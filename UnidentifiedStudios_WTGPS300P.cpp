@@ -731,6 +731,22 @@ void wtgps300P_unlogGSV(int msDelay) {
     delay(msDelay);
 }
 
+// Airoha AG3335A chip-level restarts (PAIR). Each clears the current fix.
+void wtgps300P_hotStart(int msDelay) {
+    Serial1.println("$PAIR004*3E");
+    delay(msDelay);
+}
+
+void wtgps300P_warmStart(int msDelay) {
+    Serial1.println("$PAIR005*3F");
+    delay(msDelay);
+}
+
+void wtgps300P_coldStart(int msDelay) {
+    Serial1.println("$PAIR006*3C");
+    delay(msDelay);
+}
+
 typedef bool (*GpsFieldValidator)(const char *data);
 
 /*

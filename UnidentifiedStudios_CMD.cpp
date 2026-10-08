@@ -548,6 +548,9 @@ static void PrintHelp(void) {
       gps --log20hz  Set WTGPS300P output rate to 20Hz.
       gps --loggsv   Enable WTGPS300P GPGSV output.
       gps --unloggsv Disable WTGPS300P GPGSV output.
+      gps --hot-start   Hot restart WTGPS300P (clears the current fix).
+      gps --warm-start  Warm restart WTGPS300P (clears the current fix).
+      gps --cold-start  Cold restart WTGPS300P (clears the current fix).
 
   [ SDCard ] (currently disabled)
 
@@ -1545,6 +1548,10 @@ void CmdProcess(void) {
           if (argparser_has_flag(&parser, "loggsv") == true) {wtgps300P_logGSV(500);}
           else if (argparser_has_flag(&parser, "unloggsv") == true) {wtgps300P_unlogGSV(500);}
           else { /* no gsv option */ }
+          if (argparser_has_flag(&parser, "hot-start") == true) {wtgps300P_hotStart(500);}
+          else if (argparser_has_flag(&parser, "warm-start") == true) {wtgps300P_warmStart(500);}
+          else if (argparser_has_flag(&parser, "cold-start") == true) {wtgps300P_coldStart(500);}
+          else { /* no restart option */ }
         }
         // admplex0
         else if (strcmp(pos[0], "admplex0")==0) {

@@ -717,6 +717,21 @@ void wtgps300P_logGSV(int msDelay);
  */
 void wtgps300P_unlogGSV(int msDelay);
 
+/**
+ * Commands WTGPS300P hot restart ($PAIR004).
+ */
+void wtgps300P_hotStart(int msDelay);
+
+/**
+ * Commands WTGPS300P warm restart ($PAIR005).
+ */
+void wtgps300P_warmStart(int msDelay);
+
+/**
+ * Commands WTGPS300P cold restart ($PAIR006).
+ */
+void wtgps300P_coldStart(int msDelay);
+
 /** Last commanded return rate in Hz (0 = not yet commanded). */
 extern int wtgps300P_rate_hz;
 /** Last commanded GSV output state. */
